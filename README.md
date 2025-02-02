@@ -1,6 +1,6 @@
 𝗣𝗮𝗽𝗲𝗿 𝗠𝗮𝗿𝗶𝗼: 𝗗𝗼𝘄𝗻 𝗕𝗮𝗱 𝗘𝗱𝗶𝘁𝗶𝗼𝗻
 
-![DownBadEditionNew](https://github.com/user-attachments/assets/c122a420-6b09-4b79-9853-1ea3d8b80b71)
+![DownBadEditionNew](https://github.com/user-attachments/assets/5f6be9fa-608a-40b7-84fc-a6b7dfa5577a)
 
 A young Goombarius, a Goomba wearing a red hat is searching for love. It's up to a contemplating Mario and a wide cast of friends to help Goombarius get a girl. Welcome to the most bizarre Paper Mario hack yet featuring remixed levels and various content from previous PM64 hacks.
 
