@@ -1,0 +1,138 @@
+%Koopa Koot is fought at Crystal Palace, so we're going
+%to remove any mention of him here.
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000001 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]What a dilapidated house! The door[BR]
+doesn't look remotely usable...[BR]
+[Wait][Next]
+Just think of the secret base you[BR]
+could have with just a little work.[BR]
+[Pause 18]Okay, maybe a lot of work.[BR]
+[Wait][End]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:entry0 %  -150.0  -300.0  70.0  -360.0
+}
+
+
+#new:Script_Main $Script_Main
+{
+	%Set      *WorldMapLocation 0000000A % sets the location on the pause screen map
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  8`  8`  8` ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:DBE_Prologue 00000000 00000008 )
+	Call     MakeNpcs       ( 00000001 $NpcGroups_KMR_33 )
+	ExecWait $Script_MakeEntities 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+	
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity			( .Entity:HiddenPanel ~Vec4d:panel ~Model:panelmodel 80000000 )
+	Call	 AssignPanelFlag 	( *GF_KMR33_Panel )
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:itemblock .Item:SuperShroom 80000000 )
+	Call     AssignBlockFlag 	( *GF_KMR33_HammerMan )
+	Return
+	End
+}
+	 
+#new:NpcGroupList $NpcGroups_KMR_33
+{
+00000001 $NPC_Chomp 00030000
+00000000 00000000 00000000	
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000
+}
+
+#new:NpcGroup $NPC_Chomp
+{
+00000001 $NpcSettings_Chomp ~Vec3f:chomp
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:20:SuperShroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:chomp
+00260001 00260002 00260003 00260003 00260001 00260001 00260005 00260005 
+00260003 00260003 00260003 00260003 00260003 00260003 00260003 00260003  
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Chomp
+{
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+}
+
+
+#new:Script $Script_ChompAI
+{
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+}
+	 
+#new:AISettings $AISettings_Chomp
+{
+    2.6 % move speed
+    60` % move time
+    30` % wait time
+   80.0 % alert radius
+    0.0
+    5`
+    3.6 % chase speed
+    60`
+    15`
+  100.0 % chase radius
+    0.0
+    1`
+}
+	 
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:Entry1 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_34" 00000001 )
+	Wait     00000064 
+	Return
+	End	
+}
+

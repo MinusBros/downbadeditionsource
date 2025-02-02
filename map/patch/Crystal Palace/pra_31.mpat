@@ -1,0 +1,369 @@
+#define .NpcID:AlbinoDino_00        00
+#define .NpcID:AlbinoDino_01        01
+#define .NpcID:AlbinoDino_02        02
+#import EnterViaPipe.mpat
+
+@	$EntryList
+{
+	~Vec4f:Entry0 %   13.0    0.0   70.0   90.0
+	~Vec4f:Entry1 %  487.0   50.0   13.0  270.0
+	~Vec4f:Entry2 %   13.0    0.0  -70.0   90.0
+	~Vec4f:Entry3 %  470.0   10.0 -223.0   90.0
+}
+
+@	$Header
+{
+	[EntryCount]  00000004
+}
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:CrystalPalace
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  24`  24`  40` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_802420A4 )
+   98:  ExecWait  $Script_8024321C
+		ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_80241120
+   B0:  Exec  $Script_80242340
+   BC:  Wait  1`
+   C8:  Return
+   D0:  End
+}
+
+
+#new:Script  $Script_MakeEntities
+{
+  	If  *GF_Chapter7_BluePipeC == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_UseBluePipe ~Index:*GF_Chapter7_BluePipeC 80000000 )
+  134:  Return
+  13C:  End
+}
+
+@	$Script_80242340
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Set   *Var2  $???_802420C0
+   38:  		Set   *Var3  $???_802420C8
+   48:  	Case  ==  ~Entry:Entry1
+   54:  		Set   *Var2  $???_802420D0
+   64:  		Set   *Var3  $???_802420D8
+   74:  	Case  ==  ~Entry:Entry2
+   80:  		Set   *Var2  $???_802420E0
+   90:  		Set   *Var3  $???_802420E8
+			Case  ==  ~Entry:Entry3
+				Set   *VarA  $Script_802422DC
+				Exec  $Script_EnterVerticalPipe
+				Wait  1`
+				Return
+   A0:  EndSwitch
+   A8:  ExecWait  BaseEnterDoor
+   B4:  Exec  $Script_802422DC
+   C0:  Return
+   C8:  End
+}
+
+
+%We get it, Dinos, we gotta solve the puzzle.
+
+@	$Script_802414BC
+{
+    0:  Call  $Function_80240410 ( )
+    C:  Switch  *Var0
+   18:  	Case  0000002D  to  00000086
+   28:  		Set   *Var5  0000005A
+   38:  		Set   *Var6  004F0000
+   48:  		Set   *VarA  0000005A
+   58:  	Case  00000087  to  000000E0
+   68:  		Set   *Var5  000000B4
+   78:  		Set   *Var6  004F0001
+   88:  		Set   *VarA  0000010E
+   98:  	Case  000000E1  to  0000013A
+   A8:  		Set   *Var5  0000010E
+   B8:  		Set   *Var6  004F0000
+   C8:  		Set   *VarA  0000010E
+   D8:  	Default
+   E0:  		Set   *Var5  00000000
+   F0:  		Set   *Var6  004F0002
+  100:  		Set   *VarA  0000010E
+  110:  EndSwitch
+  118:  Switch  *Var3
+  124:  	Case  ==  00000000
+  130:  		Set   *Var0  *MapVar[3]
+  140:  	Case  ==  00000001
+  14C:  		Set   *Var0  *MapVar[4]
+  15C:  	Case  ==  00000002
+  168:  		Set   *Var0  *MapVar[5]
+  178:  EndSwitch
+  180:  If  *Var5  !=  *Var0
+  190:  	Thread
+  198:  		Call  $Function_80240468 ( )
+  1A4:  		Call  MakeLerp  ( *Var6 *Var7 *Var8 .Easing:Linear )
+  1C0:  		Loop
+  1CC:  			Call  UpdateLerp ( )
+  1D8:  			Switch  *Var3
+  1E4:  				Case  ==  00000000
+  1F0:  					Set   *MapVar[6]  *Var0
+  200:  				Case  ==  00000001
+  20C:  					Set   *MapVar[7]  *Var0
+  21C:  				Case  ==  00000002
+  228:  					Set   *MapVar[8]  *Var0
+  238:  			EndSwitch
+  240:  			Wait  1`
+  24C:  			If  *Var1  ==  00000000
+  25C:  				BreakLoop
+  264:  			EndIf
+  26C:  		EndLoop
+  274:  	EndThread
+  27C:  	Call  PlaySoundAtNpc    ( .Npc:Self 000001ED 00000000 )
+  294:  	Switch  *Var5
+  2A0:  		CaseOR  ==  0000005A
+  2AC:  		CaseOR  ==  0000010E
+  2B8:  			Call  MakeLerp  ( 00000000 0000021C 0000001E .Easing:Linear )
+  2D4:  			Loop
+  2E0:  				Call  UpdateLerp ( )
+  2EC:  				Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+  308:  				Wait  1`
+  314:  				If  *Var1  ==  00000000
+  324:  					BreakLoop
+  32C:  				EndIf
+  334:  			EndLoop
+  33C:  			Call  SetNpcRotation    ( .Npc:Self 00000000 00000000 00000000 )
+  358:  			Call  SetNpcYaw ( .Npc:Self *VarA )
+  36C:  		Default
+  374:  			Thread
+  37C:  				Wait  10`
+  388:  				Call  SetNpcYaw ( .Npc:Self *VarA )
+  39C:  			EndThread
+  3A4:  			Call  MakeLerp  ( 00000000 00000168 00000014 .Easing:Linear )
+  3C0:  			Loop
+  3CC:  				Call  UpdateLerp ( )
+  3D8:  				Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+  3F4:  				Wait  1`
+  400:  				If  *Var1  ==  00000000
+  410:  					BreakLoop
+  418:  				EndIf
+  420:  			EndLoop
+  428:  	EndSwitch
+  430:  EndIf
+  438:  Call  SetNpcAnimation   ( .Npc:Self *Var6 )
+  44C:  Switch  *Var3
+  458:  	Case  ==  00000000
+  464:  		Set   *MapVar[3]  *Var5
+  474:  	Case  ==  00000001
+  480:  		Set   *MapVar[4]  *Var5
+  490:  	Case  ==  00000002
+  49C:  		Set   *MapVar[5]  *Var5
+  4AC:  EndSwitch
+  4B4:  Call  $Function_80240818    ( *Var3 *Var5 )
+  4E8:  Return
+  4F0:  End
+}
+
+%Finished puzzle.
+%Albino Dinos will speak to you before starting a boss battle.
+@	$Script_80242570
+{
+    0:  Loop
+    C:  	If  *MapVar[1]  ==  00000001
+   1C:  		BreakLoop
+   24:  	EndIf
+   2C:  	Wait  1`
+   38:  EndLoop
+   40:  Call  DisablePlayerInput    ( .True )
+   50:  Loop
+   5C:  	If  *MapVar[2]  ==  00000000
+   6C:  		BreakLoop
+   74:  	EndIf
+   7C:  	Wait  1`
+   88:  EndLoop
+   90:  Call  PlaySound     ( 0000000B )
+   A0:  Wait  30`
+   Call  ShowMessageAtScreenPos    ( 00120167  160`  40` ) % Albino Dino Speaking
+   Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+   Call  SetNpcVar ( .NpcID:AlbinoDino_00 00000000 00000001 )
+   Return
+   End
+}
+
+
+#new:Script $Script_Idle_Dino
+{
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Wait  8`
+  118:  Call  DisablePlayerInput    ( .False )
+  128:  Call  StartBossBattle   ( .Song:KoopaBrosInterlude )
+  138:  Return
+  140:  End
+}
+
+#new:Script $Script_AlbinoDinosBeaten
+{
+	0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+				Wait  15`
+		Call  ShowMessageAtScreenPos    ( 00120168  160`  40` ) % Albino Dino Speaking
+   AC:  Call  UseSettingsFrom   ( .Cam:Default  325`  0`  0` )
+   C8:  Call  SetPanTarget  ( .Cam:Default  325`  0`  0` )
+   E4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   F8:  Call  SetCamPitch   ( .Cam:Default *Fixed[12.0] *Fixed[-10.0] )
+  110:  Call  SetCamDistance    ( .Cam:Default *Fixed[350.0] )
+  124:  Call  SetCamPosA    ( .Cam:Default *Fixed[323.3] *Fixed[-66.5] )
+  13C:  Call  SetCamPosB    ( .Cam:Default *Fixed[500.0] *Fixed[296.8] )
+  154:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  16C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  180:  Thread
+  188:  	Wait  30`
+  194:  	Call  SetGroupEnabled   ( ~Model:g255 00000001 )
+  1A8:  	Call  SetGroupEnabled   ( ~Model:g262 00000001 )
+  1BC:  	Call  SetGroupEnabled   ( ~Model:g264 00000001 )
+  1D0:  	Call  SetGroupEnabled   ( ~Model:g265 00000001 )
+  1E4:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:o1071 7FFFFE00 )
+  1FC:  EndThread
+  204:  Thread
+  20C:  	Wait  40`
+  218:  	Call  PlaySoundAtModel  ( ~Model:k1 00000030 00000000 )
+  230:  	Wait  15`
+  23C:  	Call  PlaySoundAtModel  ( ~Model:k2 000001EE 00000000 )
+  254:  	Wait  5`
+  260:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  278:  	Wait  5`
+  284:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  29C:  	Wait  5`
+  2A8:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  2C0:  	Wait  5`
+  2CC:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  2E4:  	Wait  5`
+  2F0:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  308:  	Wait  5`
+  314:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  32C:  	Wait  5`
+  338:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  350:  	Wait  5`
+  35C:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  374:  	Wait  5`
+  380:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  398:  	Wait  5`
+  3A4:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  3BC:  	Wait  5`
+  3C8:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  3E0:  	Wait  5`
+  3EC:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  404:  	Wait  5`
+  410:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  428:  	Wait  5`
+  434:  	Call  PlaySoundAtModel  ( ~Model:k3 000001EE 00000000 )
+  44C:  EndThread
+  454:  Thread
+  45C:  	Wait  40`
+  468:  	Call  EnableModel   ( ~Model:n1 .False )
+  47C:  	Call  EnableModel   ( ~Model:k1 .True )
+  490:  	Wait  10`
+  49C:  	Call  EnableModel   ( ~Model:n2 .False )
+  4B0:  	Call  EnableModel   ( ~Model:k2 .True )
+  4C4:  	Wait  30`
+  4D0:  	Call  EnableModel   ( ~Model:n3 .False )
+  4E4:  	Call  EnableModel   ( ~Model:k3 .True )
+  4F8:  	Wait  22`
+  504:  	Call  EnableModel   ( ~Model:n4 .False )
+  518:  	Call  EnableModel   ( ~Model:k4 .True )
+  52C:  	Wait  18`
+  538:  	Call  EnableModel   ( ~Model:n5 .False )
+  54C:  	Call  EnableModel   ( ~Model:k5 .True )
+  560:  EndThread
+  568:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_80246130[428] )
+  57C:  Wait  190`
+  588:  Set   *GB_StoryProgress  .Story:Ch7_SolvedAlbinoDinoPuzzle
+  598:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  5B0:  Call  DisablePlayerInput    ( .False )
+  178:  	Case  ==  .Outcome:PlayerLost % 1
+  184:  	Case  ==  .Outcome:PlayerFled % 2
+  190:  EndSwitch
+  5C0:  Return
+  5C8:  End
+}
+
+%Dino Init Script
+@	$Script_Init_80241A68
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802419B4 )
+		Call  BindNpcIdle ( .Npc:Self $Script_Idle_Dino )
+		Call  BindNpcDefeat ( .Npc:Self $Script_AlbinoDinosBeaten )
+   14:  Return
+   1C:  End
+}
+
+
+%Tie the Albino Dino loadout to the NPCs.
+
+@	$NpcGroupList_802420A4
+{
+	00000003 $NpcGroup_80241AD4 1F0E0000 
+	00000000 00000000 00000000
+}
+
+
+@	$NpcGroup_80241AD4
+{
+	.NpcID:AlbinoDino_00 $NpcSettings_80241170 ~Vec3f:NPC_AlbinoDino_00 % 190 -10 165
+	00400D0D $Script_Init_80241A68 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_AlbinoDino_00
+	~AnimationTable:NPC_AlbinoDino_00 % .Sprite:AlbinoDino
+	00000000 00000000 00000000 001A010B % This is an Albino Dino. He looks exactly like that ...
+	%
+	% $NpcGroup_80241AD4[1F0]
+	.NpcID:AlbinoDino_01 $NpcSettings_80241170 ~Vec3f:NPC_AlbinoDino_01 % 300 -10 89
+	00400D0D $Script_Init_80241A8C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_AlbinoDino_01
+	~AnimationTable:NPC_AlbinoDino_01 % .Sprite:AlbinoDino
+	00000000 00000000 00000000 001A010B % This is an Albino Dino. He looks exactly like that ...
+	%
+	% $NpcGroup_80241AD4[3E0]
+	.NpcID:AlbinoDino_02 $NpcSettings_80241170 ~Vec3f:NPC_AlbinoDino_02 % 452 -10 139
+	00400D0D $Script_Init_80241AB0 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_AlbinoDino_02
+	~AnimationTable:NPC_AlbinoDino_02 % .Sprite:AlbinoDino
+	00000000 00000000 00000000 001A010B % This is an Albino Dino. He looks exactly like that ...
+}
+
+
+
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "sam_02" 5 )
+	Wait     95` 
+	Return
+	End
+}
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter7_BluePipeC  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}

@@ -1,0 +1,514 @@
+%Make the stat bar blue
+
+%800F5374
+
+%Look around 801098E0 for styles
+
+%80109918 = left side style
+%80109923 = right side style (*Not 8 bytes per style!)
+%		 		   05015050 90FF0000
+%60FF0106 01505090 FF000060
+
+
+@Data A2DC7
+{
+010501EE 1010DD00 0120DD01 0601EE10 10DC1000 20DC0104			%star rod why won't you stop putting whitespace in this thing
+}
+
+
+/%
+	Block of data for box styles
+%/
+/%
+% 000A2D90 --> 801098E0
+#new:Unknown $???_801098E0
+{
+	010000C8 BFA4FF80 8080FF
+	010101FF C880FF80 8080FF
+	010201E8 C44DFFA3 7B00FF
+	000301E2 E1D8FFD9 D0C9FF 
+	0104013D 4ABCFF00 191CFF
+	010501EB E677FF8E 5A25FF	%left side
+	010601EB E677FF8E 6325FF	%right side
+	010401D7 BF74FF84 4632FF 	%For the "Party Member" thing on top of the partner menu
+	010401D7 BF74FF84 4632FF
+	0104018D 8FFFFF2B 4566FF
+	0108018D 8FFFFF2B 4566FF
+	010401AA D080FF47 7B53FF 
+	010801AA D080FF47 7B53FF
+	010401C8 C85AFF8C 8C00FF
+	010801C8 C85AFF8C 8C00FF
+	010401EB E677FF8E 5A25FF 
+	0104018E D4ECFF43 6245FF
+	010401A7 9777FF62 379AFF
+	01070111 971DFF08 370EFF
+	0107016E 6EC8FF0A 0A64FF 
+	010401B5 3C3CFF4C 0A00FF
+	010401AE E3EBFF4C 6E3CFF
+	0003017E 7DD8FFD9 6CC9FF
+	000000
+}
+%/
+
+
+%Try modifying the star power icons directly
+
+/%
+% 00091460 --> 800F7FB0
+#new:Unknown $???_800F7FB0
+{
+	$HudElementScript_80108298 $HudElementScript_801082E8 $HudElementScript_801082C0 $HudElementScript_80108310 $HudElementScript_80108338 $HudElementScript_80108360 $HudElementScript_80108388
+}
+
+%	star icons for star power
+% 0009147C --> 800F7FCC
+#new:IntTable $IntTable_800F7FCC
+{
+	$HudElementScript_801083D8 $HudElementScript_80108428 $HudElementScript_80108400 $HudElementScript_80108450 $HudElementScript_80108478 $HudElementScript_801084A0 $HudElementScript_801084C8
+}
+%/
+
+%Not sure if I need this
+%81564 --> 800E80B4
+/%
+@Hook 82468
+{	
+	%PUSH	RA
+	%JAL		$Function_StarMeter_RemoveBrownOutline
+	%NOP
+	%POP		RA
+	LW        T1, 50 (SP)
+	J		800E8FC0
+	ADDIU     S6, S6, 14
+}
+%/
+%  F04:  LW        T1, 50 (SP)
+%  F08:  ADDIU     S6, S6, 14
+
+%Managed to modify the star energy stuff
+%The bar in the menu looks weird now (blue outline) but oh well
+
+/%
+#new:Function $Function_StarMeter_RemoveBrownOutline
+{
+    % I tried using @Data to nuke everything but star rod
+    % just doesn't do it, I dunno why.
+    %
+    % I even open the rom in a hex editor and poked the data i was trying to patch
+    % and it worked, looks like star rod just doesn't patch it
+    SAW     R0, 80100734 % Bar 1
+    SAW     R0, 80100774 % Bar 3
+    SAW     R0, 801007B4 % Bar 2
+    SAW     R0, 801007F4 % Bar 4
+    SAW     R0, 80100834 % Bar 5
+    SAW     R0, 80100874 % Bar 6
+    SAW     R0, 801008B4 % Bar 7
+    JR      RA
+    RESERVED
+}
+%/
+
+
+%$HudElementScript_80108924
+%Item icon (This is probably loaded always since its next to other stuff loaded always)
+
+%Draw an item counter
+
+%draw an icon
+
+%import stuff for black pits ui bar
+%
+
+#new:Data $CurrentLSIcon
+{ 00000000 00000000 }
+
+@Hook 81134 % 800E7C84 % Overworld
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    % =======
+    % Make Star Icon
+    LIO     A0, $HudElementScript_80108924		%Load the item icon (there's already one in memory :))
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $CurrentLSIcon
+    SH      S0, 2 (A0) % save star iconIndex
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    PUSH    RA
+    % restore vanilla code
+    JAL	    800F0D5C
+    NOP
+    POP     RA
+    J       800E7C8C
+    NOP
+}
+
+%Not so fast, have to add a new opcode here
+%Original pointers
+% 000A1DD4 --> 80108924
+#new:Data $HudElementScript_80108924
+{
+	00000008 
+	00000007		%icon size now
+	%00000005 		%???
+	00000003 00000004
+	00000002 0000003C 800FB5A0 800FB7A0
+	00000003 
+	00000000
+	/%
+	SetVisible
+	SetTileSize ( .IconSize:32x32 )
+	Loop
+		SetCI       ( 60` $IntTable_800FB5A0 $IntTable_800FB7A0 )
+	Restart
+	End
+	%/
+}
+
+% Create the Life Shroom, Star and the Coin icons after loading the last icon for the stats menu
+@Hook 16CC6C % 8023E38C % Battle
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    % =======
+    % Make Star Icon
+    LIO     A0, $HudElementScript_80108924
+    JAL     $CreateIcon
+    RESERVED
+    LIO     A0, $CurrentLSIcon
+    SH      S0, 4 (A0) % save star iconIndex
+	/%
+    % =======
+    % Make Coin Icon
+    LIO     A0, 80407344 % coin's icon script
+    JAL     $CreateIcon
+    RESERVED
+	%/
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    % restore vanilla code
+    LIO     V0, 8023F088
+    J       8023E394
+    RESERVED
+}
+
+% a0 = iconScript
+%
+% save iconIndex in s0
+#new:Function $CreateIcon
+{
+    PUSH    RA, A0, A1, A2, A3, V0
+    JAL     ~Func:create_hud_element
+    NOP
+    COPY    S0, V0 % save iconIndex in S0
+    ADDIU	A1, R0, 0080
+    JAL	    ~Func:set_hud_element_flags
+    COPY    A0, S0 % load iconIndex
+    ADDIU	A1, R0, 8000
+    JAL	    ~Func:clear_hud_element_flags
+    COPY    A0, S0 % load iconIndex
+    POP     RA, A0, A1, A2, A3, V0
+    JR      RA
+    NOP
+}
+
+% A0 = iconIndex
+%
+% A1 = Width (Float)
+%
+% A2 = Length (Float)
+#new:Function $SetIconSize
+{
+    % Check if the player is in the overworld or inside a battle
+    LABU    V1, 80074094 % 0 = Overworld / 1=Battle
+    LUI     V0, 8015
+    % Load overworld Icon Table
+    BEQL    V1, R0, .IconTableLoaded
+    ADDIU   V0, V0, 6F60
+    % Load battle Icon Table
+    ADDIU   V0, V0, 7494
+    .IconTableLoaded
+    BEQ     V1, R0, .UseOverworldTable
+    NOP
+    % Battle Table, the ID for icon #0 is 80D for the battle icons
+    ORI     T0, R0, 80D
+    SUBU    A0, A0, T0 % convert iconIndex from battle to overworld
+    .UseOverworldTable
+    ORI     V1, R0, 4
+    MULTU   A0, V1 % throw result in LO
+    MFLO    A0
+    ADDU    V0, V0, A0 % get icon pointer
+    LW      V0, 0 (V0) % follow pointer
+    % save the new icon size
+    SW      A1, 28 (V0) % save new width
+    JR      RA
+    SW      A2, 2C (V0) % save new lenght
+}
+
+
+/%
+% 00081564 --> 800E80B4
+#new:Function $Function_update_status_menu
+%/
+
+
+% shifts a bit left
+@Hook 000813BC
+{
+	LW		S0, 0018 (SP)
+	DADDU	S1, R0, R0
+	.check
+	PUSH	T0, T1, T2
+	LW		T1, 78 (SP)				%load max of this stat :)		Was at 58 but need to add 0x20
+	%LAB	T1, 8010F296
+	SLTI	T0, T1, 0064 % < 10
+	BNE		T0, R0, .noshift
+	NOP
+	ADDIU	S0, S0, FFF8 % 1 digit left
+	.noshift
+	POP		T0, T1, T2
+	J		800E7F14
+	NOP
+}
+
+% Remove "HP"
+@Function 81C48 % 800E8798
+{
+    NOP
+}
+
+% Remove "FP"
+@Function 81D20 % 800E8870
+{
+    NOP
+}
+
+% Move the HP icon
+@Function 81C60 % 800E87B0
+{
+    ADDIU	A1, A1, 0015 % x
+    JAL	    ~Func:set_hud_element_render_pos
+    ADDIU	A2, A2, 000D % y
+}
+
+% Move the FP icon
+@Function 81D38 % 800E8888
+{
+    ADDIU	A1, A1, 0050 % x
+    JAL	    ~Func:set_hud_element_render_pos
+    ADDIU	A2, A2, 000D % y
+}
+
+% HP 00/00
+@Function 81C8C % 800E87DC
+{
+    ADDIU	A1, A1, 001C % x pos
+    ADDIU	A2, A2, 0008 % y pos
+    JAL	    ~Func:status_menu_draw_stat
+    SW	    V0, 0010 (SP)
+}
+%A1, A1, 14
+
+
+% FP 00/00
+@Function 81D64 % 800E88B4
+{
+    ADDIU	A1, A1, 005A % x pos
+    ADDIU	A2, A2, 0008 % y pos
+    JAL	    ~Func:status_menu_draw_stat
+    SW	    V0, 0010 (SP)
+}
+
+
+
+%Pause FP text (if above 100, shift right 2 slots) (2 because curr fp has to move too)
+
+%Curr fp (move if max fp is > 100)
+@Hook 00139034
+{
+	PUSH	T0, T1, T2
+	LAB		T1, 8010F296
+	SLTI	T0, T1, 0064 % < 10
+	BNE		T0, R0, .noshift
+	NOP
+	.shift
+	% shift 1 digit right
+	ADDIU	A1, A1, 000A	
+	.noshift
+	% 2 lines we removed, then jump
+	POP		T0, T1, T2
+	ADDIU	T0, R0, 00FF
+	SW		R0, 0010 (SP)
+	J		80245CFC
+	NOP
+}
+
+%Max fp
+@Hook 00139084
+{
+	PUSH	T0, T1
+	DADDU	A1, S7, R0
+	SLTI	T0, A0, 0064 % < 10
+	BNE		T0, R0, .noshift
+	NOP
+	.shift
+	% shift 2 digits right
+	ADDIU	A1, A1, 0014
+	.noshift
+	% 1 line we removed, then jump
+	POP		T0, T1
+	ADDIU	T0, R0, 00FF
+	SW		R0, 0010 (SP)
+	J		80245D4C
+	NOP
+}
+
+%slash
+@Hook 00139054
+{
+	PUSH	T0, T1
+	DADDU	A1, S3, R0
+	LUI		T1, 8011 % load fp
+	LBU		T1, F296 (T1)
+	SLTI	T0, T1, 0064 % < 100
+	BNE		T0, R0, .fpsJump
+	NOP
+	% shift 1 digit right
+	ADDIU	A1, A1, 000A
+	.fpsJump
+	% 1 line we removed, then jump
+	POP		T0, T1
+	DADDU	A2, S0, R0
+	J		80245D1C
+	NOP
+}
+
+
+% draw_icon_1 - Don't play an animation when the game tries to read an icon size
+% nuke 10 functions placed here
+@Data D7DB4 % 801416B4
+{
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+00000000 00000000
+}
+
+% draw_icon_1 - don't overwrite the size data
+@Function D82CC % 80141BCC
+{
+NOP
+}
+
+% draw_icon_1 - IconBytecode - Command #7 and 16 - don't overwrite the size data
+@Function D82F0 % 80141BF0
+{
+NOP
+}
+
+%base function = 00081564 / 800E80B4
+@Hook 81E30 % 800E8980
+{
+    %======================
+    % Change Life Shroom Size, Pos and render the current Ls icon
+    %======================
+	%This code really doesn't do anything outside of life shroom stuff?
+	/%
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    % load current Ls
+    LIO     V1, $CurrentLSIcon
+    % The player is in the overworld or inside a battle?
+    LABU    T0, 80074094 % 0 = Overworld / 1=Battle
+    BEQL    T0, R0, .StarIconIndexLoaded
+    LHU     V1, 2 (V1) % Load battle index
+    LHU     V1, 4 (V1) % Load battle index
+    .StarIconIndexLoaded
+    % V1 = star iconIndex (used to know the Ls icon index)
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+	%/
+    %======================
+    % Change Star Size, Pos and render the icon
+    %======================
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    LIO     A0, $CurrentLSIcon
+    % The player is in the overworld or inside a battle?
+    LABU    T0, 80074094 % 0 = Overworld / 1=Battle
+    BEQL    T0, R0, .StarIconIndexLoaded2
+    LHU     S0, 2 (A0) % Load battle index
+    LHU     S0, 4 (A0) % Load battle index
+    .StarIconIndexLoaded2
+    COPY    A0, S0
+	/%
+    % The player have at least one Star Spirit?
+    LABU    V0, 8010F51E % Star Spirits
+    BEQL    V0, R0, .HideStarIcon
+    ADDI	A1, R0, FFEC % -20`
+    ADDIU	A1, A1, 000A % x
+    .HideStarIcon
+	%/
+	COPY    S0, A0 % save it in s0 too
+    ADDI	A1, R0, 009C % x
+    JAL     ~Func:set_hud_element_render_pos
+    ADDIU	A2, A2, 000E % y
+    % Change Size
+    LIO     A1, 41700000 % 15.0 % Width
+    LIO     A2, 41700000 % 15.0 % Lenght
+    JAL     $SetIconSize
+    COPY    A0, S0	
+    % draw icon
+    JAL	    ~Func:draw_hud_element_1
+    COPY    A0, S0
+	%Draw the number of items with status_menu_draw_number
+	JAL		~Func:get_item_count						%I already fixed this for 20 items so this is good to use here
+	NOP
+	LW      A0, 2C (S3)				%???	(2C = less offset, 28 = more offset between X and number)
+	COPY	A3, V0
+	%Need to load relative to other stuff (so that it moves with the bar)	
+	LH        A1, 34 (S3)
+	LH        A2, 36 (S3)
+	%ADDIU	A1, R0, 00D4 % x pos
+	%ADDIU	A1, A1, 00C8 % x pos
+	ADDIU	A1, A1, 0096 % x pos
+	ADDI	SP, SP -18						%uh oh, the drawing function uses stack arguments
+	LI        V0, 2							%Max number of digits
+	SW        V0, 10 (SP)					%???
+    JAL	    ~Func:status_menu_draw_number
+	ADDIU	A2, A2, 0008 % y pos
+	%ADDIU	A2, A2, 001A % y pos
+    %ADDIU	A2, R0, 002C % y pos
+	ADDI	SP, SP  18
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    %======================
+    % vanilla code - Star Points x000 pos
+    %======================
+    ADDIU	A1, A1, 00C8 % x pos
+    JAL	    ~Func:status_menu_draw_number
+    ADDIU	A2, A2, 0008 % y pos
+    J       800E898C
+    NOP
+}
+
+%ok, the item icon is too big, make it tiny
+
+
+
+
+%Problem
+%making triple digit numbers makes me run out of space on the bar
+%800E7E5C / 0008130C = number of digits
+
+@Hook 8130C
+{
+	%LAB		S6, 8010F296
+	LW			S6, 58 (SP)				%load max of this stat :)
+	SLTI		AT, S6, 99`
+	BNE			AT, R0, .no
+	NOP
+	ADDIU		S6, R0, 3
+	BEQ			R0, R0, .end
+	NOP
+	.no
+	ADDIU		S6, R0, 2
+	.end
+	J			800E7E64
+	SW			S2, 28 (SP)
+}
+
+%ADDIU		S6, R0, 3
+%SW			S2, 28 (SP)

@@ -1,0 +1,287 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000003 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[STYLE:TATTLE][EnableCDownNext]Shooting Star Summit is just[BR]
+a bit further to the east.
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:EntryW %  -470.0    10.0  50.0   90.0
+~Vec4f:EntryNE %	540.0	90.0	-400.0	-135.0
+~Vec4f:EntrySE %	130.0	10.0	170.0	-45.0
+~Vec4f:EntryPipe %	-424.0	40.0	-62.0	0.0
+}
+
+#new:Script $Script_RockDestroyed
+{
+	Set  *GF_HOS07_Rock  .True 
+	Return
+	End
+}
+
+#import EnterViaPipe.mpat
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "hos_03" B )
+	Wait     96`
+	Return
+	End
+}
+
+#new:Script_Main $Script_Main
+{
+	Set  *GB_WorldLocation  1B 
+	Call	SetSpriteShading 	( 00030000 )
+	Call	SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call	SetCamBGColor 	( .Cam:Default 00000000 00000000 00000000 )
+	Call	SetCamEnabled 	( .Cam:Default .True )
+	Call	SetCamLeadPlayer 	( .Cam:Default .False )
+	Exec	$Script_ShootingStars 
+	Call	SetMusicTrack 	( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
+	If  *GF_HOS07_Rock  ==  .False 
+		Call     MakeEntity  	( .Entity:BombableRock1 ~Vec4d:RockPosition 80000000 )
+		Call     AssignScript 	( $Script_RockDestroyed )
+	EndIf
+	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition 00000011 *GF_HOS07_StarPiece )
+	Call 	 MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:pipeloc 00000003 $Script_UseBluePipe 00000235 80000000 )
+	Call  GetEntryID    ( *Var0 )	
+	Switch  *Var0
+		Case == 3`
+			If       *GF_HOS03_PipeB ==  00000000 
+				Call     DisablePlayerInput 	( .True )
+				Call     DisablePlayerPhysics 	( .True )
+				Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+				Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+				Call     SetPlayerPos 	( *Var[0] FFFFFC18 *Var[2] )
+				Wait     0000001E 
+				Call     PlaySound   	( 0000208E )
+				Set      *GF_HOS03_PipeB 00000001 
+				Wait     0000001E 
+				Call     802D10D8 		( 00000000 )
+				Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+				Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+				Call     DisablePlayerPhysics 	( .False )
+				Call     DisablePlayerInput 	( .False )
+			EndIf
+			Set *Var[A] $Script_CreateExitTriggers
+			Exec $Script_EnterVerticalPipe
+		Default
+			Set  *Var[0]  $Script_CreateExitTriggers 	
+			Exec	EnterWalk 
+	EndSwitch
+	Wait	1
+	Return
+	End
+}
+	
+#new:Script $Script_CreateExitTriggers
+{
+	Bind     $Script_ExitW  .Trigger:FloorAbove ~Collider:TriggerExitW 00000001 00000000 
+	Bind     $Script_ExitNE .Trigger:FloorAbove ~Collider:TriggerExitNE 00000001 00000000 
+	Bind     $Script_ExitSE .Trigger:FloorAbove ~Collider:TriggerExitSE 00000001 00000000 
+	Return
+	End
+}
+	
+#new:Script $Script_ExitW
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 60` 0 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "hos_00" 1 )
+	Wait     80`
+	Return
+	End
+}
+	
+#new:Script $Script_ExitNE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 60` 1 ) % direction opposing Entry#2
+	Exec     ExitWalk 
+	Call     GotoMap     	( "hos_01" 0 )
+	Wait     80`
+	Return
+	End
+}
+	
+#new:Script $Script_ExitSE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 60` 2 ) % direction opposing Entry#2
+	Exec     ExitWalk 
+	Call     GotoMap     	( "hos_08" 0 )
+	Wait     80`
+	Return
+	End
+}
+	
+#new:Script $Script_ShootingStars
+{
+    0:  SetGroup 0000000B 
+    C:  Set      *Var[D] 00000000 
+   1C:  Set      *Var[E] 00000000 
+   2C:  Label    00000000 
+   /%
+   38:  Call     GetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+   50:  If       *Var[1]  <  FFFFFFCE 
+   60:     Wait     00000001 
+   6C:     Goto     00000000 
+   78:  EndIf
+   %/
+   /%
+   80:  Set      *Var[8] 000003E8 
+   90:  Sub      *Var[8] *Var[1] 
+   A0:  Div      *Var[8] 0000000A 
+   B0:  If       *Var[8]  <  00000014 
+   C0:     Set      *Var[8] 00000014 
+   D0:  EndIf
+   %/
+   		Call     RandInt	( 1 *Var[7] )
+		Set      *Var[8]  40`
+   D8:  Call     GetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+   F0:  Call     RandInt	( 400` *Var[A] )
+  104:  Set      *Var[B]  200` 
+  114:  Call     RandInt	( 400` *Var[C] )
+  128:  Sub      *Var[C]  200` 
+		If	*Var[7] ==  0
+			Add      *Var[1] *Var[A]
+		Else
+			Sub      *Var[1] *Var[A]
+		EndIf
+  148:  Add      *Var[2] *Var[B] 
+  158:  Add      *Var[3] *Var[C] 
+		% spawn position = (Px + [0:400], Py + 200, Pz +/- 200)
+  168:  Set      *Var[4] *Var[1] 
+  178:  Call     RandInt	( 100` *Var[A] )
+  18C:  Add      *Var[A]  50` 
+		If	*Var[7] ==  0
+			Sub      *Var[4] *Var[A]
+		Else
+			Add      *Var[4] *Var[A]
+		EndIf
+  1AC:  Set      *Var[5]  0 
+  1BC:  Set      *Var[6] *Var[3] 
+		% target position = (Sx - [50:150], 0, Sz)
+  1CC:  Call     RandInt	( 4 *Var[7] )
+  1E0:  Add      *Var[7]  10` 
+		% speed = [10:14]
+  1F0:  Switch   *Var[3] 
+  1FC:     Case      <  FFFFFEDE 
+  208:        Set      *Var[0] 00000000 
+  218:     Case      <  00000028 
+  224:        Set      *Var[0] 00000002 
+  234:     Case     >=  00000028 
+  240:        Set      *Var[0] 00000001 
+  250:  EndSwitch
+		% play sound (subject to minimum sound delay)
+  258:  If  *Var[E]  <  2 
+  268:     Call     PlaySoundAt 	( B0000015 00000000 *Var[1] *Var[2] *Var[3] )
+  288:     Add      *Var[E]  1 
+  298:  EndIf
+  2A0:  Add      *Var[D] *Var[8] 
+  2B0:  If  *Var[D]  >  30` 
+  2C0:     Set      *Var[D]  0 
+  2D0:     Set      *Var[E]  0 
+  2E0:  EndIf
+  2E8:  Call     $Function_ShootingStar ( *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] *Var[5] *Var[6] *Var[7] )
+  314:  Wait     *Var[8] 
+  320:  Goto     00000000 
+  32C:  Return
+  334:  End
+}
+	
+#new:Function $Function_ShootingStar
+{
+    0:  ADDIU     SP, SP, FF98
+    4:  SW        S1, 2C (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 30 (SP)
+   10:  SW        S0, 28 (SP)
+   14:  SDC1      F30, 60 (SP)
+   18:  SDC1      F28, 58 (SP)
+   1C:  SDC1      F26, 50 (SP)
+   20:  SDC1      F24, 48 (SP)
+   24:  SDC1      F22, 40 (SP)
+   28:  SDC1      F20, 38 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_float_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  LW        A1, 0 (S0)
+   40:  ADDIU     S0, S0, 4
+   44:  DADDU     A0, S1, R0
+   48:  JAL       ~Func:get_float_variable
+   4C:  SWC1      F0, 20 (SP)
+   50:  LW        A1, 0 (S0)
+   54:  ADDIU     S0, S0, 4
+   58:  DADDU     A0, S1, R0
+   5C:  JAL       ~Func:get_float_variable
+   60:  MOV.S     F30, F0
+   64:  LW        A1, 0 (S0)
+   68:  ADDIU     S0, S0, 4
+   6C:  DADDU     A0, S1, R0
+   70:  JAL       ~Func:get_float_variable
+   74:  MOV.S     F28, F0
+   78:  LW        A1, 0 (S0)
+   7C:  ADDIU     S0, S0, 4
+   80:  DADDU     A0, S1, R0
+   84:  JAL       ~Func:get_float_variable
+   88:  MOV.S     F26, F0
+   8C:  LW        A1, 0 (S0)
+   90:  ADDIU     S0, S0, 4
+   94:  DADDU     A0, S1, R0
+   98:  JAL       ~Func:get_float_variable
+   9C:  MOV.S     F24, F0
+   A0:  LW        A1, 0 (S0)
+   A4:  ADDIU     S0, S0, 4
+   A8:  DADDU     A0, S1, R0
+   AC:  JAL       ~Func:get_float_variable
+   B0:  MOV.S     F22, F0
+   B4:  DADDU     A0, S1, R0
+   B8:  LW        A1, 0 (S0)
+   BC:  JAL       ~Func:get_float_variable
+   C0:  MOV.S     F20, F0
+   C4:  MFC1      A1, F30
+   C8:  MFC1      A2, F28
+   CC:  MFC1      A3, F26
+   D0:  LWC1      F2, 20 (SP)
+   D4:  SWC1      F24, 10 (SP)
+   D8:  SWC1      F22, 14 (SP)
+   DC:  SWC1      F20, 18 (SP)
+   E0:  TRUNC.W.S F2, F2
+   E4:  MFC1      A0, F2
+   E8:  JAL       8006FE30
+   EC:  SWC1      F0, 1C (SP)
+   F0:  LW        RA, 30 (SP)
+   F4:  LW        S1, 2C (SP)
+   F8:  LW        S0, 28 (SP)
+   FC:  LDC1      F30, 60 (SP)
+  100:  LDC1      F28, 58 (SP)
+  104:  LDC1      F26, 50 (SP)
+  108:  LDC1      F24, 48 (SP)
+  10C:  LDC1      F22, 40 (SP)
+  110:  LDC1      F20, 38 (SP)
+  114:  ADDIU     V0, R0, 2
+  118:  JR        RA
+  11C:  ADDIU     SP, SP, 68
+}

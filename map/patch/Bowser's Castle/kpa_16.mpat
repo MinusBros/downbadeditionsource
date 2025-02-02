@@ -1,0 +1,238 @@
+#define .NpcID:WorldKoopatrol_00    00
+#define .NpcID:WorldKoopatrol_01    01
+#define .NpcID:WorldKoopatrol_02    02
+#define .NpcID:Magikoopa_03         03
+
+
+#new:Function $Function_SwapToGoombarius
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+@	$Script_Idle_802418DC
+{
+    0:  Label  0
+    C:  Wait  1`
+   18:  Call  $Function_80240370    ( *Var0 )
+   28:  If  *Var0  !=  00000027
+   38:  	Goto  0
+   44:  EndIf
+   4C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   64:  If  *Var1  <  000000E6
+   74:  	Goto  0
+   80:  EndIf
+   88:  If  *Var0  >  000002C6
+   98:  	Goto  0
+   A4:  EndIf
+   AC:  Call  DisablePlayerInput    ( .True )
+   BC:  Call  PlaySoundAtNpc    ( .NpcID:WorldKoopatrol_00 00000262 00000000 )
+   D4:  Call  PlaySoundAtNpc    ( .NpcID:WorldKoopatrol_01 00000262 00000000 )
+   EC:  Call  PlaySoundAtNpc    ( .NpcID:WorldKoopatrol_02 00000262 00000000 )
+  104:  Call  ShowEmote     ( .NpcID:WorldKoopatrol_00 .Emote:Exclamation  0`  15` .True  0`  0`  0`  0` )
+  134:  Call  ShowEmote     ( .NpcID:WorldKoopatrol_01 .Emote:Exclamation  0`  15` .True  0`  0`  0`  0` )
+  164:  Call  ShowEmote     ( .NpcID:WorldKoopatrol_02 .Emote:Exclamation  0`  15` .True  0`  0`  0`  0` )
+  194:  Wait  12`
+  1A0:  Call  InterpNpcYaw  ( .NpcID:WorldKoopatrol_00  90`  0` )
+  1B8:  Call  InterpNpcYaw  ( .NpcID:WorldKoopatrol_01  90`  0` )
+  1D0:  Call  InterpNpcYaw  ( .NpcID:WorldKoopatrol_02  90`  0` )
+  1E8:  Call  InterpNpcYaw  ( .NpcID:Magikoopa_03  90`  0` )
+  200:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_00 00580006 )
+  214:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_01 00580006 )
+  228:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_02 00580006 )
+  23C:  Wait  10`
+  248:  Call  UseSettingsFrom   ( .Cam:Default  555`  230`  -150` )
+  264:  Call  SetPanTarget  ( .Cam:Default  555`  230`  -150` )
+  280:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  294:  Call  SetCamPitch   ( .Cam:Default *Fixed[10.0] *Fixed[-10.0] )
+  2AC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  2C0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2D8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  2EC:  Thread
+  2F4:  	Call  SetPlayerSpeed    ( *Fixed[3.0] )
+  304:  	Call  PlayerMoveTo      (  680`  -145`  0` )
+  31C:  	Call  InterpPlayerYaw   (  270`  0` )
+  330:  EndThread
+  338:  Call  SetSelfVar    ( 00000000 00000000 )
+  34C:  Thread
+  354:  	Wait  30`
+  360:  	Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_01 00580006 )
+  374:  	Call  SetNpcSpeed   ( .NpcID:WorldKoopatrol_01 *Fixed[4.0] )
+  388:  	Label  A
+  394:  	Call  NpcMoveTo     ( .NpcID:WorldKoopatrol_01  550`  -165`  0` )
+  3B0:  	Wait  5`
+  3BC:  	Call  NpcMoveTo     ( .NpcID:WorldKoopatrol_01  510`  -165`  0` )
+  3D8:  	Wait  5`
+  3E4:  	Call  GetSelfVar    ( 00000000 *Var0 )
+  3F8:  	If  *Var0  ==  00000000
+  408:  		Goto  A
+  414:  	EndIf
+  41C:  	Call  NpcMoveTo     ( .NpcID:WorldKoopatrol_01  535`  -165`  0` )
+  438:  	Call  SetSelfVar    ( 00000000 00000002 )
+  44C:  EndThread
+  454:  Call  InterpNpcYaw  ( .NpcID:WorldKoopatrol_00  270`  0` )
+  46C:  Call  SpeakToPlayer ( .NpcID:WorldKoopatrol_00 00580006 00580006 00000001 00130017 ) % Uh-oh! Ma... Mario...is right...there! Now what we ...
+  48C:  Thread
+  494:  	Wait  3`
+  4A0:  	Call  SetNpcJumpscale   ( .NpcID:WorldKoopatrol_02 *Fixed[1.0] )
+  4B4:  	Call  GetNpcPos ( .NpcID:WorldKoopatrol_02 *Var0 *Var1 *Var2 )
+  4D0:  	Call  NpcJump0  ( .NpcID:WorldKoopatrol_02 *Var0 *Var1 *Var2  20` )
+  4F0:  EndThread
+  4F8:  Call  SpeakToPlayer ( .NpcID:WorldKoopatrol_02 00580006 00580006 00000000 00130018 ) % No!!!!!! He'll wipe the floor with us!
+  518:  Call  SetSelfVar    ( 00000000 00000001 )
+  52C:  Label  F
+  538:  Call  GetSelfVar    ( 00000000 *Var0 )
+  54C:  If  *Var0  ==  00000001
+  55C:  	Wait  1`
+  568:  	Goto  F
+  574:  EndIf
+  57C:  Call  InterpNpcYaw      ( .NpcID:WorldKoopatrol_01  270`  0` )
+  594:  Call  InterpNpcYaw      ( .NpcID:WorldKoopatrol_02  270`  0` )
+  5AC:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_00 00580001 )
+  5C0:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_01 00580001 )
+  5D4:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_02 00580001 )
+  5E8:  Call  SpeakToPlayer     ( .NpcID:Magikoopa_03 00560002 00560001 00000000 00130019 ) % Stop your bellyaching!! Who says we should be afra ...
+  608:  Thread
+  610:  	Wait  12`
+  61C:  	Call  InterpNpcYaw  ( .NpcID:WorldKoopatrol_02  90`  0` )
+  634:  	Wait  8`
+  640:  	Call  InterpNpcYaw  ( .NpcID:WorldKoopatrol_00  90`  0` )
+  658:  EndThread
+  660:  Call  SpeakToPlayer     ( .NpcID:WorldKoopatrol_01 00580008 00580001 00000000 0013001A ) % Waahh!! We have no choice! Gotta be brave... Gotta ...
+  680:  Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+  694:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_00 00580006 )
+  6A8:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_01 00580006 )
+  6BC:  Call  SetNpcAnimation   ( .NpcID:WorldKoopatrol_02 00580006 )
+  6D0:  Exec  $Script_802417F8
+  6DC:  Call  DisablePlayerInput    ( .False )
+  6EC:  Thread
+  6F4:  	Loop
+  700:  		Wait  1`
+  70C:  		If  *GF_KPA16_Defeated_SwitchGuards  ==  .True
+  71C:  			BreakLoop
+  724:  		EndIf
+  72C:  	EndLoop
+  734:  	Wait  20`
+  740:  	Call  SetNpcPos ( .NpcID:WorldKoopatrol_00  0`  -1000`  0` )
+  75C:  	Call  SetNpcPos ( .NpcID:WorldKoopatrol_01  0`  -1000`  0` )
+  778:  	Call  SetNpcPos ( .NpcID:WorldKoopatrol_02  0`  -1000`  0` )
+  794:  	Call  SetNpcPos ( .NpcID:Magikoopa_03  0`  -1000`  0` )
+  7B0:  EndThread
+  7B8:  Call  StartBossBattle   ( .Song:SpecialBattle )
+  7C8:  Return
+  7D0:  End
+}
+
+
+@	$Script_8024117C
+{
+    0:  Label  0
+    C:  If  *AreaFlag[007]  ==  .False
+   1C:  	Wait  1`
+   28:  	Goto  0
+   34:  EndIf
+   3C:  Call  DisablePlayerInput    ( .True )
+   4C:  Loop
+   58:  	Wait  1`
+   64:  	Call  GetPlayerActionState  ( *Var0 )
+   74:  	If  *Var0  ==  .ActionState:Idle % 0
+   84:  		BreakLoop
+   8C:  	EndIf
+   94:  EndLoop
+   9C:  Wait  1`
+   A8:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   C0:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   DC:  Call  SetCamDistance    ( .Cam:Default *Fixed[350.0] )
+   F0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  104:  Call  SetPanTarget  ( .Cam:Default  330`  230`  -150` )
+  120:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  138:  Wait  1`
+  144:  Call  SetPanTarget  ( .Cam:Default  330`  170`  -150` )
+  160:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  174:  Thread
+  17C:  	Call  $Function_8024034C ( )
+  188:  	SetF  *Var2  00000001
+  198:  	Call  MakeLerp  ( 00000000 FFFFFFEC 00000064 .Easing:Linear )
+  1B4:  	Loop
+  1C0:  		Call  UpdateLerp ( )
+  1CC:  		AddF  *Var2  *Fixed[-0.01]
+  1DC:  		Call  TranslateModel    ( ~Model:o1283 00000000 *Var0 00000000 )
+  1F8:  		Call  TranslateModel    ( ~Model:o1282 00000000 *Var0 00000000 )
+  214:  		Call  ScaleModel        ( ~Model:o1282 *Var2 00000001 00000001 )
+  230:  		Wait  1`
+  23C:  		If  *Var1  ==  00000000
+  24C:  			BreakLoop
+  254:  		EndIf
+  25C:  	EndLoop
+  264:  EndThread
+  26C:  Wait  40`
+  278:  Call  MakeLerp  ( 00000000 000000FF 00000032 .Easing:Linear )
+  294:  Loop
+  2A0:  	Call  UpdateLerp ( )
+  2AC:  	Call  $Function_80240310    ( *Var0 )
+  2BC:  	Wait  1`
+  2C8:  	If  *Var1  ==  00000000
+  2D8:  		BreakLoop
+  2E0:  	EndIf
+  2E8:  EndLoop
+  2F0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o782 00000000 )
+  308:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o929 00000000 )
+  320:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o930 00000000 )
+  338:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o776 00000000 )
+  350:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o952 00000000 )
+  368:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o954 00000000 )
+  380:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deiliw 00000000 )
+  398:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o952 7FFFFE00 )
+  3B0:  Exec  $Script_802405D0
+  3BC:  Call  EnableGroup   ( ~Model:before .False )
+  3D0:  Call  EnableGroup   ( ~Model:after .True )
+  3E4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o782 7FFFFE00 )
+  3FC:  Call  ModifyColliderFlags   ( 00000001 ~Collider:o954 7FFFFE00 )
+  414:  Set   *GF_KPA16_ShutOffLava  .True
+  424:  Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+  438:  Call  MakeLerp  ( 000000FF 00000000 00000032 .Easing:Linear )
+  454:  Loop
+  460:  	Call  UpdateLerp ( )
+  46C:  	Call  $Function_80240310    ( *Var0 )
+  47C:  	Wait  1`
+  488:  	If  *Var1  ==  00000000
+  498:  		BreakLoop
+  4A0:  	EndIf
+  4A8:  EndLoop
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Goombario % 0
+			Call  $Function_SwapToGoombarius    ( 00000001 )
+			Thread
+				Set   *MapVar[0]  00000000
+				Wait  1`
+				Set   *MapVar[0]  00000001
+			EndThread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcYaw ( .Npc:Partner  90` )
+			Call  EnablePartnerAI ( )
+			Loop
+				Wait  1`
+				If  *MapVar[0]  ==  00000001
+				BreakLoop
+				EndIf
+			EndLoop
+		Wait  32`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+  4B0:  Wait  30`
+  4F4:  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 0013001B ) % Hey, what do you know? It looks like the lava cool ...
+  650:  Call  EnablePartnerAI ( )
+  65C:  Call  DisablePlayerInput    ( .False )
+  66C:  Return
+  674:  End
+}

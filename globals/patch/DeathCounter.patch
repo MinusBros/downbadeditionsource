@@ -1,0 +1,78 @@
+#reserve 4000 $DeathIOBuffer
+
+#new:Function $IncrementDeathCounter
+{
+    PUSH    RA, S0, S1, S2
+    % #DEF    S0, *Buffer
+    % #DEF    S1, *Status
+    % #DEF    S2, *SaveSlot
+    
+    LIA      V0, 8007419C % game_status
+    LW      S1, 0 (V0)
+    LBU     S2, 166 (S1)
+    JAL     ~Func:fio_fetch_saved_file_info
+    COPY    A0, S2
+    LIA      S0, $DeathIOBuffer
+    COPY    A1, S0
+    SLL     A0, S2, 3 		%get page location
+    LTW     A0, A0 (8009BA30)
+    JAL     ~Func:fio_read_flash
+    ORI      A2, R0, 4000
+    
+    LIA      A1, 800745D0 % default filename string
+    JAL     ~Func:strcmp
+    COPY    A0, S0
+    
+    BNE     V0, R0, .Done
+    NOP     % failed
+    
+    /%
+    LW      A0, 3C (S0)
+    LW      V0, 168 (S1)
+    SLTU    V0, V0, A0
+    BNEL    V0, R0, .o80
+    SW      A0, 168 (S1)
+    .o80
+    %/
+    
+    % update death counter
+    LHU     V0, 10B4 (S0) % game bytes start at offset 10B0
+    ADDIU   V0, V0, 1
+    SH      V0, 10B4 (S0)
+
+    % increment saveID
+    LW      V0, 168 (S1)
+    ADDIU   V0, V0, 1
+    % SW        V0, 168 (S1) not necessary for a death counter
+    SW      V0, 3C (S0)
+    
+    SW      S2, 38 (S0) % save slot
+    % #UNDEF  *SaveSlot
+    
+    % recalculate checksums
+    SW      R0, 30 (S0)
+    ADDIU      V0, R0, FFFF
+    SW      V0, 34 (S0)
+    JAL     ~Func:fio_calc_file_checksum
+    COPY    A0, S0
+    SW      V0, 30 (S0)
+    NOR     V0, R0, V0
+    SW      V0, 34 (S0)
+
+    % save updated file
+    LIA      S2, 8009BA80
+    LW      A0, 0 (S2)
+    JAL     ~Func:fio_erase_flash
+    NOP
+    LW      A0, 0 (S2)
+    COPY    A1, S0
+    JAL     ~Func:fio_write_flash
+    ORI      A2, R0, 4000
+
+    .Done
+    % #UNDEF  All
+    ORI      V0, R0, 2   % DONE for script API call
+    JPOP    RA, S0, S1, S2
+}
+
+#export $IncrementDeathCounter

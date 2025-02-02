@@ -1,0 +1,150 @@
+@	$Monstar
+{
+	% stats
+	[Index]        BCb
+	[Level]       100`b
+	[MaxHP]        90`b
+	[PowerBounce]  50`b
+}
+
+
+%Stop with the textboxes every turn.
+
+@	$Script_TakeTurn_8021B394
+{
+    ExecWait  $Script_8021AB64
+    Return
+    End
+}
+
+
+@	$Script_8021AB64
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  SetActorVar       ( .Actor:Self 00000001 00000001 )
+   2C:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+   40:  Call  UseBattleCamPreset    ( 00000013 )
+   50:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+   6C:  Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+   84:  Call  SetBattleCamZoom  (  250` )
+   94:  Call  SetBattleCamOffsetZ   (  55` )
+   A4:  Call  BattleCamTargetActor  ( .Actor:Self )
+   B4:  Call  MoveBattleCamOver (  30` )
+   C4:  Wait  25`
+   D0:  Thread
+   D8:  	Call  SetAnimation  ( .Actor:Self 00000001 007E0004 )
+   F0:  	Wait  10`
+   FC:  	Call  SetAnimation  ( .Actor:Self 00000001 007E0005 )
+  114:  	Wait  10`
+  120:  	Call  SetAnimation  ( .Actor:Self 00000001 007E0006 )
+  138:  EndThread
+  140:  Thread
+  148:  	Call  $Function_80218458 ( )
+  154:  	Call  MakeLerp  ( 00000000 000000C8 0000003C .Easing:QuadraticIn )
+  170:  	Label  0
+  17C:  	Call  UpdateLerp ( )
+  188:  	Call  $Function_8021849C    ( *Var0 )
+  198:  	Wait  1`
+  1A4:  	If  *Var1  ==  00000001
+  1B4:  		Goto  0
+  1C0:  	EndIf
+  1C8:  EndThread
+  		Call  EnableActorBlur   ( .Actor:Self 00000001 )
+  1D0:  Call  PlaySoundAtActor      ( .Actor:Self .Sound:BigPowerUp )
+  1E4:  Call  $Function_802184D4    ( 00000050 00000078 )
+  1F8:  Call  UseBattleCamPreset    ( 00000013 )
+  208:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  224:  Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+  23C:  Call  SetBattleCamZoom      (  100` )
+  24C:  Call  SetBattleCamOffsetZ   (  60` )
+  25C:  Call  BattleCamTargetActor  ( .Actor:Self )
+  26C:  Call  MoveBattleCamOver     (  60` )
+  27C:  Wait  50`
+  288:  Call  PlaySoundAtActor      ( .Actor:Self 000002EA )
+  29C:  Call  PlaySoundAtActor      ( .Actor:Self 0000036E )
+  2B0:  Thread
+  2B8:  	Wait  2`
+  2C4:  	Loop  00000012
+  2D0:  		Call  RandInt   ( 00000096 *Var0 )
+  2E4:  		Add   *Var0  00000064
+  2F4:  		Call  $Function_802184D4    ( *Var0 00000014 )
+  308:  		Wait  10`
+  314:  	EndLoop
+  31C:  EndThread
+  324:  Thread
+  32C:  	Loop  0000003C
+  338:  		Call  RandInt   ( 00000001 *Var0 )
+  34C:  		Add   *Var0  00000002
+  35C:  		Call  RandInt   ( 00000190 *Var1 )
+  370:  		Sub   *Var1  00000064
+  380:  		Call  RandInt   ( 00000064 *Var2 )
+  394:  		Sub   *Var2  00000032
+  3A4:  		Set   *Var3  *Var1
+  3B4:  		Sub   *Var3  000000C8
+  3C4:  		Set   *Var4  *Var2
+  3D4:  		Call  RandInt   ( 0000000A *Var5 )
+  3E8:  		Add   *Var5  0000000A
+  3F8:  		Call  PlayEffect    ( 0000000F *Var0 *Var1 000000F0 *Var2 *Var3 00000000 *Var4 *Var5 00000000 00000000 00000000 00000000 00000000 )
+  43C:  		Wait  3`
+  448:  	EndLoop
+  450:  EndThread
+  458:  Wait  4`
+  464:  Call  UseBattleCamPreset    ( 00000002 )
+  474:  Call  MoveBattleCamOver (  10` )
+  484:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  4A0:  Add   *Var1  00000032
+  4B0:  Add   *Var2  00000005
+  4C0:  Call  PlayEffect        ( ~FX:RadialFlowOut:BlueSpikes *Var0 *Var1 *Var2 *Fixed[0.8] 000000A0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  504:  Call  SetAnimation      ( .Actor:Self 00000001 007E0007 )
+  51C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000010 )
+  540:  Switch  *Var0
+  54C:  	CaseOR  ==  .HitResult:Miss % 6
+  558:  	CaseOR  ==  .HitResult:Lucky % 5
+  564:  		Set   *VarA  *Var0
+  574:  		Wait  160`
+  580:  		Call  SetAnimation      ( .Actor:Self 00000001 007E0001 )
+  598:  		Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_80219F90 )
+  5B0:  		Call  MakeLerp  ( 000000C8 00000000 0000003C .Easing:Linear )
+  5CC:  		Label  1
+  5D8:  		Call  UpdateLerp ( )
+  5E4:  		Call  $Function_8021849C    ( *Var0 )
+  5F4:  		Wait  1`
+  600:  		If  *Var1  ==  00000001
+  610:  			Goto  1
+  61C:  		EndIf
+  624:  		If  *VarA  ==  .HitResult:Lucky % 5
+  634:  			Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+  658:  		EndIf
+  660:  		Wait  5`
+				Call  EnableActorBlur   ( .Actor:Self 00000000 )
+  66C:  		Call  SetActorVar       ( .Actor:Self 00000001 00000000 )
+  684:  		Call  UseIdleAnimation  ( .Actor:Self .True )
+  698:  		Return
+  6A0:  	EndCaseGroup
+  6A8:  EndSwitch
+  6B0:  Wait  160`
+  6BC:  Wait  2`
+  6C8:  Call  SetGoalToTarget   ( .Actor:Self )
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic 00000000 00000000 00000010 00000020 )
+  700:  Switch  *Var0
+  70C:  	CaseOR  ==  .HitResult:Hit % 0
+  718:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  724:  		Call  SetAnimation      ( .Actor:Self 00000001 007E0001 )
+  73C:  		Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_80219F90 )
+  754:  		Call  MakeLerp  ( 000000C8 00000000 0000003C .Easing:Linear )
+  770:  		Label  2
+  77C:  		Call  UpdateLerp ( )
+  788:  		Call  $Function_8021849C    ( *Var0 )
+  798:  		Wait  1`
+  7A4:  		If  *Var1  ==  00000001
+  7B4:  			Goto  2
+  7C0:  		EndIf
+  7C8:  		Wait  6`
+  7D4:  	EndCaseGroup
+  7DC:  EndSwitch
+		Call  EnableActorBlur   ( .Actor:Self 00000000 )
+  7E4:  Call  SetActorVar       ( .Actor:Self 00000001 00000000 )
+  7FC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  810:  Return
+  818:  End
+}

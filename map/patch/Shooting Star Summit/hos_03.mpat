@@ -1,0 +1,57 @@
+%Gotta have a really good inventory for late game.
+
+@	$ShopInventory_8024BB5C
+{
+	.Item:UltraShroom    00000064 0023000B %
+	.Item:JamminJelly    00000064 00230018 %
+	.Item:LifeShroom     00000096 0024000C %
+	.Item:ShootingStar   0000004B 00240004 %
+	.Item:HustleDrink    0000008C 0023010D %
+	.Item:RepelGel       00000078 0023002C %
+	00000000 00000000 00000000
+}
+
+
+%This shop doesn't have a toggle visibility, so we're
+%going to search for Mario's coordinates to
+%determine if the shop song should play.
+
+@	$Script_80243748
+{
+    0:  Bind  $Script_ExitWalk_80243690 .Trigger:FloorAbove ~Collider:deilisw 00000001 00000000
+   1C:  Bind  $Script_ExitWalk_802436EC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   80:  If  *Var0  !=  00000000
+   90:  	Goto  14
+   9C:  EndIf
+   A4:  Label  A
+   B0:  Wait  1`
+   BC:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   D4:  If  *Var1  >  FFFFFFDD
+			If  *Var2  >  00000112
+				Thread
+				If *ShopState == 00000000
+					Set *ShopState 00000001
+					Wait  24`
+					Call  PushSong      ( .Song:StarShop 00000000 )
+				EndIf
+				EndIf
+				EndThread
+  120:  	Wait  1`
+  12C:  	Goto  14
+  138:  EndIf
+  140:  Goto  A
+  14C:  Label  14
+  158:  Wait  1`
+  188:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+			If  *Var2  <  000000FB
+				If *ShopState == 00000001
+					Set *ShopState 00000000
+					Call  PopSong ( )
+				EndIf
+  1DC:  	Wait  1`
+  1E8:  	Goto  A
+  1F4:  EndIf
+  1FC:  Goto  14
+   38:  Return
+   40:  End
+}

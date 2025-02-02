@@ -1,0 +1,207 @@
+#define .NpcID:Bubulb_03            03
+#define .NpcID:Bubulb_04            04
+#define .NpcID:Tolielup_05          05
+#define .NpcID:WorldKlevar_06       06
+#define .NpcID:Lakilulu_07          07
+
+#new:Function $Function_SwapToGoombarius
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+@ $Script_MakeEntities
+{ 
+	If  *GB_StoryProgress  <  .Story:Epilogue % 60
+    	Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:Entity80249140 80000000 )
+        Call     MakeEntity   ( .Entity:HealingBlock ~Vec4d:heartblock 80000000 )
+	EndIf
+    Return
+    End
+}
+	
+@	$Script_8024427C
+{
+    0:  Call  DisablePartnerAI  ( 00000000 )
+   10:  Call  802CF56C      ( 00000002 )
+   20:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   38:  Set   *Var3  *Var0
+   48:  Add   *Var3  FFFFFFCE
+   58:  Set   *Var4  *Var1
+   68:  Add   *Var4  0000001A
+   78:  Call  SetNpcPos     ( .NpcID:WorldKlevar_06 *Var3 *Var4 *Var2 )
+   94:  Call  PlayerFaceNpc ( .NpcID:WorldKlevar_06 .False )
+   A8:  Call  NpcFaceNpc    ( .Npc:Partner .NpcID:WorldKlevar_06 00000000 )
+   C0:  Add   *Var0  FFFFFFE7
+   D0:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   EC:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  108:  Call  SetCamDistance    ( .Cam:Default *Fixed[475.0] )
+  11C:  Call  SetCamPitch   ( .Cam:Default  18`  -8` )
+  134:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  148:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  160:  Wait  1`
+  16C:  Call  WaitForPlayerInputEnabled ( )
+  178:  Call  DisablePlayerInput    ( .True )
+  188:  Wait  30`
+  194:  Call  SpeakToPlayer ( .NpcID:WorldKlevar_06 00170003 00170001 00000200 001100D8 ) % What a pleasure meeting you. My name is Klevar. Th ...
+  1B4:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  1C8:  Call  SetCamPitch   ( .Cam:Default  18`  -9` )
+  1E0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  1F4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  20C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  220:  Call  MakeLerp      ( 00000000 00000168 0000000A .Easing:Linear )
+  23C:  Loop
+  248:  	Call  UpdateLerp ( )
+  254:  	Call  SetNpcRotation    ( .NpcID:WorldKlevar_06 00000000 *Var0 00000000 )
+  270:  	Wait  1`
+  27C:  	If  *Var1  ==  00000000
+  28C:  		BreakLoop
+  294:  	EndIf
+  29C:  EndLoop
+  2A4:  Call  EnableNpcAI       ( .NpcID:WorldKlevar_06 .False )
+  2B8:  Call  SetNpcAnimation   ( .NpcID:WorldKlevar_06 00170004 )
+  2CC:  Wait  10`
+  2D8:  Call  SetPlayerAnimation    ( .PlayerAnim:GotItem )
+  2E8:  Call  PlaySoundAtPlayer ( 00000139 00000000 )
+  2FC:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  314:  Set   *Var3  *Var1
+  324:  Add   *Var1  00000032
+  334:  Add   *Var2  0000000A
+  344:  Add   *Var3  0000001E
+  354:  Loop  00000005
+  360:  	Call  PlayEffect    ( 00000011 00000003 *Var0 *Var1 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3A4:  	Wait  6`
+  3B0:  	Call  PlayEffect    ( ~FX:Sparkles:Random *Var0 *Var3 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3F4:  	Wait  6`
+  400:  EndLoop
+  408:  Wait  20`
+  414:  Call  PlaySoundAtPlayer ( 00000188 00000000 )
+  428:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  440:  Add   *Var1  00000014
+  450:  Call  PlayEffect    ( ~FX:EnergyWaveOut:Grey *Var0 *Var1 *Var2 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  494:  Wait  24`
+  4A0:  Call  SetPlayerAnimation        ( 00010002 )
+  4B0:  Call  SetNpcAnimation   ( .NpcID:WorldKlevar_06 00170001 )
+  4C4:  Call  EnableNpcAI   ( .NpcID:WorldKlevar_06 .True )
+  4D8:  Call  $Function_80240ED0 ( )
+  4E4:  Call  ShowMessageAtScreenPos    ( 001D0196  160`  40` ) % Mario's Star Energy goes up to 6! Mario can now us ...
+  4FC:  Wait  5`
+  508:  Call  GetNpcPos     ( .NpcID:WorldKlevar_06 *Var0 *Var1 *Var2 )
+  524:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  540:  Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
+  554:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  56C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  580:  Wait  8`
+  58C:  Call  SpeakToPlayer ( .NpcID:WorldKlevar_06 00170003 00170001 00000200 001100D9 ) % Now, you are able to use the Powers of six Star Sp ...
+  5AC:  Wait  8`
+  5B8:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  5D0:  Add   *Var0  FFFFFFE7
+  5E0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  5FC:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  610:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  624:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  63C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  650:  Wait  10`
+  		Call  EnablePartnerAI ( )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Goombario % 0
+			Call  $Function_SwapToGoombarius    ( 00000001 )
+			Thread
+				Set   *MapVar[0]  00000000
+				Wait  1`
+				Set   *MapVar[0]  00000001
+			EndThread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcYaw ( .Npc:Partner  90` )
+			Call  EnablePartnerAI ( )
+			Loop
+				Wait  1`
+				If  *MapVar[0]  ==  00000001
+				BreakLoop
+				EndIf
+			EndLoop
+		Wait  32`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+		Wait  4`
+		Call  SpeakToNpc     ( .Npc:Partner 00010008 00010001 00000000 .NpcID:WorldKlevar_06 001100F0 )
+		Call  SpeakToPlayer ( .NpcID:WorldKlevar_06 00170003 00170001 00000200 001100F1 )
+		Call  SpeakToNpc     ( .Npc:Partner 00010008 00010001 00000000 .NpcID:WorldKlevar_06 001100F2 )
+  65C:  Call  SpeakToPlayer ( .NpcID:WorldKlevar_06 00170003 00170001 00000200 001100DA ) % I'll go back to Star Haven now. I can't wait to ge ...
+  67C:  Call  SetNpcFlagBits    ( .NpcID:WorldKlevar_06 00040000 .True )
+  694:  Thread
+  69C:  	Loop  00000019
+  6A8:  		Call  GetNpcPos     ( .NpcID:WorldKlevar_06 *Var0 *Var1 *Var2 )
+  6C4:  		Call  PlayEffect    ( 00000011 00000004 *Var0 *Var1 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  708:  		Wait  4`
+  714:  	EndLoop
+  71C:  EndThread
+  724:  Thread
+  72C:  	Set   *Var2  00000000
+  73C:  	Set   *Var3  00000708
+  74C:  	Call  MakeLerp  ( *Var2 *Var3 00000064 .Easing:CubicIn )
+  768:  	Loop
+  774:  		Call  UpdateLerp ( )
+  780:  		Call  SetNpcRotation    ( .NpcID:WorldKlevar_06 00000000 *Var0 00000000 )
+  79C:  		Wait  1`
+  7A8:  		If  *Var1  ==  00000000
+  7B8:  			BreakLoop
+  7C0:  		EndIf
+  7C8:  	EndLoop
+  7D0:  EndThread
+  7D8:  Thread
+  7E0:  	Call  GetNpcPos ( .NpcID:WorldKlevar_06 *Var2 *Var3 *Var4 )
+  7FC:  	Set   *Var5  *Var3
+  80C:  	Add   *Var5  000000B4
+  81C:  	Call  MakeLerp  ( *Var3 *Var5 00000064 .Easing:CubicIn )
+  838:  	Loop
+  844:  		Call  UpdateLerp ( )
+  850:  		Call  SetNpcPos ( .NpcID:WorldKlevar_06 *Var2 *Var0 *Var4 )
+  86C:  		Wait  1`
+  878:  		If  *Var1  ==  00000000
+  888:  			BreakLoop
+  890:  		EndIf
+  898:  	EndLoop
+  8A0:  	Call  SetNpcPos ( .NpcID:WorldKlevar_06  0`  -1000`  0` )
+  8BC:  EndThread
+  8C4:  Thread
+  8CC:  	Wait  15`
+  8D8:  	Call  PlaySoundAtNpc    ( .NpcID:WorldKlevar_06 00002045 00000000 )
+  8F0:  EndThread
+  8F8:  Wait  10`
+  904:  Call  SetPlayerAnimation    ( 0001002A )
+  914:  Wait  100`
+  920:  Call  SetPlayerAnimation    ( 00010002 )
+  930:  Set   *GB_StoryProgress  .Story:Ch6_StarSpritDeparted
+  940:  ExecWait  $Script_80243368
+		Call  SpeakToPlayer     ( .Npc:Partner 0012000C 0012000B 00000200 001100F3 )
+  94C:  Call  EnablePartnerAI ( )
+  958:  Call  DisablePlayerInput    ( .False )
+  968:  Return
+  970:  End
+}
+
+
+%Gonna mitigate this cutscene.
+@	$Script_80243368
+{
+   E8:  Call  ResetCam      ( .Cam:Default *Fixed[90.0] )
+   FC:  Return
+  104:  End
+}
+
+%Speed up this cutscene a bit?
+@	$Script_802477EC
+{
+   [2C]  	Wait  5`
+  [3BC]  	Wait  55`
+}

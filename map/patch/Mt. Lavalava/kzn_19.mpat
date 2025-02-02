@@ -1,0 +1,343 @@
+#define .NpcID:Kolorado_00          00
+#define .NpcID:WorldMisstar_01      01
+#define .NpcID:LavaPiranhaHead_02   02
+#define .NpcID:LavaBud_03           03
+#define .NpcID:LavaBud_04           04
+
+#new:Function $Function_SwapToGoombarius
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+
+@	$Script_MakeEntities
+{
+    [0]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity802482C0 .Item:Melon 80000000 )
+   [38]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity802482F8 .Item:CocoPop 80000000 )
+}
+
+
+@	$Script_Main_EnterWalk
+{
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
+    0:  Set   *GB_WorldLocation  .Location:MtLavalava
+   10:  Call  SetSpriteShading  ( .Shading:kzn_19 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  GetEntryID        ( *Var0 )
+   80:  If  *Var0  ==  ~Entry:Entry3
+   90:  	Call  MakeNpcs  ( .True $NpcGroupList_80247DDC )
+   A4:  Else
+   AC:  	Call  MakeNpcs  ( .True $NpcGroupList_80247DB8 )
+   C0:  EndIf
+   C8:  ExecWait  $Script_MakeEntities
+   D4:  Call  GetEntryID    ( *Var0 )
+   E4:  If  *Var0  ==  ~Entry:Entry3
+   F4:  	Thread
+   FC:  		ExecWait  $Script_80244C78
+  108:  		Exec  $Script_80242750
+  114:  	EndThread
+  11C:  Else
+  124:  	Set   *Var0  $Script_80242750
+  134:  	Exec  EnterWalk
+  140:  	Wait  1`
+  14C:  EndIf
+  154:  Switch  *GB_StoryProgress
+  160:  	Case  <  .Story:Ch5_DefeatedLavaPiranha % 23
+  16C:  		Call  EnableGroup   ( ~Model:ato .False )
+  180:  		Call  EnableGroup   ( ~Model:naka .False )
+  194:  		Call  EnableGroup   ( ~Model:g93 .False )
+  1A8:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:ato 7FFFFE00 )
+  1C0:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:hoshi_ato 7FFFFE00 )
+  1D8:  	Case  ==  .Story:Ch5_DefeatedLavaPiranha % 23
+  1E4:  		Call  EnableGroup   ( ~Model:mae .False )
+  1F8:  		Call  EnableGroup   ( ~Model:g93 .False )
+  20C:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:mae 7FFFFE00 )
+  224:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:hoshi_ato 7FFFFE00 )
+  23C:  	Case  >  .Story:Ch5_DefeatedLavaPiranha % 23
+  248:  		Call  EnableGroup   ( ~Model:mae .False )
+  25C:  		Call  EnableGroup   ( ~Model:naka .False )
+  270:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:mae 7FFFFE00 )
+  288:  EndSwitch
+  290:  Exec  $Script_802427B4
+  29C:  Set   *Var0  00000022
+  2AC:  Exec  $Script_80241F2C
+  2B8:  Set   *Var0  00000023
+  2C8:  Exec  $Script_80242048
+  2D4:  Exec  $Script_80241DB0
+  2E0:  Exec  $Script_80242AD0
+  2EC:  Exec  $Script_80248068
+  2F8:  Exec  $Script_80242164
+  304:  Return
+  30C:  End
+}
+
+
+%New dialogue for Goombarius talking to Lava Piranha
+
+@	$Script_Idle_802453D0
+{
+    0:  Loop
+    C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  	Wait  1`
+   30:  	If  *Var0  >  00000096
+   40:  		BreakLoop
+   48:  	EndIf
+   50:  EndLoop
+   58:  Call  DisablePlayerInput    ( .True )
+   68:  Call  SetMusicTrack ( 00000000 .Song:LavaPiranhaTheme 00000000 00000008 )
+   84:  Call  LoadAnimatedModel     ( 00000000 $AnimatedModelTree_802431F8 )
+   98:  Call  $Function_80241BC0    ( 00000000 00000000 )
+   AC:  Call  PlayModelAnimation    ( 00000000 80200000 )
+   C0:  Call  SetAnimatedModelRootPosition  ( 00000000 000000DC FFFFFF9C FFFFFFD8 )
+   DC:  Call  SetAnimatorFlags      ( 00000000 00000080 00000001 )
+   F4:  Call  LoadAnimatedModel     ( 00000001 $AnimatedModelTree_80243388 )
+  108:  Call  $Function_80241BC0    ( 00000001 0000001F )
+  11C:  Call  PlayModelAnimation    ( 00000001 80204000 )
+  130:  Call  SetAnimatedModelRootPosition  ( 00000001 000000DC FFFFFF9C FFFFFFD8 )
+  14C:  Call  SetAnimatorFlags      ( 00000001 00000080 00000001 )
+  164:  Call  LoadAnimatedModel     ( 00000002 $AnimatedModelTree_80243388 )
+  178:  Call  $Function_80241BC0    ( 00000002 0000001F )
+  18C:  Call  PlayModelAnimation    ( 00000002 80207000 )
+  1A0:  Call  SetAnimatedModelRootPosition  ( 00000002 0000010E FFFFFF9C FFFFFFEC )
+  1BC:  Call  SetAnimatorFlags      ( 00000002 00000080 00000001 )
+  1D4:  Call  LoadAnimatedModel     ( 00000003 $AnimatedModelTree_802434B8 )
+  1E8:  Call  $Function_80241BC0    ( 00000003 00000022 )
+  1FC:  Call  PlayModelAnimation    ( 00000003 8020A000 )
+  210:  Call  SetAnimatedModelRootPosition  ( 00000003 000000DC FFFFFF9C FFFFFFD8 )
+  22C:  Call  SetAnimatorFlags      ( 00000003 00000080 00000001 )
+  244:  Call  $Function_8024140C ( )
+  250:  Call  SetSelfVar    ( 00000001 00000001 )
+  264:  Call  InterpPlayerYaw       (  90`  0` )
+  278:  Thread
+  280:  	Wait  15`
+  28C:  	Call  UseSettingsFrom   ( .Cam:Default  300`  25`  -20` )
+  2A8:  	Call  SetPanTarget  ( .Cam:Default  300`  25`  -20` )
+  2C4:  	Call  SetCamDistance    ( .Cam:Default *Fixed[350.0] )
+  2D8:  	Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-9.5] )
+  2F0:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  304:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  31C:  EndThread
+  324:  Call  MakeLerp  ( 00000000 00000028 00000050 .Easing:QuadraticOut )
+  340:  Loop
+  34C:  	Call  UpdateLerp ( )
+  358:  	Call  TranslateModel    ( ~Model:poko 00000000 *Var0 00000000 )
+  374:  	Wait  1`
+  380:  	If  *Var1  ==  00000000
+  390:  		BreakLoop
+  398:  	EndIf
+  3A0:  EndLoop
+  3A8:  Thread
+  3B0:  	Call  802D2B6C ( )
+  3BC:  	Call  SetPlayerSpeed    ( *Fixed[3.0] )
+  3CC:  	Call  PlayerMoveTo      (  200`  -30`  0` )
+  3E4:  	Call  InterpPlayerYaw   (  90`  0` )
+  3F8:  EndThread
+  400:  Call  PlaySoundAt   ( 000003C5 00000000 0000014A 00000019 FFFFFFCE )
+  420:  Exec  $Script_80245010
+  42C:  Wait  54`
+  438:  Thread
+  440:  	Call  MakeLerp  ( 00000028 00000000 00000050 .Easing:QuadraticOut )
+  45C:  	Loop
+  468:  		Call  UpdateLerp ( )
+  474:  		Call  TranslateModel    ( ~Model:poko 00000000 *Var0 00000000 )
+  490:  		Wait  1`
+  49C:  		If  *Var1  ==  00000000
+  4AC:  			BreakLoop
+  4B4:  		EndIf
+  4BC:  	EndLoop
+  4C4:  EndThread
+  4CC:  Wait  30`
+  4D8:  Call  UseSettingsFrom   ( .Cam:Default  235`  25`  -20` )
+  4F4:  Call  SetPanTarget  ( .Cam:Default  235`  25`  -20` )
+  510:  Call  SetCamDistance    ( .Cam:Default *Fixed[420.0] )
+  524:  Call  SetCamPitch   ( .Cam:Default *Fixed[10.0] *Fixed[-10.7] )
+  53C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  550:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  568:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  57C:  Exec  $Script_802452E8
+  588:  Call  SpeakToPlayer ( .Npc:Self 0079000E 00790003 00000300  -30`  30` 00100102 ) % BLECK HYUCK HYUCK YUCK! YOU MADE IT, MARIO!
+  5B0:  Exec  $Script_8024522C
+  5BC:  Wait  5`
+  5C8:  Call  EndSpeech     ( .Npc:Self 0079000E 00790003 00000100  -30`  30` )
+  5EC:  Exec  $Script_802452E8
+  5F8:  Wait  24`
+  604:  Call  SpeakToPlayer ( .Npc:Self 0079000E 00790003 00000300  -30`  30` 00100103 ) % YOU GUYS...BAD GUYS! BAD GUYS COME TO STEAL STAR S ...
+  62C:  Exec  $Script_8024522C
+  638:  Wait  5`
+  644:  Call  EndSpeech     ( .Npc:Self 0079000E 00790003 00000300  -30`  30` )
+  668:  Exec  $Script_802452E8
+  674:  Wait  5`
+  680:  Call  EndSpeech     ( .Npc:Self 0079000E 00790003 00000300  -30`  30` )
+  6A4:  Exec  $Script_8024522C
+  6B0:  Wait  5`
+  6BC:  Call  EndSpeech     ( .Npc:Self 0079000E 00790003 00000300  -30`  30` )
+		Call  GetCurrentPartnerID   ( *Var0 )
+  540:  If  *Var0  ==  .Partner:Goombario % 2
+				Wait  4`
+  570:  		Call  DisablePartnerAI  ( 00000000 )
+  580:  		Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .Npc:Self 00100118 ) % 
+  5A4:  		Call  SpeakToPlayer ( .Npc:Self 0079000E 00790003 00000300  -30`  30` 00100119 ) % 
+  5C8:  		Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .Npc:Self 00100120 ) % 
+  5EC:  		Call  EnablePartnerAI ( )
+  600:  EndIf
+  6E0:  ChildThread
+  6E8:  	Set   *Var0  00000014
+  6F8:  	Loop  00000003
+  704:  		Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
+  718:  		Call  SetCamSpeed   ( .Cam:Default *Var0 )
+  72C:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  744:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  758:  		Sub   *Var0  00000002
+  768:  		Call  SetCamDistance    ( .Cam:Default *Fixed[440.0] )
+  77C:  		Call  SetCamSpeed   ( .Cam:Default *Var0 )
+  790:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  7A8:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  7BC:  		Sub   *Var0  00000002
+  7CC:  	EndLoop
+  7D4:  EndChildThread
+  7DC:  Call  DisablePlayerInput    ( .False )
+  7EC:  Call  StartBossBattle       ( .Song:UnusedOpening )
+  7FC:  Return
+  804:  End
+}
+
+
+@	$Script_Idle_802448BC
+{
+    0:  Label  0
+    C:  If  *MapVar[A]  ==  00000000
+   1C:  	Wait  1`
+   28:  	Goto  0
+   34:  EndIf
+   3C:  Call  DisablePlayerInput    ( .True )
+   4C:  Wait  55`
+		Call  GetCurrentPartnerID   ( *Var0 )
+  540:  If  *Var0  ==  .Partner:Goombario % 2
+				Wait  1`
+  570:  		Call  DisablePartnerAI  ( 00000000 )
+  580:  		Call  SpeakToNpc    ( .Npc:Partner 0001000C 0001000B 00000000 .Npc:Self 00100121 ) % This blows!
+  5EC:  		Call  EnablePartnerAI ( )
+  600:  EndIf
+   58:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .True )
+   70:  Call  SetNpcPos     ( .Npc:Self  70`  25`  60` )
+   8C:  Call  SetNpcAnimation       ( .Npc:Self 00B60007 )
+   A0:  Call  SetNpcSpeed   ( .Npc:Self *Fixed[4.0] )
+   B4:  Call  NpcMoveTo     ( .Npc:Self  170`  0`  0` )
+   D0:  Call  NpcMoveTo     ( .Npc:Self  280`  70`  0` )
+   EC:  Call  SpeakToPlayer ( .Npc:Self 00B60007 00B60002 00000000 00100107 ) % Well! That's that, then! Now there's nothing betwe ...
+  10C:  Call  UseSettingsFrom       ( .Cam:Default  450`  25`  -20` )
+  128:  Call  SetPanTarget  ( .Cam:Default  450`  25`  -20` )
+  144:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.5] )
+  158:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  170:  Call  NpcMoveTo     ( .Npc:Self  535`  -60`  0` )
+  18C:  Wait  20`
+  198:  Call  SetPanTarget  ( .Cam:Default  304`  25`  -35` )
+  1B4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+  1C8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1E0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1F4:  Call  SetNpcAux     ( .NpcID:LavaPiranhaHead_02 00000000 )
+  208:  Wait  10`
+  214:  Call  FadeOutMusic  ( 00000000 000005DC )
+  228:  Exec  $Script_80242164
+  234:  Wait  30`
+  240:  Call  DisablePlayerInput    ( .False )
+  250:  Return
+  258:  End
+}
+
+
+@	$Script_80244C78
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  SetPlayerPos  (  185`  25`  -35` )
+   28:  Call  SetNpcPos     ( .Npc:Partner  155`  25`  -35` )
+   44:  Call  SetNpcPos     ( .NpcID:WorldMisstar_01  250`  40`  -35` )
+   60:  Call  UseSettingsFrom       ( .Cam:Default  217`  25`  -35` )
+   7C:  Call  SetPanTarget  ( .Cam:Default  217`  25`  -35` )
+   98:  Call  SetCamDistance        ( .Cam:Default  380` )
+   AC:  Call  SetCamPitch   ( .Cam:Default *Fixed[12.0] *Fixed[-7.0] )
+   C4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   D8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   F0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  104:  Wait  30`
+  110:  Set   *AreaFlag[008]  .True
+  120:  Call  PlaySound     ( 8000006B )
+  130:  Loop
+  13C:  	Wait  1`
+  148:  	If  *AreaFlag[008]  !=  .True
+  158:  		BreakLoop
+  160:  	EndIf
+  168:  EndLoop
+  170:  Call  SetPlayerAnimation    ( 00010002 )
+  180:  Call  InterpPlayerYaw       (  90`  0` )
+  194:  Call  InterpNpcYaw  ( .Npc:Partner  90`  0` )
+  1AC:  Call  GetNpcPos     ( .NpcID:WorldMisstar_01 *Var0 *Var1 *Var2 )
+  1C8:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  1E4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+  1F8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  210:  Wait  10`
+  21C:  Call  SpeakToPlayer ( .NpcID:WorldMisstar_01 00160009 00160008 00000000 00100109 ) % Mario, this way! We must hurry!!
+  23C:  Wait  10`
+		Call  EnablePartnerAI ( )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Goombario % 0
+			Call  $Function_SwapToGoombarius    ( 00000001 )
+  62C:  	Thread
+  634:  		Set   *MapVar[0]  00000000
+  644:  		Wait  1`
+  65C:  		Set   *MapVar[0]  00000001
+  66C:  	EndThread
+  674:  	Wait  8`
+  680:  	Call  DisablePartnerAI  ( 00000000 )
+  690:  	Call  SetNpcYaw ( .Npc:Partner  90` )
+  6A4:  	Call  EnablePartnerAI ( )
+  6B0:  	Loop
+  6BC:  		Wait  1`
+  6C8:  		If  *MapVar[0]  ==  00000001
+  6D8:  			BreakLoop
+  6E0:  		EndIf
+  6E8:  	EndLoop
+  5A4:  Wait  40`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+  		Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:WorldMisstar_01 00100122 ) % 
+  		Call  SpeakToPlayer ( .NpcID:WorldMisstar_01 00160009 00160008 00000000 00100123 )
+		Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
+  248:  Call  SetPanTarget  ( .Cam:Default  370`  25`  70` )
+  264:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.8] )
+  278:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  290:  Call  InterpNpcYaw  ( .NpcID:WorldMisstar_01  90`  0` )
+  2A8:  Call  LoadPath      ( 0000002D $VectorList_80244C3C 00000005 .Easing:Linear )
+  2C4:  Loop
+  2D0:  	Call  GetNextPathPos ( )
+  2DC:  	Call  SetNpcPos ( .NpcID:WorldMisstar_01 *Var1 *Var2 *Var3 )
+  2F8:  	Wait  1`
+  304:  	If  *Var0  ==  00000000
+  314:  		BreakLoop
+  31C:  	EndIf
+  324:  EndLoop
+  32C:  Call  SetNpcPos ( .NpcID:WorldMisstar_01  0`  -1000`  0` )
+  354:  Call  ResetCam  ( .Cam:Default *Fixed[3.0] )
+		Wait  35`
+				Call  DisablePartnerAI  ( 00000000 )
+  5C8:  		Call  SpeakToPlayer    ( .Npc:Partner 0001000C 0001000B 00000000 00100124 ) % 
+  5EC:  		Call  EnablePartnerAI ( )
+  368:  Set   *GB_StoryProgress  .Story:Ch5_MtLavaLavaErupting
+  378:  Call  DisablePlayerInput    ( .False )
+  388:  Return
+  390:  End
+}

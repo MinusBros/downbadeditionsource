@@ -1,0 +1,3805 @@
+#import KoopaKoot.bpat
+
+
+#new:Formation $Formation_00
+{
+	$KoopaKoot 00000002 0000000A 00000000 00000000 00000000 00000000
+}
+
+#new:FormationTable $FormationTable
+{
+	$SJIS_80231600 00000001 $Formation_00 $Stage_8022FEAC 00000000
+	00000000 00000000 00000000 00000000 00000000
+}
+
+#new:StageTable $StageTable
+{
+	$ASCII_80231634 $Stage_8022F3B4
+	$ASCII_8023162C $Stage_8022F7EC
+	$ASCII_80231624 $Stage_8022FB48
+	$ASCII_8023161C $Stage_8022FEAC
+	$ASCII_80231614 $Stage_80230230
+	$ASCII_8023160C $Stage_80230644
+	00000000 00000000
+}
+
+
+
+%All this stuff ported from 1D Area SAM to get battle backs working correctly.
+
+#new:Function $Function_80218000
+{
+    0:  ADDIU     SP, SP, FFB8
+    4:  SW        S4, 20 (SP)
+    8:  COPY      S4, A0
+    C:  SW        S0, 10 (SP)
+   10:  SW        RA, 24 (SP)
+   14:  SW        S3, 1C (SP)
+   18:  SW        S2, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   20:  SDC1      F26, 40 (SP)
+   24:  SDC1      F24, 38 (SP)
+   28:  SDC1      F22, 30 (SP)
+   2C:  SDC1      F20, 28 (SP)
+   30:  LW        A0, 148 (S4)
+   34:  LW        S2, C (S4)
+   38:  JAL       ~Func:get_actor
+   3C:  COPY      S0, A1
+   40:  COPY      S3, V0
+   44:  BEQ       S0, R0, .o8C
+   48:  ADDIU     S1, S3, C
+   4C:  LW        A1, 0 (S2)
+   50:  ADDIU     S2, S2, 4
+   54:  JAL       ~Func:get_variable
+   58:  COPY      A0, S4
+   5C:  SH        V0, 70 (S3)
+   60:  LW        A1, 0 (S2)
+   64:  JAL       ~Func:get_variable
+   68:  COPY      A0, S4
+   6C:  SH        V0, 72 (S3)
+   70:  SW        R0, 74 (S4)
+   74:  SW        R0, 70 (S4)
+   78:  LH        V1, 72 (S3)
+   7C:  LI        V0, 1
+   80:  BNE       V1, V0, .o8C
+   84:  LI        V0, 2
+   88:  SW        V0, 70 (S4)
+        .o8C
+   8C:  LW        V0, 70 (S4)
+   90:  BNE       V0, R0, .o470
+   94:  NOP
+   98:  LWC1      F0, 144 (S3)
+   9C:  LWC1      F24, C (S1)
+   A0:  LWC1      F26, 14 (S1)
+   A4:  SWC1      F0, 0 (S1)
+   A8:  LWC1      F0, 148 (S3)
+   AC:  MFC1      A2, F24
+   B0:  MFC1      A3, F26
+   B4:  LWC1      F22, 0 (S1)
+   B8:  SWC1      F0, 4 (S1)
+   BC:  LWC1      F20, 14C (S3)
+   C0:  MOV.S     F12, F22
+   C4:  MOV.S     F14, F20
+   C8:  JAL       ~Func:atan2
+   CC:  SWC1      F20, 8 (S1)
+   D0:  MOV.S     F12, F22
+   D4:  MFC1      A2, F24
+   D8:  MFC1      A3, F26
+   DC:  MOV.S     F14, F20
+   E0:  JAL       ~Func:dist2D
+   E4:  SWC1      F0, 48 (S1)
+   E8:  LH        V0, 64 (S1)
+   EC:  MOV.S     F4, F0
+   F0:  BNE       V0, R0, .o13C
+   F4:  SWC1      F4, 4C (S1)
+   F8:  LWC1      F0, 40 (S1)
+   FC:  LWC1      F2, 40 (S1)
+  100:  DIV.S     F0, F4, F0
+  104:  TRUNC.W.S F10, F0
+  108:  MFC1      V1, F10
+  10C:  NOP
+  110:  SLL       V0, V1, 10
+  114:  SRA       V0, V0, 10
+  118:  MTC1      V0, F0
+  11C:  NOP
+  120:  CVT.S.W   F0, F0
+  124:  MUL.S     F0, F0, F2
+  128:  NOP
+  12C:  MOV.S     F2, F4
+  130:  SH        V1, 64 (S1)
+  134:  BEQ       R0, R0, .o170
+  138:  SUB.S     F8, F2, F0
+        .o13C
+  13C:  MTC1      V0, F2
+  140:  NOP
+  144:  CVT.S.W   F2, F2
+  148:  LH        V0, 64 (S1)
+  14C:  DIV.S     F2, F4, F2
+  150:  MTC1      V0, F0
+  154:  NOP
+  158:  CVT.S.W   F0, F0
+  15C:  MUL.S     F0, F0, F2
+  160:  NOP
+  164:  LWC1      F4, 4C (S1)
+  168:  SWC1      F2, 40 (S1)
+  16C:  SUB.S     F8, F4, F0
+        .o170
+  170:  LH        V1, 64 (S1)
+  174:  BEQ       V1, R0, .o860
+  178:  LI        V0, 2
+  17C:  LH        V0, 64 (S1)
+  180:  LWC1      F2, C (S1)
+  184:  LIF       F0, 3.14159
+  190:  LWC1      F4, 0 (S1)
+  194:  MTC1      V0, F6
+  198:  NOP
+  19C:  CVT.S.W   F6, F6
+  1A0:  DIV.S     F0, F0, F6
+  1A4:  SUB.S     F2, F2, F4
+  1A8:  SWC1      F0, 3C (S1)
+  1AC:  MTC1      V1, F0
+  1B0:  NOP
+  1B4:  CVT.S.W   F0, F0
+  1B8:  DIV.S     F2, F2, F0
+  1BC:  LWC1      F0, 10 (S1)
+  1C0:  SWC1      F2, 30 (S1)
+  1C4:  LWC1      F2, 4 (S1)
+  1C8:  SW        R0, 44 (S1)
+  1CC:  SUB.S     F0, F0, F2
+  1D0:  LWC1      F4, 14 (S1)
+  1D4:  MOV.S     F2, F6
+  1D8:  DIV.S     F0, F0, F2
+  1DC:  SWC1      F0, 34 (S1)
+  1E0:  MOV.S     F0, F6
+  1E4:  DIV.S     F0, F8, F0
+  1E8:  LWC1      F2, 8 (S1)
+  1EC:  LH        V0, 66 (S1)
+  1F0:  SUB.S     F4, F4, F2
+  1F4:  LWC1      F2, 40 (S1)
+  1F8:  SLTI      V0, V0, 3
+  1FC:  ADD.S     F2, F2, F0
+  200:  DIV.S     F4, F4, F6
+  204:  SWC1      F4, 38 (S1)
+  208:  BEQ       V0, R0, .o320
+  20C:  SWC1      F2, 40 (S1)
+  210:  LH        V0, 64 (S1)
+  214:  LI        V1, 168
+  218:  BNE       V0, R0, .o224
+  21C:  DIV       V1, V0
+  220:  BREAK     1C00
+        .o224
+  224:  LI        AT, FFFF
+  228:  BNE       V0, AT, .o23C
+  22C:  LUI       AT, 8000
+  230:  BNE       V1, AT, .o23C
+  234:  NOP
+  238:  BREAK     1800
+        .o23C
+  23C:  MFLO      V1
+  240:  LWC1      F8, 4C (S1)
+  244:  LIF       F3, 2.8125
+  24C:  MTC1      R0, F2
+  250:  CVT.D.S   F0, F8
+  254:  SUB.D     F0, F0, F2
+  258:  LIF       F3, 2.375
+  260:  MTC1      R0, F2
+  264:  CVT.S.D   F8, F0
+  268:  CVT.D.S   F0, F8
+  26C:  DIV.D     F0, F0, F2
+  270:  CVT.S.D   F8, F0
+  274:  LAD       F2, $ConstDouble_802312D0
+  27C:  CVT.D.S   F0, F8
+  280:  ADD.D     F0, F0, F2
+  284:  LIF       F2, 90.0
+  28C:  CVT.S.D   F8, F0
+  290:  MTC1      V1, F0
+  294:  NOP
+  298:  CVT.S.W   F0, F0
+  29C:  LH        V1, 66 (S1)
+  2A0:  LI        V0, 2
+  2A4:  SWC1      F2, 24 (S1)
+  2A8:  SWC1      F8, 50 (S1)
+  2AC:  BNE       V1, V0, .o2D0
+  2B0:  SWC1      F0, 28 (S1)
+  2B4:  LAD       F2, $ConstDouble_802312D8
+  2BC:  CVT.D.S   F0, F8
+  2C0:  MUL.D     F0, F0, F2
+  2C4:  NOP
+  2C8:  CVT.S.D   F0, F0
+  2CC:  SWC1      F0, 50 (S1)
+        .o2D0
+  2D0:  LWC1      F12, 24 (S1)
+  2D4:  LIF       F0, 6.28318
+  2E0:  LWC1      F20, 44 (S1)
+  2E4:  LWC1      F22, 3C (S1)
+  2E8:  SW        R0, 18 (S1)
+  2EC:  MUL.S     F12, F12, F0
+  2F0:  NOP
+  2F4:  SW        R0, 1C (S1)
+  2F8:  CVT.D.S   F20, F20
+  2FC:  LIF       F0, 360.0
+  304:  CVT.D.S   F22, F22
+  308:  JAL       ~Func:sin_rad
+  30C:  DIV.S     F12, F12, F0
+  310:  LAD       F2, $ConstDouble_802312E0
+  318:  BEQ       R0, R0, .o430
+  31C:  CVT.D.S   F0, F0
+        .o320
+  320:  LH        V0, 64 (S1)
+  324:  LI        V1, 168
+  328:  BNE       V0, R0, .o334
+  32C:  DIV       V1, V0
+  330:  BREAK     1C00
+        .o334
+  334:  LI        AT, FFFF
+  338:  BNE       V0, AT, .o34C
+  33C:  LUI       AT, 8000
+  340:  BNE       V1, AT, .o34C
+  344:  NOP
+  348:  BREAK     1800
+        .o34C
+  34C:  MFLO      V1
+  350:  LWC1      F8, 4C (S1)
+  354:  LIF       F3, 2.8125
+  35C:  MTC1      R0, F2
+  360:  CVT.D.S   F0, F8
+  364:  SUB.D     F0, F0, F2
+  368:  LIF       F3, 2.375
+  370:  MTC1      R0, F2
+  374:  CVT.S.D   F8, F0
+  378:  CVT.D.S   F0, F8
+  37C:  DIV.D     F0, F0, F2
+  380:  CVT.S.D   F8, F0
+  384:  LAD       F2, $ConstDouble_802312E8
+  38C:  CVT.D.S   F0, F8
+  390:  ADD.D     F0, F0, F2
+  394:  LIF       F2, 90.0
+  39C:  CVT.S.D   F8, F0
+  3A0:  MTC1      V1, F0
+  3A4:  NOP
+  3A8:  CVT.S.W   F0, F0
+  3AC:  LH        V1, 66 (S1)
+  3B0:  LI        V0, 4
+  3B4:  SWC1      F2, 24 (S1)
+  3B8:  SWC1      F8, 50 (S1)
+  3BC:  BNE       V1, V0, .o3E4
+  3C0:  SWC1      F0, 28 (S1)
+  3C4:  LIF       F3, 1.90625
+  3CC:  MTC1      R0, F2
+  3D0:  CVT.D.S   F0, F8
+  3D4:  MUL.D     F0, F0, F2
+  3D8:  NOP
+  3DC:  CVT.S.D   F0, F0
+  3E0:  SWC1      F0, 50 (S1)
+        .o3E4
+  3E4:  LWC1      F12, 24 (S1)
+  3E8:  LIF       F0, 6.28318
+  3F4:  LWC1      F20, 44 (S1)
+  3F8:  LWC1      F22, 3C (S1)
+  3FC:  SW        R0, 18 (S1)
+  400:  MUL.S     F12, F12, F0
+  404:  NOP
+  408:  SW        R0, 1C (S1)
+  40C:  CVT.D.S   F20, F20
+  410:  LIF       F0, 360.0
+  418:  CVT.D.S   F22, F22
+  41C:  JAL       ~Func:sin_rad
+  420:  DIV.S     F12, F12, F0
+  424:  LAD       F2, $ConstDouble_802312F0
+  42C:  CVT.D.S   F0, F0
+        .o430
+  430:  MUL.D     F0, F0, F2
+  434:  NOP
+  438:  MUL.D     F0, F0, F22
+  43C:  NOP
+  440:  ADD.D     F0, F0, F22
+  444:  ADD.D     F20, F20, F0
+  448:  CVT.S.D   F20, F20
+  44C:  SWC1      F20, 44 (S1)
+  450:  LI        A0, FF81
+  454:  LW        A2, 58 (S1)
+  458:  JAL       ~Func:set_animation
+  45C:  LI        A1, 1
+  460:  JAL       ~Func:sfx_play_sound
+  464:  LI        A0, 2081
+  468:  LI        V0, 1
+  46C:  SW        V0, 70 (S4)
+        .o470
+  470:  LW        V1, 70 (S4)
+  474:  LI        V0, 2
+  478:  BEQ       V1, V0, .o6D0
+  47C:  LI        V0, 1
+  480:  SLTI      V0, V1, 3
+  484:  BEQ       V0, R0, .o49C
+  488:  LI        V0, 1
+  48C:  BEQ       V1, V0, .o4B0
+  490:  CLEAR     V0
+  494:  BEQ       R0, R0, .o860
+  498:  NOP
+        .o49C
+  49C:  LI        V0, 3
+  4A0:  BEQ       V1, V0, .o78C
+  4A4:  CLEAR     V0
+  4A8:  BEQ       R0, R0, .o860
+  4AC:  NOP
+        .o4B0
+  4B0:  LWC1      F2, 44 (S1)
+  4B4:  LIF       F0, 1.570795
+  4C0:  NOP
+  4C4:  C.LT.S    F0, F2
+  4C8:  NOP
+  4CC:  BC1F      .o4E0
+  4D0:  LI        A0, FF81
+  4D4:  LW        A2, 5C (S1)
+  4D8:  JAL       ~Func:set_animation
+  4DC:  LI        A1, 1
+        .o4E0
+  4E0:  LWC1      F6, 0 (S1)
+  4E4:  LWC1      F0, 30 (S1)
+  4E8:  LWC1      F4, 4 (S1)
+  4EC:  LWC1      F22, 144 (S3)
+  4F0:  ADD.S     F6, F6, F0
+  4F4:  LWC1      F0, 34 (S1)
+  4F8:  LWC1      F2, 38 (S1)
+  4FC:  ADD.S     F4, F4, F0
+  500:  LWC1      F0, 8 (S1)
+  504:  LWC1      F20, 148 (S3)
+  508:  ADD.S     F0, F0, F2
+  50C:  SWC1      F6, 0 (S1)
+  510:  SWC1      F4, 4 (S1)
+  514:  SWC1      F0, 8 (S1)
+  518:  LWC1      F0, 148 (S3)
+  51C:  MOV.S     F2, F6
+  520:  SWC1      F0, 18 (S1)
+  524:  SWC1      F2, 144 (S3)
+  528:  JAL       ~Func:sin_rad
+  52C:  LWC1      F12, 44 (S1)
+  530:  LWC1      F2, 50 (S1)
+  534:  MUL.S     F2, F2, F0
+  538:  NOP
+  53C:  LWC1      F0, 4 (S1)
+  540:  ADD.S     F0, F0, F2
+  544:  SWC1      F0, 148 (S3)
+  548:  LWC1      F0, 8 (S1)
+  54C:  SWC1      F0, 14C (S3)
+  550:  LWC1      F2, 10 (S1)
+  554:  LWC1      F0, 148 (S3)
+  558:  C.LT.S    F0, F2
+  55C:  NOP
+  560:  BC1F      .o580
+  564:  MOV.S     F12, F22
+  568:  LH        V0, 64 (S1)
+  56C:  SLTI      V0, V0, 3
+  570:  BNEL      V0, R0, .o57C
+  574:  SWC1      F2, 148 (S3)
+  578:  MOV.S     F12, F22
+        .o57C
+  57C:  LWC1      F0, 148 (S3)
+        .o580
+  580:  LW        A2, 144 (S3)
+  584:  NEG.S     F0, F0
+  588:  MFC1      A3, F0
+  58C:  JAL       ~Func:atan2
+  590:  NEG.S     F14, F20
+  594:  NEG.S     F0, F0
+  598:  SWC1      F0, 164 (S3)
+  59C:  LH        V0, 66 (S1)
+  5A0:  LWC1      F0, 148 (S3)
+  5A4:  SLTI      V0, V0, 3
+  5A8:  BEQ       V0, R0, .o5F8
+  5AC:  SWC1      F0, 1C (S1)
+  5B0:  LWC1      F12, 24 (S1)
+  5B4:  LIF       F0, 6.28318
+  5C0:  LWC1      F20, 44 (S1)
+  5C4:  MUL.S     F12, F12, F0
+  5C8:  NOP
+  5CC:  LWC1      F22, 3C (S1)
+  5D0:  CVT.D.S   F20, F20
+  5D4:  LIF       F0, 360.0
+  5DC:  CVT.D.S   F22, F22
+  5E0:  JAL       ~Func:sin_rad
+  5E4:  DIV.S     F12, F12, F0
+  5E8:  LAD       F2, $ConstDouble_802312F8
+  5F0:  BEQ       R0, R0, .o63C
+  5F4:  CVT.D.S   F0, F0
+        .o5F8
+  5F8:  LWC1      F12, 24 (S1)
+  5FC:  LIF       F0, 6.28318
+  608:  LWC1      F20, 44 (S1)
+  60C:  MUL.S     F12, F12, F0
+  610:  NOP
+  614:  LWC1      F22, 3C (S1)
+  618:  CVT.D.S   F20, F20
+  61C:  LIF       F0, 360.0
+  624:  CVT.D.S   F22, F22
+  628:  JAL       ~Func:sin_rad
+  62C:  DIV.S     F12, F12, F0
+  630:  LAD       F2, $ConstDouble_80231300
+  638:  CVT.D.S   F0, F0
+        .o63C
+  63C:  MUL.D     F0, F0, F2
+  640:  NOP
+  644:  MUL.D     F0, F0, F22
+  648:  NOP
+  64C:  ADD.D     F0, F0, F22
+  650:  ADD.D     F20, F20, F0
+  654:  CVT.S.D   F20, F20
+  658:  SWC1      F20, 44 (S1)
+  65C:  LWC1      F12, 24 (S1)
+  660:  LWC1      F0, 28 (S1)
+  664:  ADD.S     F12, F12, F0
+  668:  JAL       ~Func:clamp_angle
+  66C:  SWC1      F12, 24 (S1)
+  670:  LHU       V0, 64 (S1)
+  674:  SWC1      F0, 24 (S1)
+  678:  ADDIU     V0, V0, FFFF
+  67C:  SH        V0, 64 (S1)
+  680:  SLL       V0, V0, 10
+  684:  BNE       V0, R0, .o860
+  688:  CLEAR     V0
+  68C:  LWC1      F0, 10 (S1)
+  690:  LI        A0, FF81
+  694:  SWC1      F0, 148 (S3)
+  698:  LWC1      F0, 18 (S1)
+  69C:  LWC1      F2, 1C (S1)
+  6A0:  LW        A2, 60 (S1)
+  6A4:  SUB.S     F0, F0, F2
+  6A8:  LIF       F2, 1.8
+  6B4:  LI        A1, 1
+  6B8:  SWC1      F2, 3C (S1)
+  6BC:  NEG.S     F0, F0
+  6C0:  JAL       ~Func:set_animation
+  6C4:  SWC1      F0, 44 (S1)
+  6C8:  BEQ       R0, R0, .o860
+  6CC:  LI        V0, 1
+        .o6D0
+  6D0:  SH        V0, 64 (S1)
+  6D4:  LH        V0, 64 (S1)
+  6D8:  LI        V1, 168
+  6DC:  BNE       V0, R0, .o6E8
+  6E0:  DIV       V1, V0
+  6E4:  BREAK     1C00
+        .o6E8
+  6E8:  LI        AT, FFFF
+  6EC:  BNE       V0, AT, .o700
+  6F0:  LUI       AT, 8000
+  6F4:  BNE       V1, AT, .o700
+  6F8:  NOP
+  6FC:  BREAK     1800
+        .o700
+  700:  MFLO      V1
+  704:  LWC1      F2, 18 (S1)
+  708:  LWC1      F0, 1C (S1)
+  70C:  LIF       F8, 1.8
+  718:  LWC1      F4, 1C (S1)
+  71C:  SUB.S     F2, F2, F0
+  720:  LWC1      F0, 18 (S1)
+  724:  LIF       F6, 90.0
+  72C:  SUB.S     F0, F0, F4
+  730:  SWC1      F8, 3C (S1)
+  734:  SWC1      F6, 24 (S1)
+  738:  NEG.S     F2, F2
+  73C:  SWC1      F2, 44 (S1)
+  740:  LAD       F2, $ConstDouble_80231308
+  748:  ABS.S     F0, F0
+  74C:  CVT.D.S   F0, F0
+  750:  DIV.D     F0, F0, F2
+  754:  CVT.S.D   F0, F0
+  758:  SWC1      F0, 50 (S1)
+  75C:  MTC1      V1, F0
+  760:  NOP
+  764:  CVT.S.W   F0, F0
+  768:  SWC1      F0, 28 (S1)
+  76C:  LWC1      F0, 144 (S3)
+  770:  SWC1      F0, 0 (S1)
+  774:  LWC1      F0, 148 (S3)
+  778:  SWC1      F0, 4 (S1)
+  77C:  LWC1      F0, 14C (S3)
+  780:  LI        V0, 3
+  784:  SWC1      F0, 8 (S1)
+  788:  SW        V0, 70 (S4)
+        .o78C
+  78C:  LWC1      F12, 24 (S1)
+  790:  LIF       F22, 6.28318
+  79C:  NOP
+  7A0:  MUL.S     F12, F12, F22
+  7A4:  NOP
+  7A8:  LWC1      F20, 0 (S1)
+  7AC:  LIF       F24, 360.0
+  7B4:  CVT.D.S   F20, F20
+  7B8:  JAL       ~Func:sin_rad
+  7BC:  DIV.S     F12, F12, F24
+  7C0:  LWC1      F2, 50 (S1)
+  7C4:  MUL.S     F2, F2, F0
+  7C8:  NOP
+  7CC:  LWC1      F12, 24 (S1)
+  7D0:  MUL.S     F12, F12, F22
+  7D4:  NOP
+  7D8:  LAD       F0, $ConstDouble_80231310
+  7E0:  CVT.D.S   F2, F2
+  7E4:  DIV.D     F2, F2, F0
+  7E8:  ADD.D     F20, F20, F2
+  7EC:  DIV.S     F12, F12, F24
+  7F0:  CVT.S.D   F20, F20
+  7F4:  JAL       ~Func:sin_rad
+  7F8:  SWC1      F20, 0 (S1)
+  7FC:  LWC1      F2, 50 (S1)
+  800:  MUL.S     F2, F2, F0
+  804:  NOP
+  808:  LWC1      F12, 24 (S1)
+  80C:  LWC1      F0, 28 (S1)
+  810:  ADD.S     F12, F12, F0
+  814:  LWC1      F0, 4 (S1)
+  818:  SUB.S     F0, F0, F2
+  81C:  SWC1      F12, 24 (S1)
+  820:  JAL       ~Func:clamp_angle
+  824:  SWC1      F0, 4 (S1)
+  828:  LWC1      F2, 0 (S1)
+  82C:  SWC1      F0, 24 (S1)
+  830:  SWC1      F2, 144 (S3)
+  834:  LWC1      F0, 4 (S1)
+  838:  SWC1      F0, 148 (S3)
+  83C:  LWC1      F0, 8 (S1)
+  840:  SWC1      F0, 14C (S3)
+  844:  LHU       V1, 64 (S1)
+  848:  ADDIU     V1, V1, FFFF
+  84C:  SH        V1, 64 (S1)
+  850:  SLL       V1, V1, 10
+  854:  BEQ       V1, R0, .o860
+  858:  LI        V0, 1
+  85C:  CLEAR     V0
+        .o860
+  860:  LW        RA, 24 (SP)
+  864:  LW        S4, 20 (SP)
+  868:  LW        S3, 1C (SP)
+  86C:  LW        S2, 18 (SP)
+  870:  LW        S1, 14 (SP)
+  874:  LW        S0, 10 (SP)
+  878:  LDC1      F26, 40 (SP)
+  87C:  LDC1      F24, 38 (SP)
+  880:  LDC1      F22, 30 (SP)
+  884:  LDC1      F20, 28 (SP)
+  888:  JR        RA
+  88C:  ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80218890
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S2, 20 (SP)
+    8:  COPY      S2, A0
+    C:  SW        RA, 28 (SP)
+   10:  SW        S3, 24 (SP)
+   14:  SW        S1, 1C (SP)
+   18:  SW        S0, 18 (SP)
+   1C:  SDC1      F20, 30 (SP)
+   20:  LW        A0, 148 (S2)
+   24:  JAL       ~Func:get_actor
+   28:  COPY      S0, A1
+   2C:  COPY      S1, V0
+   30:  BEQ       S0, R0, .o3C
+   34:  ADDIU     S3, S1, C
+   38:  SW        R0, 70 (S2)
+        .o3C
+   3C:  LW        V0, 70 (S2)
+   40:  BNE       V0, R0, .o64
+   44:  LI        V0, 1
+   48:  LWC1      F0, 144 (S1)
+   4C:  LWC1      F2, 148 (S1)
+   50:  LWC1      F4, 14C (S1)
+   54:  SWC1      F0, C (S1)
+   58:  SWC1      F2, 10 (S1)
+   5C:  SWC1      F4, 14 (S1)
+   60:  SW        V0, 70 (S2)
+        .o64
+   64:  LWC1      F0, 50 (S1)
+   68:  MTC1      R0, F20
+   6C:  NOP
+   70:  C.LT.S    F20, F0
+   74:  NOP
+   78:  BC1F      .o90
+   7C:  LI        A0, FF81
+   80:  LW        A2, 64 (S1)
+   84:  JAL       ~Func:set_animation
+   88:  LI        A1, 1
+   8C:  LWC1      F0, 50 (S1)
+        .o90
+   90:  C.LT.S    F0, F20
+   94:  NOP
+   98:  BC1F      .oAC
+   9C:  LI        A0, FF81
+   A0:  LW        A2, 68 (S1)
+   A4:  JAL       ~Func:set_animation
+   A8:  LI        A1, 1
+        .oAC
+   AC:  LWC1      F4, 10 (S1)
+   B0:  LWC1      F0, 50 (S1)
+   B4:  LW        A1, 4C (S1)
+   B8:  ADD.S     F4, F4, F0
+   BC:  LWC1      F2, 48 (S1)
+   C0:  LW        A2, 54 (S1)
+   C4:  SUB.S     F0, F0, F2
+   C8:  COPY      A0, S3
+   CC:  SWC1      F4, 10 (S1)
+   D0:  JAL       ~Func:add_xz_vec3f
+   D4:  SWC1      F0, 50 (S1)
+   D8:  LWC1      F0, 10 (S1)
+   DC:  LWC1      F2, 14 (S1)
+   E0:  SWC1      F0, 148 (S1)
+   E4:  LWC1      F0, C (S1)
+   E8:  LWC1      F4, 148 (S1)
+   EC:  SWC1      F2, 14C (S1)
+   F0:  C.LT.S    F4, F20
+   F4:  NOP
+   F8:  BC1T      .o108
+   FC:  SWC1      F0, 144 (S1)
+  100:  BEQ       R0, R0, .o134
+  104:  CLEAR     V0
+        .o108
+  108:  LWC1      F0, 18C (S1)
+  10C:  SWC1      F20, 148 (S1)
+  110:  SWC1      F0, 10 (SP)
+  114:  LW        A1, 144 (S1)
+  118:  LW        A2, 148 (S1)
+  11C:  LW        A3, 14C (S1)
+  120:  JAL       ~Func:play_movement_dust_effects
+  124:  LI        A0, 2
+  128:  JAL       ~Func:sfx_play_sound
+  12C:  LI        A0, 148
+  130:  LI        V0, 1
+        .o134
+  134:  LW        RA, 28 (SP)
+  138:  LW        S3, 24 (SP)
+  13C:  LW        S2, 20 (SP)
+  140:  LW        S1, 1C (SP)
+  144:  LW        S0, 18 (SP)
+  148:  LDC1      F20, 30 (SP)
+  14C:  JR        RA
+  150:  ADDIU     SP, SP, 38
+}
+
+#new:Function $Function_802189E4
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  JAL       ~Func:get_actor
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  COPY      A0, V0
+   24:  LW        V0, 0 (A0)
+   28:  ANDI      V0, V0, 800
+   2C:  BNE       V0, R0, .o58
+   30:  NOP
+   34:  LBU       V0, 191 (A0)
+   38:  LW        V1, 88 (S0)
+   3C:  SRL       V0, V0, 1
+   40:  ADDU      V1, V1, V0
+   44:  SW        V1, 88 (S0)
+   48:  LBU       V0, 191 (A0)
+   4C:  SRL       V0, V0, 2
+   50:  BEQ       R0, R0, .o78
+   54:  ADDU      V1, V1, V0
+        .o58
+   58:  LBU       V0, 191 (A0)
+   5C:  LW        V1, 88 (S0)
+   60:  SRL       V0, V0, 1
+   64:  SUBU      V1, V1, V0
+   68:  SW        V1, 88 (S0)
+   6C:  LBU       V0, 191 (A0)
+   70:  SRL       V0, V0, 2
+   74:  SUBU      V1, V1, V0
+        .o78
+   78:  SW        V1, 88 (S0)
+   7C:  LBU       V1, 191 (A0)
+   80:  LBU       A0, 190 (A0)
+   84:  SLT       V0, V1, A0
+   88:  BNEL      V0, R0, .o90
+   8C:  COPY      V1, A0
+        .o90
+   90:  ADDIU     V0, V1, 7E
+   94:  SW        V0, 90 (S0)
+   98:  LW        RA, 14 (SP)
+   9C:  LW        S0, 10 (SP)
+   A0:  LI        V0, 2
+   A4:  JR        RA
+   A8:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80218A90
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S0, 18 (SP)
+    8:  COPY      S0, A0
+    C:  LUI       A1, 42D4
+   10:  LUI       A2, 4310
+   14:  CLEAR     A0
+   18:  SW        RA, 20 (SP)
+   1C:  SW        S1, 1C (SP)
+   20:  LW        S1, C (S0)
+   24:  LIF       F0, 1.0
+   2C:  CLEAR     A3
+   30:  SW        R0, 14 (SP)
+   34:  JAL       ~Func:playFX_6C
+   38:  SWC1      F0, 10 (SP)
+   3C:  COPY      A0, S0
+   40:  LW        A1, 0 (S1)
+   44:  JAL       ~Func:set_variable
+   48:  COPY      A2, V0
+   4C:  LW        RA, 20 (SP)
+   50:  LW        S1, 1C (SP)
+   54:  LW        S0, 18 (SP)
+   58:  LI        V0, 2
+   5C:  JR        RA
+   60:  ADDIU     SP, SP, 28
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80218AF4
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  LW        V1, C (V0)
+   18:  LIF       F0, -1000.0
+   20:  NOP
+   24:  SWC1      F0, 8 (V1)
+   28:  LW        RA, 10 (SP)
+   2C:  LI        V0, 2
+   30:  JR        RA
+   34:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80218B2C
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  COPY      A0, V0
+   18:  LW        V0, C (A0)
+   1C:  LIF       F0, 144.0
+   24:  NOP
+   28:  SWC1      F0, 8 (V0)
+   2C:  LW        V1, 0 (A0)
+   30:  ORI       V1, V1, 10
+   34:  SW        V1, 0 (A0)
+   38:  LW        RA, 10 (SP)
+   3C:  LI        V0, 2
+   40:  JR        RA
+   44:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80218B74
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  LW        S0, C (S1)
+   20:  LW        A1, 0 (S0)
+   24:  JAL       ~Func:get_variable
+   28:  ADDIU     S0, S0, 4
+   2C:  LW        A1, 0 (S0)
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S1
+   38:  JAL       ~Func:get_variable
+   3C:  COPY      S3, V0
+   40:  LW        A1, 0 (S0)
+   44:  ADDIU     S0, S0, 4
+   48:  COPY      A0, S1
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      S2, V0
+   54:  COPY      A0, S1
+   58:  LW        A1, 0 (S0)
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      S0, V0
+   64:  LW        A0, 148 (S1)
+   68:  JAL       ~Func:get_actor
+   6C:  COPY      S1, V0
+   70:  COPY      V1, V0
+   74:  LW        V0, 8 (V1)
+   78:  LBU       V0, 24 (V0)
+   7C:  LW        A0, 8 (V1)
+   80:  SUBU      S3, S3, V0
+   84:  SB        S3, 194 (V1)
+   88:  LBU       V0, 25 (A0)
+   8C:  SUBU      S2, S2, V0
+   90:  SB        S2, 195 (V1)
+   94:  LBU       V0, 26 (A0)
+   98:  SUBU      S0, S0, V0
+   9C:  SB        S0, 196 (V1)
+   A0:  LBU       A0, 27 (A0)
+   A4:  SUBU      S1, S1, A0
+   A8:  SB        S1, 197 (V1)
+   AC:  LW        RA, 20 (SP)
+   B0:  LW        S3, 1C (SP)
+   B4:  LW        S2, 18 (SP)
+   B8:  LW        S1, 14 (SP)
+   BC:  LW        S0, 10 (SP)
+   C0:  LI        V0, 2
+   C4:  JR        RA
+   C8:  ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80218C40
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        RA, 24 (SP)
+    8:  SW        S2, 20 (SP)
+    C:  SW        S1, 1C (SP)
+   10:  SW        S0, 18 (SP)
+   14:  LW        A0, 148 (A0)
+   18:  JAL       ~Func:get_actor
+   1C:  COPY      S0, A1
+   20:  COPY      S1, V0
+   24:  BEQ       S0, R0, .o44
+   28:  ADDIU     S2, S1, C
+   2C:  LWC1      F0, 144 (S1)
+   30:  LWC1      F2, 148 (S1)
+   34:  LWC1      F4, 14C (S1)
+   38:  SWC1      F0, C (S1)
+   3C:  SWC1      F2, 10 (S1)
+   40:  SWC1      F4, 14 (S1)
+        .o44
+   44:  LW        A1, 4C (S1)
+   48:  LW        A2, 54 (S1)
+   4C:  JAL       ~Func:add_xz_vec3f
+   50:  COPY      A0, S2
+   54:  LWC1      F2, 4C (S1)
+   58:  LIF       F0, 4.0
+   60:  NOP
+   64:  C.LT.S    F2, F0
+   68:  NOP
+   6C:  BC1F      .o8C
+   70:  CLEAR     A0
+   74:  LWC1      F0, 54 (S1)
+   78:  SWC1      F0, 10 (SP)
+   7C:  LW        A1, C (S1)
+   80:  LW        A2, 10 (S1)
+   84:  BEQ       R0, R0, .oA4
+   88:  LW        A3, 14 (S1)
+        .o8C
+   8C:  LWC1      F0, 54 (S1)
+   90:  SWC1      F0, 10 (SP)
+   94:  LW        A1, C (S1)
+   98:  LW        A2, 10 (S1)
+   9C:  LW        A3, 14 (S1)
+   A0:  LI        A0, 1
+        .oA4
+   A4:  JAL       ~Func:play_movement_dust_effects
+   A8:  NOP
+   AC:  LWC1      F0, 40 (S2)
+   B0:  LIF       F3, 1.9375
+   B8:  MTC1      R0, F2
+   BC:  CVT.D.S   F0, F0
+   C0:  DIV.D     F0, F0, F2
+   C4:  LWC1      F2, 0 (S2)
+   C8:  CVT.S.D   F0, F0
+   CC:  SWC1      F0, 40 (S2)
+   D0:  SWC1      F2, 144 (S1)
+   D4:  LWC1      F0, 4 (S2)
+   D8:  SWC1      F0, 148 (S1)
+   DC:  LWC1      F0, 8 (S2)
+   E0:  SWC1      F0, 14C (S1)
+   E4:  LWC1      F0, 40 (S2)
+   E8:  LIF       F3, 1.875
+   F0:  MTC1      R0, F2
+   F4:  CVT.D.S   F0, F0
+   F8:  C.LT.D    F0, F2
+   FC:  NOP
+  100:  BC1T      .o10C
+  104:  LI        V0, 2
+  108:  CLEAR     V0
+        .o10C
+  10C:  LW        RA, 24 (SP)
+  110:  LW        S2, 20 (SP)
+  114:  LW        S1, 1C (SP)
+  118:  LW        S0, 18 (SP)
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80218D64
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        RA, 24 (SP)
+    8:  SW        S2, 20 (SP)
+    C:  SW        S1, 1C (SP)
+   10:  SW        S0, 18 (SP)
+   14:  LW        A0, 148 (A0)
+   18:  JAL       ~Func:get_actor
+   1C:  COPY      S0, A1
+   20:  COPY      S1, V0
+   24:  BEQ       S0, R0, .o44
+   28:  ADDIU     S2, S1, C
+   2C:  LWC1      F0, 144 (S1)
+   30:  LWC1      F2, 148 (S1)
+   34:  LWC1      F4, 14C (S1)
+   38:  SWC1      F0, C (S1)
+   3C:  SWC1      F2, 10 (S1)
+   40:  SWC1      F4, 14 (S1)
+        .o44
+   44:  LW        A1, 4C (S1)
+   48:  LW        A2, 54 (S1)
+   4C:  JAL       ~Func:add_xz_vec3f
+   50:  COPY      A0, S2
+   54:  LWC1      F2, 4C (S1)
+   58:  LIF       F0, 4.0
+   60:  NOP
+   64:  C.LT.S    F2, F0
+   68:  NOP
+   6C:  BC1F      .o8C
+   70:  CLEAR     A0
+   74:  LWC1      F0, 54 (S1)
+   78:  SWC1      F0, 10 (SP)
+   7C:  LW        A1, C (S1)
+   80:  LW        A2, 10 (S1)
+   84:  BEQ       R0, R0, .oA4
+   88:  LW        A3, 14 (S1)
+        .o8C
+   8C:  LWC1      F0, 54 (S1)
+   90:  SWC1      F0, 10 (SP)
+   94:  LW        A1, C (S1)
+   98:  LW        A2, 10 (S1)
+   9C:  LW        A3, 14 (S1)
+   A0:  LI        A0, 1
+        .oA4
+   A4:  JAL       ~Func:play_movement_dust_effects
+   A8:  NOP
+   AC:  LWC1      F0, 40 (S2)
+   B0:  LIF       F3, 1.9375
+   B8:  MTC1      R0, F2
+   BC:  CVT.D.S   F0, F0
+   C0:  DIV.D     F0, F0, F2
+   C4:  LWC1      F2, 0 (S2)
+   C8:  CVT.S.D   F0, F0
+   CC:  SWC1      F0, 40 (S2)
+   D0:  SWC1      F2, 144 (S1)
+   D4:  LWC1      F0, 4 (S2)
+   D8:  SWC1      F0, 148 (S1)
+   DC:  LWC1      F0, 8 (S2)
+   E0:  SWC1      F0, 14C (S1)
+   E4:  LWC1      F0, 40 (S2)
+   E8:  LIF       F3, 1.875
+   F0:  MTC1      R0, F2
+   F4:  CVT.D.S   F0, F0
+   F8:  C.LT.D    F0, F2
+   FC:  NOP
+  100:  BC1T      .o10C
+  104:  LI        V0, 2
+  108:  CLEAR     V0
+        .o10C
+  10C:  LW        RA, 24 (SP)
+  110:  LW        S2, 20 (SP)
+  114:  LW        S1, 1C (SP)
+  118:  LW        S0, 18 (SP)
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_80218E88
+{
+    0:  ADDIU     SP, SP, FFB8
+    4:  SW        RA, 2C (SP)
+    8:  SW        S2, 28 (SP)
+    C:  SW        S1, 24 (SP)
+   10:  SW        S0, 20 (SP)
+   14:  SDC1      F24, 40 (SP)
+   18:  SDC1      F22, 38 (SP)
+   1C:  SDC1      F20, 30 (SP)
+   20:  LW        A0, 148 (A0)
+   24:  JAL       ~Func:get_actor
+   28:  COPY      S0, A1
+   2C:  COPY      S1, V0
+   30:  BEQ       S0, R0, .o128
+   34:  ADDIU     S2, S1, C
+   38:  JAL       ~Func:heap_malloc
+   3C:  LI        A0, 20
+   40:  COPY      S0, V0
+   44:  LI        V0, 1
+   48:  ADDIU     A1, S1, 144
+   4C:  ADDIU     A2, S1, 148
+   50:  SW        S0, 90 (S1)
+   54:  SW        V0, 4 (S0)
+   58:  SW        R0, 8 (S0)
+   5C:  SW        V0, C (S0)
+   60:  SW        R0, 10 (S0)
+   64:  LB        V1, 210 (S1)
+   68:  LI        V0, A
+   6C:  BEQ       V1, V0, .o84
+   70:  ADDIU     A3, S1, 14C
+   74:  LIF       F0, 1.0
+   7C:  BEQ       R0, R0, .o98
+   80:  SWC1      F0, 10 (SP)
+        .o84
+   84:  LIF       F0, 0.39804688
+   90:  NOP
+   94:  SWC1      F0, 10 (SP)
+        .o98
+   98:  LI        V0, 5
+   9C:  SW        V0, 14 (SP)
+   A0:  SW        R0, 18 (SP)
+   A4:  LW        A1, 0 (A1)
+   A8:  LW        A2, 0 (A2)
+   AC:  LW        A3, 0 (A3)
+   B0:  JAL       ~Func:playFX_73
+   B4:  CLEAR     A0
+   B8:  ADDIU     A1, S1, 144
+   BC:  SW        V0, 14 (S0)
+   C0:  LB        V0, 210 (S1)
+   C4:  LI        V1, A
+   C8:  BEQ       V0, V1, .oE0
+   CC:  ADDIU     A3, S1, 14C
+   D0:  LIF       F0, 1.0
+   D8:  BEQ       R0, R0, .oF4
+   DC:  SWC1      F0, 10 (SP)
+        .oE0
+   E0:  LIF       F0, 0.39804688
+   EC:  NOP
+   F0:  SWC1      F0, 10 (SP)
+        .oF4
+   F4:  LI        V0, 5
+   F8:  SW        V0, 14 (SP)
+   FC:  SW        R0, 18 (SP)
+  100:  LW        A1, 0 (A1)
+  104:  LUI       A2, C47A
+  108:  LW        A3, 0 (A3)
+  10C:  JAL       ~Func:playFX_73
+  110:  LI        A0, 1
+  114:  SW        V0, 18 (S0)
+  118:  LI        V0, 1
+  11C:  SW        V0, 0 (S0)
+  120:  LB        V0, 210 (S1)
+  124:  SW        V0, 1C (S0)
+        .o128
+  128:  LW        S0, 84 (S2)
+  12C:  LW        V0, 0 (S0)
+  130:  BEQ       V0, R0, .o458
+  134:  LI        V0, 2
+  138:  LW        V0, 4 (S0)
+  13C:  BEQ       V0, R0, .o174
+  140:  LI        V0, 8
+  144:  LB        V1, 210 (S1)
+  148:  BEQ       V1, V0, .o174
+  14C:  NOP
+  150:  LW        V0, 8 (S0)
+  154:  ADDIU     V0, V0, F
+  158:  MTC1      V0, F12
+  15C:  NOP
+  160:  CVT.S.W   F12, F12
+  164:  JAL       ~Func:clamp_angle
+  168:  SW        V0, 8 (S0)
+  16C:  TRUNC.W.S F6, F0
+  170:  SWC1      F6, 8 (S0)
+        .o174
+  174:  LIF       F0, 6.28318
+  180:  LWC1      F12, 8 (S0)
+  184:  CVT.S.W   F12, F12
+  188:  MUL.S     F12, F12, F0
+  18C:  NOP
+  190:  LIF       F0, 360.0
+  198:  JAL       ~Func:sin_rad
+  19C:  DIV.S     F12, F12, F0
+  1A0:  LIF       F2, 3.0
+  1A8:  NOP
+  1AC:  MUL.S     F0, F0, F2
+  1B0:  NOP
+  1B4:  LH        V0, 152 (S1)
+  1B8:  MTC1      V0, F2
+  1BC:  NOP
+  1C0:  CVT.S.W   F2, F2
+  1C4:  TRUNC.W.S F6, F0
+  1C8:  MFC1      V1, F6
+  1CC:  NOP
+  1D0:  SLL       V0, V1, 18
+  1D4:  LWC1      F0, 148 (S1)
+  1D8:  SRA       V0, V0, 18
+  1DC:  SB        V1, 19A (S1)
+  1E0:  ADD.S     F0, F0, F2
+  1E4:  MTC1      V0, F2
+  1E8:  NOP
+  1EC:  CVT.S.W   F2, F2
+  1F0:  LH        V0, 150 (S1)
+  1F4:  ADD.S     F0, F0, F2
+  1F8:  LI        V1, A
+  1FC:  MTC1      V0, F2
+  200:  NOP
+  204:  CVT.S.W   F2, F2
+  208:  CVT.D.S   F4, F0
+  20C:  LWC1      F0, 144 (S1)
+  210:  LB        V0, 210 (S1)
+  214:  ADD.S     F22, F0, F2
+  218:  LAD       F0, $ConstDouble_80231318
+  220:  BEQL      V0, V1, .o23C
+  224:  ADD.D     F0, F4, F0
+  228:  LIF       F1, 2.625
+  230:  MTC1      R0, F0
+  234:  NOP
+  238:  ADD.D     F0, F4, F0
+        .o23C
+  23C:  CVT.S.D   F20, F0
+  240:  LH        V0, 154 (S1)
+  244:  LWC1      F0, 14C (S1)
+  248:  MTC1      V0, F2
+  24C:  NOP
+  250:  CVT.S.W   F2, F2
+  254:  LW        V0, C (S0)
+  258:  BEQ       V0, R0, .o3C0
+  25C:  ADD.S     F24, F0, F2
+  260:  LW        V1, 10 (S0)
+  264:  BEQ       V1, R0, .o27C
+  268:  LI        V0, 1
+  26C:  BEQ       V1, V0, .o318
+  270:  NOP
+  274:  BEQ       R0, R0, .o3F8
+  278:  NOP
+        .o27C
+  27C:  LW        V0, 14 (S0)
+  280:  BNE       V0, R0, .o2DC
+  284:  LI        V0, A
+  288:  LB        V1, 210 (S1)
+  28C:  BEQ       V1, V0, .o2A4
+  290:  NOP
+  294:  LIF       F0, 1.0
+  29C:  BEQ       R0, R0, .o2B8
+  2A0:  SWC1      F0, 10 (SP)
+        .o2A4
+  2A4:  LIF       F0, 0.39804688
+  2B0:  NOP
+  2B4:  SWC1      F0, 10 (SP)
+        .o2B8
+  2B8:  CLEAR     A0
+  2BC:  MFC1      A1, F22
+  2C0:  MFC1      A2, F20
+  2C4:  MFC1      A3, F24
+  2C8:  LI        V0, 5
+  2CC:  SW        V0, 14 (SP)
+  2D0:  JAL       ~Func:playFX_73
+  2D4:  SW        R0, 18 (SP)
+  2D8:  SW        V0, 14 (S0)
+        .o2DC
+  2DC:  LW        V1, 18 (S0)
+  2E0:  BEQ       V1, R0, .o2F8
+  2E4:  NOP
+  2E8:  LW        V0, 0 (V1)
+  2EC:  ORI       V0, V0, 10
+  2F0:  SW        V0, 0 (V1)
+  2F4:  SW        R0, 18 (S0)
+        .o2F8
+  2F8:  LW        V0, 14 (S0)
+  2FC:  LW        V0, C (V0)
+  300:  SWC1      F22, 4 (V0)
+  304:  LW        V0, 14 (S0)
+  308:  LW        V0, C (V0)
+  30C:  SWC1      F20, 8 (V0)
+  310:  BEQ       R0, R0, .o3B4
+  314:  LW        V0, 14 (S0)
+        .o318
+  318:  LW        V1, 14 (S0)
+  31C:  BEQ       V1, R0, .o334
+  320:  NOP
+  324:  LW        V0, 0 (V1)
+  328:  ORI       V0, V0, 10
+  32C:  SW        V0, 0 (V1)
+  330:  SW        R0, 14 (S0)
+        .o334
+  334:  LW        V0, 18 (S0)
+  338:  BNE       V0, R0, .o39C
+  33C:  NOP
+  340:  LB        V1, 210 (S1)
+  344:  LI        V0, A
+  348:  BEQ       V1, V0, .o360
+  34C:  NOP
+  350:  LIF       F0, 1.0
+  358:  BEQ       R0, R0, .o374
+  35C:  SWC1      F0, 10 (SP)
+        .o360
+  360:  LIF       F0, 0.39804688
+  36C:  NOP
+  370:  SWC1      F0, 10 (SP)
+        .o374
+  374:  LI        A0, 1
+  378:  MFC1      A1, F22
+  37C:  MFC1      A2, F20
+  380:  MFC1      A3, F24
+  384:  LI        V0, 5
+  388:  SW        V0, 14 (SP)
+  38C:  JAL       ~Func:playFX_73
+  390:  SW        R0, 18 (SP)
+  394:  SW        V0, 18 (S0)
+  398:  LW        V0, 18 (S0)
+        .o39C
+  39C:  LW        V0, C (V0)
+  3A0:  SWC1      F22, 4 (V0)
+  3A4:  LW        V0, 18 (S0)
+  3A8:  LW        V0, C (V0)
+  3AC:  SWC1      F20, 8 (V0)
+  3B0:  LW        V0, 18 (S0)
+        .o3B4
+  3B4:  LW        V0, C (V0)
+  3B8:  BEQ       R0, R0, .o3F8
+  3BC:  SWC1      F24, C (V0)
+        .o3C0
+  3C0:  LW        V1, 14 (S0)
+  3C4:  BEQ       V1, R0, .o3DC
+  3C8:  NOP
+  3CC:  LW        V0, 0 (V1)
+  3D0:  ORI       V0, V0, 10
+  3D4:  SW        V0, 0 (V1)
+  3D8:  SW        R0, 14 (S0)
+        .o3DC
+  3DC:  LW        V1, 18 (S0)
+  3E0:  BEQ       V1, R0, .o3F8
+  3E4:  NOP
+  3E8:  LW        V0, 0 (V1)
+  3EC:  ORI       V0, V0, 10
+  3F0:  SW        V0, 0 (V1)
+  3F4:  SW        R0, 18 (S0)
+        .o3F8
+  3F8:  LB        V1, 210 (S1)
+  3FC:  LW        V0, 1C (S0)
+  400:  BEQ       V0, V1, .o454
+  404:  CLEAR     V0
+  408:  LW        V0, C (S0)
+  40C:  BEQ       V0, R0, .o454
+  410:  CLEAR     V0
+  414:  LW        V1, 14 (S0)
+  418:  BEQ       V1, R0, .o430
+  41C:  NOP
+  420:  LW        V0, 0 (V1)
+  424:  ORI       V0, V0, 10
+  428:  SW        V0, 0 (V1)
+  42C:  SW        R0, 14 (S0)
+        .o430
+  430:  LW        V1, 18 (S0)
+  434:  BEQ       V1, R0, .o44C
+  438:  NOP
+  43C:  LW        V0, 0 (V1)
+  440:  ORI       V0, V0, 10
+  444:  SW        V0, 0 (V1)
+  448:  SW        R0, 18 (S0)
+        .o44C
+  44C:  LB        V1, 210 (S1)
+  450:  CLEAR     V0
+        .o454
+  454:  SW        V1, 1C (S0)
+        .o458
+  458:  LW        RA, 2C (SP)
+  45C:  LW        S2, 28 (SP)
+  460:  LW        S1, 24 (SP)
+  464:  LW        S0, 20 (SP)
+  468:  LDC1      F24, 40 (SP)
+  46C:  LDC1      F22, 38 (SP)
+  470:  LDC1      F20, 30 (SP)
+  474:  JR        RA
+  478:  ADDIU     SP, SP, 48
+}
+
+#new:Function $Function_80219304
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:get_actor
+    C:  LW        A0, 148 (A0)
+   10:  LW        A0, 90 (V0)
+   14:  LW        V1, 14 (A0)
+   18:  BEQ       V1, R0, .o2C
+   1C:  SW        R0, 0 (A0)
+   20:  LW        V0, 0 (V1)
+   24:  ORI       V0, V0, 10
+   28:  SW        V0, 0 (V1)
+        .o2C
+   2C:  LW        V1, 18 (A0)
+   30:  BEQ       V1, R0, .o44
+   34:  NOP
+   38:  LW        V0, 0 (V1)
+   3C:  ORI       V0, V0, 10
+   40:  SW        V0, 0 (V1)
+        .o44
+   44:  LW        RA, 10 (SP)
+   48:  LI        V0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80219358
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S1, 14 (SP)
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LW        S1, C (S0)
+   20:  COPY      A0, S0
+   24:  LW        A1, 0 (S1)
+   28:  JAL       ~Func:get_variable
+   2C:  LW        S0, 90 (V0)
+   30:  SW        V0, 4 (S0)
+   34:  LW        RA, 18 (SP)
+   38:  LW        S1, 14 (SP)
+   3C:  LW        S0, 10 (SP)
+   40:  LI        V0, 2
+   44:  JR        RA
+   48:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802193A4
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S1, 14 (SP)
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LW        S1, C (S0)
+   20:  COPY      A0, S0
+   24:  LW        A1, 0 (S1)
+   28:  JAL       ~Func:get_variable
+   2C:  LW        S0, 90 (V0)
+   30:  SW        V0, C (S0)
+   34:  LW        RA, 18 (SP)
+   38:  LW        S1, 14 (SP)
+   3C:  LW        S0, 10 (SP)
+   40:  LI        V0, 2
+   44:  JR        RA
+   48:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802193F0
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S1, 14 (SP)
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LW        S1, C (S0)
+   20:  COPY      A0, S0
+   24:  LW        A1, 0 (S1)
+   28:  JAL       ~Func:get_variable
+   2C:  LW        S0, 90 (V0)
+   30:  SW        V0, 10 (S0)
+   34:  LW        RA, 18 (SP)
+   38:  LW        S1, 14 (SP)
+   3C:  LW        S0, 10 (SP)
+   40:  LI        V0, 2
+   44:  JR        RA
+   48:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_8021943C
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:mdl_set_all_fog_mode
+    C:  LI        A0, 1
+   10:  CLEAR     A0
+   14:  LI        V0, 1
+   18:  COPY      A1, A0
+   1C:  COPY      A2, A0
+   20:  LAW       V1, 801512F0
+   28:  COPY      A3, A0
+   2C:  JAL       ~Func:set_background_color_blend
+   30:  SB        V0, 0 (V1)
+   34:  LW        RA, 10 (SP)
+   38:  LI        V0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80219480
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  CLEAR     A0
+   18:  COPY      A1, A0
+   1C:  COPY      A2, A0
+   20:  JAL       ~Func:set_background_color_blend
+   24:  ANDI      A3, V0, FF
+   28:  LW        RA, 10 (SP)
+   2C:  LI        V0, 2
+   30:  JR        RA
+   34:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_GetPartner
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  SW        S1, 14 (SP)
+   10:  LA        S1, 8010F290
+   18:  SW        RA, 1C (SP)
+   1C:  SW        S0, 10 (SP)
+   20:  LW        S0, C (S2)
+   24:  LB        A2, 12 (S1)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:set_variable
+   30:  ADDIU     S0, S0, 4
+   34:  LB        V0, 12 (S1)
+   38:  LW        A1, 0 (S0)
+   3C:  SLL       V0, V0, 3
+   40:  ADDU      V0, V0, S1
+   44:  LB        A2, 15 (V0)
+   48:  JAL       ~Func:set_variable
+   4C:  COPY      A0, S2
+   50:  LW        RA, 1C (SP)
+   54:  LW        S2, 18 (SP)
+   58:  LW        S1, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  LI        V0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802195F0
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  LW        S0, C (S1)
+   20:  LW        A1, 0 (S0)
+   24:  JAL       ~Func:get_variable
+   28:  ADDIU     S0, S0, 4
+   2C:  LW        A1, 0 (S0)
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S1
+   38:  JAL       ~Func:get_variable
+   3C:  COPY      S3, V0
+   40:  LW        A1, 0 (S0)
+   44:  ADDIU     S0, S0, 4
+   48:  COPY      A0, S1
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      S2, V0
+   54:  COPY      A0, S1
+   58:  LW        A1, 0 (S0)
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      S0, V0
+   64:  LW        A0, 148 (S1)
+   68:  JAL       ~Func:get_actor
+   6C:  COPY      S1, V0
+   70:  COPY      V1, V0
+   74:  LW        V0, 8 (V1)
+   78:  LBU       V0, 24 (V0)
+   7C:  LW        A0, 8 (V1)
+   80:  SUBU      S3, S3, V0
+   84:  SB        S3, 194 (V1)
+   88:  LBU       V0, 25 (A0)
+   8C:  SUBU      S2, S2, V0
+   90:  SB        S2, 195 (V1)
+   94:  LBU       V0, 26 (A0)
+   98:  SUBU      S0, S0, V0
+   9C:  SB        S0, 196 (V1)
+   A0:  LBU       A0, 27 (A0)
+   A4:  SUBU      S1, S1, A0
+   A8:  SB        S1, 197 (V1)
+   AC:  LW        RA, 20 (SP)
+   B0:  LW        S3, 1C (SP)
+   B4:  LW        S2, 18 (SP)
+   B8:  LW        S1, 14 (SP)
+   BC:  LW        S0, 10 (SP)
+   C0:  LI        V0, 2
+   C4:  JR        RA
+   C8:  ADDIU     SP, SP, 28
+}
+
+#new:Function $Function_802196BC
+{
+    0:  ADDIU     SP, SP, FFC0
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 34 (SP)
+   10:  SW        S6, 30 (SP)
+   14:  SW        S5, 2C (SP)
+   18:  SW        S4, 28 (SP)
+   1C:  SW        S3, 24 (SP)
+   20:  SW        S2, 20 (SP)
+   24:  SW        S0, 18 (SP)
+   28:  SDC1      F20, 38 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  LW        A1, 0 (S0)
+   40:  ADDIU     S0, S0, 4
+   44:  JAL       ~Func:get_variable
+   48:  COPY      A0, S1
+   4C:  LW        A1, 0 (S0)
+   50:  ADDIU     S0, S0, 4
+   54:  COPY      A0, S1
+   58:  JAL       ~Func:get_variable
+   5C:  COPY      S6, V0
+   60:  LW        A1, 0 (S0)
+   64:  ADDIU     S0, S0, 4
+   68:  COPY      A0, S1
+   6C:  JAL       ~Func:get_variable
+   70:  COPY      S5, V0
+   74:  LW        A1, 0 (S0)
+   78:  ADDIU     S0, S0, 4
+   7C:  COPY      A0, S1
+   80:  JAL       ~Func:get_float_variable
+   84:  COPY      S4, V0
+   88:  LW        A1, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  COPY      A0, S1
+   94:  JAL       ~Func:get_variable
+   98:  MOV.S     F20, F0
+   9C:  LW        A1, 0 (S0)
+   A0:  ADDIU     S0, S0, 4
+   A4:  COPY      A0, S1
+   A8:  JAL       ~Func:get_variable
+   AC:  COPY      S2, V0
+   B0:  LW        A1, 0 (S0)
+   B4:  ADDIU     S0, S0, 4
+   B8:  COPY      A0, S1
+   BC:  JAL       ~Func:get_variable
+   C0:  COPY      S3, V0
+   C4:  COPY      A0, S1
+   C8:  LW        A1, 0 (S0)
+   CC:  JAL       ~Func:get_variable
+   D0:  COPY      S1, V0
+   D4:  LI        A0, 1
+   D8:  MTC1      S6, F2
+   DC:  NOP
+   E0:  CVT.S.W   F2, F2
+   E4:  MFC1      A1, F2
+   E8:  MTC1      S5, F2
+   EC:  NOP
+   F0:  CVT.S.W   F2, F2
+   F4:  MFC1      A2, F2
+   F8:  MTC1      S4, F2
+   FC:  NOP
+  100:  CVT.S.W   F2, F2
+  104:  MFC1      A3, F2
+  108:  COPY      S0, V0
+  10C:  SWC1      F20, 10 (SP)
+  110:  JAL       ~Func:playFX_6F
+  114:  SW        S2, 14 (SP)
+  118:  LW        V1, C (V0)
+  11C:  SW        S3, 18 (V1)
+  120:  LW        V1, C (V0)
+  124:  SW        S1, 1C (V1)
+  128:  LW        V1, C (V0)
+  12C:  SW        S0, 20 (V1)
+  130:  LW        V1, C (V0)
+  134:  LI        A0, FF
+  138:  SW        A0, 28 (V1)
+  13C:  LW        V1, C (V0)
+  140:  SW        A0, 2C (V1)
+  144:  LW        V1, C (V0)
+  148:  SW        A0, 30 (V1)
+  14C:  LW        RA, 34 (SP)
+  150:  LW        S6, 30 (SP)
+  154:  LW        S5, 2C (SP)
+  158:  LW        S4, 28 (SP)
+  15C:  LW        S3, 24 (SP)
+  160:  LW        S2, 20 (SP)
+  164:  LW        S1, 1C (SP)
+  168:  LW        S0, 18 (SP)
+  16C:  LDC1      F20, 38 (SP)
+  170:  LI        V0, 2
+  174:  JR        RA
+  178:  ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_80219840
+{
+    0:  ADDIU     SP, SP, FFA0
+    4:  SW        S1, 24 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 28 (SP)
+   10:  SW        S0, 20 (SP)
+   14:  SDC1      F30, 58 (SP)
+   18:  SDC1      F28, 50 (SP)
+   1C:  SDC1      F26, 48 (SP)
+   20:  SDC1      F24, 40 (SP)
+   24:  SDC1      F22, 38 (SP)
+   28:  SDC1      F20, 30 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_float_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  LW        A1, 0 (S0)
+   40:  ADDIU     S0, S0, 4
+   44:  COPY      A0, S1
+   48:  JAL       ~Func:get_float_variable
+   4C:  MOV.S     F30, F0
+   50:  LW        A1, 0 (S0)
+   54:  ADDIU     S0, S0, 4
+   58:  COPY      A0, S1
+   5C:  JAL       ~Func:get_float_variable
+   60:  MOV.S     F20, F0
+   64:  LW        A1, 0 (S0)
+   68:  ADDIU     S0, S0, 4
+   6C:  COPY      A0, S1
+   70:  JAL       ~Func:get_float_variable
+   74:  MOV.S     F28, F0
+   78:  LW        A1, 0 (S0)
+   7C:  ADDIU     S0, S0, 4
+   80:  COPY      A0, S1
+   84:  JAL       ~Func:get_float_variable
+   88:  MOV.S     F26, F0
+   8C:  LW        A1, 0 (S0)
+   90:  ADDIU     S0, S0, 4
+   94:  COPY      A0, S1
+   98:  JAL       ~Func:get_float_variable
+   9C:  MOV.S     F24, F0
+   A0:  COPY      A0, S1
+   A4:  LW        A1, 0 (S0)
+   A8:  JAL       ~Func:get_variable
+   AC:  MOV.S     F22, F0
+   B0:  LW        A0, 148 (S1)
+   B4:  JAL       ~Func:get_actor
+   B8:  COPY      S0, V0
+   BC:  CVT.D.S   F20, F20
+   C0:  MFC1      A1, F30
+   C4:  LIF       F1, 2.3125
+   CC:  MTC1      R0, F0
+   D0:  MFC1      A3, F28
+   D4:  ADD.D     F20, F20, F0
+   D8:  CLEAR     A0
+   DC:  SW        S0, 1C (SP)
+   E0:  CVT.S.D   F20, F20
+   E4:  MFC1      A2, F20
+   E8:  COPY      S0, V0
+   EC:  SWC1      F26, 10 (SP)
+   F0:  SWC1      F24, 14 (SP)
+   F4:  JAL       ~Func:playFX_12
+   F8:  SWC1      F22, 18 (SP)
+   FC:  COPY      A0, V0
+  100:  LB        V1, 210 (S0)
+  104:  LI        V0, A
+  108:  BNE       V1, V0, .o128
+  10C:  NOP
+  110:  LW        V0, C (A0)
+  114:  LIF       F0, 0.39804688
+  120:  NOP
+  124:  SWC1      F0, 28 (V0)
+        .o128
+  128:  LW        RA, 28 (SP)
+  12C:  LW        S1, 24 (SP)
+  130:  LW        S0, 20 (SP)
+  134:  LDC1      F30, 58 (SP)
+  138:  LDC1      F28, 50 (SP)
+  13C:  LDC1      F26, 48 (SP)
+  140:  LDC1      F24, 40 (SP)
+  144:  LDC1      F22, 38 (SP)
+  148:  LDC1      F20, 30 (SP)
+  14C:  LI        V0, 2
+  150:  JR        RA
+  154:  ADDIU     SP, SP, 60
+}
+
+% Origin: HINT
+#new:Function $Function_80219998
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  LAH       A2, 800DC1EC
+   14:  JAL       ~Func:set_variable
+   18:  LW        A1, 0 (V0)
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+% Origin: HINT
+#new:Function $Function_802199C4
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  LW        S0, C (S1)
+   20:  LW        A1, 0 (S0)
+   24:  JAL       ~Func:get_variable
+   28:  ADDIU     S0, S0, 4
+   2C:  LW        A1, 0 (S0)
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S1
+   38:  JAL       ~Func:get_variable
+   3C:  COPY      S3, V0
+   40:  LW        A1, 0 (S0)
+   44:  ADDIU     S0, S0, 4
+   48:  COPY      A0, S1
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      S2, V0
+   54:  COPY      A0, S1
+   58:  LW        A1, 0 (S0)
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      S0, V0
+   64:  LW        A0, 148 (S1)
+   68:  JAL       ~Func:get_actor
+   6C:  COPY      S1, V0
+   70:  COPY      V1, V0
+   74:  LW        V0, 8 (V1)
+   78:  LBU       V0, 24 (V0)
+   7C:  LW        A0, 8 (V1)
+   80:  SUBU      S3, S3, V0
+   84:  SB        S3, 194 (V1)
+   88:  LBU       V0, 25 (A0)
+   8C:  SUBU      S2, S2, V0
+   90:  SB        S2, 195 (V1)
+   94:  LBU       V0, 26 (A0)
+   98:  SUBU      S0, S0, V0
+   9C:  SB        S0, 196 (V1)
+   A0:  LBU       A0, 27 (A0)
+   A4:  SUBU      S1, S1, A0
+   A8:  SB        S1, 197 (V1)
+   AC:  LW        RA, 20 (SP)
+   B0:  LW        S3, 1C (SP)
+   B4:  LW        S2, 18 (SP)
+   B8:  LW        S1, 14 (SP)
+   BC:  LW        S0, 10 (SP)
+   C0:  LI        V0, 2
+   C4:  JR        RA
+   C8:  ADDIU     SP, SP, 28
+}
+
+% Origin: HINT
+#new:Function $Function_80219A90
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, C (S1)
+   18:  LW        A1, 0 (S0)
+   1C:  JAL       ~Func:get_variable
+   20:  ADDIU     S0, S0, 4
+   24:  COPY      A0, S1
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  COPY      S0, V0
+   34:  COPY      A0, S0
+   38:  JAL       ~Func:start_rumble
+   3C:  COPY      A1, V0
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  LI        V0, 2
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 20
+}
+
+% Origin: HINT
+#new:Function $Function_80219AE8
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, C (S1)
+   18:  LW        A1, 0 (S0)
+   1C:  JAL       ~Func:get_variable
+   20:  ADDIU     S0, S0, 4
+   24:  COPY      A0, V0
+   28:  LI        V0, FF81
+   2C:  BNE       A0, V0, .o38
+   30:  NOP
+   34:  LW        A0, 148 (S1)
+        .o38
+   38:  JAL       ~Func:get_actor
+   3C:  NOP
+   40:  COPY      A0, V0
+   44:  LBU       V1, 136 (A0)
+   48:  LI        V0, 47
+   4C:  BEQ       V1, V0, .o7C
+   50:  SLT       V0, V1, V0
+   54:  BNEL      V0, R0, .o9C
+   58:  COPY      A0, S1
+   5C:  SLTI      V0, V1, 65
+   60:  BEQ       V0, R0, .o98
+   64:  SLTI      V0, V1, 4D
+   68:  BNE       V0, R0, .o9C
+   6C:  COPY      A0, S1
+   70:  LW        A1, 0 (S0)
+   74:  BEQ       R0, R0, .oA4
+   78:  LI        A2, FFFF
+        .o7C
+   7C:  LW        V1, A8 (A0)
+   80:  LI        V0, 1
+   84:  BNE       V1, V0, .o9C
+   88:  COPY      A0, S1
+   8C:  LW        A1, 0 (S0)
+   90:  BEQ       R0, R0, .oA4
+   94:  LI        A2, FFFF
+        .o98
+   98:  COPY      A0, S1
+        .o9C
+   9C:  LW        A1, 0 (S0)
+   A0:  CLEAR     A2
+        .oA4
+   A4:  JAL       ~Func:set_variable
+   A8:  NOP
+   AC:  LW        RA, 18 (SP)
+   B0:  LW        S1, 14 (SP)
+   B4:  LW        S0, 10 (SP)
+   B8:  LI        V0, 2
+   BC:  JR        RA
+   C0:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_80219BB0
+{
+    0:  ADDIU     SP, SP, FFC0
+    4:  SW        S6, 38 (SP)
+    8:  COPY      S6, A0
+    C:  ADDIU     A1, SP, 10
+   10:  ADDIU     A2, SP, 14
+   14:  ADDIU     A3, SP, 18
+   18:  SW        RA, 3C (SP)
+   1C:  SW        S5, 34 (SP)
+   20:  SW        S4, 30 (SP)
+   24:  SW        S3, 2C (SP)
+   28:  SW        S2, 28 (SP)
+   2C:  SW        S1, 24 (SP)
+   30:  JAL       ~Func:mdl_get_copied_vertices
+   34:  SW        S0, 20 (SP)
+   38:  LW        V0, 18 (SP)
+   3C:  BLEZ      V0, .o188
+   40:  CLEAR     S0
+   44:  LA        V1, $???_8022EFD0
+   4C:  SLL       V0, S6, 1
+   50:  ADDU      S4, V0, V1
+   54:  LI        S3, 55555556
+   5C:  ORI       S5, R0, 8000
+   60:  MULT      S0, S3
+        .o64
+   64:  SRA       S2, S0, 1F
+   68:  MFHI      V1
+   6C:  SUBU      V1, V1, S2
+   70:  SLL       V0, V1, 1
+   74:  ADDU      V0, V0, V1
+   78:  SUBU      V0, S0, V0
+   7C:  LHU       V1, 0 (S4)
+   80:  ADDIU     V0, V0, 1
+   84:  MULT      V1, V0
+   88:  SLL       V0, S0, 4
+   8C:  MFLO      V1
+   90:  ADDU      A0, V1, S0
+   94:  LW        V1, 14 (SP)
+   98:  ANDI      A0, A0, FFFF
+   9C:  JAL       ~Func:sins
+   A0:  ADDU      S1, V1, V0
+   A4:  SLL       V0, V0, 10
+   A8:  SRA       V0, V0, 10
+   AC:  ADDU      V0, V0, S5
+   B0:  SRL       V1, V0, 1F
+   B4:  ADDU      V0, V0, V1
+   B8:  SLL       V0, V0, F
+   BC:  SRA       V0, V0, 10
+   C0:  SLL       V1, V0, 2
+   C4:  ADDU      V1, V1, V0
+   C8:  SLL       V0, V1, 5
+   CC:  SUBU      V1, V0, V1
+   D0:  BGEZ      V1, .oDC
+   D4:  COPY      V0, V1
+   D8:  ADDIU     V0, V1, 7FFF
+        .oDC
+   DC:  SRA       A0, V0, F
+   E0:  ADDIU     V0, A0, 64
+   E4:  SB        V0, E (S1)
+   E8:  ADDIU     V0, A0, 32
+   EC:  SUBU      V1, S0, S2
+   F0:  SRA       A1, V1, 1
+   F4:  MULT      A1, S3
+   F8:  SB        V0, D (S1)
+   FC:  LHU       A0, 0 (S4)
+  100:  SRA       V1, V1, 1F
+  104:  SRL       A2, A0, F
+  108:  MFHI      T1
+  10C:  SUBU      V1, T1, V1
+  110:  SLL       V0, V1, 1
+  114:  ADDU      V0, V0, V1
+  118:  SUBU      A1, A1, V0
+  11C:  ADDIU     A1, A1, 1
+  120:  SLL       A1, A1, F
+  124:  MULT      A2, A1
+  128:  SRL       A0, A0, E
+  12C:  SLL       A0, A0, F
+  130:  MFLO      V1
+  134:  ADDU      A0, V1, A0
+  138:  ADDU      A0, A0, S0
+  13C:  JAL       ~Func:sins
+  140:  ANDI      A0, A0, FFFF
+  144:  SLL       V0, V0, 10
+  148:  SRA       V0, V0, 10
+  14C:  LBU       V1, C (S1)
+  150:  ADDU      V0, V0, S5
+  154:  MULT      V1, V0
+  158:  MFLO      V1
+  15C:  BGEZ      V1, .o170
+  160:  SRA       V0, V1, 10
+  164:  ORI       V0, R0, FFFF
+  168:  ADDU      V1, V1, V0
+  16C:  SRA       V0, V1, 10
+        .o170
+  170:  SB        V0, C (S1)
+  174:  LW        V0, 18 (SP)
+  178:  ADDIU     S0, S0, 1
+  17C:  SLT       V0, S0, V0
+  180:  BNE       V0, R0, .o64
+  184:  MULT      S0, S3
+        .o188
+  188:  LA        V1, 8009A66C
+  190:  LW        V0, 0 (V1)
+  194:  COPY      A0, S6
+  198:  COPY      S0, V0
+  19C:  ADDIU     V0, V0, 8
+  1A0:  SW        V0, 0 (V1)
+  1A4:  LUI       V0, DE00
+  1A8:  JAL       ~Func:mdl_get_copied_gfx
+  1AC:  SW        V0, 0 (S0)
+  1B0:  SW        V0, 4 (S0)
+  1B4:  LA        V0, $???_8022EFD0
+  1BC:  SLL       V1, S6, 1
+  1C0:  ADDU      V1, V1, V0
+  1C4:  LHU       V0, 0 (V1)
+  1C8:  ADDIU     V0, V0, 253
+  1CC:  SH        V0, 0 (V1)
+  1D0:  LW        RA, 3C (SP)
+  1D4:  LW        S6, 38 (SP)
+  1D8:  LW        S5, 34 (SP)
+  1DC:  LW        S4, 30 (SP)
+  1E0:  LW        S3, 2C (SP)
+  1E4:  LW        S2, 28 (SP)
+  1E8:  LW        S1, 24 (SP)
+  1EC:  LW        S0, 20 (SP)
+  1F0:  JR        RA
+  1F4:  ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_80219DA8
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       ~Func:playFX_45
+   10:  LI        A1, 10
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80219DCC
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LI        V1, 66666667
+   38:  MULT      V0, V1
+   3C:  SRA       V0, V0, 1F
+   40:  LIF       F0, 6.28318
+   4C:  MFHI      A3
+   50:  SRA       V1, A3, 2
+   54:  SUBU      V1, V1, V0
+   58:  MTC1      V1, F12
+   5C:  NOP
+   60:  CVT.S.W   F12, F12
+   64:  MUL.S     F12, F12, F0
+   68:  NOP
+   6C:  LIF       F0, 360.0
+   74:  LIF       F2, 8.0
+   7C:  DIV.S     F12, F12, F0
+   80:  MUL.S     F12, F12, F2
+   84:  NOP
+   88:  LW        S2, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  LW        S3, 0 (S0)
+   94:  JAL       ~Func:sin_rad
+   98:  LW        S0, 4 (S0)
+   9C:  COPY      A0, S1
+   A0:  LIF       F2, 10.0
+   A8:  COPY      A1, S2
+   AC:  MUL.S     F20, F0, F2
+   B0:  NOP
+   B4:  JAL       ~Func:set_variable
+   B8:  CLEAR     A2
+   BC:  COPY      A0, S1
+   C0:  TRUNC.W.S F4, F20
+   C4:  MFC1      A2, F4
+   C8:  JAL       ~Func:set_variable
+   CC:  COPY      A1, S3
+   D0:  COPY      A0, S1
+   D4:  COPY      A1, S0
+   D8:  JAL       ~Func:set_variable
+   DC:  CLEAR     A2
+   E0:  LW        RA, 20 (SP)
+   E4:  LW        S3, 1C (SP)
+   E8:  LW        S2, 18 (SP)
+   EC:  LW        S1, 14 (SP)
+   F0:  LW        S0, 10 (SP)
+   F4:  LDC1      F20, 28 (SP)
+   F8:  LI        V0, 2
+   FC:  JR        RA
+  100:  ADDIU     SP, SP, 30
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_80219ED0
+{
+    0:  ADDIU     SP, SP, FFC0
+    4:  SW        S6, 38 (SP)
+    8:  COPY      S6, A0
+    C:  ADDIU     A1, SP, 10
+   10:  ADDIU     A2, SP, 14
+   14:  ADDIU     A3, SP, 18
+   18:  SW        RA, 3C (SP)
+   1C:  SW        S5, 34 (SP)
+   20:  SW        S4, 30 (SP)
+   24:  SW        S3, 2C (SP)
+   28:  SW        S2, 28 (SP)
+   2C:  SW        S1, 24 (SP)
+   30:  JAL       ~Func:mdl_get_copied_vertices
+   34:  SW        S0, 20 (SP)
+   38:  LW        V0, 18 (SP)
+   3C:  BLEZ      V0, .o188
+   40:  CLEAR     S0
+   44:  LA        V1, $???_8022F3E0
+   4C:  SLL       V0, S6, 1
+   50:  ADDU      S4, V0, V1
+   54:  LI        S3, 55555556
+   5C:  ORI       S5, R0, 8000
+   60:  MULT      S0, S3
+        .o64
+   64:  SRA       S2, S0, 1F
+   68:  MFHI      V1
+   6C:  SUBU      V1, V1, S2
+   70:  SLL       V0, V1, 1
+   74:  ADDU      V0, V0, V1
+   78:  SUBU      V0, S0, V0
+   7C:  LHU       V1, 0 (S4)
+   80:  ADDIU     V0, V0, 1
+   84:  MULT      V1, V0
+   88:  SLL       V0, S0, 4
+   8C:  MFLO      V1
+   90:  ADDU      A0, V1, S0
+   94:  LW        V1, 14 (SP)
+   98:  ANDI      A0, A0, FFFF
+   9C:  JAL       ~Func:sins
+   A0:  ADDU      S1, V1, V0
+   A4:  SLL       V0, V0, 10
+   A8:  SRA       V0, V0, 10
+   AC:  ADDU      V0, V0, S5
+   B0:  SRL       V1, V0, 1F
+   B4:  ADDU      V0, V0, V1
+   B8:  SLL       V0, V0, F
+   BC:  SRA       V0, V0, 10
+   C0:  SLL       V1, V0, 2
+   C4:  ADDU      V1, V1, V0
+   C8:  SLL       V0, V1, 5
+   CC:  SUBU      V1, V0, V1
+   D0:  BGEZ      V1, .oDC
+   D4:  COPY      V0, V1
+   D8:  ADDIU     V0, V1, 7FFF
+        .oDC
+   DC:  SRA       A0, V0, F
+   E0:  ADDIU     V0, A0, 64
+   E4:  SB        V0, E (S1)
+   E8:  ADDIU     V0, A0, 32
+   EC:  SUBU      V1, S0, S2
+   F0:  SRA       A1, V1, 1
+   F4:  MULT      A1, S3
+   F8:  SB        V0, D (S1)
+   FC:  LHU       A0, 0 (S4)
+  100:  SRA       V1, V1, 1F
+  104:  SRL       A2, A0, F
+  108:  MFHI      T1
+  10C:  SUBU      V1, T1, V1
+  110:  SLL       V0, V1, 1
+  114:  ADDU      V0, V0, V1
+  118:  SUBU      A1, A1, V0
+  11C:  ADDIU     A1, A1, 1
+  120:  SLL       A1, A1, F
+  124:  MULT      A2, A1
+  128:  SRL       A0, A0, E
+  12C:  SLL       A0, A0, F
+  130:  MFLO      V1
+  134:  ADDU      A0, V1, A0
+  138:  ADDU      A0, A0, S0
+  13C:  JAL       ~Func:sins
+  140:  ANDI      A0, A0, FFFF
+  144:  SLL       V0, V0, 10
+  148:  SRA       V0, V0, 10
+  14C:  LBU       V1, C (S1)
+  150:  ADDU      V0, V0, S5
+  154:  MULT      V1, V0
+  158:  MFLO      V1
+  15C:  BGEZ      V1, .o170
+  160:  SRA       V0, V1, 10
+  164:  ORI       V0, R0, FFFF
+  168:  ADDU      V1, V1, V0
+  16C:  SRA       V0, V1, 10
+        .o170
+  170:  SB        V0, C (S1)
+  174:  LW        V0, 18 (SP)
+  178:  ADDIU     S0, S0, 1
+  17C:  SLT       V0, S0, V0
+  180:  BNE       V0, R0, .o64
+  184:  MULT      S0, S3
+        .o188
+  188:  LA        V1, 8009A66C
+  190:  LW        V0, 0 (V1)
+  194:  COPY      A0, S6
+  198:  COPY      S0, V0
+  19C:  ADDIU     V0, V0, 8
+  1A0:  SW        V0, 0 (V1)
+  1A4:  LUI       V0, DE00
+  1A8:  JAL       ~Func:mdl_get_copied_gfx
+  1AC:  SW        V0, 0 (S0)
+  1B0:  SW        V0, 4 (S0)
+  1B4:  LA        V0, $???_8022F3E0
+  1BC:  SLL       V1, S6, 1
+  1C0:  ADDU      V1, V1, V0
+  1C4:  LHU       V0, 0 (V1)
+  1C8:  ADDIU     V0, V0, 253
+  1CC:  SH        V0, 0 (V1)
+  1D0:  LW        RA, 3C (SP)
+  1D4:  LW        S6, 38 (SP)
+  1D8:  LW        S5, 34 (SP)
+  1DC:  LW        S4, 30 (SP)
+  1E0:  LW        S3, 2C (SP)
+  1E4:  LW        S2, 28 (SP)
+  1E8:  LW        S1, 24 (SP)
+  1EC:  LW        S0, 20 (SP)
+  1F0:  JR        RA
+  1F4:  ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_8021A0C8
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       ~Func:playFX_45
+   10:  LI        A1, 10
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_8021A0EC
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LI        V1, 66666667
+   38:  MULT      V0, V1
+   3C:  SRA       V0, V0, 1F
+   40:  LIF       F0, 6.28318
+   4C:  MFHI      A3
+   50:  SRA       V1, A3, 2
+   54:  SUBU      V1, V1, V0
+   58:  MTC1      V1, F12
+   5C:  NOP
+   60:  CVT.S.W   F12, F12
+   64:  MUL.S     F12, F12, F0
+   68:  NOP
+   6C:  LIF       F0, 360.0
+   74:  LIF       F2, 8.0
+   7C:  DIV.S     F12, F12, F0
+   80:  MUL.S     F12, F12, F2
+   84:  NOP
+   88:  LW        S2, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  LW        S3, 0 (S0)
+   94:  JAL       ~Func:sin_rad
+   98:  LW        S0, 4 (S0)
+   9C:  COPY      A0, S1
+   A0:  LIF       F2, 10.0
+   A8:  COPY      A1, S2
+   AC:  MUL.S     F20, F0, F2
+   B0:  NOP
+   B4:  JAL       ~Func:set_variable
+   B8:  CLEAR     A2
+   BC:  COPY      A0, S1
+   C0:  TRUNC.W.S F4, F20
+   C4:  MFC1      A2, F4
+   C8:  JAL       ~Func:set_variable
+   CC:  COPY      A1, S3
+   D0:  COPY      A0, S1
+   D4:  COPY      A1, S0
+   D8:  JAL       ~Func:set_variable
+   DC:  CLEAR     A2
+   E0:  LW        RA, 20 (SP)
+   E4:  LW        S3, 1C (SP)
+   E8:  LW        S2, 18 (SP)
+   EC:  LW        S1, 14 (SP)
+   F0:  LW        S0, 10 (SP)
+   F4:  LDC1      F20, 28 (SP)
+   F8:  LI        V0, 2
+   FC:  JR        RA
+  100:  ADDIU     SP, SP, 30
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8021A1F0
+{
+    0:  ADDIU     SP, SP, FFC0
+    4:  SW        S6, 38 (SP)
+    8:  COPY      S6, A0
+    C:  ADDIU     A1, SP, 10
+   10:  ADDIU     A2, SP, 14
+   14:  ADDIU     A3, SP, 18
+   18:  SW        RA, 3C (SP)
+   1C:  SW        S5, 34 (SP)
+   20:  SW        S4, 30 (SP)
+   24:  SW        S3, 2C (SP)
+   28:  SW        S2, 28 (SP)
+   2C:  SW        S1, 24 (SP)
+   30:  JAL       ~Func:mdl_get_copied_vertices
+   34:  SW        S0, 20 (SP)
+   38:  LW        V0, 18 (SP)
+   3C:  BLEZ      V0, .o188
+   40:  CLEAR     S0
+   44:  LA        V1, $???_8022F820
+   4C:  SLL       V0, S6, 1
+   50:  ADDU      S4, V0, V1
+   54:  LI        S3, 55555556
+   5C:  ORI       S5, R0, 8000
+   60:  MULT      S0, S3
+        .o64
+   64:  SRA       S2, S0, 1F
+   68:  MFHI      V1
+   6C:  SUBU      V1, V1, S2
+   70:  SLL       V0, V1, 1
+   74:  ADDU      V0, V0, V1
+   78:  SUBU      V0, S0, V0
+   7C:  LHU       V1, 0 (S4)
+   80:  ADDIU     V0, V0, 1
+   84:  MULT      V1, V0
+   88:  SLL       V0, S0, 4
+   8C:  MFLO      V1
+   90:  ADDU      A0, V1, S0
+   94:  LW        V1, 14 (SP)
+   98:  ANDI      A0, A0, FFFF
+   9C:  JAL       ~Func:sins
+   A0:  ADDU      S1, V1, V0
+   A4:  SLL       V0, V0, 10
+   A8:  SRA       V0, V0, 10
+   AC:  ADDU      V0, V0, S5
+   B0:  SRL       V1, V0, 1F
+   B4:  ADDU      V0, V0, V1
+   B8:  SLL       V0, V0, F
+   BC:  SRA       V0, V0, 10
+   C0:  SLL       V1, V0, 2
+   C4:  ADDU      V1, V1, V0
+   C8:  SLL       V0, V1, 5
+   CC:  SUBU      V1, V0, V1
+   D0:  BGEZ      V1, .oDC
+   D4:  COPY      V0, V1
+   D8:  ADDIU     V0, V1, 7FFF
+        .oDC
+   DC:  SRA       A0, V0, F
+   E0:  ADDIU     V0, A0, 64
+   E4:  SB        V0, E (S1)
+   E8:  ADDIU     V0, A0, 32
+   EC:  SUBU      V1, S0, S2
+   F0:  SRA       A1, V1, 1
+   F4:  MULT      A1, S3
+   F8:  SB        V0, D (S1)
+   FC:  LHU       A0, 0 (S4)
+  100:  SRA       V1, V1, 1F
+  104:  SRL       A2, A0, F
+  108:  MFHI      T1
+  10C:  SUBU      V1, T1, V1
+  110:  SLL       V0, V1, 1
+  114:  ADDU      V0, V0, V1
+  118:  SUBU      A1, A1, V0
+  11C:  ADDIU     A1, A1, 1
+  120:  SLL       A1, A1, F
+  124:  MULT      A2, A1
+  128:  SRL       A0, A0, E
+  12C:  SLL       A0, A0, F
+  130:  MFLO      V1
+  134:  ADDU      A0, V1, A0
+  138:  ADDU      A0, A0, S0
+  13C:  JAL       ~Func:sins
+  140:  ANDI      A0, A0, FFFF
+  144:  SLL       V0, V0, 10
+  148:  SRA       V0, V0, 10
+  14C:  LBU       V1, C (S1)
+  150:  ADDU      V0, V0, S5
+  154:  MULT      V1, V0
+  158:  MFLO      V1
+  15C:  BGEZ      V1, .o170
+  160:  SRA       V0, V1, 10
+  164:  ORI       V0, R0, FFFF
+  168:  ADDU      V1, V1, V0
+  16C:  SRA       V0, V1, 10
+        .o170
+  170:  SB        V0, C (S1)
+  174:  LW        V0, 18 (SP)
+  178:  ADDIU     S0, S0, 1
+  17C:  SLT       V0, S0, V0
+  180:  BNE       V0, R0, .o64
+  184:  MULT      S0, S3
+        .o188
+  188:  LA        V1, 8009A66C
+  190:  LW        V0, 0 (V1)
+  194:  COPY      A0, S6
+  198:  COPY      S0, V0
+  19C:  ADDIU     V0, V0, 8
+  1A0:  SW        V0, 0 (V1)
+  1A4:  LUI       V0, DE00
+  1A8:  JAL       ~Func:mdl_get_copied_gfx
+  1AC:  SW        V0, 0 (S0)
+  1B0:  SW        V0, 4 (S0)
+  1B4:  LA        V0, $???_8022F820
+  1BC:  SLL       V1, S6, 1
+  1C0:  ADDU      V1, V1, V0
+  1C4:  LHU       V0, 0 (V1)
+  1C8:  ADDIU     V0, V0, 253
+  1CC:  SH        V0, 0 (V1)
+  1D0:  LW        RA, 3C (SP)
+  1D4:  LW        S6, 38 (SP)
+  1D8:  LW        S5, 34 (SP)
+  1DC:  LW        S4, 30 (SP)
+  1E0:  LW        S3, 2C (SP)
+  1E4:  LW        S2, 28 (SP)
+  1E8:  LW        S1, 24 (SP)
+  1EC:  LW        S0, 20 (SP)
+  1F0:  JR        RA
+  1F4:  ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_8021A3E8
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       ~Func:playFX_45
+   10:  LI        A1, 10
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8021A40C
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LI        V1, 66666667
+   38:  MULT      V0, V1
+   3C:  SRA       V0, V0, 1F
+   40:  LIF       F0, 6.28318
+   4C:  MFHI      A3
+   50:  SRA       V1, A3, 2
+   54:  SUBU      V1, V1, V0
+   58:  MTC1      V1, F12
+   5C:  NOP
+   60:  CVT.S.W   F12, F12
+   64:  MUL.S     F12, F12, F0
+   68:  NOP
+   6C:  LIF       F0, 360.0
+   74:  LIF       F2, 8.0
+   7C:  DIV.S     F12, F12, F0
+   80:  MUL.S     F12, F12, F2
+   84:  NOP
+   88:  LW        S2, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  LW        S3, 0 (S0)
+   94:  JAL       ~Func:sin_rad
+   98:  LW        S0, 4 (S0)
+   9C:  COPY      A0, S1
+   A0:  LIF       F2, 10.0
+   A8:  COPY      A1, S2
+   AC:  MUL.S     F20, F0, F2
+   B0:  NOP
+   B4:  JAL       ~Func:set_variable
+   B8:  CLEAR     A2
+   BC:  COPY      A0, S1
+   C0:  TRUNC.W.S F4, F20
+   C4:  MFC1      A2, F4
+   C8:  JAL       ~Func:set_variable
+   CC:  COPY      A1, S3
+   D0:  COPY      A0, S1
+   D4:  COPY      A1, S0
+   D8:  JAL       ~Func:set_variable
+   DC:  CLEAR     A2
+   E0:  LW        RA, 20 (SP)
+   E4:  LW        S3, 1C (SP)
+   E8:  LW        S2, 18 (SP)
+   EC:  LW        S1, 14 (SP)
+   F0:  LW        S0, 10 (SP)
+   F4:  LDC1      F20, 28 (SP)
+   F8:  LI        V0, 2
+   FC:  JR        RA
+  100:  ADDIU     SP, SP, 30
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8021A510
+{
+    0:  ADDIU     SP, SP, FFC0
+    4:  SW        S6, 38 (SP)
+    8:  COPY      S6, A0
+    C:  ADDIU     A1, SP, 10
+   10:  ADDIU     A2, SP, 14
+   14:  ADDIU     A3, SP, 18
+   18:  SW        RA, 3C (SP)
+   1C:  SW        S5, 34 (SP)
+   20:  SW        S4, 30 (SP)
+   24:  SW        S3, 2C (SP)
+   28:  SW        S2, 28 (SP)
+   2C:  SW        S1, 24 (SP)
+   30:  JAL       ~Func:mdl_get_copied_vertices
+   34:  SW        S0, 20 (SP)
+   38:  LW        V0, 18 (SP)
+   3C:  BLEZ      V0, .o188
+   40:  CLEAR     S0
+   44:  LA        V1, $???_8022FB70
+   4C:  SLL       V0, S6, 1
+   50:  ADDU      S4, V0, V1
+   54:  LI        S3, 55555556
+   5C:  ORI       S5, R0, 8000
+   60:  MULT      S0, S3
+        .o64
+   64:  SRA       S2, S0, 1F
+   68:  MFHI      V1
+   6C:  SUBU      V1, V1, S2
+   70:  SLL       V0, V1, 1
+   74:  ADDU      V0, V0, V1
+   78:  SUBU      V0, S0, V0
+   7C:  LHU       V1, 0 (S4)
+   80:  ADDIU     V0, V0, 1
+   84:  MULT      V1, V0
+   88:  SLL       V0, S0, 4
+   8C:  MFLO      V1
+   90:  ADDU      A0, V1, S0
+   94:  LW        V1, 14 (SP)
+   98:  ANDI      A0, A0, FFFF
+   9C:  JAL       ~Func:sins
+   A0:  ADDU      S1, V1, V0
+   A4:  SLL       V0, V0, 10
+   A8:  SRA       V0, V0, 10
+   AC:  ADDU      V0, V0, S5
+   B0:  SRL       V1, V0, 1F
+   B4:  ADDU      V0, V0, V1
+   B8:  SLL       V0, V0, F
+   BC:  SRA       V0, V0, 10
+   C0:  SLL       V1, V0, 2
+   C4:  ADDU      V1, V1, V0
+   C8:  SLL       V0, V1, 5
+   CC:  SUBU      V1, V0, V1
+   D0:  BGEZ      V1, .oDC
+   D4:  COPY      V0, V1
+   D8:  ADDIU     V0, V1, 7FFF
+        .oDC
+   DC:  SRA       A0, V0, F
+   E0:  ADDIU     V0, A0, 64
+   E4:  SB        V0, E (S1)
+   E8:  ADDIU     V0, A0, 32
+   EC:  SUBU      V1, S0, S2
+   F0:  SRA       A1, V1, 1
+   F4:  MULT      A1, S3
+   F8:  SB        V0, D (S1)
+   FC:  LHU       A0, 0 (S4)
+  100:  SRA       V1, V1, 1F
+  104:  SRL       A2, A0, F
+  108:  MFHI      T1
+  10C:  SUBU      V1, T1, V1
+  110:  SLL       V0, V1, 1
+  114:  ADDU      V0, V0, V1
+  118:  SUBU      A1, A1, V0
+  11C:  ADDIU     A1, A1, 1
+  120:  SLL       A1, A1, F
+  124:  MULT      A2, A1
+  128:  SRL       A0, A0, E
+  12C:  SLL       A0, A0, F
+  130:  MFLO      V1
+  134:  ADDU      A0, V1, A0
+  138:  ADDU      A0, A0, S0
+  13C:  JAL       ~Func:sins
+  140:  ANDI      A0, A0, FFFF
+  144:  SLL       V0, V0, 10
+  148:  SRA       V0, V0, 10
+  14C:  LBU       V1, C (S1)
+  150:  ADDU      V0, V0, S5
+  154:  MULT      V1, V0
+  158:  MFLO      V1
+  15C:  BGEZ      V1, .o170
+  160:  SRA       V0, V1, 10
+  164:  ORI       V0, R0, FFFF
+  168:  ADDU      V1, V1, V0
+  16C:  SRA       V0, V1, 10
+        .o170
+  170:  SB        V0, C (S1)
+  174:  LW        V0, 18 (SP)
+  178:  ADDIU     S0, S0, 1
+  17C:  SLT       V0, S0, V0
+  180:  BNE       V0, R0, .o64
+  184:  MULT      S0, S3
+        .o188
+  188:  LA        V1, 8009A66C
+  190:  LW        V0, 0 (V1)
+  194:  COPY      A0, S6
+  198:  COPY      S0, V0
+  19C:  ADDIU     V0, V0, 8
+  1A0:  SW        V0, 0 (V1)
+  1A4:  LUI       V0, DE00
+  1A8:  JAL       ~Func:mdl_get_copied_gfx
+  1AC:  SW        V0, 0 (S0)
+  1B0:  SW        V0, 4 (S0)
+  1B4:  LA        V0, $???_8022FB70
+  1BC:  SLL       V1, S6, 1
+  1C0:  ADDU      V1, V1, V0
+  1C4:  LHU       V0, 0 (V1)
+  1C8:  ADDIU     V0, V0, 253
+  1CC:  SH        V0, 0 (V1)
+  1D0:  LW        RA, 3C (SP)
+  1D4:  LW        S6, 38 (SP)
+  1D8:  LW        S5, 34 (SP)
+  1DC:  LW        S4, 30 (SP)
+  1E0:  LW        S3, 2C (SP)
+  1E4:  LW        S2, 28 (SP)
+  1E8:  LW        S1, 24 (SP)
+  1EC:  LW        S0, 20 (SP)
+  1F0:  JR        RA
+  1F4:  ADDIU     SP, SP, 40
+}
+
+#new:Function $Function_8021A708
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       ~Func:playFX_45
+   10:  LI        A1, 10
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8021A72C
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LI        V1, 66666667
+   38:  MULT      V0, V1
+   3C:  SRA       V0, V0, 1F
+   40:  LIF       F0, 6.28318
+   4C:  MFHI      A3
+   50:  SRA       V1, A3, 2
+   54:  SUBU      V1, V1, V0
+   58:  MTC1      V1, F12
+   5C:  NOP
+   60:  CVT.S.W   F12, F12
+   64:  MUL.S     F12, F12, F0
+   68:  NOP
+   6C:  LIF       F0, 360.0
+   74:  LIF       F2, 8.0
+   7C:  DIV.S     F12, F12, F0
+   80:  MUL.S     F12, F12, F2
+   84:  NOP
+   88:  LW        S2, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  LW        S3, 0 (S0)
+   94:  JAL       ~Func:sin_rad
+   98:  LW        S0, 4 (S0)
+   9C:  COPY      A0, S1
+   A0:  LIF       F2, 10.0
+   A8:  COPY      A1, S2
+   AC:  MUL.S     F20, F0, F2
+   B0:  NOP
+   B4:  JAL       ~Func:set_variable
+   B8:  CLEAR     A2
+   BC:  COPY      A0, S1
+   C0:  TRUNC.W.S F4, F20
+   C4:  MFC1      A2, F4
+   C8:  JAL       ~Func:set_variable
+   CC:  COPY      A1, S3
+   D0:  COPY      A0, S1
+   D4:  COPY      A1, S0
+   D8:  JAL       ~Func:set_variable
+   DC:  CLEAR     A2
+   E0:  LW        RA, 20 (SP)
+   E4:  LW        S3, 1C (SP)
+   E8:  LW        S2, 18 (SP)
+   EC:  LW        S1, 14 (SP)
+   F0:  LW        S0, 10 (SP)
+   F4:  LDC1      F20, 28 (SP)
+   F8:  LI        V0, 2
+   FC:  JR        RA
+  100:  ADDIU     SP, SP, 30
+}
+
+
+#new:Function $Function_8021AA28
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       ~Func:playFX_45
+   10:  LI        A1, 10
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8021AA4C
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LI        V1, 66666667
+   38:  MULT      V0, V1
+   3C:  SRA       V0, V0, 1F
+   40:  LIF       F0, 6.28318
+   4C:  MFHI      A3
+   50:  SRA       V1, A3, 2
+   54:  SUBU      V1, V1, V0
+   58:  MTC1      V1, F12
+   5C:  NOP
+   60:  CVT.S.W   F12, F12
+   64:  MUL.S     F12, F12, F0
+   68:  NOP
+   6C:  LIF       F0, 360.0
+   74:  LIF       F2, 8.0
+   7C:  DIV.S     F12, F12, F0
+   80:  MUL.S     F12, F12, F2
+   84:  NOP
+   88:  LW        S2, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  LW        S3, 0 (S0)
+   94:  JAL       ~Func:sin_rad
+   98:  LW        S0, 4 (S0)
+   9C:  COPY      A0, S1
+   A0:  LIF       F2, 10.0
+   A8:  COPY      A1, S2
+   AC:  MUL.S     F20, F0, F2
+   B0:  NOP
+   B4:  JAL       ~Func:set_variable
+   B8:  CLEAR     A2
+   BC:  COPY      A0, S1
+   C0:  TRUNC.W.S F4, F20
+   C4:  MFC1      A2, F4
+   C8:  JAL       ~Func:set_variable
+   CC:  COPY      A1, S3
+   D0:  COPY      A0, S1
+   D4:  COPY      A1, S0
+   D8:  JAL       ~Func:set_variable
+   DC:  CLEAR     A2
+   E0:  LW        RA, 20 (SP)
+   E4:  LW        S3, 1C (SP)
+   E8:  LW        S2, 18 (SP)
+   EC:  LW        S1, 14 (SP)
+   F0:  LW        S0, 10 (SP)
+   F4:  LDC1      F20, 28 (SP)
+   F8:  LI        V0, 2
+   FC:  JR        RA
+  100:  ADDIU     SP, SP, 30
+}
+
+#new:Function $Function_8021AD48
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       ~Func:playFX_45
+   10:  LI        A1, 10
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_8021AD6C
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 20 (SP)
+   10:  SW        S3, 1C (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SDC1      F20, 28 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LI        V1, 66666667
+   38:  MULT      V0, V1
+   3C:  SRA       V0, V0, 1F
+   40:  LIF       F0, 6.28318
+   4C:  MFHI      A3
+   50:  SRA       V1, A3, 2
+   54:  SUBU      V1, V1, V0
+   58:  MTC1      V1, F12
+   5C:  NOP
+   60:  CVT.S.W   F12, F12
+   64:  MUL.S     F12, F12, F0
+   68:  NOP
+   6C:  LIF       F0, 360.0
+   74:  LIF       F2, 8.0
+   7C:  DIV.S     F12, F12, F0
+   80:  MUL.S     F12, F12, F2
+   84:  NOP
+   88:  LW        S2, 0 (S0)
+   8C:  ADDIU     S0, S0, 4
+   90:  LW        S3, 0 (S0)
+   94:  JAL       ~Func:sin_rad
+   98:  LW        S0, 4 (S0)
+   9C:  COPY      A0, S1
+   A0:  LIF       F2, 10.0
+   A8:  COPY      A1, S2
+   AC:  MUL.S     F20, F0, F2
+   B0:  NOP
+   B4:  JAL       ~Func:set_variable
+   B8:  CLEAR     A2
+   BC:  COPY      A0, S1
+   C0:  TRUNC.W.S F4, F20
+   C4:  MFC1      A2, F4
+   C8:  JAL       ~Func:set_variable
+   CC:  COPY      A1, S3
+   D0:  COPY      A0, S1
+   D4:  COPY      A1, S0
+   D8:  JAL       ~Func:set_variable
+   DC:  CLEAR     A2
+   E0:  LW        RA, 20 (SP)
+   E4:  LW        S3, 1C (SP)
+   E8:  LW        S2, 18 (SP)
+   EC:  LW        S1, 14 (SP)
+   F0:  LW        S0, 10 (SP)
+   F4:  LDC1      F20, 28 (SP)
+   F8:  LI        V0, 2
+   FC:  JR        RA
+  100:  ADDIU     SP, SP, 30
+}
+
+% Origin: HEURISTIC
+#new:Function $Function_8021AE70
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:enable_background_wave
+    C:  NOP
+   10:  LW        RA, 10 (SP)
+   14:  JR        RA
+   18:  ADDIU     SP, SP, 18
+}
+
+
+% Origin: HEURISTIC
+#new:Unknown $???_8022EFD0
+{
+	00000000 00000000 00000000 00000000
+}
+
+#new:Script $Script_8022EFE0
+{
+    0:  Call  $Function_80219DA8 ( )
+    C:  Loop
+   18:  	Wait  1`
+   24:  EndLoop
+   2C:  Return
+   34:  End
+}
+
+#new:Script $Script_8022F01C
+{
+    0:  Set   *VarA  *Var0
+   10:  Label  0
+   1C:  Call  RandInt   ( 0000001E *Var0 )
+   30:  Add   *Var0  0000001E
+   40:  Wait  *Var0
+   4C:  Set   *Var1  00000000
+   5C:  Loop  0000000A
+   68:  	Add   *Var1  00000024
+   78:  	Call  RotateModel   ( *VarA *Var1 00000000 00000001 00000000 )
+   98:  	Wait  1`
+   A4:  EndLoop
+   AC:  Goto  0
+   B8:  Return
+   C0:  End
+}
+
+#new:Script $Script_8022F0E4
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *VarB  *Var1
+   20:  Exec  $Script_8022F01C
+   2C:  Set   *Var7  00000000
+   3C:  Label  0
+   48:  Add   *Var7  00000004
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_80219DCC    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022F1C4
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  00000000
+   20:  Label  0
+   2C:  Add   *Var7  00000004
+   3C:  If  *Var7  >  00000E0F
+   4C:  	Sub   *Var7  00000E10
+   5C:  EndIf
+   64:  Call  $Function_80219DCC    ( *Var7 *Var0 *Var1 *Var2 )
+   80:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   9C:  Wait  1`
+   A8:  Goto  0
+   B4:  Return
+   BC:  End
+}
+
+#new:Script $Script_BeforeBattle_8022F288
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Exec  $Script_8022EFE0
+   1C:  Thread
+   24:  	Set   *Var0  00000016
+   34:  	Set   *Var1  00000001
+   44:  	Exec  $Script_8022F0E4
+   50:  	Wait  5`
+   5C:  	Set   *Var0  00000014
+   6C:  	Set   *Var1  00000003
+   7C:  	Exec  $Script_8022F0E4
+   88:  	Wait  5`
+   94:  	Set   *Var0  00000012
+   A4:  	Set   *Var1  00000004
+   B4:  	Exec  $Script_8022F0E4
+   C0:  	Wait  5`
+   CC:  	Set   *Var0  00000010
+   DC:  	Set   *Var1  00000002
+   EC:  	Exec  $Script_8022F0E4
+   F8:  EndThread
+  100:  Return
+  108:  End
+}
+
+#new:Script $Script_AfterBattle_8022F398
+{
+    0:  Return
+    8:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_8022F3A8
+{
+	FFFFFFFF
+	~Model:sam_bt01:saku
+	00000000
+}
+
+#new:Stage $Stage_8022F3B4
+{
+	$ASCII_80231378  % sam_tex
+	$ASCII_80231368  % sam_bt01_shape
+	$ASCII_80231358  % sam_bt01_hit
+	$Script_BeforeBattle_8022F288
+	$Script_AfterBattle_8022F398
+	$ASCII_80231350  % yki_bg
+	$ForegroundModelList_8022F3A8
+	00000000
+	00000000
+	00000000
+}
+
+#new:Unknown $???_8022F3E0
+{
+	00000000 00000000 00000000 00000000
+}
+
+#new:Script $Script_8022F3F0
+{
+    0:  Call  $Function_8021A0C8 ( )
+    C:  Loop
+   18:  	Wait  1`
+   24:  EndLoop
+   2C:  Return
+   34:  End
+}
+
+#new:Script $Script_8022F42C
+{
+    0:  Set   *VarA  *Var0
+   10:  Label  0
+   1C:  Call  RandInt   ( 0000001E *Var0 )
+   30:  Add   *Var0  0000001E
+   40:  Wait  *Var0
+   4C:  Set   *Var1  00000000
+   5C:  Loop  0000000A
+   68:  	Add   *Var1  00000024
+   78:  	Call  RotateModel   ( *VarA *Var1 00000000 00000001 00000000 )
+   98:  	Wait  1`
+   A4:  EndLoop
+   AC:  Goto  0
+   B8:  Return
+   C0:  End
+}
+
+#new:Script $Script_8022F4F4
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *VarB  *Var1
+   20:  Exec  $Script_8022F42C
+   2C:  Set   *Var7  00000000
+   3C:  Label  0
+   48:  Add   *Var7  00000004
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_8021A0EC    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022F5D4
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  00000000
+   20:  Label  0
+   2C:  Add   *Var7  00000004
+   3C:  If  *Var7  >  00000E0F
+   4C:  	Sub   *Var7  00000E10
+   5C:  EndIf
+   64:  Call  $Function_8021A0EC    ( *Var7 *Var0 *Var1 *Var2 )
+   80:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   9C:  Wait  1`
+   A8:  Goto  0
+   B4:  Return
+   BC:  End
+}
+
+#new:Script $Script_BeforeBattle_8022F698
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p2 00000000 )
+   24:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p3 00000000 )
+   38:  Thread
+   40:  	Set   *Var0  00000012
+   50:  	Set   *Var1  00000000
+   60:  	Exec  $Script_8022F4F4
+   6C:  	Wait  5`
+   78:  	Set   *Var0  00000014
+   88:  	Set   *Var1  00000000
+   98:  	Exec  $Script_8022F4F4
+   A4:  	Wait  5`
+   B0:  	Set   *Var0  00000016
+   C0:  	Set   *Var1  00000000
+   D0:  	Exec  $Script_8022F4F4
+   DC:  	Wait  5`
+   E8:  	Set   *Var0  00000018
+   F8:  	Set   *Var1  00000000
+  108:  	Exec  $Script_8022F4F4
+  114:  EndThread
+  11C:  Exec  $Script_8022F3F0
+  128:  Return
+  130:  End
+}
+
+#new:Script $Script_AfterBattle_8022F7D0
+{
+    0:  Return
+    8:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_8022F7E0
+{
+	FFFFFFFF
+	~Model:sam_bt02:kouri1
+	00000000
+}
+
+#new:Stage $Stage_8022F7EC
+{
+	$ASCII_802313A8  % sam_tex
+	$ASCII_80231398  % sam_bt02_shape
+	$ASCII_80231388  % sam_bt02_hit
+	$Script_BeforeBattle_8022F698
+	$Script_AfterBattle_8022F7D0
+	$ASCII_80231380  % yki_bg
+	$ForegroundModelList_8022F7E0
+	00000000
+	00000000
+	00000000
+}
+
+#new:Unknown $???_8022F820
+{
+	00000000 00000000 00000000 00000000
+}
+
+#new:Script $Script_8022F830
+{
+    0:  Call  $Function_8021A3E8 ( )
+    C:  Loop
+   18:  	Wait  1`
+   24:  EndLoop
+   2C:  Return
+   34:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022F86C
+{
+    0:  Set   *VarA  *Var0
+   10:  Label  0
+   1C:  Call  RandInt   ( 0000001E *Var0 )
+   30:  Add   *Var0  0000001E
+   40:  Wait  *Var0
+   4C:  Set   *Var1  00000000
+   5C:  Loop  0000000A
+   68:  	Add   *Var1  00000024
+   78:  	Call  RotateModel   ( *VarA *Var1 00000000 00000001 00000000 )
+   98:  	Wait  1`
+   A4:  EndLoop
+   AC:  Goto  0
+   B8:  Return
+   C0:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022F934
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *VarB  *Var1
+   20:  Exec  $Script_8022F86C
+   2C:  Set   *Var7  00000000
+   3C:  Label  0
+   48:  Add   *Var7  00000004
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_8021A40C    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022FA14
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  00000000
+   20:  Label  0
+   2C:  Add   *Var7  00000004
+   3C:  If  *Var7  >  00000E0F
+   4C:  	Sub   *Var7  00000E10
+   5C:  EndIf
+   64:  Call  $Function_8021A40C    ( *Var7 *Var0 *Var1 *Var2 )
+   80:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   9C:  Wait  1`
+   A8:  Goto  0
+   B4:  Return
+   BC:  End
+}
+
+#new:Script $Script_BeforeBattle_8022FAD8
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p1 00000000 )
+   24:  Call  SetGroupEnabled   ( ~Model:sam_bt02:yuki 00000000 )
+   38:  Exec  $Script_8022F830
+   44:  Return
+   4C:  End
+}
+
+#new:Script $Script_AfterBattle_8022FB2C
+{
+    0:  Return
+    8:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_8022FB3C
+{
+	FFFFFFFF
+	~Model:sam_bt02:kouri1
+	00000000
+}
+
+#new:Stage $Stage_8022FB48
+{
+	$ASCII_802313D8  % sam_tex
+	$ASCII_802313C8  % sam_bt02_shape
+	$ASCII_802313B8  % sam_bt02_hit
+	$Script_BeforeBattle_8022FAD8
+	$Script_AfterBattle_8022FB2C
+	$ASCII_802313B0  % yki_bg
+	$ForegroundModelList_8022FB3C
+	00000000
+	00000000
+	00000000
+}
+
+% Origin: HEURISTIC
+#new:Unknown $???_8022FB70
+{
+	00000000 00000000 00000000 00000000
+}
+
+#new:Script $Script_8022FB80
+{
+    0:  Call  $Function_8021A708 ( )
+    C:  Loop
+   18:  	Wait  1`
+   24:  EndLoop
+   2C:  Return
+   34:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022FBBC
+{
+    0:  Set   *VarA  *Var0
+   10:  Label  0
+   1C:  Call  RandInt   ( 0000001E *Var0 )
+   30:  Add   *Var0  0000001E
+   40:  Wait  *Var0
+   4C:  Set   *Var1  00000000
+   5C:  Loop  0000000A
+   68:  	Add   *Var1  00000024
+   78:  	Call  RotateModel   ( *VarA *Var1 00000000 00000001 00000000 )
+   98:  	Wait  1`
+   A4:  EndLoop
+   AC:  Goto  0
+   B8:  Return
+   C0:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022FC84
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *VarB  *Var1
+   20:  Exec  $Script_8022FBBC
+   2C:  Set   *Var7  00000000
+   3C:  Label  0
+   48:  Add   *Var7  00000004
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_8021A72C    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022FD64
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  00000000
+   20:  Label  0
+   2C:  Add   *Var7  00000004
+   3C:  If  *Var7  >  00000E0F
+   4C:  	Sub   *Var7  00000E10
+   5C:  EndIf
+   64:  Call  $Function_8021A72C    ( *Var7 *Var0 *Var1 *Var2 )
+   80:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   9C:  Wait  1`
+   A8:  Goto  0
+   B4:  Return
+   BC:  End
+}
+
+#new:Script $Script_BeforeBattle_8022FE28
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p1 00000000 )
+   24:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p2 00000000 )
+   38:  Call  SetGroupEnabled   ( ~Model:sam_bt02:yuki 00000000 )
+   4C:  Exec  $Script_8022FB80
+   58:  Return
+   60:  End
+}
+
+#new:Script $Script_AfterBattle_8022FE90
+{
+    0:  Return
+    8:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_8022FEA0
+{
+	FFFFFFFF
+	~Model:sam_bt02:kouri1
+	00000000
+}
+
+#new:Stage $Stage_8022FEAC
+{
+	$ASCII_80231408  % sam_tex
+	$ASCII_802313F8  % sam_bt02_shape
+	$ASCII_802313E8  % sam_bt02_hit
+	$Script_BeforeBattle_8022FE28
+	$Script_AfterBattle_8022FE90
+	$ASCII_802313E0  % yki_bg
+	$ForegroundModelList_8022FEA0
+	00000000
+	00000000
+	00000000
+}
+
+#new:Script $Script_8022FEF0
+{
+    0:  Call  $Function_8021AA28 ( )
+    C:  Loop
+   18:  	Wait  1`
+   24:  EndLoop
+   2C:  Return
+   34:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022FF2C
+{
+    0:  Set   *VarA  *Var0
+   10:  Label  0
+   1C:  Call  RandInt   ( 0000001E *Var0 )
+   30:  Add   *Var0  0000001E
+   40:  Wait  *Var0
+   4C:  Set   *Var1  00000000
+   5C:  Loop  0000000A
+   68:  	Add   *Var1  00000024
+   78:  	Call  RotateModel   ( *VarA *Var1 00000000 00000001 00000000 )
+   98:  	Wait  1`
+   A4:  EndLoop
+   AC:  Goto  0
+   B8:  Return
+   C0:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_8022FFF4
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *VarB  *Var1
+   20:  Exec  $Script_8022FF2C
+   2C:  Set   *Var7  00000000
+   3C:  Label  0
+   48:  Add   *Var7  00000004
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_8021AA4C    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+% Origin: HEURISTIC
+#new:Script $Script_802300D4
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  00000000
+   20:  Label  0
+   2C:  Add   *Var7  00000004
+   3C:  If  *Var7  >  00000E0F
+   4C:  	Sub   *Var7  00000E10
+   5C:  EndIf
+   64:  Call  $Function_8021AA4C    ( *Var7 *Var0 *Var1 *Var2 )
+   80:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   9C:  Wait  1`
+   A8:  Goto  0
+   B4:  Return
+   BC:  End
+}
+
+#new:Script $Script_BeforeBattle_80230198
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p1 00000000 )
+   24:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p2 00000000 )
+   38:  Call  SetGroupEnabled   ( ~Model:sam_bt02:p3 00000000 )
+   4C:  Call  SetGroupEnabled   ( ~Model:sam_bt02:yuki 00000000 )
+   60:  Exec  $Script_8022FEF0
+   6C:  Return
+   74:  End
+}
+
+#new:Script $Script_AfterBattle_80230214
+{
+    0:  Return
+    8:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_80230224
+{
+	FFFFFFFF
+	~Model:sam_bt02:kouri1
+	00000000
+}
+
+#new:Stage $Stage_80230230
+{
+	$ASCII_80231438  % sam_tex
+	$ASCII_80231428  % sam_bt02_shape
+	$ASCII_80231418  % sam_bt02_hit
+	$Script_BeforeBattle_80230198
+	$Script_AfterBattle_80230214
+	$ASCII_80231410  % yki_bg
+	$ForegroundModelList_80230224
+	00000000
+	00000000
+	00000000
+}
+
+#new:Script $Script_80230270
+{
+    0:  Call  $Function_8021AD48 ( )
+    C:  Loop
+   18:  	Wait  1`
+   24:  EndLoop
+   2C:  Return
+   34:  End
+}
+
+#new:Script $Script_802302AC
+{
+    0:  Set   *VarA  *Var0
+   10:  Label  0
+   1C:  Call  RandInt   ( 0000001E *Var0 )
+   30:  Add   *Var0  0000001E
+   40:  Wait  *Var0
+   4C:  Set   *Var1  00000000
+   5C:  Loop  0000000A
+   68:  	Add   *Var1  00000024
+   78:  	Call  RotateModel   ( *VarA *Var1 00000000 00000001 00000000 )
+   98:  	Wait  1`
+   A4:  EndLoop
+   AC:  Goto  0
+   B8:  Return
+   C0:  End
+}
+
+#new:Script $Script_80230374
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *VarB  *Var1
+   20:  Exec  $Script_802302AC
+   2C:  Set   *Var7  00000000
+   3C:  Label  0
+   48:  Add   *Var7  00000004
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_8021AD6C    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+#new:Script $Script_80230454
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  00000000
+   20:  Label  0
+   2C:  Add   *Var7  00000004
+   3C:  If  *Var7  >  00000E0F
+   4C:  	Sub   *Var7  00000E10
+   5C:  EndIf
+   64:  Call  $Function_8021AD6C    ( *Var7 *Var0 *Var1 *Var2 )
+   80:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   9C:  Wait  1`
+   A8:  Goto  0
+   B4:  Return
+   BC:  End
+}
+
+#new:Script $Script_BeforeBattle_80230518
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Thread
+   18:  	Set   *Var0  00000010
+   28:  	Set   *Var1  00000000
+   38:  	Exec  $Script_80230374
+   44:  	Wait  5`
+   50:  	Set   *Var0  00000019
+   60:  	Set   *Var1  00000000
+   70:  	Exec  $Script_80230454
+   7C:  	Wait  5`
+   88:  	Set   *Var0  00000016
+   98:  	Set   *Var1  00000000
+   A8:  	Exec  $Script_80230454
+   B4:  	Wait  5`
+   C0:  	Set   *Var0  00000013
+   D0:  	Set   *Var1  00000000
+   E0:  	Exec  $Script_80230454
+   EC:  EndThread
+   F4:  Exec  $Script_80230270
+  100:  Return
+  108:  End
+}
+
+#new:Script $Script_AfterBattle_80230628
+{
+    0:  Return
+    8:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_80230638
+{
+	FFFFFFFF
+	~Model:sam_bt03:o278
+	00000000
+}
+
+#new:Stage $Stage_80230644
+{
+	$ASCII_80231468  % sam_tex
+	$ASCII_80231458  % sam_bt03_shape
+	$ASCII_80231448  % sam_bt03_hit
+	$Script_BeforeBattle_80230518
+	$Script_AfterBattle_80230628
+	$ASCII_80231440  % sam_bg
+	$ForegroundModelList_80230638
+	00000000
+	00000000
+	00000000
+}
+
+#new:ASCII $ASCII_80231350
+{
+	"yki_bg"
+}
+
+#new:ASCII $ASCII_80231358
+{
+	"sam_bt01_hit"
+}
+
+#new:ASCII $ASCII_80231368
+{
+	"sam_bt01_shape"
+}
+
+#new:ASCII $ASCII_80231378
+{
+	"sam_tex"
+}
+
+#new:ASCII $ASCII_80231380
+{
+	"yki_bg"
+}
+
+#new:ASCII $ASCII_80231388
+{
+	"sam_bt02_hit"
+}
+
+#new:ASCII $ASCII_80231398
+{
+	"sam_bt02_shape"
+}
+
+#new:ASCII $ASCII_802313A8
+{
+	"sam_tex"
+}
+
+#new:ASCII $ASCII_802313B0
+{
+	"yki_bg"
+}
+
+#new:ASCII $ASCII_802313B8
+{
+	"sam_bt02_hit"
+}
+
+#new:ASCII $ASCII_802313C8
+{
+	"sam_bt02_shape"
+}
+
+#new:ASCII $ASCII_802313D8
+{
+	"sam_tex"
+}
+
+#new:ASCII $ASCII_802313E0
+{
+	"yki_bg"
+}
+
+#new:ASCII $ASCII_802313E8
+{
+	"sam_bt02_hit"
+}
+
+#new:ASCII $ASCII_802313F8
+{
+	"sam_bt02_shape"
+}
+
+#new:ASCII $ASCII_80231408
+{
+	"sam_tex"
+}
+
+#new:ASCII $ASCII_80231410
+{
+	"yki_bg"
+}
+
+#new:ASCII $ASCII_80231418
+{
+	"sam_bt02_hit"
+}
+
+#new:ASCII $ASCII_80231428
+{
+	"sam_bt02_shape"
+}
+
+#new:ASCII $ASCII_80231438
+{
+	"sam_tex"
+}
+
+#new:ASCII $ASCII_80231440
+{
+	"sam_bg"
+}
+
+#new:ASCII $ASCII_80231448
+{
+	"sam_bt03_hit"
+}
+
+#new:ASCII $ASCII_80231458
+{
+	"sam_bt03_shape"
+}
+
+#new:ASCII $ASCII_80231468
+{
+	"sam_tex"
+}
+
+#new:SJIS $SJIS_80231470
+{
+	ホワイトガボン,パックン,ガボン,グレイカメック % howaitogabon,pakkun,gabon,gureikamekku
+}
+
+#new:SJIS $SJIS_802314A0
+{
+	ホワイトガボン,パックン,ガボン,パックン % howaitogabon,pakkun,gabon,pakkun
+}
+
+#new:SJIS $SJIS_802314C8
+{
+	ホワイトガボンx２ % howaitogabonx2
+}
+
+#new:SJIS $SJIS_802314DC
+{
+	アイスパックン,ゴックン,アイスパックン,ゴックン % aisupakkun,gokkun,aisupakkun,gokkun
+}
+
+#new:SJIS $SJIS_8023150C
+{
+	アイスパックン,ゴックン,アイスパックン % aisupakkun,gokkun,aisupakkun
+}
+
+#new:SJIS $SJIS_80231534
+{
+	アイスパックンx２,ゴックン % aisupakkunx2,gokkun
+}
+
+#new:SJIS $SJIS_80231550
+{
+	アイスパックンx４ % aisupakkunx4
+}
+
+#new:SJIS $SJIS_80231564
+{
+	アイスパックンx２ % aisupakkunx2
+}
+
+#new:SJIS $SJIS_80231578
+{
+	ゴックン,アイスパックン,ゴックン,アイスパックン % gokkun,aisupakkun,gokkun,aisupakkun
+}
+
+#new:SJIS $SJIS_802315A8
+{
+	ゴックン,アイスパックン,ゴックン % gokkun,aisupakkun,gokkun
+}
+
+#new:SJIS $SJIS_802315CC
+{
+	ゴックンx2,アイスパックン % gokkunx2,aisupakkun
+}
+
+#new:SJIS $SJIS_802315E8
+{
+	ゴックンx3 % gokkunx3
+}
+
+#new:SJIS $SJIS_802315F4
+{
+	ゴックンx2 % gokkunx2
+}
+
+#new:SJIS $SJIS_80231600
+{
+	バケバケx2 % bakebakex2
+}
+
+#new:ASCII $ASCII_8023160C
+{
+	"sam_03"
+}
+
+#new:ASCII $ASCII_80231614
+{
+	"sam_02d"
+}
+
+#new:ASCII $ASCII_8023161C
+{
+	"sam_02c"
+}
+
+#new:ASCII $ASCII_80231624
+{
+	"sam_02b"
+}
+
+#new:ASCII $ASCII_8023162C
+{
+	"sam_02"
+}
+
+#new:ASCII $ASCII_80231634
+{
+	"sam_01"
+}
+
+
+#new:ConstDouble $ConstDouble_802312D0
+{
+	47.000000d
+}
+
+#new:ConstDouble $ConstDouble_802312D8
+{
+	1.120000d
+}
+
+#new:ConstDouble $ConstDouble_802312E0
+{
+	0.530000d
+}
+
+#new:ConstDouble $ConstDouble_802312E8
+{
+	47.000000d
+}
+
+#new:ConstDouble $ConstDouble_802312F0
+{
+	0.800000d
+}
+
+#new:ConstDouble $ConstDouble_802312F8
+{
+	0.530000d
+}
+
+#new:ConstDouble $ConstDouble_80231300
+{
+	0.800000d
+}
+
+#new:ConstDouble $ConstDouble_80231308
+{
+	16.500000d
+}
+
+#new:ConstDouble $ConstDouble_80231310
+{
+	33.000000d
+}
+
+#new:ConstDouble $ConstDouble_80231318
+{
+	4.800000d
+}
+

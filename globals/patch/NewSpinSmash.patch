@@ -1,0 +1,124 @@
+#new:Function $Function_GetMarioHammerPowerPlusOne
+{
+	PUSH	RA
+	LW		A1, C (A0) 		%get args ptr
+	LW 		A1, 0 (A1) 		%arg to store to
+	LAB		A2, 8010F291 	%get Mario's hammer level
+	ADDIU	A2, A2, 1	 	%add one
+		%now A0 has context, A1 has var to store to, and A2 has our data.
+	JAL ~Func:set_variable 	%store
+	NOP
+	POP 	RA				%and get out
+	JR      RA
+	ADDIU	V0, R0, 2 		%who thought having to put this was a good idea?
+}
+	
+#new:Function $Function_GetActorChillBoost  %args: actor handle IN, var OUT
+{
+%code blatantly stolen from GetActorAttackBoost and pointers changed
+		PUSH 		RA, S0, S1
+    8:  COPY		S1, A0
+   14:  LW			S0, C (S1)
+   18:  LW			A1, 0 (S0)
+   1C:  JAL			802C7ABC	%~Func:get_variable
+   20:  ADDIU		S0, S0, 4
+   24:  COPY		A0, V0
+   28:  ADDIU		V0, R0, FF81
+   2C:  BNE			A0, V0, .o38
+   30:  NOP
+   34:  LW			A0, 148 (S1)
+        .o38
+   38:  JAL			80269D6C	%~Func:GetActor		%get actor handle
+   3C:  LW			S0, 0 (S0)
+   40:  COPY		A0, S1
+   		LB			A2, 224 (V0)						%check if chill out duration is positive
+   		BLEZL		A2, .store							%no? set A2 to 0
+   		ADDIU		A2, R0, 0						
+   44:  LB			A2, 223 (V0)						%yes? put chill out effect in A2
+   		.store
+   48:  JAL			802C8098	%~Func:set_variable		%put that in out variable
+   4C:  COPY		A1, S0
+		POP			RA, S0, S1	
+   60:  JR			RA
+   5C:  ADDIU		V0, R0, 2
+}
+
+#new:Script:Battle $Script_NeoSpinSmash		%spin smash splash damage
+{
+    0:  Call     8026E2CC ( 00010004 )
+   10:  Call     InitTargetIterator ( )
+   1C:  Label    00000000 
+   28:  Call     GetOwnerID ( *Var[1] )
+   38:  Call     GetOwnerTarget ( *Var[0] *Var[9] )
+   4C:  If  *Var[1]  !=  *Var[0] 
+   5C:  	Call     ChooseNextTarget ( 00000000 *Var[0] )
+   70:  	Goto     00000000 
+   7C:  EndIf
+   		Call	$Function_GetMarioHammerPowerPlusOne ( *Var[3] )
+   		Call     GetStatusFlags 	( .Actor:Self *Var[4] )  %we want EXACT piercing damage regardless of enemy attack buffs or drops. the PM64 devs didn't think to calculate this. I did.
+        If  *Var[4] & 00080000 %if shrunk...
+        	Mul *Var[3] 00000002 %double initial damage
+        EndIf
+   		Call  GetActorAttackBoost( .Actor:Self *Var[4] ) %also factor in attack boost/drop 
+        Sub   *Var[3] *Var[4]
+        Call  $Function_GetActorChillBoost ( .Actor:Self *Var[4] ) %and chill out
+        Add	  *Var[3] *Var[4]
+   84:  Label    00000001 
+   90:  Call     ChooseNextTarget ( 00000000 *Var[0] )
+   A4:  If  *Var[0]  ==  FFFFFFFF 
+   B4:  	Goto     0000000A 
+   C0:  EndIf
+   C8:  Call     GetOwnerTarget ( *Var[0] *Var[9] )
+   DC:  Call     GetActorFlags ( *Var[0] *Var[1] )
+   F0:  If  *Var[1]  &  00004000 %flying?
+  100:  	Goto     00000001 
+  10C:  EndIf
+  114:  Call     GetStatusFlags ( *Var[0] *Var[9] )
+  128:  If  *Var[9]  &  04000000 %invisible
+  138:  	Goto     00000001 
+  144:  EndIf
+  14C:  Call     SetGoalToTarget ( FFFFFF81 )
+  15C:  Call     GetGoalPos ( FFFFFF81 *Var[8] *Var[1] *Var[2] )
+  178:  Call     SetGoalPos ( FFFFFF81 *Var[8] 00000000 *Var[2] )
+  194:  Call     SetActorJumpGravity ( FFFFFF81 *Fixed[0.10058594] )
+  1A8:  Call     SetActorSpeed ( FFFFFF81 *Fixed[7.0] )
+  1BC:  Call     JumpToGoal ( FFFFFF81 00000000 00000000 00000001 00000000 )
+  1DC:  ChildThread
+  1E4:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[1.0] )
+  200:  EndChildThread
+  208:  Call     SetGoalToTarget ( FFFFFF81 )
+  218:  Call     GetOwnerTarget ( *Var[0] *Var[1] )
+  22C:  Call     GetOriginalActorType ( *Var[0] *Var[1] )
+  240:  Switch  *Var[1] 
+  24C:  	CaseOR  ==  00000014 
+  258:  	CaseOR  ==  00000015 
+  %264:  	CaseOR  ==  00000069 %unused enemy - beware of conflict
+  			CaseOR  ==  000000E2 %Spin Smash now knocks off Iron Pokey segments properly... I think.
+  				Call	$Function_GetMarioHammerPowerPlusOne ( *Var[4] ) %reset to cancel out shrink and attack boost modifiers - this version does damage directly
+  270:  		Call     8027D1BC ( *Var[0] *Var[4] 00000011 ) %now has variable damage (this function replaces dmg fn)
+  				%8027D1BC is literally DispatchDamageEvent
+  288:  		Goto     00000001 
+  294:  	EndCaseGroup
+  29C:  EndSwitch
+  2A4:  Call     EnemyDamageTarget ( FFFFFF81 *Var[2] 28000000 0000FFFF 00000000 *Var[3] 00000020 ) %noncontact, piercing
+  2CC:  Goto     00000001 
+  2D8:  Label    0000000A 
+  2E4:  ChildThread
+  2EC:  	Wait     00000014 
+  2F8:  	Call     UseBattleCamPreset ( 00000004 )
+  308:  EndChildThread
+  310:  Call     SetActorJumpGravity ( FFFFFF81 *Fixed[0.10058594] )
+  324:  Call     SetActorSpeed ( FFFFFF81 *Fixed[6.0] )
+  338:  Call     SetGoalPos ( FFFFFF81 00000128 00000000 00000000 )
+  354:  Call     JumpToGoal ( FFFFFF81 00000000 00000000 00000001 00000000 )
+  374:  Return
+  37C:  End
+}
+  
+@Data 1CA2C0 %8029B9E0 - 800D1720 = 1CA2C0 %enabler - changes script called in DoMultiBounceHit to this
+{
+$Script_NeoSpinSmash
+}
+
+#export $Function_GetMarioHammerPowerPlusOne
+#export	$Function_GetActorChillBoost

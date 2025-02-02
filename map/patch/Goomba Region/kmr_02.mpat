@@ -1,0 +1,334 @@
+%Moved Gold Credit to Goompa to get rid of the annoying letter chain.
+%0000007C is the ID for Gold Credit.
+%Lucky Day moved to Chapter 7 as an overworld drop.
+
+
+@	$Script_80248868
+{
+    0:  Call  $Function_80242424    ( 00000003 00A00004 00A00001 00000040 0000007C 000B006F 000B0070 000B0071 000B0072 $ItemList_80248860 )
+   34:  ExecWait  $Script_80248568
+   40:  Return
+   48:  End
+}
+
+
+
+
+
+% ====================================================
+% Chuck Quizmo will continue asking questions so long
+% as another is available.
+%
+% The existing script is modified by adding two labels
+% for flow control and new code to check for the next
+% question after the player recieves a star piece.
+% ====================================================
+
+@ $Script_80246D10
+{
+	0:  If  *GB_CompletedQuizzes  >  0000003F
+   10:  	Set   *Var0  00000000
+   20:  	Return
+   28:  EndIf
+   30:  Call  GetPlayerPos  ( *Array[1] *Array[2] *Array[3] )
+   48:  Call  NpcFacePlayer ( .Npc:Self 00000010 )
+   5C:  If  *GB_CompletedQuizzes  ==  0000003F
+   6C:  	Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 0008000A ) % Kaaaa-wiiiizzz! It's everyone's favorite quizmaste ...
+   8C:  Else
+   94:  	If  *GF_Met_ChuckQuizmo  ==  .True
+   A4:  		Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 00080009 ) % Kaaaa-wiiiizzz! It's everyone's favorite quizmaste ...
+   C4:  	Else
+   CC:  		Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 00080008 ) % Kaaaa-wiiiizzz! Chuck Quizmo's the name, and quizz ...
+   EC:  		Set   *GF_Met_ChuckQuizmo  .True
+   FC:  	EndIf
+  104:  EndIf
+  10C:  Call  ShowChoice    ( 001E000D ) % Yes No
+  11C:  If  *Var0  ==  00000001
+  12C:  	Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000C ) % Uh, oh. Not up to it, huh? Maybe another time! Wel ...
+  14C:  	ExecWait  $Script_802456C4
+  158:  	Set   *Var0  00000000
+  168:  	Return
+  170:  EndIf
+  178:  Set   *GF_Quizmo_TakingQuiz  .True
+  188:  Call  $Function_802404A8 ( )
+  194:  Call  $Function_802407BC ( )
+  1A0:  Exec  $Script_80245774
+  1AC:  Call  DisablePartnerAI  ( 00000000 )
+  1BC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+  1D4:  Call  SetNpcFlagBits    ( 00000008 00000200 .False )
+  1EC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000148 .True )
+  204:  Call  SetNpcFlagBits    ( 00000008 00000100 .True )
+  21C:  Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+  230:  Exec  $Script_80245E9C *Var1
+  240:  Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000B ) % Then let's go to the question!
+  260:  Call  PlaySound ( 00000089 )
+  270:  Loop
+  27C:  	DoesScriptExist  *Var1 *Var0
+  28C:  	If  *Var0  ==  00000000
+  29C:  		BreakLoop
+  2A4:  	EndIf
+  2AC:  	Wait  1`
+  2B8:  EndLoop
+  2C0:  Call  $Function_80240B00 ( )
+  2CC:  Loop  00000005
+  2D8:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  2F0:  	Add   *Var1  00000001
+  300:  	Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  318:  	Wait  2`
+  324:  EndLoop
+  		Label	0	% new label for multiple questions
+  32C:  Set   *Var0  002C0000
+  33C:  Add   *Var0  *GB_CompletedQuizzes
+  34C:  Call  SpeakToPlayer ( .Npc:Self 00AF0005 00AF0006 00000000 *Var0 ) % variable string ID
+  36C:  Call  SetPlayerAnimation    ( .PlayerAnim:Question )
+  37C:  Set   *Var0  002D0000
+  38C:  Add   *Var0  *GB_CompletedQuizzes
+  39C:  Call  PlaySound     ( 0000008E )
+  3AC:  Call  ShowChoice    ( *Var0 ) % variable string ID
+  3BC:  Kill  *Var1
+  3C8:  Call  StopSound     ( 0000008E )
+  3D8:  Exec  $Script_80245F10
+  3E4:  Wait  15`
+  3F0:  Call  PlaySound     ( 0000008D )
+  400:  Call  $Function_80240E00    ( *Var0 )
+  410:  Set   *Array[4]  00000000
+  %420:  Call  $Function_802413F4 ( )			%don't draw stuff
+  42C:  Wait  40`
+  438:  Call  $Function_80240A7C ( )
+  444:  Thread
+  44C:  	Wait  110`
+  458:  	Call  CloseChoice ( )
+  464:  	Set   *Array[4]  00000000
+  474:  EndThread
+  47C:  If  *Var0  ==  00000001
+  48C:  	Call  SetNpcAnimation   ( 00000008 00AF0007 )
+  4A0:  	Set   *Array[4]  00000001
+  4B0:  	Thread
+  4B8:  		Call  $Function_80240DCC    ( 00000001 )
+  4C8:  		Wait  6`
+  4D4:  		Wait  6`
+  4E0:  		Wait  6`
+  4EC:  		Call  $Function_80240DCC    ( 00000002 )
+  4FC:  	EndThread
+  504:  	Thread
+  50C:  		Call  PlaySound ( 0000021C )
+  51C:  		Wait  6`
+  528:  		Call  PlaySound ( 0000021C )
+  538:  		Wait  6`
+  544:  		Call  PlaySound ( 0000021C )
+  554:  		Wait  6`
+  560:  		Call  PlaySound ( 0000021C )
+  570:  	EndThread
+  578:  	Call  PlaySound ( 0000008A )
+  588:  	Call  $Function_80240E98 ( )
+  594:  	Thread
+  59C:  		Wait  15`
+  5A8:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  5C0:  		Add   *Var1  00000032
+  5D0:  		Call  $Function_80241010    ( 00000000 00000000 00000053 *Var0 *Var2 )
+  5F0:  		Call  PlayEffect    ( ~FX:Steam:Ring *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  634:  		Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var0 *Var1 *Var2 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  678:  		Wait  15`
+  684:  		Add   *Var1  FFFFFFFD
+  694:  		Call  $Function_80241010    ( 00000000 00000000 0000003A *Var0 *Var2 )
+  6B4:  		Call  PlayEffect    ( ~FX:Steam:Ring *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  6F8:  		Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var0 *Var1 *Var2 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  73C:  		Wait  15`
+  748:  		Add   *Var1  0000001E
+  758:  		Call  $Function_80241010    ( 00000000 00000000 0000005D *Var0 *Var2 )
+  778:  		Call  PlayEffect    ( ~FX:Steam:Ring *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7BC:  		Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var0 *Var1 *Var2 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  800:  		Wait  15`
+  80C:  	EndThread
+  814:  	Wait  20`
+  820:  	Exec  $Script_80246BB0 *Var1
+  830:  	Add   *GB_CompletedQuizzes  00000001
+  840:  	If  *GB_CompletedQuizzes  >  0000003F
+  850:  		Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00080010 ) % Correct!! Congratulations! This is my last prize!  ...
+  870:  		Call  SetNpcAnimation   ( 00000008 00AF0006 )
+  884:  		Loop
+  890:  			DoesScriptExist  *Var1 *Var0
+  8A0:  			If  *Var0  ==  00000000
+  8B0:  				BreakLoop
+  8B8:  			EndIf
+  8C0:  			Wait  1`
+  8CC:  		EndLoop
+  8D4:  		Call  SetNpcAnimation   ( 00000008 00AF0005 )
+  8E8:  		Set   *Var0  0000015C
+  8F8:  		Set   *Var1  00000003
+  908:  		ExecWait  $Script_802455D4
+  914:  		Call  AddStarPieces     ( 00000001 )
+  924:  		Call  $Function_80240DCC    ( 0000000F )
+  934:  		Call  $Function_80240E80 ( )
+  940:  		Call  SetMessageValue   ( *GB_CompletedQuizzes 00000000 )
+  954:  		Call  SpeakToPlayer     ( .Npc:Self 00AF0004 00AF0001 00000000 00080011 ) % You've managed to correctly answer all questions.  ...
+  974:  	Else
+  97C:  		Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0008000E ) % Correct! Congratulations! Here's your Star Piece!
+  99C:  		Call  SetNpcAnimation   ( 00000008 00AF0006 )
+  9B0:  		Loop
+  9BC:  			DoesScriptExist  *Var1 *Var0
+  9CC:  			If  *Var0  ==  00000000
+  9DC:  				BreakLoop
+  9E4:  			EndIf
+  9EC:  			Wait  1`
+  9F8:  		EndLoop
+  A00:  		Call  SetNpcAnimation   ( 00000008 00AF0005 )
+  A14:  		Set   *Var0  0000015C
+  A24:  		Set   *Var1  00000001
+  A34:  		ExecWait  $Script_802455D4
+  A40:  		Call  AddStarPieces     ( 00000001 )
+  A50:  		Call  $Function_80240DCC    ( 0000000F )
+  A60:  		Call  $Function_80240E80 ( )
+  A6C:  		Call  SetMessageValue   ( *GB_CompletedQuizzes 00000000 )
+  A80:  		If  *GB_CompletedQuizzes  ==  00000001
+  A90:  			Call  SetMessageString  ( 8014C294 00000001 )
+  AA4:  		Else
+  AAC:  			Call  SetMessageString  ( 8014C290 00000001 )
+  AC0:  		EndIf
+  AC8:  		Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 0008000F ) % You've correctly answered question so far. Good lu ...
+  % ====================================================
+			% new: multiple quizzes can be completed at a time
+				Wait	10`
+				Call	$Function_IsNextQuestionAvailable ( )
+				If  *Var[0]  ==  00000000 
+					Call     SpeakToPlayer	( .Npc:Self 00AF0004 00AF0001 00000000 0008004A ) % Looks like that's it for now ...
+					Set      *Var[0] 00000001 
+					Goto	1
+				EndIf
+				Call     SpeakToPlayer		( .Npc:Self 00AF0004 00AF0001 00000000 00080049 ) % But we're not done yet ...
+				Call     ShowChoice			( 001E000D ) % Yes No 
+				If	*Var[0] ==  00000001 
+					Call     ContinueSpeech 	( .Npc:Self 00AF0004 00AF0001 00000000 0008000C ) % Uh, oh. Not up to it, huh? Maybe another time! Wel ...
+					Set      *Var[0] 00000001 
+					Goto	1
+				EndIf
+				Call     ContinueSpeech 	( .Npc:Self 00AF0004 00AF0001 00000000 0008000B ) % Then let's go to the question!
+				Thread
+					Call     $Function_80241010 ( *Array[1] *Array[3] 0000006C *Var[0] *Var[1] )
+					SetF     *Var[2] *Array[1] 
+					AddF     *Var[2] *Var[0] 
+					SetF     *Var[3] *Array[3] 
+					AddF     *Var[3] *Var[1] 
+					Call     SetNpcAnimation 	( .Npc:Partner 00000102 )
+					Call     NpcMoveTo   		( .Npc:Partner *Var[2] *Var[3] 00000028 )
+					Call     SetNpcAnimation 	( .Npc:Partner 00000106 )
+					Call     NpcFacePlayer 		( .Npc:Partner 00000000 )
+				EndThread
+				Call     $Function_80241010 ( *Array[1] *Array[3] 00000053 *Var[0] *Var[1] )
+				SetF     *Var[3] *Var[0] 
+				SetF     *Var[4] *Var[1] 
+				AddF     *Var[3] *Array[1]
+				AddF     *Var[4] *Array[3]
+				Call     PlayerMoveTo 	( *Var[3] *Var[4] 40` )
+				Loop     00000005 
+					Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+					Add      *Var[1] 00000001 
+					Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+					Wait     00000002 
+				EndLoop
+				Goto	0
+		%/new
+		% ====================================================
+  AE8:  	EndIf
+  AF0:  	Set   *Var0  00000001
+  B00:  Else
+  B08:  	Call  SetNpcAnimation   ( 00000008 00AF0009 )
+  B1C:  	Set   *Array[4]  00000002
+  B2C:  	Call  PlaySound ( 0000021D )
+  B3C:  	Call  PlaySound ( 0000008B )
+  B4C:  	Exec  $Script_80246C60 *Var1
+  B5C:  	Call  GetPlayerPos      ( *Var2 *Var3 *Var4 )
+  B74:  	Call  PlayEffect        ( ~FX:DeadLeaves:Gust1 *Var2 *Var3 *Var4 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  BB8:  	Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0008000D ) % Oops! Tough luck, pal! Wrong answer! Better luck n ...
+  BD8:  	Call  SetNpcAnimation   ( 00000008 00AF000A )
+  BEC:  	Loop
+  BF8:  		DoesScriptExist  *Var1 *Var0
+  C08:  		If  *Var0  ==  00000000
+  C18:  			BreakLoop
+  C20:  		EndIf
+  C28:  		Wait  1`
+  C34:  	EndLoop
+  C3C:  	Set   *Var0  00000000
+  C4C:  EndIf
+		Label	1	% new label for multiple questions
+  C54:  Call  $Function_80240E00    ( FFFFFFFF )
+  C64:  Call  EnablePartnerAI ( )
+  C70:  Thread
+  C78:  	Wait  30`
+  C84:  	Call  PlaySound ( 0000008F )
+  C94:  EndThread
+  C9C:  Thread
+  CA4:  	Wait  45`
+  CB0:  	Call  StopSound ( 00000089 )
+  CC0:  EndThread
+  CC8:  Call  $Function_80240EB4 ( )
+  CD4:  Call  $Function_80240D18 ( )
+  CE0:  ExecWait  $Script_802456C4
+  CEC:  Exec  $Script_80245A0C
+  CF8:  Call  $Function_80240908 ( )
+  D04:  Call  $Function_802404BC ( )
+  D10:  Set   *GF_Quizmo_TakingQuiz  .False
+  D20:  Return
+  D28:  End
+}
+
+% Since we never loaded the O/X icon, don't try to free it.
+@ $Function_80240D18[9C]
+{
+	NOP
+}
+  
+#new:Function $Function_IsNextQuestionAvailable
+{
+	PUSH	RA, S0, S1
+	DADDU	S1, A0, R0
+	DADDU	A0, R0, R0
+	LIO		A1, *GB_CompletedQuizzes
+	JAL		~Func:get_variable
+	RESERVED
+	DADDU	A0, R0, R0
+	DADDU	S0, V0, R0
+	LIO		A1, *GB_StoryProgress
+	JAL		~Func:get_variable
+	RESERVED
+	DADDU	A1, V0, R0
+	LIA		A0, $QuizRequirements
+    .FindStoryProgress
+	LW		V0, 0 (A0)
+	SLT		V0, A1, V0
+	BNE		V0, R0, .CompareQuizIndex
+	NOP
+	BEQ		R0, R0, .FindStoryProgress
+	ADDIU	A0, A0, 8
+	.CompareQuizIndex
+	LW		V0, 4 (A0)
+	SLT		V0, S0, V0
+	SW		V0, 84 (S1)
+	.Done
+	POP		RA, S0, S1
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+  
+@ $QuizRequirements
+{
+% if (story progress) < (col 1), the player can complete up to (col 2) quizzes
+FFFFFF94 00000000 % < chapter 1 start
+FFFFFFB4 00000006 % < chapter 2 start
+FFFFFFCA 0000000C % < chapter 3 start
+FFFFFFF2 00000012 % < chapter 4 start
+00000006 0000001A % < chapter 5 start
+00000027 00000022 % < chapter 6 start
+0000003A 0000002A % < chapter 7 start
+00000058 00000034 % < chapter 8 start
+0000005F 00000040 % end game
+00000060 00000040 % all
+}
+
+@ $QuizAnswers
+{
+01010200 01000200 01020001 01020200 
+02010202 01000201 00010201 00020100 
+02000102 00000001 00020002 02010001
+02020102 02010102 00020102 01000201
+}

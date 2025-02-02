@@ -1,0 +1,34 @@
+% Swap between the new songs or the original ones according to *Byte_Settings_BGM
+
+% ~Func:_bgm_set_song
+@Hook 8014A8DC
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    % 02 - NormalBattle
+    % 03 - SpecialBattle
+    % 69 - FileSelect
+    % 6A - MainTheme
+    % 8B - BattleEnd
+    % 8E - LevelUp
+    %
+    % S2=newSongID
+    %
+    %======================================
+    % Change between original or new songs
+    %======================================
+    LIO     A1, *Byte_Settings_BGM
+    JAL     ~Func:get_variable
+    RESERVED
+    BNE     V0, R0, .End % Use original tracks
+    NOP
+    % Use new songs
+    ORI     S4, R0, 02 % .Song:NormalBattle
+    BEQL    S2, S4, .End
+    ORI     S2, R0, 4D % .Song:NormalBattle2
+    %
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    SW	    S2, 0010 (S0) % save new songID
+    J       8014A8E4
+    SW	    S1, 0014 (S0)
+}

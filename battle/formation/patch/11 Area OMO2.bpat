@@ -1,0 +1,115 @@
+@	$ToyTank
+{
+	[MaxHP]        50`b
+}
+
+
+@	$GeneralGuy
+{
+	[Level]        85`b
+}
+
+
+@	$DefenseTable_8022C838
+{
+	.Element:Normal 00000003
+	.Element:Throw  00000002
+	.Element:End
+}
+
+
+@	$LightBulb
+{
+	[MaxHP]         20`b
+}
+
+
+@	$DefenseTable_8022F600
+{
+	.Element:Normal 00000002
+	.Element:Shock  00000063
+	.Element:End
+}
+
+
+@	$Script_TakeTurn_80218BA0
+{
+    0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   18:  If  *Var0  ==  00000000
+   28:  	Return
+   30:  EndIf
+   38:  Call  ActorExists   ( .Actor:Enemy2 *Var0 )
+   4C:  If  *Var0  !=  .False
+   5C:  	Call  GetStatusFlags    ( .Actor:Partner *Var0 )
+   70:  	If  *Var0  !&  ~Flags:StatusFlags:KO % 1000000
+   80:  		Call  RandInt   ( 00000064 *Var0 )
+   94:  		If  *Var0  <  0000003C
+   A4:  			ExecWait  $Script_LightningAttack
+   B0:  			Return
+   B8:  		EndIf
+   C0:  	EndIf
+   C8:  EndIf
+   D0:  ExecWait  $Script_BombAttack
+   D1:  ExecWait  $Script_BombAttack
+   DC:  Return
+   E4:  End
+}
+
+
+@	$Script_LightningAttack
+{
+   [C0]  Wait  15`
+  [12C]  Wait  8`
+  [190]  Wait  10`
+  [2AC]  Wait  25`
+  [2B8]  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Electric ~DebuffType:Paralyze:2:100` 00000007 00000020 )
+  [398]  		Wait  8`
+  [494]  			Wait  8`
+  [4F8]  			Wait  5`
+  [698]  		Wait  8`
+  [784]  		Wait  8`
+  [918]  Wait  8`
+  [934]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact|Electric 00000000 ~DebuffType:Paralyze:2:100` 00000007 00000020 )
+  [9CC]  			Wait  15`
+  [B14]  Wait  8`
+}
+
+@	$Script_BombAttack
+{
+  [368]  		Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[18.0] )
+  [4F0]  		Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[19.0] )
+  [5BC]  		Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[10.0] )
+  [700]  Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[20.0] )
+ [80C]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact|Blast 00000000 00000000 00000005 00000020 )
+}
+
+@	$Script_8022EB80
+{
+    0:  Call  802535B4  ( 00000000 )
+   10:  Call  UseBattleCamPreset    ( 0000000E )
+   20:  Call  BattleCamTargetActor  ( .Actor:Enemy0 )
+   30:  Call  MoveBattleCamOver (  60` )
+   	36:	Call  FadeOutMusic  ( 00000000 000001F4 )
+   40:  Wait  60`
+   4C:  Call  ActorSpeak        ( 000F0071 .Actor:Enemy0 00000001 00760000 00760000 ) % ............ Gah! Grrrr...! Fine! I'll beat you my ...
+   6C:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760005 )
+   84:  Call  EndActorSpeech    ( .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+   88:  Call  SetMusicTrack ( 00000000 .Song:GeneralGuyBattle 00000000 00000008 )
+   A0:  Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 20000000 .False )
+   BC:  Call  SetPartFlagBits   ( .Actor:Enemy2 00000001 00020000 .False )
+   D8:  Call  SetPartFlagBits   ( .Actor:Enemy1 00000002 00020000 .False )
+   F4:  Call  SetActorFlagBits  ( .Actor:Enemy1 00040000 .False )
+  10C:  Call  HPBarToHome       ( .Actor:Enemy1 )
+  11C:  Call  SetActorVar       ( .Actor:Enemy0 00000000 00000001 )
+  134:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  14C:  Call  SetEnemyTargetOffset  ( .Actor:Self 00000002  0`  35` )
+  168:  Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
+  184:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  198:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
+  1B0:  Call  UseBattleCamPreset    ( 00000002 )
+  1C0:  Call  MoveBattleCamOver (  30` )
+  1D0:  Call  802535B4  ( 00000001 )
+  1E0:  Call  8026BF48  ( 00000000 )
+  1F0:  Return
+  1F8:  End
+}

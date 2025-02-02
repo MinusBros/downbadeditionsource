@@ -1,0 +1,185 @@
+#define .NpcID:KoopaKoot       01
+
+%Koopa Koot is now a boss fight at the entrance of Crystal Palace. 
+%It's my first time attempting to make a custom cutscene.
+
+
+
+#new:Function $Fog
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:enable_world_fog
+    C:  NOP
+   10:  LI        A0, DE
+   14:  JAL       ~Func:set_world_fog_dist
+   18:  LI        A1, E8
+   1C:  CLEAR     A0
+   20:  COPY      A1, A0
+   24:  COPY      A2, A0
+   28:  JAL       ~Func:set_world_fog_color
+   2C:  LI        A3, AF
+   30:  JAL       ~Func:enable_entity_fog
+   34:  NOP
+   38:  LI        A0, DE
+   3C:  JAL       ~Func:set_entity_fog_dist
+   40:  LI        A1, E8
+   44:  CLEAR     A0
+   48:  COPY      A1, A0
+   4C:  COPY      A2, A0
+   50:  JAL       ~Func:set_entity_fog_color
+   54:  LI        A3, AF
+   58:  LW        RA, 10 (SP)
+   5C:  LI        V0, 2
+   60:  JR        RA
+   64:  ADDIU     SP, SP, 18
+}
+
+@ $Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:ShiverMountain
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+		Call  $Fog ( )
+		Call  SetSpriteShading  ( .Shading:mim_02 )
+   84:  Set   *GF_Map_CrystalPalace  .True
+   94:  If  *GB_StoryProgress  ==  .Story:Ch7_BeganPeachMission % 58
+   A4:  	Call  MakeNpcs  ( .True $NpcGroupList_80242F60 )
+   B8:  EndIf
+   C0:  ExecWait  $Script_80242F80
+   CC:  ExecWait  $Script_80241440
+		If  *GB_StoryProgress  ==  .Story:Ch7_RaisedFrozenStairs % 4D
+			Call  MakeNpcs  ( .True $NpcGroupList_KoopaKoot )
+		EndIf
+   D8:  Call  $Function_80240F20 ( )
+   E4:  Call  $Function_80240F60 ( )
+   F0:  Set   *Var0  0000001E
+  100:  Set   *Var1  0000001E
+  110:  Set   *Var2  00000000
+  120:  Exec  $Script_80241678
+  12C:  Set   *Var0  00000002
+  13C:  Set   *Var1  *GF_PRA_BrokeIllusion
+  14C:  Exec  $Script_802415D0
+  158:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deilisw 00000008 )
+  170:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1328 00000008 )
+  188:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1368 00000008 )
+  1A0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1338 00000008 )
+  1B8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1389 00000008 )
+  1D0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deilinw 00000008 )
+  1E8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1327 00000008 )
+  200:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1373 00000008 )
+  218:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1337 00000008 )
+  230:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1386 00000008 )
+  248:  Exec  $Script_EnterWalk_80241AB4
+  254:  Call  GetEntryID    ( *Var0 )
+  264:  If  *Var0  ==  ~Entry:Entry4
+  274:  	Wait  65`
+  280:  Else
+  288:  	Wait  1`
+  294:  EndIf
+  29C:  Return
+  2A4:  End
+}
+
+#new:Script $Script_Idle_KoopaKoot
+{
+		Call  SetNpcPos     ( .NpcID:KoopaKoot 750` -30` 88` )
+		Call  NpcMoveTo ( .NpcID:KoopaKoot  751`  88` 40` )
+		Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50009 )
+		Return
+		End
+}
+
+#new:Script $Script_Init_KoopaKoot
+{
+         Call  BindNpcIdle   ( .Npc:Self $Script_Idle_KoopaKoot )
+		 Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_KoopaKoot )
+		 Exec  $Script_KoopaKoot
+		 Return
+		 End
+}
+
+#new:Script $Script_KoopaKoot
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  SetCamSpeed       ( .Cam:Default *Fixed[1.0] )
+	Call  AdjustCam     ( .Cam:Default *Fixed[300.0] *Var0 *Fixed[400.0] *Fixed[13] *Fixed[-1.8] )
+	Call  SetPanTarget      ( .Cam:Default  750`  0`  30` )
+	Wait  1`
+	Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[2.5] )
+	Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50002 )
+	Call  NpcMoveTo ( .NpcID:KoopaKoot  800`  88` 40` )
+	Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50009 )
+	Wait  20`
+	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120172 )
+	Call  SetPlayerSpeed    ( *Fixed[4.0] )
+	Call  DisablePlayerInput    ( .False )
+    Call  PlayerMoveTo  (  700` 88` 40` )
+	Call  DisablePlayerInput    ( .True )
+	Wait  1`
+	Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[6.5] )
+	Call  NpcMoveTo ( .NpcID:KoopaKoot  790`  88` 1` )
+	Wait  30`
+	Call  SetPlayerAnimation    ( 00080007 )
+	Wait  30`
+	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120171 )
+	Call  NpcMoveTo ( .NpcID:KoopaKoot  792`  88` 1` )
+	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120173 )
+	Call  NpcMoveTo ( .NpcID:KoopaKoot  790`  88` 1` )
+	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120174 )
+	Wait  3`
+	Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50001 )
+	Wait  2`
+	Call  StartBossBattle   ( .Song:RadioIslandSounds )
+	Call  DisablePlayerInput    ( .False )
+	Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+	Return
+	End
+}
+
+#new:Script $Script_Defeat_KoopaKoot 
+{
+    Call  GetBattleOutcome  ( *Var0 )
+    Switch  *Var0
+		Case  ==  .Outcome:PlayerWon % 0
+			Call  DisablePlayerInput    ( .True )
+			Wait  15`
+			Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50009 )
+			Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120175 )
+			Wait  1`
+			Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[7.5] )
+			Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50002 )
+			Call  NpcMoveTo ( .NpcID:KoopaKoot  392`  88` 1` )
+			Wait  5`
+			Set   *GB_StoryProgress  .Story:Ch7_ArrivedAtCrystalPalace
+			Call  DisablePlayerInput    ( .False )
+	EndSwitch
+	Return
+	End
+}
+
+#new:NpcSettings $NpcSettings_KoopaKoot
+{
+	00000000 00320037 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+#new:NpcGroupList $NpcGroupList_KoopaKoot
+{
+	00000001 $NpcGroup_KoopaKoot 31000000
+	00000000 00000000 00000000
+}
+
+
+#new:NpcGroup $NpcGroup_KoopaKoot
+{
+	.NpcID:KoopaKoot $NpcSettings_KoopaKoot ~Vec3f:NPC_KoopaKoot % 0 0 0
+	00400D0D $Script_Init_KoopaKoot 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_KoopaKoot
+	~AnimationTable:NPC_KoopaKoot % .Sprite:KoopaKoot
+	00000000 00000000 00000000 00000000 % no tattle string
+}

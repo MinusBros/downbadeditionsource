@@ -1,0 +1,481 @@
+#import EnterViaPipe.mpat
+
+#define .NpcID:BattleKooper_00      00
+#define .NpcID:BattleKooper_01      01
+#define .NpcID:Duplighost_02        02
+#define .NpcID:Luigi        03
+
+
+
+#new:Function $Function_SwapToGoombarius
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -480.0    0.0  -28.0   90.0
+	~Vec4f:Entry1 %  768.0    0.0  -28.0  270.0
+	~Vec4f:Entry2 % -282.0   36.0  -74.0  270.0
+}
+
+@ $Header
+{
+	[EntryCount]  00000003
+}
+
+
+@	$Script_802401D0
+{
+    [0]  Call  SetMusicTrack ( 00000000 .Song:BowsersCastleCaves 00000000 00000008 )
+}
+
+@	$Script_ExitDoubleDoor_80240240
+{
+   [68]  Wait  15`
+   [88]  Wait  80`
+}
+
+@ $Script_ExitDoubleDoor_802402E4
+{
+   [68]  Wait  15`
+   [88]  Wait  80`
+}
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80241DE0 80000000 )
+		Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+      	If  *GF_Chapter8_BluePipeA == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry2 $Script_UseBluePipe ~Index:*GF_Chapter8_BluePipeA 80000000 )
+   24:  Return
+   2C:  End
+}
+
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter8_BluePipeA  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "kpa_32" 4 )
+	Wait     92` 
+	Return
+	End
+}
+
+@	$Script_Main
+{
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80241DBC )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Call  ModifyColliderFlags   ( 00000001 00000009 7FFFFE00 )
+   BC:  Call  ModifyColliderFlags   ( 00000001 0000000E 7FFFFE00 )
+   D4:  Exec  $Script_EnterDoubleDoor_802403E8
+   E0:  Wait  1`
+   EC:  Exec  $Script_802401D0
+   F8:  Return
+  100:  End
+}
+
+
+@	$NpcSettings_802405D0
+{
+	00000000 002E0024 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+@ $NpcSettings_802405FC
+{
+	00000000 001E002D 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+
+@	$Script_NpcAI_80240628
+{
+		Call  NpcMoveTo ( .Npc:Self   0`  -1000`  0` )
+  19C:  Return
+  1A4:  End
+}
+
+@ $Script_NpcAI_802407D4
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  GetNpcPos ( .NpcID:BattleKooper_00 *Var2 *Var3 *Var4 )
+   2C:  Thread
+   34:  	Add   *Var4  0000000F
+   44:  	Loop  00000008
+   50:  		Call  PlayEffect    ( ~FX:BigSmokePuff *Var2 *Var3 *Var4 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
+   94:  		Wait  5`
+   A0:  	EndLoop
+   A8:  EndThread
+   B0:  Call  PlaySoundAtNpc    ( .NpcID:BattleKooper_00 000020B8 00000000 )
+   C8:  Call  MakeLerp  ( 00000000 000005A0 00000014 .Easing:QuadraticIn )
+   E4:  Loop
+   F0:  	Call  UpdateLerp ( )
+   FC:  	Call  SetNpcRotation    ( .NpcID:BattleKooper_00 00000000 *Var0 00000000 )
+  118:  	Wait  1`
+  124:  	If  *Var1  ==  00000000
+  134:  		BreakLoop
+  13C:  	EndIf
+  144:  EndLoop
+  14C:  Call  PlaySoundAtNpc    ( .NpcID:BattleKooper_00 .Sound:SmokeBurst 00000000 )
+  164:  Call  SetNpcPos ( .NpcID:BattleKooper_01  0`  -1000`  0` )
+  180:  Call  SetNpcPos ( .NpcID:BattleKooper_00  0`  -1000`  0` )
+  19C:  Call  EnableNpcShadow   ( .NpcID:BattleKooper_00 .False )
+  1B0:  Call  SetNpcPos ( .Npc:Self *Var2 *Var3 *Var4 )
+  1CC:  Call  SetNpcYaw ( .Npc:Self  270` )
+		Call  FadeOutMusic  ( 00000000 000000AA )
+		/%
+   54:  Thread
+   C8:  Call  SetCamType    ( .Cam:Default 00000001 .False )
+   E0:  Set   *Var0  000002D5
+   F0:  Set   *Var1  00000032
+  100:  Set   *Var2  FFFFFFE7
+  110:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  12C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  148:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  15C:  Call  SetCamPitch   ( .Cam:Default *Fixed[11.0] *Fixed[-2.5] )
+  174:  Call  SetCamDistance    ( .Cam:Default  80` )
+  188:  Call  SetCamPosA    ( .Cam:Default *Fixed[5.0] *Fixed[-3.5] )
+  1A0:  Call  SetCamPosB    ( .Cam:Default *Fixed[0.0] *Fixed[0.0] )
+  1B8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  128:  EndThread
+		%/
+  1E0:  Call  MakeLerp  ( FFFFFA60 00000000 00000014 .Easing:QuadraticOut )
+  1FC:  Loop
+  208:  	Call  UpdateLerp ( )
+  214:  	Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+  230:  	Wait  1`
+  23C:  	If  *Var1  ==  00000000
+  24C:  		BreakLoop
+  254:  	EndIf
+  25C:  EndLoop
+		Call  PushSong      ( .Song:CorruptedBrother 00000000 )
+  264:  Wait  10`
+  270:  Call  SpeakToPlayer     ( .Npc:Self 00820114 00820104 00000000 0013002D )  % Lust conquers all
+   54:  Thread
+   5C:  	Call  SetCamType    ( .Cam:Default 00000006 .True )
+   74:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+   88:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   A0:  	Add   *Var0  00000032
+   B0:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   CC:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   E8:  	Call  SetCamDistance    ( .Cam:Default  3000` )
+   FC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  114:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  128:  EndThread
+  290:  Call  StartBossBattle   ( .Song:MailCall )
+  2A0:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  2B8:  If  *Var0  <  000002BC
+  2C8:  	Add   *Var0  0000001E
+  2D8:  	Call  SetNpcAnimation   ( .Npc:Self 004E0004 )
+  2EC:  	Call  NpcMoveTo ( .Npc:Self *Var0 *Var2  35` )
+  308:  EndIf
+  310:  Return
+  318:  End
+}
+
+@ $Script_Defeat_80240AF4
+{
+	   5C:  Call  DoNpcDefeat ( )
+			Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
+			Call  ResetCam      ( .Cam:Default *Fixed[90.0] )
+		0:  Call  RemoveNpc ( .NpcID:BattleKooper_00 )
+	   10:  Call  RemoveNpc ( .NpcID:BattleKooper_01 )
+			Set   *GF_KPA53_Defeated_PeachImposter  .True
+			Bind  $Script_ExitDoubleDoor_802402E4 .Trigger:WallPressA 0000000E 00000001 00000000
+   68:  Return
+		End
+}
+
+
+
+@ $Script_Init_80240B6C
+{
+    0:  If  *GF_KPA53_Defeated_PeachImposter  ==  .False
+   10:  	If  *GF_KPA53_Met_PeachImposter  ==  .True
+   20:  		Call  SetNpcPos     ( .Npc:Self  -120`  0`  -30` )
+   3C:  		Call  SetNpcYaw     ( .Npc:Self  270` )
+   50:  		Call  BindNpcIdle   ( .Npc:Self $Script_NpcAI_80240628 )
+   64:  	EndIf
+   6C:  	Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_80240AF4 )
+   80:  Else
+   88:  	Call  RemoveNpc ( .Npc:Self )
+   98:  EndIf
+   A0:  Return
+   A8:  End
+}
+
+@ $Script_Interact_80240C1C
+{
+    0:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820000 )
+   14:  Wait  10`
+   20:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820026 )
+   34:  Call  GetSelfVar        ( 00000000 *Var0 )
+   48:  Switch  *Var0
+   54:  	Case  ==  00000000
+   60:  		Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130023 ) % Invalid string ID! 00130023
+   80:  		Call  SetPlayerAnimation    ( 00010002 )
+   90:  		Wait  1`
+   9C:  		Call  SetPlayerAnimation    ( 00080007 )
+   AC:  		Wait  35`
+   B8:  		Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130024 ) % Invalid string ID! 00130024
+   D8:  		Set   *GF_KPA53_Met_PeachImposter  .True
+   E8:  		Call  SetSelfVar    ( 00000000 00000001 )
+   FC:  		Call  SetSelfVar    ( 00000001 00000001 )
+  110:  	Case  ==  00000001
+  11C:  		Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130025 ) % Invalid string ID! 00130025
+  13C:  		Call  SetSelfVar    ( 00000000 00000002 )
+  150:  	Case  ==  00000002
+  15C:  		Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130026 ) % Invalid string ID! 00130026
+  17C:  		Call  SetSelfVar    ( 00000000 00000001 )
+  190:  EndSwitch
+  198:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820002 )
+  1AC:  Wait  10`
+  1B8:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820001 )
+  1CC:  Return
+  1D4:  End
+}
+
+@ $Script_Interact_80240DF8
+{
+    0:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820000 )
+   14:  Wait  10`
+   20:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820026 )
+   34:  Call  GetSelfVar        ( 00000000 *Var0 )
+   48:  If  *Var0  ==  00000000
+   58:  	Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130027 ) % Invalid string ID! 00130027
+   78:  	Call  SetSelfVar    ( 00000000 00000001 )
+   8C:  	Call  SetSelfVar    ( 00000001 00000001 )
+   A0:  Else
+   A8:  	Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130028 ) % Invalid string ID! 00130028
+   C8:  EndIf
+   D0:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820002 )
+   E4:  Wait  10`
+   F0:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820001 )
+  104:  Return
+  10C:  End
+}
+
+@ $Script_Hit_80240F0C
+{
+    0:  Call  GetOwnerEncounterTrigger  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	CaseOR  ==  .EncounterTrigger:Hammer % 4
+   34:  	CaseOR  ==  .EncounterTrigger:Partner % 6
+   40:  		Call  DisablePlayerInput    ( .True )
+   50:  		Call  SetNpcVar ( .NpcID:BattleKooper_00 00000002 00000001 )
+   68:  		Call  InterpNpcYaw      ( .NpcID:BattleKooper_00  270`  0` )
+   80:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+   94:  		Wait  10`
+   A0:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+   B4:  		Call  SpeakToPlayer     ( .NpcID:BattleKooper_01 00820014 00820004 00000000 00130029 ) % Invalid string ID! 00130029
+   D4:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+   E8:  		Wait  10`
+   F4:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+  108:  		Call  SetNpcVar ( .NpcID:BattleKooper_00 00000002 00000000 )
+  120:  		Call  DisablePlayerInput    ( .False )
+  130:  	EndCaseGroup
+  138:  EndSwitch
+  140:  Return
+  148:  End
+}
+
+@ $Script_Hit_8024105C
+{
+    0:  Call  GetOwnerEncounterTrigger  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	CaseOR  ==  .EncounterTrigger:Hammer % 4
+   34:  	CaseOR  ==  .EncounterTrigger:Partner % 6
+   40:  		Call  DisablePlayerInput    ( .True )
+   50:  		Call  SetNpcVar ( .NpcID:BattleKooper_00 00000002 00000001 )
+   68:  		Call  InterpNpcYaw      ( .NpcID:BattleKooper_00  270`  0` )
+   80:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+   94:  		Wait  10`
+   A0:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+   B4:  		Call  GetSelfVar        ( 00000000 *Var1 )
+   C8:  		Switch  *Var1
+   D4:  			Case  ==  00000000
+   E0:  				Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 0013002A ) % Invalid string ID! 0013002A
+  100:  				Call  SetSelfVar    ( 00000000 00000001 )
+  114:  			Case  ==  00000001
+  120:  				Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820004 00000000 0013002B ) % Invalid string ID! 0013002B
+  140:  				Call  SetSelfVar    ( 00000000 00000002 )
+  154:  			Case  ==  00000002
+  160:  				Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  178:  				If  *Var0  <  0000010E
+  188:  					Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820014 00000000 0013002B ) % Invalid string ID! 0013002B
+  1A8:  				Else
+  1B0:  					Call  SpeakToPlayer ( .NpcID:BattleKooper_01 00820014 00820014 00000000 0013002C ) % Invalid string ID! 0013002C
+  1D0:  					Call  SetSelfEnemyFlagBits  ( 08000000 00000001 )
+  1E4:  					Call  BindNpcAI ( .NpcID:Duplighost_02 $Script_NpcAI_802407D4 )
+  1F8:  				EndIf
+  200:  		EndSwitch
+  208:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+  21C:  		Wait  10`
+  228:  		Call  SetNpcAnimation   ( .NpcID:BattleKooper_00 00820004 )
+  23C:  		Call  SetNpcVar ( .NpcID:BattleKooper_00 00000002 00000000 )
+  254:  		Call  DisablePlayerInput    ( .False )
+  264:  	EndCaseGroup
+  26C:  EndSwitch
+  274:  Return
+  27C:  End
+}
+
+@ $Script_Idle_802412E0
+{
+    0:  Loop
+    C:  	Wait  1`
+   18:  	Call  NpcFacePlayer ( .Npc:Self 00000000 )
+   2C:  	Call  GetSelfVar    ( 00000001 *Var0 )
+   40:  	If  *Var0  ==  00000001
+   50:  		BreakLoop
+   58:  	EndIf
+   60:  EndLoop
+   68:  Set   *VarF  00000000
+   78:  Loop
+   84:  	Wait  1`
+   90:  	Switch  *VarF
+   9C:  		Case  ==  00000000
+   A8:  			Call  NpcFacePlayer ( .Npc:Self 00000000 )
+   BC:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   D4:  			If  *Var0  <=  000002BC
+   E4:  				Set   *VarF  00000001
+   F4:  			EndIf
+   FC:  		Case  ==  00000001
+  108:  			Call  GetSelfVar    ( 00000002 *Var0 )
+  11C:  			If  *Var0  ==  00000001
+  12C:  				BreakCase
+  134:  			EndIf
+  %13C:  			Call  $Function_80240050    ( 00000000 *Var0 )
+  150:  			Call  InterpNpcYaw  ( .Npc:Self *Var0  0` )
+  168:  			Call  GetNpcPos     ( .Npc:Self *Var1 *Var2 *Var3 )
+  184:  			Call  InterpNpcYaw  ( .NpcID:BattleKooper_01 *Var0  0` )
+  19C:  			Call  SetNpcPos     ( .NpcID:BattleKooper_01 *Var1 *Var2 *Var3 )
+  1B8:  			If  *Var1  <=  00000064
+  1C8:  				Call  SetNpcAnimation   ( .Npc:Self 00820004 )
+  1DC:  				Call  SetNpcPos ( .Npc:Self  765`  0`  -30` )
+  1F8:  				Call  SetNpcPos ( .NpcID:BattleKooper_01  765`  0`  -30` )
+  214:  				Call  SetNpcPos ( .NpcID:Duplighost_02  150`  0`  -30` )
+  230:  				Call  SetNpcYaw ( .NpcID:Duplighost_02  270` )
+  244:  				Call  BindNpcAI ( .NpcID:Duplighost_02 $Script_NpcAI_80240628 )
+  258:  				Call  SetSelfVar        ( 00000000 00000000 )
+  26C:  				Call  BindNpcInteract   ( .NpcID:BattleKooper_00 $Script_Interact_80240DF8 )
+  280:  				Call  SetNpcVar ( .NpcID:BattleKooper_01 00000000 00000000 )
+  298:  				Call  BindNpcHit        ( .NpcID:BattleKooper_01 $Script_Hit_8024105C )
+  2AC:  				Set   *VarF  00000002
+  2BC:  			EndIf
+  2C4:  			If  *Var1  >=  000002FD
+  2D4:  				Call  SetNpcAnimation   ( .Npc:Self 00820004 )
+  2E8:  				Call  InterpNpcYaw      ( .Npc:Self  270`  0` )
+  300:  				Set   *VarF  00000000
+  310:  			EndIf
+  318:  		Case  ==  00000002
+  324:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  33C:  			If  *Var0  >  000002BC
+  34C:  				Set   *VarF  00000000
+  35C:  			EndIf
+  364:  	EndSwitch
+  36C:  EndLoop
+  374:  Return
+  37C:  End
+}
+
+@ $Script_Init_80241664
+{
+    0:  If  *GF_KPA53_Defeated_PeachImposter  ==  .False
+   10:  	Call  SetNpcPos ( .Npc:Self  765`  0`  -30` )
+   2C:  	If  *GF_KPA53_Met_PeachImposter  ==  .False
+   3C:  		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80240C1C )
+   50:  	Else
+   58:  		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80240DF8 )
+   6C:  	EndIf
+   74:  	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_802412E0 )
+   88:  Else
+   90:  	Call  RemoveNpc ( .Npc:Self )
+   A0:  EndIf
+   A8:  Return
+   B0:  End
+}
+
+@ $Script_Init_8024171C
+{
+    0:  If  *GF_KPA53_Defeated_PeachImposter  ==  .False
+   10:  	Call  SetNpcPos ( .Npc:Self  765`  0`  -30` )
+   %2C:  	Call  SetNpcFlagBits    ( .Npc:Self 00000002 .True )
+   44:  	Call  EnableNpcShadow   ( .Npc:Self .False )
+   58:  	If  *GF_KPA53_Met_PeachImposter  ==  .False
+   68:  		Call  BindNpcHit    ( .Npc:Self $Script_Hit_80240F0C )
+   7C:  	Else
+   84:  		Call  BindNpcHit    ( .Npc:Self $Script_Hit_8024105C )
+   98:  	EndIf
+   A0:  Else
+   A8:  	Call  RemoveNpc ( .Npc:Self )
+   B8:  EndIf
+   C0:  Return
+   C8:  End
+}
+
+@ $NpcGroup_802417EC
+{
+	.NpcID:BattleKooper_00 $NpcSettings_802405D0 ~Vec3f:NPC_BattleKooper_00 % 0 -1000 0
+	00A60D0D $Script_Init_80241664 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_BattleKooper_00
+	~AnimationTable:NPC_BattleKooper_00 % .Sprite:Luigi
+	00000000 00000000 00000000 001A0120 % Invalid string ID! 001A0120
+	%
+	% $NpcGroup_802417EC[1F0]
+	.NpcID:BattleKooper_01 $NpcSettings_802405D0 ~Vec3f:NPC_BattleKooper_01 % 0 -1000 0
+	01B40F0C $Script_Init_8024171C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_BattleKooper_01
+	~AnimationTable:NPC_BattleKooper_01 % .Sprite:Luigi
+	00000000 00000000 00000000 001A0120 % Invalid string ID! 001A0120
+	%
+	% $NpcGroup_802417EC[3E0]
+	.NpcID:Duplighost_02 $NpcSettings_802405FC ~Vec3f:NPC_Duplighost_02 % 0 -1000 0
+	00E40D09 $Script_Init_80240B6C 00000000 00000000 0000010E
+	~Items:5:SuperShroom:5:MapleSyrup:5:ThunderRage:5:StopWatch:5
+	~HP:Standard:2 ~FP:Standard:5 ~CoinBonus:1:3
+	~Movement:NPC_Duplighost_02
+	~AnimationTable:NPC_Duplighost_02 % .Sprite:Luigi
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+@ $NpcGroupList_80241DBC
+{
+	00000003 $NpcGroup_802417EC 24020001
+	00000000 00000000 00000000
+}

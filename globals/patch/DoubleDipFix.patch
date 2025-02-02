@@ -1,0 +1,41 @@
+%I think this also fixes triple dip? not sure but I'd assume so
+
+#define .flowerSaver1 0105s
+#define .flowerSaver2 0138s
+#define .flowerSaver3 0139s
+#define .flowerFanatic 0119s
+
+#new:Data $FlowerBadgeArray {
+%amount to add, badgeID
+	.flowerSaver1 FFFFs 
+	.flowerSaver2 FFFFs 
+	.flowerSaver3 FFFFs 
+	.flowerFanatic FFFEs 
+	00000000 %end of list
+}
+
+
+@Hook 41B1B8 { %[802A6428]
+		%inlined from Rain's version
+	PUSH s0, a0, t0, ra
+	LIO s0, $FlowerBadgeArray
+	LB	V1, 0011 (S2) %line present in original hook - load cost of dip effect
+	LH a0, 0 (s0) %get initial badge value
+	.loop
+	JAL $IsBadgeEquiped
+	LH T0, 2 (S0)	%get badge subtract amt (kept through call)
+	BNEL A0, R0, .next
+		ADDU V1, V1, T0		%if result != 0, do the subtract
+	.next
+	LH A0, 4 (S0)	%check next ID
+	BNE a0, r0, .loop
+	ADDIU S0, S0, 4 
+		%loop exits here (fall through)
+	BLEZL v1, .skipSetTo1	%don't reduce cost below 0 - reset if so
+		ADDIU v1, r0, 0001
+	.skipSetTo1
+	POP s0, a0, t0, ra
+	%
+	J 802A6430
+	LB	V0, 0005 (S5) %line present in original hook - load Mario's FP
+}

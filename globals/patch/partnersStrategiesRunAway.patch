@@ -1,0 +1,89 @@
+%Might fix it later, but for now this checks for Speedy Spin instead of Berserker
+%if Partners can run away.
+
+
+#define .runAwayID 3
+
+#new:String $runAwayOptionText {
+Run Away[End]
+}
+
+#new:String $runAwayBottomText {
+You'll run away from the battle![End]
+}
+
+%80292160 - run away icon script ptr
+%802AD640 icon pointer script array
+%802AD658 option select string
+%802AD678 option select ID
+%802AD690 if option is gray array
+%802AD6C0 bottom text box IDs array
+
+@Hook:Battle 802A95C8 {
+	SW v0, D658 (at) %in original code
+		%can we run? if not, bail.
+	LAW	V1, 800DC074
+	ANDI V1, V1, 20
+	BEQL V1, R0, .return
+	NOP
+		%now we want to check if we're wearing berserker
+		%we want to 'pseudo-push' A0 so we can restore it in one instruction on branch.
+		%so we store it to V0, which is safe.
+		COPY V0, A0
+		PUSH RA
+		JAL	$IsBadgeEquiped
+		LI	A0, 11F %berserker
+		POP  RA
+		%badge check returns on A0.
+		BEQ	A0, R0, .return
+		COPY A0, V0 %restore A0's value
+	ADDIU s0, s0, 1 %total count of options
+	SLL v0, s0, 2
+	LUI at, 802B
+	ADDU at, at, v0
+	ORI v1, r0, .runAwayID
+	SW v1, D678 (at) %set option ID
+
+	LI v1, $runAwayOptionText
+	LUI at, 802B
+	ADDU at, at, v0
+	SW v1, D658 (at) %set option
+
+	LI v1, $runAwayBottomText
+	LUI at, 802B
+	ADDU at, at, v0
+	SW v1, D6C0 (at)
+
+	LI v1, 80292160 %run away icon script ptr
+	LUI at, 802B
+	ADDU at, at, v0
+	SW v1, D640 (at) %set option icon
+
+	ORI v1, r0, 1 %not dim text bool
+	LUI at, 802B
+	ADDU at, at, v0
+		%BEQ R0, R0, .return
+	SW v1, D690 (at) %set not dim text
+		%branches away
+		
+		%so it turns out we can't use the commented out script stuff below.
+		%put simply, the battle menu for partner doesn't have a proper failure mode for if the run does not succeed.
+		%so we have to just hide the run from the menu at that point.
+	
+		%.noRun
+		%LI v1, 80292188 %run away icon script ptr (greyed out)
+		%LUI at, 802B
+		%ADDU at, at, v0
+		%SW v1, D640 (at) %set option icon
+
+		%LUI at, 802B
+		%ADDU at, at, v0
+		%SW R0, D690 (at) %set not dim text
+	
+		%LI  V1, 1
+		%STW	V1, V0 (802AD6A8)	%store 1 to ????? (free action?)
+
+	.return
+	J 802A95D0
+	LB v0, 0063 (s4)  %in original code
+}

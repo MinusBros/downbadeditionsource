@@ -1,0 +1,687 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000003 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[STYLE:TATTLE][EnableCDownNext]We're at the bottom of Shooting[BR]
+Star Summit., where the Star[BR]
+Temple resides.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:EntryW %	-235.0  -50.0  385.0  45.0
+~Vec4f:EntryE %	1270.0   20.0 -290.0  180.0
+}
+
+#new:Script_Main $Script_Main
+{
+	Set  *GB_WorldLocation  1B 
+	Call	SetSpriteShading	( 00030000 )
+	Call	SetCamPerspective	( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call	SetCamBGColor	( .Cam:Default 00000000 00000000 00000000 )
+	Call	SetCamEnabled		( .Cam:Default .True )
+	Call	SetCamLeadPlayer		( .Cam:Default .False )
+	Call	SetMusicTrack	( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
+	Call	PlaySoundAtF	( 8000002C 00000001 ~Vec3d:WaterfallBottom )
+	Exec	$Script_ScrollTex
+	Exec	$Script_ShootingStars
+	Exec	$Script_CreateTreeEvents
+    %Call	MakeItemEntity	( .Item:StellarPower ~Vec3d:LuckyStarsBadge 00000011 *GF_HOS08_StarShield )	%actually stellar power here
+	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition 00000011 *GF_HOS08_StarPiece )
+	Call	MakeEntity		( .Entity:HiddenPanel ~Vec4d:HiddenPanelPosition ~Model:EastValleyFloor 80000000 )
+	Call	AssignPanelFlag	( *GF_HOS08_Panel )
+	Call	ModifyColliderFlags		( 00000003 ~Collider:Dock1 00000004 )
+	Call	ModifyColliderFlags		( 00000000 ~Collider:Dock1 00080000 )
+	Call	ModifyColliderFlags		( 00000003 ~Collider:Dock2 00000004 )
+	Call	ModifyColliderFlags		( 00000000 ~Collider:Dock2 00080000 )
+	Call     MakeEntity  	( .Entity:Signpost ~Vec4d:infosign 80000000 )
+	Call	 AssignScript ( $Script_SignPost )
+	Set  *Var[0]  $Script_CreateExitTriggers 
+	Exec	EnterWalk 
+	Wait	1
+	Return
+	End
+}
+
+#new:Script $Script_SignPost
+{
+	0:  Call     DisablePlayerInput 	( .True )
+		Call     ShowMessageAtScreenPos 	( $InfoSign 000000A0 00000028 )
+   28:  Call     DisablePlayerInput 	( .False )
+   38:  Return
+   40: End
+}
+
+#string $InfoSign
+{
+[DelayOff][Style Sign]--Superboss Information--[BR]
+These bosses are stronger than[BR]
+their original forms.[BR]
+[WAIT][NEXT]
+When you defeat a superboss,[BR]
+your items from before the[BR]
+fight will be restored.[BR]
+[WAIT][NEXT]
+Using the Super Curse or[BR]
+Ultra Curse badges will change[BR]
+their appearance, but will[BR]
+not give you additional rewards.[BR]
+[WAIT][NEXT]
+However, the stars will show[BR]
+different colors if you beat[BR]
+the bosses with those badges.[BR]
+[WAIT][NEXT]
+[Color:2E][Star][Color 10] = Normal[BR]
+[Color:28][Star][Color 10] = Super Curse (1.5x)[BR]
+[Color:29][Star][Color 10] = Ultra Curse (2.0x)[BR]
+[Color:2C][Star][Color 10] = Super + Ultra Curse (3.0x)[BR]
+[WAIT][NEXT]
+Multipliers above 3.0x are not[BR]
+tracked. Not all of these[BR]
+will be possible.[BR]
+[DelayOn][WAIT][END] 
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000
+}
+
+
+% ====================================================
+% Entry/exit scripts
+% ====================================================
+	
+#new:Script $Script_CreateExitTriggers
+{
+	Bind     $Script_ExitW .Trigger:FloorAbove ~Collider:TriggerExitW 00000001 00000000 
+	Bind     $Script_ExitE .Trigger:FloorAbove ~Collider:TriggerExitE 00000001 00000000 
+	Return
+	End
+}
+	
+#new:Script $Script_ExitW
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 60` 0 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "hos_07" 2 )
+	Wait     80`
+	Return
+	End
+}
+	
+#new:Script $Script_ExitE
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 60` 1 ) % direction opposing Entry#1
+	Exec     ExitWalk 
+	Call     GotoMap     	( "hos_00" 0 )
+	Wait     80`
+	Return
+	End
+}
+	
+% ====================================================
+% Set up models with scrolling textures
+% ====================================================
+	
+#import TexturePanner.mpat TexturePanner
+	
+#new:Script $Script_ScrollTex
+{
+	Thread
+		Set  *Var[0] 1
+		Set  *Var[1] 0`
+		Set  *Var[2] -1200`
+		Set  *Var[3] 0`
+		Set  *Var[4] 0`
+		Set  *Var[5] 00000000
+		Set  *Var[6] 00000001
+		Set  *Var[7] 00000000
+		Set  *Var[8] 00000000
+		Set  *Var[9] 00000000
+		Set  *Var[A] 00000000
+		Set  *Var[B] 00000000
+		Set  *Var[C] 00000000
+		Exec	$TexturePanner:Script
+	EndThread
+	Call     SetTexPanner 	( ~Model:Waterfall 00000001 )
+	Call     SetTexPanner 	( ~Model:LargeFall 00000001 )
+		Thread
+		Set  *Var[0] 2
+		Set  *Var[1] 0`
+		Set  *Var[2] -800`
+		Set  *Var[3] 0`
+		Set  *Var[4] -1200`
+		Set  *Var[5] 00000000
+		Set  *Var[6] 00000001
+		Set  *Var[7] 00000000
+		Set  *Var[8] 00000001
+		Set  *Var[9] 00000000
+		Set  *Var[A] 00000000
+		Set  *Var[B] 00000000
+		Set  *Var[C] 00000000
+		Exec	$TexturePanner:Script
+	EndThread
+	Call     SetTexPanner 	( ~Model:WaterSplash 00000002 )
+	Thread
+		Set  *Var[0] 3
+		Set  *Var[1] 100`
+		Set  *Var[2] -80`
+		Set  *Var[3] -50`
+		Set  *Var[4] 120`
+		Set  *Var[5] 00000001
+		Set  *Var[6] 00000001
+		Set  *Var[7] 00000001
+		Set  *Var[8] 00000001
+		Set  *Var[9] 00000000
+		Set  *Var[A] 00000000
+		Set  *Var[B] 00000000
+		Set  *Var[C] 00000000
+		Exec	$TexturePanner:Script
+	EndThread
+	Call     SetTexPanner 	( ~Model:WaterSurface 00000003 )
+	Return
+	End
+}
+	
+% ====================================================
+% Spawn shooting stars
+% ====================================================
+	
+#new:Script $Script_ShootingStars
+{
+	SetGroup 0000000B 
+	Set      *Var[D] 00000000 
+	Set      *Var[E] 00000000 
+	Label    00000000 
+	Call     GetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Add  *Var[1]  400`
+	Div  *Var[1]  25`
+   	Call     RandInt	( 1 *Var[7] )
+	Set      *Var[8]  30`
+	Add  *Var[8]  *Var[1]
+	Call     GetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+	Call     RandInt	( 400` *Var[A] )
+	Set      *Var[B]  200` 
+	Call     RandInt	( 400` *Var[C] )
+	Sub      *Var[C]  200` 
+		If	*Var[7] ==  0
+			Add      *Var[1] *Var[A]
+		Else
+			Sub      *Var[1] *Var[A]
+		EndIf
+	Add      *Var[2] *Var[B] 
+	Add      *Var[3] *Var[C] 
+	% spawn position = (Px + [0:400], Py + 200, Pz +/- 200)
+	Set      *Var[4] *Var[1] 
+	Call     RandInt	( 100` *Var[A] )
+	Add      *Var[A]  50` 
+		If	*Var[7] ==  0
+			Sub      *Var[4] *Var[A]
+		Else
+			Add      *Var[4] *Var[A]
+		EndIf
+	Set      *Var[5]  0 
+	Set      *Var[6] *Var[3] 
+	% target position = (Sx - [50:150], 0, Sz)
+	Call     RandInt	( 4 *Var[7] )
+	Add      *Var[7]  10` 
+	% speed = [10:14]
+	Switch   *Var[3] 
+		Case      <  FFFFFEDE 
+			Set      *Var[0] 00000000 
+		Case      <  00000028 
+			Set      *Var[0] 00000002 
+		Case     >=  00000028 
+			Set      *Var[0] 00000001 
+	EndSwitch
+	% play sound (subject to minimum sound delay)
+	If  *Var[E]  <  2 
+		Call     PlaySoundAt 	( B0000015 00000000 *Var[1] *Var[2] *Var[3] )
+		Add      *Var[E]  1 
+	EndIf
+	Add      *Var[D] *Var[8] 
+	If  *Var[D]  >  30` 
+		Set      *Var[D]  0 
+		Set      *Var[E]  0 
+	EndIf
+	Call     $Function_ShootingStar ( *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] *Var[5] *Var[6] *Var[7] )
+	Wait     *Var[8] 
+	Goto     00000000 
+	Return
+	End
+}
+	
+#new:Function $Function_ShootingStar
+{
+    0:  ADDIU     SP, SP, FF98
+    4:  SW        S1, 2C (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 30 (SP)
+   10:  SW        S0, 28 (SP)
+   14:  SDC1      F30, 60 (SP)
+   18:  SDC1      F28, 58 (SP)
+   1C:  SDC1      F26, 50 (SP)
+   20:  SDC1      F24, 48 (SP)
+   24:  SDC1      F22, 40 (SP)
+   28:  SDC1      F20, 38 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_float_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  LW        A1, 0 (S0)
+   40:  ADDIU     S0, S0, 4
+   44:  DADDU     A0, S1, R0
+   48:  JAL       ~Func:get_float_variable
+   4C:  SWC1      F0, 20 (SP)
+   50:  LW        A1, 0 (S0)
+   54:  ADDIU     S0, S0, 4
+   58:  DADDU     A0, S1, R0
+   5C:  JAL       ~Func:get_float_variable
+   60:  MOV.S     F30, F0
+   64:  LW        A1, 0 (S0)
+   68:  ADDIU     S0, S0, 4
+   6C:  DADDU     A0, S1, R0
+   70:  JAL       ~Func:get_float_variable
+   74:  MOV.S     F28, F0
+   78:  LW        A1, 0 (S0)
+   7C:  ADDIU     S0, S0, 4
+   80:  DADDU     A0, S1, R0
+   84:  JAL       ~Func:get_float_variable
+   88:  MOV.S     F26, F0
+   8C:  LW        A1, 0 (S0)
+   90:  ADDIU     S0, S0, 4
+   94:  DADDU     A0, S1, R0
+   98:  JAL       ~Func:get_float_variable
+   9C:  MOV.S     F24, F0
+   A0:  LW        A1, 0 (S0)
+   A4:  ADDIU     S0, S0, 4
+   A8:  DADDU     A0, S1, R0
+   AC:  JAL       ~Func:get_float_variable
+   B0:  MOV.S     F22, F0
+   B4:  DADDU     A0, S1, R0
+   B8:  LW        A1, 0 (S0)
+   BC:  JAL       ~Func:get_float_variable
+   C0:  MOV.S     F20, F0
+   C4:  MFC1      A1, F30
+   C8:  MFC1      A2, F28
+   CC:  MFC1      A3, F26
+   D0:  LWC1      F2, 20 (SP)
+   D4:  SWC1      F24, 10 (SP)
+   D8:  SWC1      F22, 14 (SP)
+   DC:  SWC1      F20, 18 (SP)
+   E0:  TRUNC.W.S F2, F2
+   E4:  MFC1      A0, F2
+   E8:  JAL       8006FE30
+   EC:  SWC1      F0, 1C (SP)
+   F0:  LW        RA, 30 (SP)
+   F4:  LW        S1, 2C (SP)
+   F8:  LW        S0, 28 (SP)
+   FC:  LDC1      F30, 60 (SP)
+  100:  LDC1      F28, 58 (SP)
+  104:  LDC1      F26, 50 (SP)
+  108:  LDC1      F24, 48 (SP)
+  10C:  LDC1      F22, 40 (SP)
+  110:  LDC1      F20, 38 (SP)
+  114:  ADDIU     V0, R0, 2
+  118:  JR        RA
+  11C:  ADDIU     SP, SP, 68
+}
+
+% ====================================================
+% Tree Hit Scripts
+% ====================================================
+
+#new:Script $Script_CreateTreeEvents
+{
+	Set      *Var[0] $ShakeTree1
+	Bind     $Script_ShakeTreeGlitter .Trigger:WallHammer ~Collider:Tree1 00000001 00000000 
+	Bind     $Script_ShakeTreeGlitter .Trigger:PointBomb $Tree1_TriggerCoord 00000001 00000000 
+	Set      *Var[0] $ShakeTree2
+	Bind     $Script_ShakeTreeGlitter .Trigger:WallHammer ~Collider:Tree2 00000001 00000000 
+	Bind     $Script_ShakeTreeGlitter .Trigger:PointBomb $Tree2_TriggerCoord 00000001 00000000 
+	Return
+	End
+}
+
+#new:ShakeTreeEvent $ShakeTree1
+{
+$Tree1_Leaves 
+$Tree1_Trunk 
+00000000 
+$Tree1_Effects 
+00000000 
+}
+
+#new:TriggerCoord $Tree1_TriggerCoord
+{
+~BombPos:Tree1_Bomb
+}
+	
+#new:TreeModelList $Tree1_Trunk
+{
+00000001 ~Model:Tree1_Trunk
+}
+
+#new:TreeModelList $Tree1_Leaves
+{
+00000001 ~Model:Tree1_Leaves
+}
+
+#new:TreeEffectVectors $Tree1_Effects
+{
+00000002 
+~Vec3d:Tree1_Drop1
+~Vec3d:Tree1_Drop2
+}
+	
+#new:ShakeTreeEvent $ShakeTree2
+{
+$Tree2_Leaves 
+$Tree2_Trunk 
+$Tree2_DropList 
+$Tree2_Effects 
+00000000 
+}
+
+#new:TriggerCoord $Tree2_TriggerCoord
+{
+~BombPos:Tree2_Bomb
+}
+	
+#new:TreeModelList $Tree2_Trunk
+{
+00000001 ~Model:Tree2_Trunk
+}
+	
+#new:TreeModelList $Tree2_Leaves
+{
+00000001 ~Model:Tree2_Leaves
+}
+
+#new:TreeEffectVectors $Tree2_Effects
+{
+00000002 
+~Vec3d:Tree2_Drop1
+~Vec3d:Tree2_Drop2
+}
+
+#new:TreeDropList $Tree2_DropList
+{
+00000001
+.Item:StarPiece ~Vec3d:Tree2_Drop2 0000000D *GF_HOS08_Tree *MapFlag[00] 
+}
+
+#new:Script $Script_ShakeTreeGlitter
+{
+	SetTimescale *Fixed[2.0] 
+	UseIntBuffer *Var[0] 
+	Get4Int  *Var[1] *Var[2] *Var[3] *Var[4] 
+	Get1Int  *Var[5] 
+	Call     GetPlayerPos 	( *Var[6] *Var[F] *Var[8] )
+	Call     PlaySoundAtPlayer 	( 00000165 00000000 )
+	Call     PlaySoundAtPlayer 	( 00000166 00000000 )
+	Thread
+		If       *Var[1] !=  00000000 
+			Wait     00000001 
+			Loop     00000005 
+				UseIntBuffer *Var[1] 
+				Get1Int  *Var[2] 
+				Loop     *Var[2] 
+					Get1Int  *Var[3] 
+					Call     $Function_ShakeTreeA ( *Var[3] *Fixed[0.10058594] *Fixed[0.20019531] *Var[F] 00000000 )
+				EndLoop
+				Wait     00000001 
+				UseIntBuffer *Var[1] 
+				Get1Int  *Var[2] 
+				Loop     *Var[2] 
+					Get1Int  *Var[3] 
+					Call     $Function_ShakeTreeA ( *Var[3] *Fixed[0.10058594] *Fixed[-0.19921875] *Var[F] 00000000 )
+				EndLoop
+				Wait     00000001 
+			EndLoop
+			UseIntBuffer *Var[1] 
+			Get1Int  *Var[2] 
+			Loop     *Var[2] 
+				Get1Int  *Var[3] 
+				Call     TranslateModel ( *Var[3] 00000000 00000000 00000000 )
+			EndLoop
+			Wait     00000001 
+		EndIf
+	EndThread
+	Thread
+		If       *Var[2] !=  00000000 
+			Loop     00000005 
+				UseIntBuffer *Var[2] 
+				Get1Int  *Var[3] 
+				Loop     *Var[3] 
+					Get1Int  *Var[4] 
+					Call     $Function_ShakeTreeA ( *Var[4] *Fixed[0.10058594] *Fixed[0.20019531] *Var[F] 00000000 )
+				EndLoop
+				Wait     00000001 
+				UseIntBuffer *Var[2] 
+				Get1Int  *Var[3] 
+				Loop     *Var[3] 
+					Get1Int  *Var[4] 
+					Call     $Function_ShakeTreeA ( *Var[4] *Fixed[0.10058594] *Fixed[-0.19921875] *Var[F] 00000000 )
+				EndLoop
+				Wait     00000001 
+			EndLoop
+			UseIntBuffer *Var[2] 
+			Get1Int  *Var[3] 
+			Loop     *Var[3] 
+				Get1Int  *Var[4] 
+				Call     TranslateModel ( *Var[4] 00000000 00000000 00000000 )
+			EndLoop
+			Wait     00000001 
+		EndIf
+	EndThread
+	Thread
+		If       *Var[3] !=  00000000 
+			UseIntBuffer *Var[3] 
+			Get1Int  *Var[4] 
+			Loop     *Var[4] 
+				Get1Int  *Var[5] 
+				Get3Int  *Var[6] *Var[7] *Var[8] 
+				Get3Int  *Var[9] *Var[A] *Var[B] 
+				If       *Var[B] ==  00000000 
+					Call     DropItemEntity ( *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] *Var[A] )
+				Else
+					Call     GetValueByRef 	( *Var[B] *Var[C] )
+					If       *Var[C] ==  00000000 
+					   Call     SetValueByRef 	( *Var[B] 00000001 )
+					   Call     DropItemEntity ( *Var[5] *Var[6] *Var[7] *Var[8] *Var[9] *Var[A] )
+					EndIf
+				EndIf
+			EndLoop
+		EndIf
+	EndThread
+	Thread
+		If       *Var[4] !=  00000000 
+			UseIntBuffer *Var[4] 
+			Get1Int  *Var[5] 
+			Loop     *Var[5] 
+				Get3Int  *Var[6] *Var[7] *Var[8] 
+				Call     PlayEffect  	( 00000011 00000002 *Var[6] *Var[7] *Var[8] 00000032 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+				Call     PlayEffect  	( 00000011 00000002 *Var[6] *Var[7] *Var[8] 00000032 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			EndLoop
+		EndIf
+	EndThread
+	If       *Var[5] !=  00000000 
+		ExecWait *Var[5] 
+	EndIf
+	Wait     0000000F 
+	Return
+	End
+}
+
+#new:Function $Function_ShakeTreeA
+{
+    0:  ADDIU     SP, SP, FF78
+    4:  SW        S1, 54 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 5C (SP)
+   10:  SW        S2, 58 (SP)
+   14:  SW        S0, 50 (SP)
+   18:  SDC1      F28, 80 (SP)
+   1C:  SDC1      F26, 78 (SP)
+   20:  SDC1      F24, 70 (SP)
+   24:  SDC1      F22, 68 (SP)
+   28:  SDC1      F20, 60 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  JAL       8011B010
+   40:  DADDU     A0, V0, R0
+   44:  LW        A1, 0 (S0)
+   48:  ADDIU     S0, S0, 4
+   4C:  DADDU     A0, S1, R0
+   50:  JAL       ~Func:get_float_variable
+   54:  DADDU     S2, V0, R0
+   58:  LW        A1, 0 (S0)
+   5C:  ADDIU     S0, S0, 4
+   60:  DADDU     A0, S1, R0
+   64:  JAL       ~Func:get_float_variable
+   68:  MOV.S     F28, F0
+   6C:  LW        A1, 0 (S0)
+   70:  ADDIU     S0, S0, 4
+   74:  DADDU     A0, S1, R0
+   78:  JAL       ~Func:get_float_variable
+   7C:  MOV.S     F26, F0
+   80:  DADDU     A0, S1, R0
+   84:  LW        A1, 0 (S0)
+   88:  JAL       ~Func:get_float_variable
+   8C:  MOV.S     F22, F0
+   90:  DADDU     A0, S2, R0
+   94:  JAL       8011AD30
+   98:  MOV.S     F24, F0
+   9C:  DADDU     S1, V0, R0
+   A0:  LHU       V0, 0 (S1)
+   A4:  ANDI      V0, V0, 400
+   A8:  BNE       V0, R0, .o124
+   AC:  ADDIU     S0, S1, 58
+   B0:  MTC1      R0, F20
+   B4:  MFC1      A2, F22
+   B8:  MFC1      A1, F20
+   BC:  MFC1      A3, F20
+   C0:  JAL       80067900
+   C4:  DADDU     A0, S0, R0
+   C8:  MFC1      A1, F28
+   CC:  MFC1      A2, F26
+   D0:  MFC1      A3, F24
+   D4:  JAL       $Function_ShakeTreeB
+   D8:  ADDIU     A0, SP, 10
+   DC:  ADDIU     A0, SP, 10
+   E0:  DADDU     A1, S0, R0
+   E4:  JAL       80067600
+   E8:  DADDU     A2, S0, R0
+   EC:  ADDIU     A0, SP, 10
+   F0:  NEG.S     F22, F22
+   F4:  MFC1      A1, F20
+   F8:  MFC1      A2, F22
+   FC:  JAL       80067900
+  100:  DADDU     A3, A1, R0
+  104:  ADDIU     A0, SP, 10
+  108:  DADDU     A1, S0, R0
+  10C:  JAL       80067600
+  110:  DADDU     A2, A1, R0
+  114:  LHU       V0, 0 (S1)
+  118:  ORI       V0, V0, 1400
+  11C:  BEQ       R0, R0, .o19C
+  120:  SH        V0, 0 (S1)
+        .o124
+  124:  MTC1      R0, F20
+  128:  MFC1      A2, F22
+  12C:  MFC1      A1, F20
+  130:  MFC1      A3, F20
+  134:  JAL       80067900
+  138:  ADDIU     A0, SP, 10
+  13C:  ADDIU     A0, SP, 10
+  140:  ADDIU     S0, S1, 58
+  144:  DADDU     A1, S0, R0
+  148:  JAL       80067600
+  14C:  DADDU     A2, S0, R0
+  150:  MFC1      A1, F28
+  154:  MFC1      A2, F26
+  158:  MFC1      A3, F24
+  15C:  JAL       $Function_ShakeTreeB
+  160:  ADDIU     A0, SP, 10
+  164:  ADDIU     A0, SP, 10
+  168:  DADDU     A1, S0, R0
+  16C:  JAL       80067600
+  170:  DADDU     A2, S0, R0
+  174:  ADDIU     A0, SP, 10
+  178:  NEG.S     F22, F22
+  17C:  MFC1      A1, F20
+  180:  MFC1      A2, F22
+  184:  JAL       80067900
+  188:  DADDU     A3, A1, R0
+  18C:  ADDIU     A0, SP, 10
+  190:  DADDU     A1, S0, R0
+  194:  JAL       80067600
+  198:  DADDU     A2, A1, R0
+        .o19C
+  19C:  LW        RA, 5C (SP)
+  1A0:  LW        S2, 58 (SP)
+  1A4:  LW        S1, 54 (SP)
+  1A8:  LW        S0, 50 (SP)
+  1AC:  LDC1      F28, 80 (SP)
+  1B0:  LDC1      F26, 78 (SP)
+  1B4:  LDC1      F24, 70 (SP)
+  1B8:  LDC1      F22, 68 (SP)
+  1BC:  LDC1      F20, 60 (SP)
+  1C0:  ADDIU     V0, R0, 2
+  1C4:  JR        RA
+  1C8:  ADDIU     SP, SP, 88
+}
+
+#new:Function $Function_ShakeTreeB
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SDC1      F20, 18 (SP)
+    8:  MTC1      A1, F20
+    C:  SDC1      F22, 20 (SP)
+   10:  MTC1      A2, F22
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 28 (SP)
+   1C:  MTC1      A3, F24
+   20:  SW        RA, 14 (SP)
+   24:  JAL       800674A0
+   28:  DADDU     S0, A0, R0
+   2C:  MUL.S     F22, F20, F22
+   30:  NOP
+   34:  MUL.S     F20, F20, F24
+   38:  NOP
+   3C:  LIF       F0, 1.0
+   44:  NOP
+   48:  SWC1      F0, 14 (S0)
+   4C:  SWC1      F22, 10 (S0)
+   50:  SWC1      F20, 18 (S0)
+   54:  LW        RA, 14 (SP)
+   58:  LW        S0, 10 (SP)
+   5C:  LDC1      F24, 28 (SP)
+   60:  LDC1      F22, 20 (SP)
+   64:  LDC1      F20, 18 (SP)
+   68:  JR        RA
+   6C:  ADDIU     SP, SP, 30
+}

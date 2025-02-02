@@ -1,0 +1,25 @@
+SetVisible
+SetTileSize     ( .IconSize:24x24 )
+Loop
+	SetTexelOffset  ( 0` 0` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_5 )
+	SetTexelOffset  ( 0` 0` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_5 )
+	SetTexelOffset  ( 0` 0` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_5 )
+	SetTexelOffset  ( 0` 0` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_5 )
+	SetTexelOffset  ( 0` -1` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_6 )
+	SetTexelOffset  ( 0` -1` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_7 )
+	SetTexelOffset  ( 1` -3` )
+	SetIcon         ( 4` ~ImageIcon:item/anim/hand_8 )
+	SetTexelOffset  ( 0` 4` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_6 )
+	SetTexelOffset  ( 0` 4` )
+	SetIcon         ( 1` ~ImageIcon:item/anim/hand_5 )
+	SetTexelOffset  ( 0` 1` )
+	SetIcon         ( 14` ~ImageIcon:item/anim/hand_9 )
+Restart
+End

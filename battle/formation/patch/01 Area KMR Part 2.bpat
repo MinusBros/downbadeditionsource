@@ -1,0 +1,118 @@
+
+% Let's see if this works
+
+@ $BlueGoomba1
+{
+[Level]        23`b
+[MaxHP]  7`b
+}
+
+@ $RedGoomba1
+{
+[Level]        23`b
+[MaxHP]  8`b
+}
+
+@ $GoombaKing
+{
+	[Level]  53`b
+	[MaxHP]  15`b
+}
+
+@ $Script_80221680
+{
+  [4E4]  Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000000 00000002 00000020 )
+}
+
+
+@	$Script_Init_8021EDB8
+{
+    [C]  Call  SetEnemyHP    ( .Actor:Self  4` )
+}
+
+@	$Script_Init_802207B8
+{
+    [C]  Call  SetEnemyHP    ( .Actor:Self  4` )
+}
+
+%Goomba King fades out his encounter music.
+
+@	$Script_Init_80220A38
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80221530 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_80220B50 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80220F34 )
+   3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_802229C4 )
+   50:  Exec  $Script_80222D9C *Var0
+   60:  Call  SetActorVar   ( .Actor:Self 00000004 *Var0 )
+   78:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   90:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   A8:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   C0:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   D8:  Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
+   F0:  Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
+		Call  FadeOutMusic  ( 00000000 00000BB8 )
+  108:  Return
+  110:  End
+}
+
+
+@	$Script_NextTurn_802229C4
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetBattlePhase    ( *Var0 )
+   38:  Switch  *Var0
+   44:  	Case  ==  0000000A
+   50:  		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+   68:  		If  *Var0  ==  00000000
+   78:  			Call  802535B4  ( 00000000 )
+   88:  			Call  UseBattleCamPreset    ( 0000000D )
+   98:  			Call  BattleCamTargetActor  ( .Actor:Enemy1 )
+   A8:  			Call  MoveBattleCamOver (  20` )
+   B8:  			Wait  10`
+   C4:  			Call  UseIdleAnimation  ( .Actor:Enemy1 .False )
+   D8:  			Call  EnableIdleScript  ( .Actor:Enemy1 00000000 )
+   EC:  			Call  ActorSpeak        ( 000B00CB .Actor:Enemy1 00000001 0062000A 0062000A ) % Beat him up, King Goomba!!
+  10C:  			Call  EnableIdleScript  ( .Actor:Enemy1 00000001 )
+  120:  			Call  UseIdleAnimation  ( .Actor:Enemy1 .True )
+  134:  			Call  UseBattleCamPreset    ( 0000000D )
+  144:  			Call  BattleCamTargetActor  ( .Actor:Enemy2 )
+  154:  			Call  MoveBattleCamOver (  10` )
+  164:  			Wait  5`
+  170:  			Call  UseIdleAnimation  ( .Actor:Enemy2 .False )
+  184:  			Call  EnableIdleScript  ( .Actor:Enemy2 00000000 )
+  198:  			Call  ActorSpeak        ( 000B00CC .Actor:Enemy2 00000001 0062010A 0062010A ) % We've got your back!
+  1B8:  			Call  EnableIdleScript  ( .Actor:Enemy2 00000001 )
+  1CC:  			Call  UseIdleAnimation  ( .Actor:Enemy2 .True )
+  1E0:  			Call  UseBattleCamPreset    ( 0000000E )
+  1F0:  			Call  BattleCamTargetActor  ( .Actor:Enemy0 )
+  200:  			Call  MoveBattleCamOver (  20` )
+  210:  			Wait  10`
+  21C:  			Call  ActorSpeak        ( 000B00CD .Actor:Enemy0 00000001 00630009 00630009 ) % Leave him to me!
+  23C:  			Call  SetActorVar       ( .Actor:Self 00000003 00000001 )
+  254:  			Call  UseBattleCamPreset    ( 0000000E )
+  264:  			Call  BattleCamTargetActor  ( .Actor:Player )
+  274:  			Call  MoveBattleCamOver (  10` )
+  284:  			Wait  10`
+  290:  			Call  UseIdleAnimation  ( .Actor:Partner .False )
+  2A4:  			Call  UseIdleAnimation  ( .Actor:Player .False )
+  2B8:  			Call  SetActorYaw       ( .Actor:Player  180` )
+  2CC:  			Call  SetAnimation      ( .Actor:Player 00000000 00010028 )
+  2E4:  			Call  ActorSpeak        ( 000B00CE .Actor:Partner 00000000 FFFFFFFF FFFFFFFF ) % Hey Mario! I think maybe we ought to take out the  ...
+  304:  			Call  SetAnimation      ( .Actor:Player 00000000 00010029 )
+  31C:  			Wait  8`
+  328:  			Call  SetActorYaw       ( .Actor:Player  0` )
+  33C:  			Call  UseIdleAnimation  ( .Actor:Partner .True )
+  350:  			Call  UseIdleAnimation  ( .Actor:Player .True )
+  364:  			Call  UseBattleCamPreset    ( 00000002 )
+  374:  			Wait  8`
+					Call  SetMusicTrack ( 00000000 .Song:GoombaKingBattle 00000000 00000008 ) %The music starts to let the band play
+  380:  			Call  802535B4  ( 00000001 )
+  390:  		EndIf
+  398:  EndSwitch
+  3A0:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  3B4:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  3C8:  Return
+  3D0:  End
+}

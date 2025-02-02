@@ -1,0 +1,123 @@
+#define .NpcID:Fuzzy_00             00
+#define .NpcID:Fuzzy_01             01
+#define .NpcID:JrTroopa_02          02
+
+#new:Function $Function_SwapToGoombarius
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+@	$Script_Idle_802429BC
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		UseIntBuffer  $IntTable_80242944
+   34:  	Case  ==  ~Entry:Entry1
+   40:  		UseIntBuffer  $IntTable_80242944
+   4C:  	Case  ==  ~Entry:Entry2
+   58:  		UseIntBuffer  $IntTable_8024294C
+   64:  	Case  ==  ~Entry:Entry3
+   70:  		UseIntBuffer  $IntTable_80242954
+   7C:  EndSwitch
+   84:  Get2Int  *Var1 *Var2
+   94:  Call  AwaitPlayerApproach   ( *Var1 *Var2 00000050 )
+   AC:  Label  A
+   B8:  Wait  1`
+   C4:  Call  AwaitPlayerLeave      ( *Var1 *Var2 00000064 )
+   DC:  Call  IsPlayerWithin        ( 00000000 00000000 0000019A *Var0 )
+   F8:  If  *Var0  ==  00000000
+  108:  	Goto  A
+  114:  EndIf
+  11C:  Call  DisablePlayerInput    ( .True )
+  12C:  Call  GetCurrentPartner     ( *Var0 )
+  13C:  If  *Var0  !=  00000000
+  14C:  	Call  802D2B6C ( )
+  158:  	Wait  16`
+  164:  EndIf
+  16C:  ExecWait  $Script_8024114C
+  178:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+  190:  Call  GetEntryID    ( *Var0 )
+  1A0:  Switch  *Var0
+  1AC:  	Case  ==  ~Entry:Entry0
+  1B8:  		If  *Var1  <  00000000
+  1C8:  			UseIntBuffer  $IntTable_8024295C
+  1D4:  		Else
+  1DC:  			UseIntBuffer  $IntTable_8024296C
+  1E8:  		EndIf
+  1F0:  	Case  ==  ~Entry:Entry2
+  1FC:  		If  *Var1  <  00000000
+  20C:  			UseIntBuffer  $IntTable_8024297C
+  218:  		Else
+  220:  			UseIntBuffer  $IntTable_8024298C
+  22C:  		EndIf
+  234:  	Case  ==  ~Entry:Entry3
+  240:  		If  *Var3  <  00000000
+  250:  			UseIntBuffer  $IntTable_8024299C
+  25C:  		Else
+  264:  			UseIntBuffer  $IntTable_802429AC
+  270:  		EndIf
+  278:  EndSwitch
+  280:  Get4Int  *Var2 *Var3 *Var4 *Var5
+  298:  Call  SetSelfVar    ( 00000000 *Var2 )
+  2AC:  Call  SetSelfVar    ( 00000001 *Var3 )
+  2C0:  Call  SetNpcPos     ( .Npc:Self *Var2  0` *Var3 )
+  2DC:  Call  SpeakToPlayer ( .Npc:Self 00210016 00210003 00000000 000E0018 ) % Eeeek!
+  2FC:  Thread
+  304:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  31C:  	Add   *Var0  *Var4
+  32C:  	Add   *Var2  *Var5
+  33C:  	Div   *Var0  00000002
+  34C:  	Div   *Var2  00000002
+  35C:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  378:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  394:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  3A8:  	Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  3BC:  	Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-6.0] )
+  3D4:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  3EC:  EndThread
+  3F4:  Call  SetNpcAnimation   ( .Npc:Self 00210009 )
+  408:  Call  NpcMoveTo ( .Npc:Self *Var4 *Var5  30` )
+  424:  Call  SetNpcAnimation   ( .Npc:Self 00210003 )
+  438:  Call  SpeakToPlayer     ( .Npc:Self 00210016 00210003 00000000 000E0019 ) % Oh, Mario! Oh, thank... ...I mean, ah HA! Boy, are ...
+		Call  EnablePartnerAI ( )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Goombario % 0
+			Call  $Function_SwapToGoombarius    ( 00000001 )
+			Thread
+				Set   *MapVar[0]  00000000
+				Wait  1`
+				Set   *MapVar[0]  00000001
+			EndThread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcYaw ( .Npc:Partner  90` )
+			Call  EnablePartnerAI ( )
+			Loop
+				Wait  1`
+				If  *MapVar[0]  ==  00000001
+				BreakLoop
+				EndIf
+			EndLoop
+		Wait  32`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+  490:  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E001A ) % Why, it's Jr. Troopa! Have you been crying? Did yo ...
+  568:  Call  EnablePartnerAI ( )
+  574:  Call  SpeakToPlayer     ( .Npc:Self 00210016 00210003 00000000 000E001F ) % Hey! Shut up! Shut uuuuup! I'm not a lost child! I ...
+  594:  Call  SetNpcAnimation   ( .Npc:Self 0021000B )
+  5A8:  Call  DisablePlayerInput    ( .False )
+  5B8:  Call  StartBossBattle   ( .Song:JrTroopaBattle )
+  5C8:  Return
+  5D0:  End
+}

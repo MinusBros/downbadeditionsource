@@ -1,0 +1,155 @@
+
+#define .NpcID:WorldLakilester_00   00
+#define .NpcID:Lakilulu_01          01
+#define .NpcID:Lakilulu_02          02
+#define .NpcID:Lakitu_03            03
+#define .NpcID:Lakitu_04            04
+#define .NpcID:Spiny_50             32
+#define .NpcID:Spiny_51             33
+#define .NpcID:Spiny_52             34
+#define .NpcID:Spiny_53             35
+#define .NpcID:Spiny_54             36
+#define .NpcID:Spiny_55             37
+
+
+%Jonathan's theme continues into his boss fight.
+
+@	$Script_Idle_80244BF8
+{
+    0:  If  *GB_StoryProgress  !=  .Story:Ch6_SpokeWithTheSun % 32
+   10:  	Return
+   18:  EndIf
+   20:  Call  AwaitPlayerApproach   ( 000000C8 00000014 00000113 )
+   38:  Call  DisablePlayerInput    ( .True )
+   48:  Call  SetNpcPos ( .NpcID:WorldLakilester_00  -250`  120`  45` )
+   64:  Call  SetMusicTrack ( 00000000 .Song:LakilesterTheme 00000000 00000008 )
+   80:  Call  ShowMessageAtScreenPos    ( 001100A0  160`  40` ) % Hey hey hey! Hold up! Wait, man!
+   98:  Call  802D2B6C ( )
+   A4:  Call  SetPlayerAnimation    ( 0001002A )
+   B4:  Wait  14`
+   C0:  Call  InterpPlayerYaw       (  270`  1` )
+   D4:  Wait  14`
+   E0:  Call  InterpPlayerYaw       (  90`  1` )
+   F4:  Wait  14`
+  100:  Call  SetPlayerAnimation    ( .PlayerAnim:StandStill )
+  110:  Call  802CF56C  ( 00000002 )
+  120:  Call  SetNpcAnimation       ( .NpcID:WorldLakilester_00 00080007 )
+  134:  Thread
+  13C:  	Call  $Function_802434D4 ( )
+  148:  EndThread
+  150:  Exec  $Script_8024445C *Var9
+  160:  Call  LoadPath  ( 00000050 $VectorList_802443A8 00000005 .Easing:Linear )
+  17C:  Label  0
+  188:  Call  GetNextPathPos ( )
+  194:  Call  SetNpcPos ( .NpcID:WorldLakilester_00 *Var1 *Var2 *Var3 )
+  1B0:  Wait  1`
+  1BC:  If  *Var0  ==  00000001
+  1CC:  	Goto  0
+  1D8:  EndIf
+  1E0:  Kill  *Var9
+  1EC:  Call  SetNpcAnimation   ( .NpcID:WorldLakilester_00 00080001 )
+  200:  Call  PlayerFaceNpc ( .NpcID:WorldLakilester_00 .False )
+  214:  Wait  8`
+  220:  Call  GetNpcPos     ( .NpcID:WorldLakilester_00 *Var0 *Var1 *Var2 )
+  23C:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  258:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  274:  Call  SetCamDistance    ( .Cam:Default  200` )
+  288:  Call  SetCamPitch   ( .Cam:Default *Fixed[18.0] *Fixed[-8.5] )
+  2A0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  2B4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2CC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  2E0:  Thread
+  2E8:  	Call  PlayerMoveTo  (  -75`  65`  10` )
+  300:  	Call  PlayerFaceNpc ( .NpcID:WorldLakilester_00 .False )
+  314:  EndThread
+  31C:  Call  SpeakToPlayer     ( .NpcID:WorldLakilester_00 00080009 00080001 00000000 001100A1 ) % Hey, man! I don't think we've ever met, have we? I ...
+  33C:  Call  SetNpcAnimation   ( .NpcID:WorldLakilester_00 00080007 )
+  350:  Wait  3`
+  35C:  Call  SetNpcAnimation   ( .NpcID:WorldLakilester_00 00080001 )
+  370:  Thread
+  378:  	Call  SetCamDistance    ( .Cam:Default  1000` )
+  38C:  	Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+  3A4:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  3B8:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  3D0:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  3E4:  EndThread
+  3EC:  Call  DisablePlayerInput    ( .False )
+  3FC:  Call  StartBossBattle       ( .Song:LakilesterTheme )
+  40C:  Return
+  414:  End
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeItemEntity    ( .Item:MegaSmash ~Vec3d:Item80243978 .ItemSpawnMode:Fixed_NeverVanish *GF_FLO13_Item_MegaSmash )
+   24:  Call  MakeItemEntity    ( .Item:ShootingStar ~Vec3d:Item8024399C .ItemSpawnMode:Fixed_NeverVanish *GF_FLO13_Item_ShootingStar )
+   48:  If  *GF_FLO13_Item_MegaSmash  ==  .False
+   58:  	Call  MakeEntity    ( .Entity:BombableRock1 ~Vec4d:Entity802439D0 80000000 )
+   7C:  	Call  AssignScript  ( $Script_80243950 )
+   8C:  Else
+   94:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o85 7FFFFE00 )
+   AC:  EndIf
+		Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+   B4:  Return
+   BC:  End
+}
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:FlowerFields
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   34:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   54:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_80247984 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o48 00000006 )
+   BC:  Set   *Var0  00000112
+   CC:  Set   *Var1  FFFFFF77
+   DC:  Set   *Var2  00000247
+   EC:  Set   *Var3  FFFFFFC0
+   FC:  Set   *Var4  00000000
+  10C:  Exec  $Script_80243A40
+  118:  Set   *Var0  000001B1
+  128:  Set   *Var1  0000006C
+  138:  Set   *Var2  00000244
+  148:  Set   *Var3  000000A9
+  158:  Set   *Var4  00000000
+  168:  Exec  $Script_80243A40
+  174:  Set   *Var0  FFFFFE34
+  184:  Set   *Var1  0000005A
+  194:  Set   *Var2  FFFFFF83
+  1A4:  Set   *Var3  00000082
+  1B4:  Set   *Var4  00000000
+  1C4:  Exec  $Script_80243A40
+  1D0:  Set   *Var0  FFFFFE5C
+  1E0:  Set   *Var1  FFFFFF7E
+  1F0:  Set   *Var2  FFFFFEFC
+  200:  Set   *Var3  FFFFFFA6
+  210:  Set   *Var4  00000000
+  220:  Exec  $Script_80243A40
+  22C:  Set   *Var0  FFFFFF24
+  23C:  Set   *Var1  FFFFFF77
+  24C:  Set   *Var2  00000000
+  25C:  Set   *Var3  FFFFFFCE
+  26C:  Set   *Var4  000000A0
+  27C:  Exec  $Script_80243A40
+  288:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  2A0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+  2B8:  Set   *Var0  $Script_80243DA4
+  2D4:  ExecWait  $Script_802438B0
+  2E0:  If  *GB_StoryProgress  >=  .Story:Ch6_DestroyedPuffPuffMachine % 35
+  2F0:  	Call  $Function_80240000 ( )
+  2FC:  EndIf
+		Call  GetLoadType   ( *Var1 )
+		If  *Var1  ==  00000001
+			Exec  EnterSavePoint
+			ExecWait $Script_80243DA4
+			Return
+		EndIf
+		Exec  EnterWalk
+  304:  Return
+  30C:  End
+}

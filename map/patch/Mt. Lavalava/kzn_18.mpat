@@ -1,0 +1,132 @@
+@	$EntryList
+{
+	~Vec4f:Entry0 % -405.0  250.0 -330.0   90.0
+	~Vec4f:Entry1 %  435.0  250.0 -350.0  270.0
+	~Vec4f:Entry2 %  490.0   25.0   -5.0  270.0
+	~Vec4f:Entry3 %  234.0  287.0 -375.0  270.0
+}
+
+@	$Header
+{
+	[EntryCount]  00000004
+}
+
+#import EnterViaPipe.mpat
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:HiddenPanel ~Vec4d:Entity80241A70 ~Model:o380 80000000 )
+   28:  Call  AssignPanelFlag   ( *GF_KZN18_HiddenPanel )
+   38:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80241AA8 80000000 )
+   5C:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80241ACC 80000000 )
+		If  *GF_KZN18_BluePipe == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_ToYoshiVillage ~Index:*GF_KZN18_BluePipe 80000000 )
+   80:  Return
+   88:  End
+}
+
+
+@	$Script_EnterWalk_80240B4C
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240818
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+   58:  Switch  *Var0
+   64:  	Case  ==  ~Entry:Entry0
+				Set   *Var0  $Script_80240818
+				Exec  EnterWalk
+   AC:  	Case  ==  ~Entry:Entry1
+				Set   *Var0  $Script_80240818
+				Exec  EnterWalk
+   F4:  	Case  ==  00000002
+				Set   *Var0  $Script_80240818
+				Exec  EnterWalk
+			Case  ==  3	% call the entry script for the new entrance
+				Set   *VarA  $Script_80240818
+				Exec	$Script_EnterVerticalPipe
+				Return
+  10C:  EndSwitch
+   64:  Wait  1`
+   70:  Return
+   78:  End
+}
+
+#new:Script $Script_ToYoshiVillage
+{
+    0:  Call  GotoMap   ( $ASCII_BluePipe 00000004 ) % jan_03
+   14:  Wait  100`
+   20:  Return
+   28:  End
+}
+
+#new:ASCII $ASCII_BluePipe
+{
+	"jan_03"
+}
+
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_KZN18_BluePipe  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+
+
+
+
+%Play music when Piranha notices Mario.
+
+@	$Script_Idle_802413B4
+{
+    0:  Label  0
+    C:  Wait  1`
+   18:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   30:  If  *Var1  >  00000064
+   40:  	Goto  0
+   4C:  EndIf
+   54:  If  *Var0  <  00000064
+   64:  	Goto  0
+   70:  EndIf
+   78:  Call  DisablePlayerInput    ( .True )
+   79:  Call  FadeOutMusic  ( 00000000 000001F4 )
+   88:  Call  $Function_80240350 ( )
+   94:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   B0:  Call  SetPanTarget      ( .Cam:Default  285`  25`  35` )
+   CC:  Call  SetCamDistance    ( .Cam:Default  400` )
+   E0:  Call  SetCamSpeed       ( .Cam:Default *Fixed[2.5] )
+   F4:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  10C:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+  118:  Call  SetMusicTrack ( 00000000 .Song:KammyKoopaTheme 00000000 00000008 )
+  120:  Wait  8`
+  12C:  Call  SetNpcPos ( .Npc:Self  285`  25`  35` )
+  148:  Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MoleSurface 00000000 )
+  160:  Call  SetNpcAnimation   ( .Npc:Self 00360017 )
+  174:  Wait  30`
+  180:  Call  SetNpcAnimation   ( .Npc:Self 00360001 )
+  194:  Call  SpeakToPlayer     ( .Npc:Self 00360004 00360001 00000000 001000FF ) % MARIO STILL APPROACHING! IDENTIFIED AS SEARCHING F ...
+  1B4:  Wait  10`
+  1C0:  Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MoleDig 00000000 )
+  1D8:  Call  SetNpcAnimation   ( .Npc:Self 00360018 )
+  1EC:  Wait  20`
+  1F8:  Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  214:  Call  $Function_8024036C ( )
+  220:  Call  ResetCam  ( .Cam:Default *Fixed[3.0] )
+  234:  Set   *GF_KZN18_IntruderAlert  .True
+  244:  Call  DisablePlayerInput    ( .False )
+  254:  Return
+  25C:  End
+}

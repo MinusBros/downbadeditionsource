@@ -1,0 +1,73 @@
+#define .maxLevel 46`
+
+#define .maxHP 80`
+#define .maxFP 80`
+#define .maxCurHP 95` % maxHP + (3 hp plus) = 95
+#define .maxCurFP 95` % maxFP + (3 fp plus) = 95
+#define .maxCurHPPlusOne 96` % maxHP + (3 hp plus) + 1 = 96 (for SLTI instruction)
+#define .maxCurFPPlusOne 96` % maxFP + (3 fp plus) + 1 = 96 (for SLTI instruction)
+#define .maxBP 99`
+
+@Function:Global 800E88CC { %update_status_bar
+	SLTI v0, v0, .maxLevel
+}
+
+@Function:Battle 8027C9CC { %DropStarPoints
+	SLTI v0, v1, .maxLevel
+}
+
+@Function:Battle 8025E488 { %btl_state_update_celebration
+	SLTI v0, v0, .maxLevel
+}
+
+@Function:Battle 8025E4C8 { %btl_state_update_celebration
+	ADDIU v1, r0, .maxLevel
+}
+
+@Function:Battle 8025EE5C { %btl_state_update_celebration
+	ADDIU v0, r0, .maxHP
+}
+
+@Function:Battle 8025EAA0 { %btl_state_update_celebration
+	ADDIU v0, r0, .maxFP
+}
+
+@Function:Battle 8025F224 { %btl_state_update_celebration
+	ADDIU v0, r0, .maxBP
+}
+
+@Function:Global 800E78A8 { %enforce_hpfp_limits
+	SLTI v1, v1, .maxCurHPPlusOne
+}
+
+@Function:Global 800E78B4 { %enforce_hpfp_limits
+	ADDIU v0, r0, .maxCurHP
+}
+
+@Function:Global 800E78F8 { %enforce_hpfp_limits
+	SLTI v1, v1, .maxCurFPPlusOne
+}
+
+@Function:Global 800E7900 { %enforce_hpfp_limits
+	ADDIU v0, r0, .maxCurHP
+}
+
+% Always give at least 1 Star Point instead of nothing if Mario is over leveled.
+%
+% From ~Func:btl_state_update_celebration
+@Hook:Battle 8025E218
+{
+    LB	    V1, 0078 (FP) % get star points
+    BNE     V1, R0, .End
+    NOP
+    % check if Mario's level is >= .maxLevel
+    LABU    AT, 8010F299 % player's level
+    SLTI    V0, AT, .maxLevel
+    BEQ     V0, R0, .End
+    NOP
+    ORI     V1, R0, 1
+    SB      V1, 0078 (FP) % star points
+    .End
+    J       8025E220
+    LUI	    AT, 802A
+}

@@ -1,0 +1,97 @@
+#import EnterViaPipe.mpat
+
+@	$Header
+{
+	[EntryCount]  00000005
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -730.0    0.0    0.0   90.0
+	~Vec4f:Entry1 %  985.0 1140.0 -200.0  270.0
+	~Vec4f:Entry2 %  337.0  -20.0 -104.0  270.0
+	~Vec4f:Entry3 % -255.0  840.0 -215.0    0.0
+	~Vec4f:Entry4 % -153.0  843.0 -110.0   90.0
+}
+
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity        ( .Entity:RedBlock ~Vec4d:Entity802410AC .Item:MegaJump 80000000 )
+   28:  Call  AssignBlockFlag   ( *GF_SAM10_BadgeBlock_MegaJump )
+   38:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item802410E4 .ItemSpawnMode:Fixed_NeverVanish *GF_SAM10_Item_StarPiece )
+   5C:  If  *GB_StoryProgress  <  .Story:Ch7_RaisedFrozenStairs % 4D
+   6C:  	Call  DropItemEntityB   ( .Item:StarStone 00000000 FFFFFC18 00000000 .ItemSpawnMode:Decoration 00000000 )
+   90:  	Call  $Function_802402BC ( )
+   9C:  	Set   *MapVar[0]  *Var0
+   AC:  Else
+   B4:  	Call  DropItemEntityB   ( .Item:StarStone FFFFFF8B 000000B3 FFFFFFC9 .ItemSpawnMode:Decoration 00000000 )
+   D8:  	Call  $Function_802402BC ( )
+   E4:  EndIf
+     	If  *GF_Chapter7_BluePipeA == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+   EC:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80241198 80000000 )
+  110:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity802411BC 80000000 )
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry4 $Script_UseBluePipe ~Index:*GF_Chapter7_BluePipeA 80000000 )
+  134:  Return
+  13C:  End
+}
+
+
+
+
+@	$Script_EnterWalk_80240EC8
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240E64
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+   58:  Switch  *Var0
+		  	Case  ==  ~Entry:Entry0
+				Set   *Var0  $Script_80240E64
+				Exec  EnterWalk
+			Case  ==  ~Entry:Entry1
+				Set   *Var0  $Script_80240E64
+				Exec  EnterWalk
+			Case  ==  ~Entry:Entry2
+				Set   *Var0  $Script_80240E64
+				Exec  EnterWalk
+		 	Case  ==  ~Entry:Entry4
+				Set   *VarA  $Script_80240E64
+				Exec  $Script_EnterVerticalPipe
+				Wait  1`
+				Return
+  2AC:  EndSwitch
+   94:  Return
+   9C:  End
+}
+
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "sam_02" 4 )
+	Wait     95` 
+	Return
+	End
+}
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter7_BluePipeA  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+
+

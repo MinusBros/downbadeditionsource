@@ -1,0 +1,72 @@
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity802400E0 80000000 )
+   24:  Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity80240104 FFFFFFFF 80000000 )
+		Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:NewCrate1 FFFFFFFF 80000000 )
+		Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:NewCrate2 .Item:RepelGel 80000000 )
+		Call  AssignCrateFlag   ( *GF_KPA17_Crate3 )
+		Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:NewCrate3 FFFFFFFF 80000000 )
+   4C:  Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity8024012C .Item:YummyMeal 80000000 )
+   74:  Call  AssignCrateFlag   ( *GF_KPA17_Crate_TastyTonic )
+   84:  Call  MakeEntity    ( .Entity:WoodenCrate ~Vec4d:Entity80240164 .Item:LifeShroom 80000000 )
+   AC:  Call  AssignCrateFlag   ( *GF_KPA17_Crate_LifeShroom )
+   BC:  Return
+   C4:  End
+}
+
+
+%Moved speech to before Mario enters area.
+
+@	$Script_802404C8
+{
+    0:  Call  UseSettingsFrom   ( .Cam:Default  1042`  30`  -496` )
+   1C:  Call  SetPanTarget      ( .Cam:Default  1042`  30`  -496` )
+   38:  Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+   4C:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   64:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+   78:  Call  DisablePlayerInput    ( .True )
+   88:  Call  DisablePlayerPhysics  ( .True )
+   98:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+   B0:  Call  InterpPlayerYaw   (  270`  0` )
+   C4:  Wait  50`
+   D0:  Call  PartnerIsFlying   ( *Var0 )
+   E0:  If  *Var0  ==  .True
+   F0:  	Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .True )
+  108:  Else
+  110:  	Call  802CF56C  ( 00000001 )
+  120:  EndIf
+  128:  Call  PlaySoundAtPlayer     ( 00000161 00000000 )
+  13C:  Call  SetPlayerAnimation    ( 00080018 )
+  14C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  164:  Loop
+  170:  	Sub   *Var1  00000010
+  180:  	Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  198:  	Wait  1`
+  1A4:  	If  *Var1  <=  0000001E
+  1B4:  		Call  SetPlayerPos      ( *Var0  30` *Var2 )
+  1CC:  		Call  PlaySoundAtPlayer ( 000003FB 00000000 )
+  1E0:  		BreakLoop
+  1E8:  	EndIf
+  1F0:  EndLoop
+  1F8:  Call  SetPlayerAnimation    ( 00080018 )
+  208:  Thread
+  210:  	Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[0.6] )
+  22C:  EndThread
+  234:  Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+  244:  Call  PlayerJump1   (  1030`  30`  -496`  10` )
+  260:  Call  SetPlayerAnimation    ( 00010002 )
+  270:  Wait  1`
+  27C:  Call  DisablePlayerPhysics  ( .False )
+  28C:  Wait  1`
+  298:  Call  InterpPlayerYaw       (  90`  0` )
+  2AC:  Wait  5`
+  2B8:  Call  DisablePlayerPhysics  ( .True )
+  2C8:  Wait  1`
+  324:  Call  DisablePlayerPhysics  ( .False )
+  334:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  34C:  Call  DisablePlayerInput    ( .False )
+  35C:  Call  ClearPartnerMoveHistory   ( .Npc:Partner )
+  36C:  Call  802CF56C  ( 00000000 )
+  37C:  Return
+  384:  End
+}

@@ -1,0 +1,103 @@
+#import EnterViaPipe.mpat
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -565.0   60.0   10.0   90.0
+	~Vec4f:Entry1 % 1515.0   60.0    0.0  270.0
+	~Vec4f:Entry2 % -340.0    0.0   50.0   90.0
+	~Vec4f:Entry3 % 1531.0  -75.0  136.0  270.0
+}
+
+@ $Header
+{
+	[EntryCount]  00000004
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_TRD09_BombedRock  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:BombableRock2 ~Vec4d:Entity80240750 80000000 )
+   34:  	Call  AssignScript  ( $Script_80240720 )
+   44:  EndIf
+   4C:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity8024078C 80000000 )
+   70:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802407B0 80000000 )
+   94:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity802407D4 .Item:MapleSyrup 80000000 )
+   BC:  Call  AssignBlockFlag   ( *GF_TRD09_ItemBlock_MapleSyrup )
+      	If  *GF_Chapter1_BluePipeA == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_UseBluePipe ~Index:*GF_Chapter1_BluePipeA 80000000 )
+   CC:  Return
+   D4:  End
+}
+
+
+@	$Script_EnterDoubleDoor_80240490
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240448
+   38:  	Return
+   40:  EndIf
+   48:  SetGroup  00000000
+   54:  SuspendAll  00000001
+   60:  Exec  $Script_80240448
+   6C:  Call  GetEntryID    ( *Var0 )
+   7C:  Switch  *Var0
+   88:  	Case  ==  ~Entry:Entry0
+   94:  		Set   *Var2  ~Model:o67
+   A4:  		Set   *Var3  ~Model:o63
+   B4:  		ExecWait  EnterDoubleDoor
+   C0:  	Case  ==  ~Entry:Entry1
+   CC:  		Set   *Var2  ~Model:o60
+   DC:  		Set   *Var3  ~Model:o65
+   EC:  		ExecWait  EnterDoubleDoor
+   		 	Case  ==  ~Entry:Entry3
+				Set   *VarA  $Script_80240448
+				Exec  $Script_EnterVerticalPipe
+				Wait  1`
+				Return
+   F8:  EndSwitch
+  100:  ResumeAll  00000001
+  10C:  Return
+  114:  End
+}
+
+@	$Script_NpcAI_80240D74
+{
+  [2F0]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[9.0] )
+  [460]  Wait  5`
+  [518]  Wait  10`
+}
+
+@	$Script_NpcAI_80241B6C
+{
+   [DC]  Wait  5`
+  [284]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[14.0] )
+}
+
+
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter1_BluePipeA  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+#new:Script $Script_UseBluePipe
+{
+	Set   *GF_Chapter1_BluePipeB  .True
+	Call     GotoMap	( "nok_01" 2 )
+	Wait     92` 
+	Return
+	End
+}

@@ -1,0 +1,1491 @@
+%Problem: jump type moves always trigger contact hazards regardless of other flags
+%	Remove jump flag to fix?
+
+%to do: determine what makes a move affected by attack boosts
+%		figure out what changes *Var[D]
+%		(something always resets it to 0, fix it or do something about it)
+
+%current solution: give up
+%just use *GameByte[007]
+%now using var[F] again
+
+%we have a big problem!
+%this file is almost at the file size limit
+%for example, uncommenting the function change below will make the file size too big
+
+%this should be a hit chance calculator
+%but it looks unimplemented
+
+%new implementation:
+%var 0 gets set to 3
+@ $Function_802A10E4
+{
+	0:  ADDIU     V0, R0, 0 %?
+    4:  SW        V0, 84 (A0)
+    8:  JR        RA
+    C:  ADDIU     V0, R0, 2 %return 2
+}
+
+/%
+	ADDIU     V0, R0, 3 %idk what this does, but I'm not changing it
+	SW        V0, 84 (A0)
+	PUSH A1, A2, RA
+	LIO A1, FE363C84 %Var[1]
+	JR ~Func:set_variable
+	ADDIU A2, R0, 3
+	POP A1, A2, RA
+	JR RA
+	ADDIU V0. R0, 2 %return 2
+%/
+
+%if var[F] > var[0]
+%end move
+
+@ $Script_UseMove0
+{
+    0:  Set  *Flag[0A]  00000000 
+		Set  *Var[F] 00000000 %we'll need this later
+   10:  Call     802694A4 ( 00000001 )
+   20:  Call     GetMenuSelection 	( *Var[0] *Var[1] *Var[2] )
+   38:  Switch  *Var[1] 
+   44:  	Case  ==  00000000 
+   50:  		ExecWait $Script_802A26D4 
+   5C:  	Case  ==  00000001 
+   68:  		ExecWait $Script_802A3560 
+   74:  	Case  ==  00000002 
+   80:  		ExecWait $Script_802A4470 
+   8C:  EndSwitch
+   94:  Return
+   9C:  End
+}
+
+%Jump flag is 80
+
+
+@ $Script_802A26D4
+{
+    0:  Call  LoadActionCommand ( .ActionCommand:Jump )
+   10:  Call  802A9000 ( )
+   1C:  Call  SetGoalToFirstTarget  ( .Actor:Self )
+   2C:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+   48:  Sub   *Var0  00000014
+   58:  Call  InitTargetIterator ( )
+   64:  Call  SetGoalToTarget   ( .Actor:Player )
+   74:  Call  GetGoalPos        ( .Actor:Player *Var3 *Var4 *Var5 )
+   90:  Sub   *Var3  *Fixed[70.0]
+   A0:  If  *Var0  <  *Var3
+   B0:  	Sub   *Var0  00000014
+   C0:  	Set   *Var3  *Var0
+   D0:  EndIf
+   D8:  Call  SetGoalPos    ( .Actor:Player *Var3 *Var4 *Var5 )
+   F4:  Call  AddGoalPos    ( .Actor:Player FFFFFFE2 00000000 00000000 )
+  110:  Call  UseBattleCamPreset    ( 0000001A )
+  120:  Call  SetActorSpeed ( .Actor:Player *Fixed[5.0] )
+  134:  Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
+  14C:  Call  CancelablePlayerRunToGoal ( 00000000 *Var0 )
+  160:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+  178:  Call  SetGoalToTarget       ( .Actor:Player )
+  188:  Call  AddGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  1A4:  ExecWait  $Script_802A1330
+  1B0:  Set   *VarB  *VarA
+  1C0:  Add   *VarB  00000002
+  1D0:  Call  802A9120      ( *VarB 00000003 )
+  1E4:  Call  UseBattleCamPreset    ( 00000022 )
+  1F4:  Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  210:  Call  SetJumpAnimations     ( .Actor:Player 00000000 00010007 00030000 00030000 )
+  230:  Call  80274A18      ( *VarA 00000000 )
+  244:  ChildThread
+  24C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+  268:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  284:  	Call  ShakeCam  ( .Cam:Battle 00000000 0000000A *Fixed[2.0] )
+  2A0:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  2BC:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000003 *Fixed[0.7] )
+  2D8:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.4] )
+  2F4:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000006 *Fixed[0.1] )
+  310:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.05] )
+  32C:  EndChildThread
+  334:  ChildThread
+  33C:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  358:  	Add   *Var0  00000018
+  368:  	Add   *Var1  0000000A
+  378:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3BC:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  400:  EndChildThread
+  408:  Wait  10`
+  414:  Call  InitTargetIterator ( )
+  420:  Call  DidActionSucceed  ( *VarB )
+  430:  Set   *Var9  00000000
+  440:  Label  1
+  44C:  Call  SetGoalToTarget   ( .Actor:Player )
+  45C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000000 00000010 )
+  480:  If  *Var0  ==  .HitResult:Miss % 6
+  490:  	Goto  2
+  49C:  EndIf
+  4A4:  Switch  *VarB
+  4B0:  	Case  >  .False
+  4BC:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
+  4D8:  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 00000050 )
+  4FC:  	Default
+  504:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  520:  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 00000030 ) 
+  544:  EndSwitch
+  54C:  Label  2
+  558:  Call  ChooseNextTarget      ( .Iter:Next *Var0 )
+  56C:  Add   *Var9  00000001
+  57C:  Call  GetTargetListLength   ( *Var0 )
+  58C:  If  *Var9  <  *Var0
+  59C:  	Goto  1
+  5A8:  EndIf
+  5B0:  Switch  *VarC
+  5BC:  	CaseOR  ==  .HitResult:Hit % 0
+  5C8:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  5D4:  		ExecWait  $Script_802A19C0
+  5E0:  		Return
+  5E8:  	EndCaseGroup
+  5F0:  	CaseOR  ==  00000001 % 1
+  5FC:  	CaseOR  ==  00000003 % 3
+  608:  	EndCaseGroup
+  610:  EndSwitch
+  618:  ChildThread
+  620:  	Call  UseBattleCamPreset    ( 0000001B )
+  630:  	Wait  5`
+  63C:  	Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  658:  	Call  UseBattleCamPreset    ( 00000023 )
+  668:  EndChildThread
+  670:  Call  80269524  ( *VarE )
+  690:  Set   *Flag[00]  .False
+  6A0:  Label  A
+  6AC:  ChildThread
+  6B4:  	Call  UseBattleCamPreset    ( 0000001B )
+  6C4:  	Wait  5`
+  6D0:  	Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  6EC:  	Call  UseBattleCamPreset    ( 00000023 )
+  6FC:  EndChildThread
+  704:  Call  CloseActionCommandInfo ( )
+  710:  Call  8026919C  ( $???_802A2610 )
+  720:  Call  LoadActionCommand ( .ActionCommand:Jump )
+  730:  Call  802A9000 ( )
+  73C:  Set   *VarA  0000001A
+  74C:  Switch  *VarF
+  758:  	Case  ==  00000000
+  764:  		Call  802A9120  ( *VarA 00000003 )
+  778:  	Case  ==  00000001
+  784:  		Call  802A9120  ( *VarA 00000003 )
+  798:  	Case  ==  00000002
+  7A4:  		Call  802A9120  ( *VarA 00000004 )
+  7B8:  	Case  ==  00000003
+  7C4:  		Call  802A9120  ( *VarA 00000004 )
+  7D8:  	Default
+  7E0:  		Call  802A9120  ( *VarA 00000005 )
+  7F4:  EndSwitch
+  7FC:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010008 0001000C )
+  81C:  Call  SetGoalPos        ( .Actor:Player 0000001E 00000000 00000000 )
+  838:  If  *VarF  ==  00000000
+  848:  	Call  80274A18  ( 00000018 00000003 )
+  85C:  Else
+  864:  	Call  80274A18  ( 00000018 00000004 )
+  878:  EndIf
+  880:  ChildThread
+  888:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+  8A4:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  8C0:  	Call  ShakeCam  ( .Cam:Battle 00000000 0000000A *Fixed[2.0] )
+  8DC:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  8F8:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000003 *Fixed[0.7] )
+  914:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.4] )
+  930:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000006 *Fixed[0.1] )
+  94C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.05] )
+  968:  EndChildThread
+  970:  ChildThread
+  978:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  994:  	Add   *Var0  00000018
+  9A4:  	Add   *Var1  0000000A
+  9B4:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  9F8:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A3C:  EndChildThread
+  A44:  Wait  10`
+  A50:  Call  SetCommandAutoSuccess ( *Var1 )
+  A60:  If  *Var1  ==  00000001
+  A70:  	If  *VarF  >  00000003
+  A80:  		Set   *Flag[00]  .True
+  A90:  	EndIf
+  A98:  EndIf
+  AA0:  Set   *Var0  00000003
+  AB0:  Call  $Function_802A10E4 ( )
+  ABC:  If  *VarF  >  *Var0
+  ACC:  	Set   *Flag[00]  .True
+  ADC:  EndIf
+  AE4:  Call  InitTargetIterator ( )
+  AF0:  Call  DidActionSucceed  ( *VarB )
+  B00:  Set   *Var9  00000000
+  B10:  Label  B
+  B1C:  Call  SetGoalToTarget   ( .Actor:Player )
+  B2C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000000 00000010 )
+  B50:  If  *Var0  ==  .HitResult:Miss % 6
+  B60:  	Goto  C
+  B6C:  EndIf
+  B74:  Switch  *VarB
+  B80:  	Case  >  .False
+  B8C:  		If  *Flag[00]  ==  .False
+  B9C:  			Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
+					Set *Var8 -1`
+					Sub *Var8 *VarF
+  BB8:  			Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000001 *Var8 00000040 )
+  BDC:  		Else
+  BE4:  			Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
+					Set *Var8 -1`
+					Sub *Var8 *VarF
+  C00:  			Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000001 *Var8 000000E0 )
+  C24:  		EndIf
+  C2C:  	Default
+  C34:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
+				Set *Var8 -1`
+				Sub *Var8 *VarF
+  C50:  		Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000001 *Var8 00000020 )
+  C74:  EndSwitch
+  C7C:  Switch  *VarF
+  C88:  	Case  ==  00000000
+  C94:  		Call  PlaySoundAtActor  ( .Actor:Player 00000235 )
+  CA8:  	Case  ==  00000001
+  CB4:  		Call  PlaySoundAtActor  ( .Actor:Player 00000236 )
+  CC8:  	Case  ==  00000002
+  CD4:  		Call  PlaySoundAtActor  ( .Actor:Player 00000237 )
+  CE8:  	Case  ==  00000003
+  CF4:  		Call  PlaySoundAtActor  ( .Actor:Player 00000238 )
+  D08:  	Default
+  D10:  		Call  PlaySoundAtActor  ( .Actor:Player 00000238 )
+  D24:  EndSwitch
+  D2C:  Call  80269550  ( *VarE )
+  D3C:  Label  C
+  D48:  Call  ChooseNextTarget      ( .Iter:Next *Var0 )
+  D5C:  Add   *Var9  00000001
+  D6C:  Call  GetTargetListLength   ( *Var0 )
+  D7C:  If  *Var9  <  *Var0
+  D8C:  	Goto  B
+  D98:  EndIf
+  DA0:  Switch  *VarC
+  DAC:  	CaseOR  ==  .HitResult:Hit % 0
+  DB8:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  DC4:  		If  *Flag[00]  ==  .True
+  DD4:  			ExecWait  $Script_802A15E8
+  DE0:  			Return
+  DE8:  		EndIf
+  DF0:  		ExecWait  $Script_802A19C0
+  DFC:  		Return
+  E04:  	EndCaseGroup
+  E0C:  	CaseOR  ==  00000001 % 1
+  E18:  	CaseOR  ==  00000003 % 3
+  E24:  		If  *Flag[00]  ==  .True
+  E34:  			ExecWait  $Script_802A15E8
+  E40:  			Return
+  E48:  		EndIf
+  E50:  	EndCaseGroup
+  E58:  EndSwitch
+  E60:  Add   *VarF  00000001
+  E70:  Goto  A
+  E7C:  Return
+  E84:  End
+}
+
+@ $Script_802A3560
+{
+    0:  Call  LoadActionCommand ( .ActionCommand:Jump )
+   10:  Call  802A9000 ( )
+   1C:  Call  SetGoalToFirstTarget  ( .Actor:Self )
+   2C:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+   48:  Sub   *Var0  00000014
+   58:  Call  InitTargetIterator ( )
+   64:  Call  SetGoalToTarget   ( .Actor:Player )
+   74:  Call  GetGoalPos        ( .Actor:Player *Var3 *Var4 *Var5 )
+   90:  Sub   *Var3  *Fixed[70.0]
+   A0:  If  *Var0  <  *Var3
+   B0:  	Sub   *Var0  00000014
+   C0:  	Set   *Var3  *Var0
+   D0:  EndIf
+   D8:  Call  SetGoalPos    ( .Actor:Player *Var3 *Var4 *Var5 )
+   F4:  Call  AddGoalPos    ( .Actor:Player FFFFFFE2 00000000 00000000 )
+  110:  Call  UseBattleCamPreset    ( 0000001A )
+  120:  Call  SetActorSpeed ( .Actor:Player *Fixed[5.0] )
+  134:  Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
+  14C:  Call  CancelablePlayerRunToGoal ( 00000000 *Var0 )
+  160:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+  178:  Call  SetGoalToTarget       ( .Actor:Player )
+  188:  Call  AddGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  1A4:  ExecWait  $Script_802A1140
+  1B0:  Call  SetAnimation  ( .Actor:Player 00000000 00010006 )
+  1C8:  ExecWait  $Script_802A1330
+  1D4:  Set   *VarB  *VarA
+  1E4:  Add   *VarB  00000002
+  1F4:  Call  802A9120      ( *VarB 00000003 )
+  208:  Call  UseBattleCamPreset    ( 00000022 )
+  218:  Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  234:  Call  SetJumpAnimations     ( .Actor:Player 00000000 00010007 00030000 00030000 )
+  254:  Call  80274A18      ( *VarA 00000000 )
+  268:  ChildThread
+  270:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+  28C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  2A8:  	Call  ShakeCam  ( .Cam:Battle 00000000 0000000A *Fixed[2.0] )
+  2C4:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  2E0:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000003 *Fixed[0.7] )
+  2FC:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.4] )
+  318:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000006 *Fixed[0.1] )
+  334:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.05] )
+  350:  EndChildThread
+  358:  ChildThread
+  360:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  37C:  	Add   *Var0  00000018
+  38C:  	Add   *Var1  0000000A
+  39C:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3E0:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  424:  EndChildThread
+  42C:  Wait  10`
+  438:  Call  InitTargetIterator ( )
+  444:  Call  DidActionSucceed  ( *VarB )
+  454:  Set   *Var9  00000000
+  464:  Label  1
+  470:  Call  SetGoalToTarget   ( .Actor:Player )
+  480:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000000 00000010 )
+  4A4:  If  *Var0  ==  .HitResult:Miss % 6
+  4B4:  	Goto  2
+  4C0:  EndIf
+  4C8:  Switch  *VarB
+  4D4:  	Case  >  .False
+  4E0:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  4FC:  		Call  PlayerDamageEnemy ( *VarC 38000880 00000000 00000000 00000002 00000050 )
+  520:  	Default
+  528:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  544:  		Call  PlayerDamageEnemy ( *VarC 38000880 00000000 00000000 00000002 00000030 )
+  568:  EndSwitch
+  570:  Label  2
+  57C:  Call  ChooseNextTarget      ( .Iter:Next *Var0 )
+  590:  Add   *Var9  00000001
+  5A0:  Call  GetTargetListLength   ( *Var0 )
+  5B0:  If  *Var9  <  *Var0
+  5C0:  	Goto  1
+  5CC:  EndIf
+  5D4:  Switch  *VarC
+  5E0:  	CaseOR  ==  .HitResult:Hit % 0
+  5EC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  5F8:  		ExecWait  $Script_802A19C0
+  604:  		Return
+  60C:  	EndCaseGroup
+  614:  	CaseOR  ==  00000001 % 1
+  620:  	CaseOR  ==  00000003 % 3
+  62C:  	EndCaseGroup
+  634:  EndSwitch
+  63C:  ChildThread
+  644:  	Call  UseBattleCamPreset    ( 0000001B )
+  654:  	Wait  5`
+  660:  	Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  67C:  	Call  UseBattleCamPreset    ( 00000023 )
+  68C:  EndChildThread
+  694:  Call  80269524  ( *VarE )
+  6A4:  Set   *VarF  00000000
+  6B4:  Set   *Flag[00]  .False
+  6C4:  Label  A
+  6D0:  ChildThread
+  6D8:  	Call  UseBattleCamPreset    ( 0000001B )
+  6E8:  	Wait  5`
+  6F4:  	Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  710:  	Call  UseBattleCamPreset    ( 00000023 )
+  720:  EndChildThread
+  728:  Call  CloseActionCommandInfo ( )
+  734:  Call  8026919C  ( $???_802A2610 )
+  744:  Call  LoadActionCommand ( .ActionCommand:Jump )
+  754:  Call  802A9000 ( )
+  760:  Set   *VarA  00000027
+  770:  Switch  *VarF
+  77C:  	Case  ==  00000000
+  788:  		Call  802A9120  ( *VarA 00000003 )
+  79C:  	Case  ==  00000001
+  7A8:  		Call  802A9120  ( *VarA 00000003 )
+  7BC:  	Case  ==  00000002
+  7C8:  		Call  802A9120  ( *VarA 00000004 )
+  7DC:  	Case  ==  00000003
+  7E8:  		Call  802A9120  ( *VarA 00000004 )
+  7FC:  	Default
+  804:  		Call  802A9120  ( *VarA 00000005 )
+  818:  EndSwitch
+  820:  Call  SetGoalPos        ( .Actor:Player 0000001E 00000000 00000000 )
+  83C:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 0001000A 0001000B )
+  85C:  Call  EnablePlayerBlur  ( 00000001 )
+  86C:  If  *VarF  ==  00000000
+  87C:  	Call  802752AC  ( 00000014 00000003 )
+  890:  	Wait  7`
+  89C:  	Call  802752AC  ( 00000003 00000006 )
+  8B0:  Else
+  8B8:  	Call  802752AC  ( 00000014 00000004 )
+  8CC:  	Wait  7`
+  8D8:  	Call  802752AC  ( 00000003 00000005 )
+  8EC:  EndIf
+  8F4:  Call  EnablePlayerBlur  ( 00000000 )
+  904:  ChildThread
+  90C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+  928:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  944:  	Call  ShakeCam  ( .Cam:Battle 00000000 0000000A *Fixed[2.0] )
+  960:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  97C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000003 *Fixed[0.7] )
+  998:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.4] )
+  9B4:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000006 *Fixed[0.1] )
+  9D0:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.05] )
+  9EC:  EndChildThread
+  9F4:  ChildThread
+  9FC:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  A18:  	Add   *Var0  00000018
+  A28:  	Add   *Var1  0000000A
+  A38:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A7C:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  AC0:  EndChildThread
+  AC8:  Wait  10`
+  AD4:  Call  SetCommandAutoSuccess ( *Var1 )
+  AE4:  If  *Var1  ==  00000001
+  AF4:  	If  *VarF  >  00000003
+  B04:  		Set   *Flag[00]  .True
+  B14:  	EndIf
+  B1C:  EndIf
+  B24:  Set   *Var0  00000004
+  B34:  Call  $Function_802A10E4 ( )
+  B40:  If  *VarF  >  *Var0
+  B50:  	Set   *Flag[00]  .True
+  B60:  EndIf
+  B68:  Call  InitTargetIterator ( )
+  B74:  Call  DidActionSucceed  ( *VarB )
+  B84:  Set   *Var9  00000000
+  B94:  Label  B
+  BA0:  Call  SetGoalToTarget   ( .Actor:Player )
+  BB0:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000000 00000010 )
+  BD4:  If  *Var0  ==  .HitResult:Miss % 6
+  BE4:  	Goto  C
+  BF0:  EndIf
+  BF8:  Switch  *VarB
+  C04:  	Case  >  .False
+  C10:  		If  *Flag[00]  ==  .False
+  C20:  			Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+					Set *Var8 -1`
+					Sub *Var8 *VarF
+  C3C:  			Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000002 *Var8 00000040 )
+  C60:  		Else
+  C68:  			Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+					Set *Var8 -1`
+					Sub *Var8 *VarF
+  C84:  			Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000002 *Var8 000000E0 )
+  CA8:  		EndIf
+  CB0:  	Default
+  CB8:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+				Set *Var8 -1`
+				Sub *Var8 *VarF
+  CD4:  		Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000002 *Var8 00000020 )
+  CF8:  EndSwitch
+  D00:  Switch  *VarF
+  D0C:  	Case  ==  00000000
+  D18:  		Call  PlaySoundAtActor  ( .Actor:Player 00000235 )
+  D2C:  	Case  ==  00000001
+  D38:  		Call  PlaySoundAtActor  ( .Actor:Player 00000236 )
+  D4C:  	Case  ==  00000002
+  D58:  		Call  PlaySoundAtActor  ( .Actor:Player 00000237 )
+  D6C:  	Case  ==  00000003
+  D78:  		Call  PlaySoundAtActor  ( .Actor:Player 00000238 )
+  D8C:  	Default
+  D94:  		Call  PlaySoundAtActor  ( .Actor:Player 00000238 )
+  DA8:  EndSwitch
+  DB0:  Call  80269550  ( *VarE )
+  DC0:  Label  C
+  DCC:  Call  ChooseNextTarget      ( .Iter:Next *Var0 )
+  DE0:  Add   *Var9  00000001
+  DF0:  Call  GetTargetListLength   ( *Var0 )
+  E00:  If  *Var9  <  *Var0
+  E10:  	Goto  B
+  E1C:  EndIf
+  E24:  Switch  *VarC
+  E30:  	CaseOR  ==  .HitResult:Hit % 0
+  E3C:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  E48:  		If  *Flag[00]  ==  .True
+  E58:  			ExecWait  $Script_802A15E8
+  E64:  			Return
+  E6C:  		EndIf
+  E74:  		ExecWait  $Script_802A19C0
+  E80:  		Return
+  E88:  	EndCaseGroup
+  E90:  	CaseOR  ==  00000001 % 1
+  E9C:  	CaseOR  ==  00000003 % 3
+  EA8:  		If  *Flag[00]  ==  .True
+  EB8:  			ExecWait  $Script_802A15E8
+  EC4:  			Return
+  ECC:  		EndIf
+  ED4:  	EndCaseGroup
+  EDC:  EndSwitch
+  EE4:  Add   *VarF  00000001
+  EF4:  Goto  A
+  F00:  Return
+  F08:  End
+}
+
+@ $Script_802A4470
+{
+    0:  Call  LoadActionCommand ( .ActionCommand:Jump )
+   10:  Call  802A9000 ( )
+   1C:  Call  SetGoalToFirstTarget  ( .Actor:Self )
+   2C:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+   48:  Sub   *Var0  00000014
+   58:  Call  InitTargetIterator ( )
+   64:  Call  SetGoalToTarget   ( .Actor:Player )
+   74:  Call  GetGoalPos        ( .Actor:Player *Var3 *Var4 *Var5 )
+   90:  Sub   *Var3  *Fixed[70.0]
+   A0:  If  *Var0  <  *Var3
+   B0:  	Sub   *Var0  00000014
+   C0:  	Set   *Var3  *Var0
+   D0:  EndIf
+   D8:  Call  SetGoalPos    ( .Actor:Player *Var3 *Var4 *Var5 )
+   F4:  Call  AddGoalPos    ( .Actor:Player FFFFFFE2 00000000 00000000 )
+  110:  Call  UseBattleCamPreset    ( 0000001A )
+  120:  Call  SetActorSpeed ( .Actor:Player *Fixed[5.0] )
+  134:  Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
+  14C:  Call  CancelablePlayerRunToGoal ( 00000000 *Var0 )
+  160:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+  178:  Call  SetGoalToTarget       ( .Actor:Player )
+  188:  Call  AddGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  1A4:  ExecWait  $Script_802A1140
+  1B0:  Call  SetAnimation  ( .Actor:Player 00000000 00010006 )
+  1C8:  ExecWait  $Script_802A1330
+  1D4:  Set   *VarB  *VarA
+  1E4:  Add   *VarB  00000002
+  1F4:  Call  802A9120      ( *VarB 00000003 )
+  208:  Call  UseBattleCamPreset    ( 00000022 )
+  218:  Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  234:  Call  SetJumpAnimations     ( .Actor:Player 00000000 00010007 00030000 00030000 )
+  254:  Call  80274A18      ( *VarA 00000000 )
+  268:  ChildThread
+  270:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+  28C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  2A8:  	Call  ShakeCam  ( .Cam:Battle 00000000 0000000A *Fixed[2.0] )
+  2C4:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  2E0:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000003 *Fixed[0.7] )
+  2FC:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.4] )
+  318:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000006 *Fixed[0.1] )
+  334:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.05] )
+  350:  EndChildThread
+  358:  ChildThread
+  360:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  37C:  	Add   *Var0  00000018
+  38C:  	Add   *Var1  0000000A
+  39C:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3E0:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  424:  EndChildThread
+  42C:  Wait  10`
+  438:  Call  InitTargetIterator ( )
+  444:  Call  DidActionSucceed  ( *VarB )
+  454:  Set   *Var9  00000000
+  464:  Label  1
+  470:  Call  SetGoalToTarget   ( .Actor:Player )
+  480:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000000 00000010 )
+  4A4:  If  *Var0  ==  .HitResult:Miss % 6
+  4B4:  	Goto  2
+  4C0:  EndIf
+  4C8:  Switch  *VarB
+  4D4:  	Case  >  .False
+  4E0:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  4FC:  		Call  PlayerDamageEnemy ( *VarC 38000880 00000000 00000000 00000003 00000050 )
+  520:  	Default
+  528:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  544:  		Call  PlayerDamageEnemy ( *VarC 38000880 00000000 00000000 00000003 00000030 )
+  568:  EndSwitch
+  570:  Label  2
+  57C:  Call  ChooseNextTarget      ( .Iter:Next *Var0 )
+  590:  Add   *Var9  00000001
+  5A0:  Call  GetTargetListLength   ( *Var0 )
+  5B0:  If  *Var9  <  *Var0
+  5C0:  	Goto  1
+  5CC:  EndIf
+  5D4:  Switch  *VarC
+  5E0:  	CaseOR  ==  .HitResult:Hit % 0
+  5EC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  5F8:  		ExecWait  $Script_802A19C0
+  604:  		Return
+  60C:  	EndCaseGroup
+  614:  	CaseOR  ==  00000001 % 1
+  620:  	CaseOR  ==  00000003 % 3
+  62C:  	EndCaseGroup
+  634:  EndSwitch
+  63C:  ChildThread
+  644:  	Call  UseBattleCamPreset    ( 0000001B )
+  654:  	Wait  5`
+  660:  	Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  67C:  	Call  UseBattleCamPreset    ( 00000023 )
+  68C:  EndChildThread
+  694:  Call  80269524  ( *VarE )
+  6A4:  Set   *VarF  00000000
+  6B4:  Set   *Flag[00]  .False
+  6C4:  Label  A
+  6D0:  ChildThread
+  6D8:  	Call  UseBattleCamPreset    ( 0000001C )
+  6E8:  	Wait  5`
+  6F4:  	Call  SetGoalPos    ( .Actor:Player 0000001E 00000000 00000000 )
+  710:  	Call  UseBattleCamPreset    ( 00000023 )
+  720:  EndChildThread
+  728:  Call  CloseActionCommandInfo ( )
+  734:  Call  8026919C  ( $???_802A2610 )
+  744:  Call  LoadActionCommand ( .ActionCommand:Jump )
+  754:  Call  802A9000 ( )
+  760:  Set   *VarA  0000001B
+  770:  Switch  *VarF
+  77C:  	Case  ==  00000000
+  788:  		Call  802A9120  ( *VarA 00000003 )
+  79C:  	Case  ==  00000001
+  7A8:  		Call  802A9120  ( *VarA 00000003 )
+  7BC:  	Case  ==  00000002
+  7C8:  		Call  802A9120  ( *VarA 00000004 )
+  7DC:  	Case  ==  00000003
+  7E8:  		Call  802A9120  ( *VarA 00000004 )
+  7FC:  	Default
+  804:  		Call  802A9120  ( *VarA 00000005 )
+  818:  EndSwitch
+  820:  Call  SetGoalPos        ( .Actor:Player 0000001E 00000000 00000000 )
+  83C:  Call  EnablePlayerBlur  ( 00000001 )
+  84C:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010007 0001000C )
+  86C:  If  *VarF  ==  00000000
+  87C:  	Call  80275F00  ( 00000019 00000002 )
+  890:  Else
+  898:  	Call  80275F00  ( 00000019 00000004 )
+  8AC:  EndIf
+  8B4:  Call  EnablePlayerBlur  ( 00000000 )
+  8C4:  ChildThread
+  8CC:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+  8E8:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  904:  	Call  ShakeCam  ( .Cam:Battle 00000000 0000000A *Fixed[2.0] )
+  920:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.0] )
+  93C:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000003 *Fixed[0.7] )
+  958:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.4] )
+  974:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000006 *Fixed[0.1] )
+  990:  	Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[0.05] )
+  9AC:  EndChildThread
+  9B4:  ChildThread
+  9BC:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  9D8:  	Add   *Var0  00000018
+  9E8:  	Add   *Var1  0000000A
+  9F8:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A3C:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A80:  EndChildThread
+  A88:  Wait  10`
+  A94:  Call  SetCommandAutoSuccess ( *Var1 )
+  AA4:  If  *Var1  ==  00000001
+  AB4:  	If  *VarF  >  00000005
+  AC4:  		Set   *Flag[00]  .True
+  AD4:  	EndIf
+  ADC:  EndIf
+  AE4:  Set   *Var0  00000005
+  AF4:  Call  $Function_802A10E4 ( )
+  B00:  If  *VarF  >  *Var0
+  B10:  	Set   *Flag[00]  .True
+  B20:  EndIf
+  B28:  Call  InitTargetIterator ( )
+  B34:  Call  DidActionSucceed  ( *VarB )
+  B44:  Set   *Var9  00000000
+  B54:  Label  B
+  B60:  Call  SetGoalToTarget   ( .Actor:Player )
+  B70:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000000 00000010 )
+  B94:  If  *Var0  ==  .HitResult:Miss % 6
+  BA4:  	Goto  C
+  BB0:  EndIf
+  BB8:  Switch  *VarB
+  BC4:  	Case  >  .False
+  BD0:  		If  *Flag[00]  ==  .False
+  BE0:  			Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+					Set *Var8 -1`
+					Sub *Var8 *VarF
+  BFC:  			Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000003 *Var8 00000040 )
+  C20:  		Else
+  C28:  			Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+					Set *Var8 -1`
+					Sub *Var8 *VarF
+  C44:  			Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000003 *Var8 000000E0 )
+  C68:  		EndIf
+  C70:  	Default
+  C78:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+				Set *Var8 -1`
+				Sub *Var8 *VarF
+  C94:  		Call  PlayerPowerBounceEnemy    ( *VarC 38100880 00000000 0000FFFF 00000003 *Var8 00000020 )
+  CB8:  EndSwitch
+  CC0:  Switch  *VarF
+  CCC:  	Case  ==  00000000
+  CD8:  		Call  PlaySoundAtActor  ( .Actor:Player 00000235 )
+  CEC:  	Case  ==  00000001
+  CF8:  		Call  PlaySoundAtActor  ( .Actor:Player 00000236 )
+  D0C:  	Case  ==  00000002
+  D18:  		Call  PlaySoundAtActor  ( .Actor:Player 00000237 )
+  D2C:  	Case  ==  00000003
+  D38:  		Call  PlaySoundAtActor  ( .Actor:Player 00000238 )
+  D4C:  	Default
+  D54:  		Call  PlaySoundAtActor  ( .Actor:Player 00000238 )
+  D68:  EndSwitch
+  D70:  Call  80269550  ( *VarE )
+  D80:  Label  C
+  D8C:  Call  ChooseNextTarget      ( .Iter:Next *Var0 )
+  DA0:  Add   *Var9  00000001
+  DB0:  Call  GetTargetListLength   ( *Var0 )
+  DC0:  If  *Var9  <  *Var0
+  DD0:  	Goto  B
+  DDC:  EndIf
+  DE4:  Switch  *VarC
+  DF0:  	CaseOR  ==  .HitResult:Hit % 0
+  DFC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  E08:  		If  *Flag[00]  ==  .True
+  E18:  			ExecWait  $Script_802A15E8
+  E24:  			Return
+  E2C:  		EndIf
+  E34:  		ExecWait  $Script_802A19C0
+  E40:  		Return
+  E48:  	EndCaseGroup
+  E50:  	CaseOR  ==  00000001 % 1
+  E5C:  	CaseOR  ==  00000003 % 3
+  E68:  		If  *Flag[00]  ==  .True
+  E78:  			ExecWait  $Script_802A15E8
+  E84:  			Return
+  E8C:  		EndIf
+  E94:  	EndCaseGroup
+  E9C:  EndSwitch
+  EA4:  Add   *VarF  00000001
+  EB4:  Goto  A
+  EC0:  Return
+  EC8:  End
+}
+
+%replace with Call  PlayerPowerBounceEnemy    ( *VarC 38000880 00000000 00000000 00000001 *VarF 00000050 )
+/%
+@ $Script_802A26D4
+{
+[4D8]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 00000050 ) 
+[520]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 00000030 ) 
+[680]  Set  *Var[F]  *Var[F] %? 
+[74C]  Switch  *Var[F]
+[838]  If  *Var[F]  ==  00000000 
+[A70]  	If  *Var[F]  >  00000003
+[ABC]  If  *Var[F]  >  *Var[0]  
+[BB8]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 00000040 )
+[C00]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 000000E0 )
+[C50]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 00000000 0000FFFF 00000001 00000020 )
+[C7C]  Switch  *Var[F]
+[E60]  Add  *Var[F]  00000001  
+}
+
+%execwait takes up C
+%return takes up 8
+%total = 14 space
+%PlayerDamageEnemy = 24 space
+%the thing before PlayerDamageEnemy = 1C space
+%set/add take up 10
+%total = 40
+
+@ $Script_802A3560
+{
+[4FC]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000002 00000050 )
+[544]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000002 00000030 )
+[6A4]  Set  *Var[F]  *Var[F] %?
+[770]  Switch  *Var[F]
+[86C]  If  *Var[F]  ==  00000000  
+[AF4]  	If  *Var[F]  >  00000003
+[B40]  If  *Var[F]  >  *Var[0]  
+[C3C]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000002 00000040 )
+[C84]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000002 000000E0 )
+[CD4]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000002 00000020 )
+[D00]  Switch  *Var[F]
+[E10]  	Goto     0000000B
+[EE4]  Add  *Var[F]  00000001
+}
+
+@ $Script_802A4470
+{
+[4FC]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000003 00000050 )
+[544]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000003 00000030 )
+[6A4]  Set  *Var[F]  *Var[F] %?
+[770]  Switch  *Var[F]
+[86C]  If  *Var[F]  ==  00000000  
+[AB4]  	If  *Var[F]  >  00000003
+[B00]  If  *Var[F]  >  *Var[0] 
+[BFC]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000003 00000040 )
+[C44]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000003 000000E0 )
+[C94]  		Call     PlayerDamageEnemy 	( *Var[C] 38000880 0000FFFF 00000000 00000003 00000020 )
+[CC0]  Switch  *Var[F]
+[DD0]  	Goto     0000000B
+[EA4]  Add  *Var[F]  00000001    
+}
+%/
+
+%does same damage for each of the 3 hits
+%but charging and attack increasers will make this move incredibly strong
+%stronger than power bounce in most cases
+
+/%
+@ $Script_802A26D4
+    0:  Call     LoadActionCommand 	( 00000001 )
+   10:  Call     802A9000 ( )
+   1C:  Call     8026A49C ( FFFFFF81 )
+   2C:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+   48:  Sub  *Var[0]  00000014 
+   58:  Call     InitTargetIterator 	( )
+   64:  Call     SetGoalToTarget 	( .Actor:Player )
+   74:  Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   90:  Sub  *Var[3]  *Fixed[70.0] 
+   A0:  If  *Var[0]  <  *Var[3] 
+   B0:  	Sub  *Var[0]  00000014 
+   C0:  	Set  *Var[3]  *Var[0] 
+   D0:  EndIf
+   D8:  Call     SetGoalPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   F4:  Call     AddGoalPos 	( .Actor:Player FFFFFFE2 00000000 00000000 )
+  110:  Call     UseBattleCamPreset 	( 0000001A )
+  120:  Call     SetActorSpeed 	( .Actor:Player *Fixed[5.0] )
+  134:  Call     SetAnimation 	( .Actor:Player 00000000 00010005 )
+  14C:  Call     80273EFC ( 00000000 *Var[0] )
+  160:  Call     SetAnimation 	( .Actor:Player 00000000 00010002 )
+  178:  Call     SetGoalToTarget 	( .Actor:Player )
+  188:  Call     AddGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  1A4:  ExecWait $Script_802A1330 
+  1B0:  Set  *Var[B]  *Var[A] 
+  1C0:  Add  *Var[B]  00000002 
+  1D0:  Call     802A9120 ( *Var[B] 00000003 )
+  1E4:  Call     UseBattleCamPreset 	( 00000022 )
+  1F4:  Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  210:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00030000 00030000 )
+  230:  Call     80274A18 ( *Var[A] 00000000 )
+  244:  ChildThread
+  24C:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[0.20019531] )
+  268:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  284:  	Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[2.0] )
+  2A0:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  2BC:  	Call     ShakeCam    	( 00000001 00000000 00000003 *Fixed[0.7001953] )
+  2D8:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.40039062] )
+  2F4:  	Call     ShakeCam    	( 00000001 00000000 00000006 *Fixed[0.10058594] )
+  310:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.05078125] )
+  32C:  EndChildThread
+  334:  ChildThread
+  33C:  	Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+  358:  	Add  *Var[0]  00000018 
+  368:  	Add  *Var[1]  0000000A 
+  378:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3BC:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  400:  EndChildThread
+  408:  Wait     0000000A 
+  414:  Call     InitTargetIterator 	( )
+  420:  Call     80276EB4 ( *Var[B] )
+  430:  Set  *Var[9]  00000000 
+  440:  Label    00000001 
+  44C:  Call     SetGoalToTarget 	( .Actor:Player )
+  45C:  Call     PlayerTestEnemy 	( *Var[0] 18000800 00000000 00000000 00000000 00000010 )
+  480:  If  *Var[0]  ==  00000006 
+  490:  	Goto     00000002 
+  49C:  EndIf
+  4A4:  Switch  *Var[B] 
+  4B0:  	Case  >  00000000 
+  4BC:  		Call     SetActorSounds ( 00000000 00000003 0000015A 00000000 )
+  4D8:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000050 )
+  4FC:  	Default
+  504:  		Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  520:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000030 )
+  544:  EndSwitch
+  54C:  Label    00000002 
+  558:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  56C:  Add  *Var[9]  00000001 
+  57C:  Call     GetTargetListLength 	( *Var[0] )
+  58C:  If  *Var[9]  <  *Var[0] 
+  59C:  	Goto     00000001 
+  5A8:  EndIf
+  5B0:  Switch  *Var[C] 
+  5BC:  	CaseOR  ==  00000000 
+  5C8:  	CaseOR  ==  00000002 
+  5D4:  		ExecWait $Script_802A19C0 
+  5E0:  		Return
+  5E8:  	EndCaseGroup
+  5F0:  	CaseOR  ==  00000001 
+  5FC:  	CaseOR  ==  00000003 
+  608:  	EndCaseGroup
+  610:  EndSwitch
+  618:  ChildThread
+  620:  	Call     UseBattleCamPreset 	( 0000001B )
+  630:  	Wait     00000005 
+  63C:  	Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  658:  	Call     UseBattleCamPreset 	( 00000023 )
+  668:  EndChildThread
+  670:  Call     80269524 ( *Var[E] )
+  680:  Set  *Var[F]  00000000 
+  690:  Set  *Flag[00]  00000000 
+  6A0:  Label    0000000A 
+  6AC:  ChildThread
+  6B4:  	Call     UseBattleCamPreset 	( 0000001B )
+  6C4:  	Wait     00000005 
+  6D0:  	Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  6EC:  	Call     UseBattleCamPreset 	( 00000023 )
+  6FC:  EndChildThread
+  704:  Call     80269410 ( )
+  710:  Call     8026919C ( $???_802A2610 )
+  720:  Call     LoadActionCommand 	( 00000001 )
+  730:  Call     802A9000 ( )
+  73C:  Set  *Var[A]  0000001A 
+  74C:  Switch  *Var[F] 
+  758:  	Case  ==  00000000 
+  764:  		Call     802A9120 ( *Var[A] 00000003 )
+  778:  	Case  ==  00000001 
+  784:  		Call     802A9120 ( *Var[A] 00000003 )
+  798:  	Case  ==  00000002 
+  7A4:  		Call     802A9120 ( *Var[A] 00000004 )
+  7B8:  	Case  ==  00000003 
+  7C4:  		Call     802A9120 ( *Var[A] 00000004 )
+  7D8:  	Default
+  7E0:  		Call     802A9120 ( *Var[A] 00000005 )
+  7F4:  EndSwitch
+  7FC:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00010008 0001000C )
+  81C:  Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  838:  If  *Var[F]  ==  00000000 
+  848:  	Call     80274A18 ( 00000018 00000003 )
+  85C:  Else
+  864:  	Call     80274A18 ( 00000018 00000004 )
+  878:  EndIf
+  880:  ChildThread
+  888:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[0.20019531] )
+  8A4:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  8C0:  	Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[2.0] )
+  8DC:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  8F8:  	Call     ShakeCam    	( 00000001 00000000 00000003 *Fixed[0.7001953] )
+  914:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.40039062] )
+  930:  	Call     ShakeCam    	( 00000001 00000000 00000006 *Fixed[0.10058594] )
+  94C:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.05078125] )
+  968:  EndChildThread
+  970:  ChildThread
+  978:  	Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+  994:  	Add  *Var[0]  00000018 
+  9A4:  	Add  *Var[1]  0000000A 
+  9B4:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  9F8:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A3C:  EndChildThread
+  A44:  Wait     0000000A 
+  A50:  Call     80269370 ( *Var[1] )
+  A60:  If  *Var[1]  ==  00000001 
+  A70:  	If  *Var[F]  >  00000003 
+  A80:  		Set  *Flag[00]  00000001 
+  A90:  	EndIf
+  A98:  EndIf
+  AA0:  Set  *Var[0]  00000003 
+  AB0:  Call     $Function_802A10E4 ( )
+  ABC:  If  *Var[F]  >  *Var[0] 
+  ACC:  	Set  *Flag[00]  00000001 
+  ADC:  EndIf
+  AE4:  Call     InitTargetIterator 	( )
+  AF0:  Call     80276EB4 ( *Var[B] )
+  B00:  Set  *Var[9]  00000000 
+  B10:  Label    0000000B 
+  B1C:  Call     SetGoalToTarget 	( .Actor:Player )
+  B2C:  Call     PlayerTestEnemy 	( *Var[0] 18000800 00000000 00000000 00000000 00000010 )
+  B50:  If  *Var[0]  ==  00000006 
+  B60:  	Goto     0000000C 
+  B6C:  EndIf
+  B74:  Switch  *Var[B] 
+  B80:  	Case  >  00000000 
+  B8C:  		If  *Flag[00]  ==  00000000 
+  B9C:  			Call     SetActorSounds ( 00000000 00000003 0000015A 00000000 )
+  BB8:  			Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000040 )
+  BDC:  		Else
+  BE4:  			Call     SetActorSounds ( 00000000 00000003 0000015A 00000000 )
+  C00:  			Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 000000E0 )
+  C24:  		EndIf
+  C2C:  	Default
+  C34:  		Call     SetActorSounds ( 00000000 00000003 0000015A 00000000 )
+  C50:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000020 )
+  C74:  EndSwitch
+  C7C:  Switch  *Var[F] 
+  C88:  	Case  ==  00000000 
+  C94:  		Call     PlaySoundAtActor 	( .Actor:Player 00000235 )
+  CA8:  	Case  ==  00000001 
+  CB4:  		Call     PlaySoundAtActor 	( .Actor:Player 00000236 )
+  CC8:  	Case  ==  00000002 
+  CD4:  		Call     PlaySoundAtActor 	( .Actor:Player 00000237 )
+  CE8:  	Case  ==  00000003 
+  CF4:  		Call     PlaySoundAtActor 	( .Actor:Player 00000238 )
+  D08:  	Default
+  D10:  		Call     PlaySoundAtActor 	( .Actor:Player 00000238 )
+  D24:  EndSwitch
+  D2C:  Call     80269550 ( *Var[E] )
+  D3C:  Label    0000000C 
+  D48:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  D5C:  Add  *Var[9]  00000001 
+  D6C:  Call     GetTargetListLength 	( *Var[0] )
+  D7C:  If  *Var[9]  <  *Var[0] 
+  D8C:  	Goto     0000000B 
+  D98:  EndIf
+		If *Var[F] > 2 %3-cap (but since it doesn't have the damage reduction thing from power bounce, this is still OP!)
+			ExecWait $Script_802A15E8 
+			Return
+		EndIf
+  DA0:  Switch  *Var[C] 
+  DAC:  	CaseOR  ==  00000000 
+  DB8:  	CaseOR  ==  00000002 
+  DC4:  		If  *Flag[00]  ==  00000001 
+  DD4:  			ExecWait $Script_802A15E8 
+  DE0:  			Return
+  DE8:  		EndIf
+  DF0:  		ExecWait $Script_802A19C0 
+  DFC:  		Return
+  E04:  	EndCaseGroup
+  E0C:  	CaseOR  ==  00000001 
+  E18:  	CaseOR  ==  00000003 
+  E24:  		If  *Flag[00]  ==  00000001 
+  E34:  			ExecWait $Script_802A15E8 
+  E40:  			Return
+  E48:  		EndIf
+  E50:  	EndCaseGroup
+  E58:  EndSwitch
+  E60:  Add  *Var[F]  00000001 
+  E70:  Goto     0000000A 
+  E7C:  Return
+  E84:  End
+
+@ $Script_802A3560
+    0:  Call     LoadActionCommand 	( 00000001 )
+   10:  Call     802A9000 ( )
+   1C:  Call     8026A49C ( FFFFFF81 )
+   2C:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+   48:  Sub  *Var[0]  00000014 
+   58:  Call     InitTargetIterator 	( )
+   64:  Call     SetGoalToTarget 	( .Actor:Player )
+   74:  Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   90:  Sub  *Var[3]  *Fixed[70.0] 
+   A0:  If  *Var[0]  <  *Var[3] 
+   B0:  	Sub  *Var[0]  00000014 
+   C0:  	Set  *Var[3]  *Var[0] 
+   D0:  EndIf
+   D8:  Call     SetGoalPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   F4:  Call     AddGoalPos 	( .Actor:Player FFFFFFE2 00000000 00000000 )
+  110:  Call     UseBattleCamPreset 	( 0000001A )
+  120:  Call     SetActorSpeed 	( .Actor:Player *Fixed[5.0] )
+  134:  Call     SetAnimation 	( .Actor:Player 00000000 00010005 )
+  14C:  Call     80273EFC ( 00000000 *Var[0] )
+  160:  Call     SetAnimation 	( .Actor:Player 00000000 00010002 )
+  178:  Call     SetGoalToTarget 	( .Actor:Player )
+  188:  Call     AddGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  1A4:  ExecWait $Script_802A1140 
+  1B0:  Call     SetAnimation 	( .Actor:Player 00000000 00010006 )
+  1C8:  ExecWait $Script_802A1330 
+  1D4:  Set  *Var[B]  *Var[A] 
+  1E4:  Add  *Var[B]  00000002 
+  1F4:  Call     802A9120 ( *Var[B] 00000003 )
+  208:  Call     UseBattleCamPreset 	( 00000022 )
+  218:  Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  234:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00030000 00030000 )
+  254:  Call     80274A18 ( *Var[A] 00000000 )
+  268:  ChildThread
+  270:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[0.20019531] )
+  28C:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  2A8:  	Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[2.0] )
+  2C4:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  2E0:  	Call     ShakeCam    	( 00000001 00000000 00000003 *Fixed[0.7001953] )
+  2FC:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.40039062] )
+  318:  	Call     ShakeCam    	( 00000001 00000000 00000006 *Fixed[0.10058594] )
+  334:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.05078125] )
+  350:  EndChildThread
+  358:  ChildThread
+  360:  	Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+  37C:  	Add  *Var[0]  00000018 
+  38C:  	Add  *Var[1]  0000000A 
+  39C:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3E0:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  424:  EndChildThread
+  42C:  Wait     0000000A 
+  438:  Call     InitTargetIterator 	( )
+  444:  Call     80276EB4 ( *Var[B] )
+  454:  Set  *Var[9]  00000000 
+  464:  Label    00000001 
+  470:  Call     SetGoalToTarget 	( .Actor:Player )
+  480:  Call     PlayerTestEnemy 	( *Var[0] 18000800 00000000 00000000 00000000 00000010 )
+  4A4:  If  *Var[0]  ==  00000006 
+  4B4:  	Goto     00000002 
+  4C0:  EndIf
+  4C8:  Switch  *Var[B] 
+  4D4:  	Case  >  00000000 
+  4E0:  		Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  4FC:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000002 00000050 )
+  520:  	Default
+  528:  		Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  544:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000002 00000030 )
+  568:  EndSwitch
+  570:  Label    00000002 
+  57C:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  590:  Add  *Var[9]  00000001 
+  5A0:  Call     GetTargetListLength 	( *Var[0] )
+  5B0:  If  *Var[9]  <  *Var[0] 
+  5C0:  	Goto     00000001 
+  5CC:  EndIf
+  5D4:  Switch  *Var[C] 
+  5E0:  	CaseOR  ==  00000000 
+  5EC:  	CaseOR  ==  00000002 
+  5F8:  		ExecWait $Script_802A19C0 
+  604:  		Return
+  60C:  	EndCaseGroup
+  614:  	CaseOR  ==  00000001 
+  620:  	CaseOR  ==  00000003 
+  62C:  	EndCaseGroup
+  634:  EndSwitch
+  63C:  ChildThread
+  644:  	Call     UseBattleCamPreset 	( 0000001B )
+  654:  	Wait     00000005 
+  660:  	Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  67C:  	Call     UseBattleCamPreset 	( 00000023 )
+  68C:  EndChildThread
+  694:  Call     80269524 ( *Var[E] )
+  6A4:  Set  *Var[F]  00000000 
+  6B4:  Set  *Flag[00]  00000000 
+  6C4:  Label    0000000A 
+  6D0:  ChildThread
+  6D8:  	Call     UseBattleCamPreset 	( 0000001B )
+  6E8:  	Wait     00000005 
+  6F4:  	Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  710:  	Call     UseBattleCamPreset 	( 00000023 )
+  720:  EndChildThread
+  728:  Call     80269410 ( )
+  734:  Call     8026919C ( $???_802A2610 )
+  744:  Call     LoadActionCommand 	( 00000001 )
+  754:  Call     802A9000 ( )
+  760:  Set  *Var[A]  00000027 
+  770:  Switch  *Var[F] 
+  77C:  	Case  ==  00000000 
+  788:  		Call     802A9120 ( *Var[A] 00000003 )
+  79C:  	Case  ==  00000001 
+  7A8:  		Call     802A9120 ( *Var[A] 00000003 )
+  7BC:  	Case  ==  00000002 
+  7C8:  		Call     802A9120 ( *Var[A] 00000004 )
+  7DC:  	Case  ==  00000003 
+  7E8:  		Call     802A9120 ( *Var[A] 00000004 )
+  7FC:  	Default
+  804:  		Call     802A9120 ( *Var[A] 00000005 )
+  818:  EndSwitch
+  820:  Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  83C:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 0001000A 0001000B )
+  85C:  Call     EnablePlayerBlur 	( 00000001 )
+  86C:  If  *Var[F]  ==  00000000 
+  87C:  	Call     802752AC ( 00000014 00000003 )
+  890:  	Wait     00000007 
+  89C:  	Call     802752AC ( 00000003 00000006 )
+  8B0:  Else
+  8B8:  	Call     802752AC ( 00000014 00000004 )
+  8CC:  	Wait     00000007 
+  8D8:  	Call     802752AC ( 00000003 00000005 )
+  8EC:  EndIf
+  8F4:  Call     EnablePlayerBlur 	( 00000000 )
+  904:  ChildThread
+  90C:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[0.20019531] )
+  928:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  944:  	Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[2.0] )
+  960:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  97C:  	Call     ShakeCam    	( 00000001 00000000 00000003 *Fixed[0.7001953] )
+  998:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.40039062] )
+  9B4:  	Call     ShakeCam    	( 00000001 00000000 00000006 *Fixed[0.10058594] )
+  9D0:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.05078125] )
+  9EC:  EndChildThread
+  9F4:  ChildThread
+  9FC:  	Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+  A18:  	Add  *Var[0]  00000018 
+  A28:  	Add  *Var[1]  0000000A 
+  A38:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A7C:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  AC0:  EndChildThread
+  AC8:  Wait     0000000A 
+  AD4:  Call     80269370 ( *Var[1] )
+  AE4:  If  *Var[1]  ==  00000001 
+  AF4:  	If  *Var[F]  >  00000004 
+  B04:  		Set  *Flag[00]  00000001 
+  B14:  	EndIf
+  B1C:  EndIf
+  B24:  Set  *Var[0]  00000004 
+  B34:  Call     $Function_802A10E4 ( )
+  B40:  If  *Var[F]  >  *Var[0] 
+  B50:  	Set  *Flag[00]  00000001 
+  B60:  EndIf
+  B68:  Call     InitTargetIterator 	( )
+  B74:  Call     80276EB4 ( *Var[B] )
+  B84:  Set  *Var[9]  00000000 
+  B94:  Label    0000000B 
+  BA0:  Call     SetGoalToTarget 	( .Actor:Player )
+  BB0:  Call     PlayerTestEnemy 	( *Var[0] 18000800 00000000 00000000 00000000 00000010 )
+  BD4:  If  *Var[0]  ==  00000006 
+  BE4:  	Goto     0000000C 
+  BF0:  EndIf
+  BF8:  Switch  *Var[B] 
+  C04:  	Case  >  00000000 
+  C10:  		If  *Flag[00]  ==  00000000 
+  C20:  			Call     SetActorSounds ( 00000000 00000003 0000015B 00000000 )
+  C3C:  			Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000040 )
+  C60:  		Else
+  C68:  			Call     SetActorSounds ( 00000000 00000003 0000015B 00000000 )
+  C84:  			Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 000000E0 )
+  CA8:  		EndIf
+  CB0:  	Default
+  CB8:  		Call     SetActorSounds ( 00000000 00000003 0000015B 00000000 )
+  CD4:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000020 )
+  CF8:  EndSwitch
+  D00:  Switch  *Var[F] 
+  D0C:  	Case  ==  00000000 
+  D18:  		Call     PlaySoundAtActor 	( .Actor:Player 00000235 )
+  D2C:  	Case  ==  00000001 
+  D38:  		Call     PlaySoundAtActor 	( .Actor:Player 00000236 )
+  D4C:  	Case  ==  00000002 
+  D58:  		Call     PlaySoundAtActor 	( .Actor:Player 00000237 )
+  D6C:  	Case  ==  00000003 
+  D78:  		Call     PlaySoundAtActor 	( .Actor:Player 00000238 )
+  D8C:  	Default
+  D94:  		Call     PlaySoundAtActor 	( .Actor:Player 00000238 )
+  DA8:  EndSwitch
+  DB0:  Call     80269550 ( *Var[E] )
+  DC0:  Label    0000000C 
+  DCC:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  DE0:  Add  *Var[9]  00000001 
+  DF0:  Call     GetTargetListLength 	( *Var[0] )
+  E00:  If  *Var[9]  <  *Var[0] 
+  E10:  	Goto     00000001 
+  E1C:  EndIf
+		If *Var[F] > 2 %3-cap (but since it doesn't have the damage reduction thing from power bounce, this is still OP!)
+			ExecWait $Script_802A15E8 
+			Return
+		EndIf  
+  E24:  Switch  *Var[C] 
+  E30:  	CaseOR  ==  00000000 
+  E3C:  	CaseOR  ==  00000002 
+  E48:  		If  *Flag[00]  ==  00000001 
+  E58:  			ExecWait $Script_802A15E8 
+  E64:  			Return
+  E6C:  		EndIf
+  E74:  		ExecWait $Script_802A19C0 
+  E80:  		Return
+  E88:  	EndCaseGroup
+  E90:  	CaseOR  ==  00000001 
+  E9C:  	CaseOR  ==  00000003 
+  EA8:  		If  *Flag[00]  ==  00000001 
+  EB8:  			ExecWait $Script_802A15E8 
+  EC4:  			Return
+  ECC:  		EndIf
+  ED4:  	EndCaseGroup
+  EDC:  EndSwitch
+  EE4:  Add  *Var[F]  00000001 
+  EF4:  Goto     0000000A 
+  F00:  Return
+  F08:  End
+
+@ $Script_802A4470
+    0:  Call     LoadActionCommand 	( 00000001 )
+   10:  Call     802A9000 ( )
+   1C:  Call     8026A49C ( FFFFFF81 )
+   2C:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+   48:  Sub  *Var[0]  00000014 
+   58:  Call     InitTargetIterator 	( )
+   64:  Call     SetGoalToTarget 	( .Actor:Player )
+   74:  Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   90:  Sub  *Var[3]  *Fixed[70.0] 
+   A0:  If  *Var[0]  <  *Var[3] 
+   B0:  	Sub  *Var[0]  00000014 
+   C0:  	Set  *Var[3]  *Var[0] 
+   D0:  EndIf
+   D8:  Call     SetGoalPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   F4:  Call     AddGoalPos 	( .Actor:Player FFFFFFE2 00000000 00000000 )
+  110:  Call     UseBattleCamPreset 	( 0000001A )
+  120:  Call     SetActorSpeed 	( .Actor:Player *Fixed[5.0] )
+  134:  Call     SetAnimation 	( .Actor:Player 00000000 00010005 )
+  14C:  Call     80273EFC ( 00000000 *Var[0] )
+  160:  Call     SetAnimation 	( .Actor:Player 00000000 00010002 )
+  178:  Call     SetGoalToTarget 	( .Actor:Player )
+  188:  Call     AddGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  1A4:  ExecWait $Script_802A1140 
+  1B0:  Call     SetAnimation 	( .Actor:Player 00000000 00010006 )
+  1C8:  ExecWait $Script_802A1330 
+  1D4:  Set  *Var[B]  *Var[A] 
+  1E4:  Add  *Var[B]  00000002 
+  1F4:  Call     802A9120 ( *Var[B] 00000003 )
+  208:  Call     UseBattleCamPreset 	( 00000022 )
+  218:  Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  234:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00030000 00030000 )
+  254:  Call     80274A18 ( *Var[A] 00000000 )
+  268:  ChildThread
+  270:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[0.20019531] )
+  28C:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  2A8:  	Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[2.0] )
+  2C4:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  2E0:  	Call     ShakeCam    	( 00000001 00000000 00000003 *Fixed[0.7001953] )
+  2FC:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.40039062] )
+  318:  	Call     ShakeCam    	( 00000001 00000000 00000006 *Fixed[0.10058594] )
+  334:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.05078125] )
+  350:  EndChildThread
+  358:  ChildThread
+  360:  	Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+  37C:  	Add  *Var[0]  00000018 
+  38C:  	Add  *Var[1]  0000000A 
+  39C:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3E0:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  424:  EndChildThread
+  42C:  Wait     0000000A 
+  438:  Call     InitTargetIterator 	( )
+  444:  Call     80276EB4 ( *Var[B] )
+  454:  Set  *Var[9]  00000000 
+  464:  Label    00000001 
+  470:  Call     SetGoalToTarget 	( .Actor:Player )
+  480:  Call     PlayerTestEnemy 	( *Var[0] 18000800 00000000 00000000 00000000 00000010 )
+  4A4:  If  *Var[0]  ==  00000006 
+  4B4:  	Goto     00000002 
+  4C0:  EndIf
+  4C8:  Switch  *Var[B] 
+  4D4:  	Case  >  00000000 
+  4E0:  		Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  4FC:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000003 00000050 )
+  520:  	Default
+  528:  		Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  544:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000003 00000030 )
+  568:  EndSwitch
+  570:  Label    00000002 
+  57C:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  590:  Add  *Var[9]  00000001 
+  5A0:  Call     GetTargetListLength 	( *Var[0] )
+  5B0:  If  *Var[9]  <  *Var[0] 
+  5C0:  	Goto     00000001 
+  5CC:  EndIf
+  5D4:  Switch  *Var[C] 
+  5E0:  	CaseOR  ==  00000000 
+  5EC:  	CaseOR  ==  00000002 
+  5F8:  		ExecWait $Script_802A19C0 
+  604:  		Return
+  60C:  	EndCaseGroup
+  614:  	CaseOR  ==  00000001 
+  620:  	CaseOR  ==  00000003 
+  62C:  	EndCaseGroup
+  634:  EndSwitch
+  63C:  ChildThread
+  644:  	Call     UseBattleCamPreset 	( 0000001B )
+  654:  	Wait     00000005 
+  660:  	Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  67C:  	Call     UseBattleCamPreset 	( 00000023 )
+  68C:  EndChildThread
+  694:  Call     80269524 ( *Var[E] )
+  6A4:  Set  *Var[F]  00000000 
+  6B4:  Set  *Flag[00]  00000000 
+  6C4:  Label    0000000A 
+  6D0:  ChildThread
+  6D8:  	Call     UseBattleCamPreset 	( 0000001C )
+  6E8:  	Wait     00000005 
+  6F4:  	Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  710:  	Call     UseBattleCamPreset 	( 00000023 )
+  720:  EndChildThread
+  728:  Call     80269410 ( )
+  734:  Call     8026919C ( $???_802A2610 )
+  744:  Call     LoadActionCommand 	( 00000001 )
+  754:  Call     802A9000 ( )
+  760:  Set  *Var[A]  0000001B 
+  770:  Switch  *Var[F] 
+  77C:  	Case  ==  00000000 
+  788:  		Call     802A9120 ( *Var[A] 00000003 )
+  79C:  	Case  ==  00000001 
+  7A8:  		Call     802A9120 ( *Var[A] 00000003 )
+  7BC:  	Case  ==  00000002 
+  7C8:  		Call     802A9120 ( *Var[A] 00000004 )
+  7DC:  	Case  ==  00000003 
+  7E8:  		Call     802A9120 ( *Var[A] 00000004 )
+  7FC:  	Default
+  804:  		Call     802A9120 ( *Var[A] 00000005 )
+  818:  EndSwitch
+  820:  Call     SetGoalPos 	( .Actor:Player 0000001E 00000000 00000000 )
+  83C:  Call     EnablePlayerBlur 	( 00000001 )
+  84C:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00010007 0001000C )
+  86C:  If  *Var[F]  ==  00000000 
+  87C:  	Call     80275F00 ( 00000019 00000002 )
+  890:  Else
+  898:  	Call     80275F00 ( 00000019 00000004 )
+  8AC:  EndIf
+  8B4:  Call     EnablePlayerBlur 	( 00000000 )
+  8C4:  ChildThread
+  8CC:  	Call     ShakeCam    	( 00000001 00000000 00000002 *Fixed[0.20019531] )
+  8E8:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  904:  	Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[2.0] )
+  920:  	Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  93C:  	Call     ShakeCam    	( 00000001 00000000 00000003 *Fixed[0.7001953] )
+  958:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.40039062] )
+  974:  	Call     ShakeCam    	( 00000001 00000000 00000006 *Fixed[0.10058594] )
+  990:  	Call     ShakeCam    	( 00000001 00000000 00000004 *Fixed[0.05078125] )
+  9AC:  EndChildThread
+  9B4:  ChildThread
+  9BC:  	Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+  9D8:  	Add  *Var[0]  00000018 
+  9E8:  	Add  *Var[1]  0000000A 
+  9F8:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A3C:  	Call     PlayEffect  	( {FX:SmokeImpact:Large} *Var[0] *Var[1] *Var[2] 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  A80:  EndChildThread
+  A88:  Wait     0000000A 
+  A94:  Call     80269370 ( *Var[1] )
+  AA4:  If  *Var[1]  ==  00000001 
+  AB4:  	If  *Var[F]  >  00000005 
+  AC4:  		Set  *Flag[00]  00000001 
+  AD4:  	EndIf
+  ADC:  EndIf
+  AE4:  Set  *Var[0]  00000005 
+  AF4:  Call     $Function_802A10E4 ( )
+  B00:  If  *Var[F]  >  *Var[0] 
+  B10:  	Set  *Flag[00]  00000001 
+  B20:  EndIf
+  B28:  Call     InitTargetIterator 	( )
+  B34:  Call     80276EB4 ( *Var[B] )
+  B44:  Set  *Var[9]  00000000 
+  B54:  Label    0000000B 
+  B60:  Call     SetGoalToTarget 	( .Actor:Player )
+  B70:  Call     PlayerTestEnemy 	( *Var[0] 18000800 00000000 00000000 00000000 00000010 )
+  B94:  If  *Var[0]  ==  00000006 
+  BA4:  	Goto     0000000C 
+  BB0:  EndIf
+  BB8:  Switch  *Var[B] 
+  BC4:  	Case  >  00000000 
+  BD0:  		If  *Flag[00]  ==  00000000 
+  BE0:  			Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  BFC:  			Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000040 )
+  C20:  		Else
+  C28:  			Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  C44:  			Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 000000E0 )
+  C68:  		EndIf
+  C70:  	Default
+  C78:  		Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+  C94:  		Call     PlayerDamageEnemy 	( *Var[C] 28000880 00000000 00000000 00000001 00000020 )
+  CB8:  EndSwitch
+  CC0:  Switch  *Var[F] 
+  CCC:  	Case  ==  00000000 
+  CD8:  		Call     PlaySoundAtActor 	( .Actor:Player 00000235 )
+  CEC:  	Case  ==  00000001 
+  CF8:  		Call     PlaySoundAtActor 	( .Actor:Player 00000236 )
+  D0C:  	Case  ==  00000002 
+  D18:  		Call     PlaySoundAtActor 	( .Actor:Player 00000237 )
+  D2C:  	Case  ==  00000003 
+  D38:  		Call     PlaySoundAtActor 	( .Actor:Player 00000238 )
+  D4C:  	Default
+  D54:  		Call     PlaySoundAtActor 	( .Actor:Player 00000238 )
+  D68:  EndSwitch
+  D70:  Call     80269550 ( *Var[E] )
+  D80:  Label    0000000C 
+  D8C:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  DA0:  Add  *Var[9]  00000001 
+  DB0:  Call     GetTargetListLength 	( *Var[0] )
+  DC0:  If  *Var[9]  <  *Var[0] 
+  DD0:  	Goto     00000001 
+  DDC:  EndIf
+		If *Var[F] > 2 %3-cap (but since it doesn't have the damage reduction thing from power bounce, this is still OP!)
+			ExecWait $Script_802A15E8 
+			Return
+		EndIf
+  DE4:  Switch  *Var[C] 
+  DF0:  	CaseOR  ==  00000000 
+  DFC:  	CaseOR  ==  00000002 
+  E08:  		If  *Flag[00]  ==  00000001 
+  E18:  			ExecWait $Script_802A15E8 
+  E24:  			Return
+  E2C:  		EndIf
+  E34:  		ExecWait $Script_802A19C0 
+  E40:  		Return
+  E48:  	EndCaseGroup
+  E50:  	CaseOR  ==  00000001 
+  E5C:  	CaseOR  ==  00000003 
+  E68:  		If  *Flag[00]  ==  00000001 
+  E78:  			ExecWait $Script_802A15E8 
+  E84:  			Return
+  E8C:  		EndIf
+  E94:  	EndCaseGroup
+  E9C:  EndSwitch
+  EA4:  Add  *Var[F]  00000001 
+  EB4:  Goto     0000000A 
+  EC0:  Return
+  EC8:  End
+%/

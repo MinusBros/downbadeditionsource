@@ -1,0 +1,107 @@
+% #export .powerPlusPID 00000141 %temp example
+
+% #new:Function $IsBadgeEquipped %checks for badge ID
+% {
+% PUSH    s1, s2, s3
+% .Init
+% LIO     s2, 8010F498    % position in list
+% ADDIU   s3, s2, 78        % end of list
+% .Loop
+% LH      s1, 0 (s2)
+% BEQL    a0, s1, .End
+% ADDIU   a0, r0, 1 % return true
+% BNE     s2, s3, .Loop
+% ADDIU   s2, s2, 2
+% ADDIU   a0, r0, 0 % return false
+% .End
+% ADDU    v0, a0, r0 %move result to v0 to follow calling convention
+% POP     s1, s2, s3
+% JR      RA
+% NOP
+% }
+
+
+% #new:Function $IsBadgeEquipped2 { %takes arg a0, badge ID to look for
+%     LIO t0, 8010F498 %equipped badges address
+%     DADDU t1, r0, r0 %loop counter
+%     .loop
+%     LH t2, 0000 (t0)
+%     BEQL t2, a0, .exit
+%     ORI v0, r0, 0001 %returns true
+%     ADDIU t1, t1, 1
+%     SLTI t2, t1, 64` %64 total badges
+%     BNE t2, r0, .loop
+%     ADDIU t0, t0, 2
+%     ORI v0, r0, 0000 %return false
+%     .exit
+%     JR RA
+%     NOP
+% }
+
+% #new:Function $API_IsBadgeEquipped %checks for badge ID in first arg, returns result (0 if not, 1 if equipped) to second Var
+% {
+% PUSH    s0, s1, s2, ra
+% LW      s0, 000C (a0) %load ptr to args
+% JAL     ~Func:get_variable
+% LW      a1, 0000 (s0) %load first arg and get result of Var
+% %badgeID on v0
+% ADDU    s1, v0, r0 %first arg value on s1
+% %%
+% .Init
+% LIO     s2, 8010F498    % position in list
+% ADDIU   s3, s2, 78        % end of list
+% .Loop
+% LH      t0, 0 (s2)
+% BEQL    s1, t0, .End
+% ADDIU   s1, r0, 1 % return true
+% BNE     s2, s3, .Loop
+% ADDIU   s2, s2, 2
+% ADDIU   s1, r0, 0 % return false
+% .End
+% ADDU    a2, s1, r0
+% JAL ~Func:set_variable
+% LW      a1, 0004 (s0) %load first arg and get result of Var
+% POP     s0, s1, s2, ra
+% JR      RA
+% ORI     v0, r0, 0002
+% }
+
+#export:Function $DrawMenuBox {
+    ADDIU        SP, SP, -58
+    SW        RA, 50 (SP)
+    % setup call to DrawBox
+    SW        R0, 10 (SP)    % posZ
+    SW        A2, 14 (SP)    % width
+    SW        A3, 18 (SP) % height
+    SW        T1, 1C (SP) % opacity
+    COPY      A2, A0 % posX
+    COPY      A3, A1 % posY
+    COPY      A1, T0 % flags
+    CLEAR     A0 % flags
+    SW        R0, 20 (SP) % fogRGB
+    SW        R0, 24 (SP) % scaleX (unused)
+    SW        R0, 28 (SP) % scaleY (unused)
+    SW        R0, 2C (SP) % rotX (unused)
+    SW        R0, 30 (SP) % rotY (unused)
+    SW        R0, 34 (SP) % rotZ (unused)
+    SW        R0, 38 (SP) % unk func
+    SW        R0, 3C (SP) % unk func arg0
+    SW        R0, 40 (SP) % txMtx (unused)
+    SW        R0, 44 (SP) % txShiftY (unused)
+    SW        R0, 48 (SP) % txShiftX (unused)
+    JAL       800F52E0 %draw_box
+    SW        R0, 4C (SP) % unk
+    LW        RA, 50 (SP)
+    JR        RA
+    ADDIU        SP, SP, 58
+}
+
+
+#export:Data $Data_LastFX
+{ 00000000 }
+
+
+
+% #export $IsBadgeEquipped2
+% #export $API_IsBadgeEquipped
+% #export $IsBadgeEquipped

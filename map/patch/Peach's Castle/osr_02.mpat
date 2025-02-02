@@ -1,0 +1,96 @@
+#define .Flag_CastlePipeA *GameFlag[173]
+#define .Flag_CastlePipeB *GameFlag[174]
+
+@ $EntryList
+{
+~Vec4f:Entry0 % -205.0    0.0   55.0  135.0
+~Vec4f:Entry1 %    0.0   20.0 -290.0  180.0
+0.0 0.0 0.0 0.0 %null entrance
+~Vec4f:Entry3 %    0.0   20.0 -290.0  180.0
+}
+
+@ $Header
+{
+[EntryCount]  00000004 
+}
+
+#import EnterViaPipe.mpat
+
+
+@	$Script_Main
+{
+   [38]  Call  SetSpriteShading  ( .Shading:outsidecastle )
+}
+
+@ $Script_MakeEntities
+{
+	0:  If  *GF_KKJ25_Defeated_Bowser  ==  .True
+   10:  	Return
+   18:  EndIf
+   20:  If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted % 59
+   30:  	Return
+   38:  EndIf
+   40:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity802409D0 .Item:UltraShroom 80000000 )
+   68:  Call  AssignBlockFlag   ( *GF_OSR02_HiddenItem_UltraShroom )
+   78:  Call  MakeEntity        ( .Entity:SavePoint ~Vec4d:Entity80240A08 80000000 )
+		% NEW: blue warp pipe and blue switch
+		If       .Flag_CastlePipeA ==  00000000 
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:BlueSwitch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_RaisePipe .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:PipeLoc 00000003 $Script_UseBluePipe 00000173 80000000 )
+   9C:  Return
+   A4:  End
+}
+
+@ $Script_EnterDoubleDoor_80240408 %misleading script name (actually called for all entrances)
+{
+	0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240384
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+   58:  Switch  *Var0
+   64:  	Case  ==  ~Entry:Entry0
+   70:  		Call  UseDoorSounds ( .DoorSounds:Metal )
+   80:  		Set   *Var2  ~Model:o570
+   90:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+   A0:  		ExecWait  EnterSingleDoor
+   AC:  	Case  ==  ~Entry:Entry1
+   B8:  		Call  UseDoorSounds ( .DoorSounds:Large )
+   C8:  		Set   *Var2  ~Model:d2
+   D8:  		Set   *Var3  ~Model:d1
+   E8:  		ExecWait  EnterDoubleDoor
+   F4:  	Case  ==  00000002
+  100:  		Exec  $Script_80241190
+			Case  ==  3	% call the entry script for the new entrance
+				Set		*Var[A] $Script_80240384
+				Exec	$Script_EnterVerticalPipe
+				Return
+  10C:  EndSwitch
+  114:  Exec  $Script_80240384
+  120:  Return
+  128:  End
+}
+  
+#new:Script $Script_RaisePipe
+{
+	Wait     0000000A 
+	Call     PlaySound   	( 0000208E )
+	Set      .Flag_CastlePipeA 00000001 
+	Unbind
+	Return
+	End
+}
+  
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap     	( "osr_01" 4 )
+	Wait     00000064 
+	Return
+	End
+}

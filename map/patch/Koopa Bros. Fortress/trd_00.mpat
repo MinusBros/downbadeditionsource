@@ -1,0 +1,189 @@
+#define .NpcID:KoopaBros_00         00
+#define .NpcID:WorldEldstar_01      01
+
+%Plot points involving Goombarius will force him to swap out for the current partner.
+
+#new:Function $Function_802412C8
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:Chest ~Vec4d:Entity80241524 00000000 80000000 )
+   28:  Call  AssignFlag    ( *GF_TRD00_Chest_Refund )
+   38:  Call  AssignScript  ( $Script_8024148C )
+   48:  Call  MakeEntity    ( .Entity:Chest ~Vec4d:Entity8024156C 00000000 80000000 )
+   70:  Call  AssignFlag    ( *GF_TRD00_Chest_FPPlusB )
+   80:  Call  AssignScript  ( $Script_802414D8 )
+   90:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802415B4 80000000 )
+   B4:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802415D8 80000000 )
+		Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 ) 
+   D8:  Return
+   E0:  End
+}
+
+
+
+@	$Script_80241DA4
+{
+    0:  Call  DisablePartnerAI  ( 00000000 )
+   10:  Call  802CF56C      ( 00000002 )
+   20:  Call  SetNpcPos     ( .NpcID:WorldEldstar_01  -567`  26`  236` )
+   3C:  Call  PlayerFaceNpc ( .NpcID:WorldEldstar_01 .False )
+   50:  Call  NpcFaceNpc    ( .Npc:Partner .NpcID:WorldEldstar_01 00000000 )
+   68:  Call  UseSettingsFrom   ( .Cam:Default  -527`  0`  216` )
+   84:  Call  SetPanTarget  ( .Cam:Default  -527`  0`  216` )
+   A0:  Call  SetCamDistance    ( .Cam:Default *Fixed[475.0] )
+   B4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   C8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E0:  Wait  1`
+   EC:  Call  WaitForPlayerInputEnabled ( )
+   F8:  Call  DisablePlayerInput    ( .True )
+  108:  Wait  40`
+  114:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_01 00120002 00120001 00000200 000C010D ) % Mario, I believe you'll save us all... From the bo ...
+  134:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  148:  Call  SetCamPitch   ( .Cam:Default *Fixed[18.0] *Fixed[-9.0] )
+  160:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  174:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  18C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1A0:  Call  MakeLerp      ( 00000000 00000168 0000000A .Easing:Linear )
+  1BC:  Loop
+  1C8:  	Call  UpdateLerp ( )
+  1D4:  	Call  SetNpcRotation    ( .NpcID:WorldEldstar_01 00000000 *Var0 00000000 )
+  1F0:  	Wait  1`
+  1FC:  	If  *Var1  ==  00000000
+  20C:  		BreakLoop
+  214:  	EndIf
+  21C:  EndLoop
+  224:  Call  EnableNpcAI       ( .NpcID:WorldEldstar_01 .False )
+  238:  Call  SetNpcAnimation   ( .NpcID:WorldEldstar_01 00120003 )
+  24C:  Wait  20`
+  258:  Call  PlaySoundAtPlayer ( 00000139 00000000 )
+  26C:  Call  SetPlayerAnimation    ( .PlayerAnim:GotItem )
+  27C:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  294:  Set   *Var3  *Var1
+  2A4:  Add   *Var0  00000005
+  2B4:  Add   *Var1  00000032
+  2C4:  Add   *Var2  0000000A
+  2D4:  Add   *Var3  0000001E
+  2E4:  Loop  00000006
+  2F0:  	Call  PlayEffect    ( 00000011 00000003 *Var0 *Var1 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  334:  	Wait  6`
+  340:  	Call  PlayEffect    ( ~FX:Sparkles:Random *Var0 *Var3 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  384:  	Wait  6`
+  390:  EndLoop
+  398:  Wait  20`
+  3A4:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  3BC:  Add   *Var1  00000014
+  3CC:  Call  PlaySoundAtPlayer ( 00000188 00000000 )
+  3E0:  Call  PlayEffect        ( ~FX:EnergyWaveOut:Grey *Var0 *Var1 *Var2 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  424:  Wait  40`
+  430:  Call  SetPlayerAnimation        ( 00010002 )
+  440:  Call  SetNpcAnimation   ( .NpcID:WorldEldstar_01 00120001 )
+  454:  Call  EnableNpcAI       ( .NpcID:WorldEldstar_01 .True )
+  468:  Call  $Function_802405D0 ( )
+  474:  Call  ShowMessageAtScreenPos    ( 001D0191  160`  40` ) % Mario can now use the Star Spirit's Power in battl ...
+  48C:  Wait  10`
+  	Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Goombario % 1
+			Call  $Function_802412C8    ( 00000001 )
+		Thread
+			Set   *MapVar[0]  00000000
+			Set   *MapVar[0]  00000001
+		EndThread
+	Wait  50`
+	Call  DisablePartnerAI  ( 00000000 )
+	Call  SetNpcYaw ( .Npc:Partner  90` )
+	Call  EnablePartnerAI ( )
+	Loop
+		Wait  1`
+		If  *MapVar[0]  ==  00000001
+		BreakLoop
+			EndIf
+		EndLoop
+	EndIf
+	Call  DisablePartnerAI  ( 00000000 )
+  498:  Call  SpeakToPlayer     ( .Npc:Partner 00120008 00120001 00000200 000C010E ) % Using a Star Power requires Star Energy. Would you ...
+  554:  Call  ContinueSpeech    ( .NpcID:WorldEldstar_01 00120002 00120001 00000200 000C0111 ) % Allow me to explain.
+  60C:  Wait  30`
+  618:  Call  GetNpcPos     ( .NpcID:WorldEldstar_01 *Var0 *Var1 *Var2 )
+  634:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  650:  Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
+  664:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  67C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  690:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_01 00120002 00120001 00000200 000C0112 ) % Mario...listen carefully. You must save the other  ...
+  6B0:  Wait  10`
+  6BC:  Call  SetPanTarget  ( .Cam:Default  -527`  0`  216` )
+  6D8:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  6EC:  Call  SetCamPitch   ( .Cam:Default *Fixed[18.0] *Fixed[-9.0] )
+  704:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  718:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  730:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  744:  Wait  10`
+  750:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_01 00120002 00120001 00000200 000C0113 ) % I have to go back now... back to Star Haven. I mus ...
+  770:  Call  SetNpcFlagBits    ( .NpcID:WorldEldstar_01 00040000 .True )
+  788:  Thread
+  790:  	Loop  00000019
+  79C:  		Call  GetNpcPos     ( .NpcID:WorldEldstar_01 *Var0 *Var1 *Var2 )
+  7B8:  		Call  PlayEffect    ( 00000011 00000004 *Var0 *Var1 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7FC:  		Wait  4`
+  808:  	EndLoop
+  810:  EndThread
+  818:  Thread
+  820:  	Set   *Var2  00000000
+  830:  	Set   *Var3  00000708
+  840:  	Call  MakeLerp  ( *Var2 *Var3 00000064 .Easing:CubicIn )
+  85C:  	Loop
+  868:  		Call  UpdateLerp ( )
+  874:  		Call  SetNpcRotation    ( .NpcID:WorldEldstar_01 00000000 *Var0 00000000 )
+  890:  		Wait  1`
+  89C:  		If  *Var1  ==  00000000
+  8AC:  			BreakLoop
+  8B4:  		EndIf
+  8BC:  	EndLoop
+  8C4:  EndThread
+  8CC:  Thread
+  8D4:  	Call  GetNpcPos ( .NpcID:WorldEldstar_01 *Var2 *Var3 *Var4 )
+  8F0:  	Set   *Var5  *Var3
+  900:  	Add   *Var5  000000B4
+  910:  	Call  MakeLerp  ( *Var3 *Var5 00000064 .Easing:CubicIn )
+  92C:  	Loop
+  938:  		Call  UpdateLerp ( )
+  944:  		Call  SetNpcPos ( .NpcID:WorldEldstar_01 *Var2 *Var0 *Var4 )
+  960:  		Wait  1`
+  96C:  		If  *Var1  ==  00000000
+  97C:  			BreakLoop
+  984:  		EndIf
+  98C:  	EndLoop
+  994:  	Call  SetNpcPos ( .NpcID:WorldEldstar_01  0`  -1000`  0` )
+  9B0:  EndThread
+  9B8:  Thread
+  9C0:  	Wait  15`
+  9CC:  	Call  PlaySoundAtNpc    ( .NpcID:WorldEldstar_01 00002045 00000000 )
+  9E4:  EndThread
+  9EC:  Wait  10`
+  9F8:  Call  SetPlayerAnimation    ( 0001002A )
+  A08:  Wait  60`
+  A14:  Call  ResetCam  ( .Cam:Default  3` )
+  A28:  Wait  20`
+  A34:  Call  SetPlayerAnimation    ( 00010002 )
+  A44:  Set   *GB_StoryProgress  .Story:Ch1_StarSpritDeparted
+  A54:  Exec  $Script_802406D0
+  A60:  Call  EnablePartnerAI ( )
+  A6C:  Call  DisablePlayerInput    ( .False )
+  A7C:  Return
+  A84:  End
+}

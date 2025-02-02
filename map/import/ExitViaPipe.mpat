@@ -1,0 +1,497 @@
+%Scripts for exiting a map via green pipe.
+%(i.e. going down a pipe, not coming out of one)
+
+%Blue pipes work differently and don't need these scripts imported
+
+%instead, bind the entry script (see below) only
+
+%you may have to change the setgroup calls especially if you have multiple pipes
+
+
+%How to use:
+
+%bind your pipe collider to a script like the exitviapipe script below
+%bind a floorabove trigger if it's a vertical pipe (you go down), and a wallpush trigger if it's a horizontal pipe (you go to the side)
+%change the three variables to the correct values
+
+%horizontal pipes are very similar
+
+/%
+#new:Script $Script_ExitViaPipe %$Script_802445CC
+    0:  SetGroup 0000001B 
+		Set *Var[A] 00000001 		%entry id
+		Set *Var[B] 0000000D	 	%collider id
+		Set *Var[C]	$Script_Entry1 	%script
+   3C:  ExecWait $Script_VerticalPipe 
+   48:  Return
+   50:  End
+%/
+
+%entry id: the number after the entry (entry0 = 0, entry1 = 1)
+%collider id: open the map's xml file, search for the name of the collider, and use that id
+%script: an script for going to the other map (see below)
+
+/%
+#new:Script $Script_Entry1
+    0:  Call     GotoMap     	( "tik_15" 00000001 ) %change map id and entry to the correct values
+   14:  Wait     00000064 
+   20:  Return
+   28:  End
+%/
+
+#new:Function $Function_80240000
+{
+    0:  LAW			V0, 800F7B30
+    8:  LW			V1, 4 (V0)
+    C:  LUI			A0, 10
+   10:  OR			V1, V1, A0
+   14:  SW			V1, 4 (V0)
+   18:  JR			RA
+   1C:  ADDIU		V0, R0, 2
+}
+
+#new:Function $Function_80240034
+{
+    0:  LAH			V1, 8015A552
+    8:  ADDIU		SP, SP, FFE8
+    C:  SW			S0, 10 (SP)
+   10:  COPY		S0, A0
+   14:  SW			RA, 14 (SP)
+   18:  LW			V0, B0 (S0)
+   1C:  BEQ			V1, V0, .o2C
+   20:  ADDIU		V0, R0, 2
+   24:  BEQ			R0, R0, .oAC
+   28:  SW			R0, 84 (S0)
+        .o2C
+   2C:  LAW			V1, 8007419C
+   34:  LB			V0, 40 (V1)
+   38:  LB			A3, 44 (V1)
+   3C:  BLTZL		V0, .o44
+   40:  SUBU		V0, R0, V0
+        .o44
+   44:  BNE			V0, R0, .o54
+   48:  NOP
+   4C:  BEQL		A3, R0, .oAC
+   50:  CLEAR		V0
+        .o54
+   54:  MTC1		V0, F4
+   58:  NOP
+   5C:  CVT.S.W		F4, F4
+   60:  MFC1		A2, F4
+   64:  MTC1		A3, F4
+   68:  NOP
+   6C:  CVT.S.W		F4, F4
+   70:  MTC1		R0, F12
+   74:  MFC1		A3, F4
+   78:  JAL			~Func:atan2
+   7C:  MOV.S		F14, F12
+   80:  LIF			F2, 60.0
+   88:  NOP
+   8C:  C.LT.S		F0, F2
+   90:  NOP
+   94:  BC1F		.oA8
+   98:  ADDIU		V0, R0, 1
+   9C:  SW			V0, 84 (S0)
+   A0:  BEQ			R0, R0, .oAC
+   A4:  ADDIU		V0, R0, 2
+        .oA8
+   A8:  CLEAR		V0
+        .oAC
+   AC:  LW			RA, 14 (SP)
+   B0:  LW			S0, 10 (SP)
+   B4:  JR			RA
+   B8:  ADDIU		SP, SP, 18
+}
+
+#new:Function $Function_802400F0
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S1, 14 (SP)
+    8:  COPY		S1, A0
+    C:  SW			RA, 1C (SP)
+   10:  SW			S2, 18 (SP)
+   14:  JAL			8005ABE8
+   18:  SW			S0, 10 (SP)
+   1C:  COPY		A0, S1
+   20:  LIO			A1, *Var[0]
+   28:  JAL			~Func:get_variable
+   2C:  COPY		S2, V0
+   30:  COPY		A0, S1
+   34:  LUI			A1, FE36
+   38:  LW			V1, 14 (S2)
+   3C:  SLL			S0, V0, 4
+   40:  ADDU		V1, S0, V1
+   44:  LWC1		F0, 0 (V1)
+   48:  TRUNC.W.S	F2, F0
+   4C:  MFC1		A2, F2
+   50:  JAL			~Func:set_variable
+   54:  ORI			A1, A1, 3C81
+   58:  COPY		A0, S1
+   5C:  LW			V0, 14 (S2)
+   60:  LUI			A1, FE36
+   64:  ADDU		V0, S0, V0
+   68:  LWC1		F0, 4 (V0)
+   6C:  TRUNC.W.S	F2, F0
+   70:  MFC1		A2, F2
+   74:  JAL			~Func:set_variable
+   78:  ORI			A1, A1, 3C82
+   7C:  COPY		A0, S1
+   80:  LW			V0, 14 (S2)
+   84:  LUI			A1, FE36
+   88:  ADDU		V0, S0, V0
+   8C:  LWC1		F0, 8 (V0)
+   90:  TRUNC.W.S	F2, F0
+   94:  MFC1		A2, F2
+   98:  JAL			~Func:set_variable
+   9C:  ORI			A1, A1, 3C83
+   A0:  COPY		A0, S1
+   A4:  LW			V0, 14 (S2)
+   A8:  LUI			A1, FE36
+   AC:  ADDU		S0, S0, V0
+   B0:  LWC1		F0, C (S0)
+   B4:  TRUNC.W.S	F2, F0
+   B8:  MFC1		A2, F2
+   BC:  JAL			~Func:set_variable
+   C0:  ORI			A1, A1, 3C84
+   C4:  LW			RA, 1C (SP)
+   C8:  LW			S2, 18 (SP)
+   CC:  LW			S1, 14 (SP)
+   D0:  LW			S0, 10 (SP)
+   D4:  ADDIU		V0, R0, 2
+   D8:  JR			RA
+   DC:  ADDIU		SP, SP, 20
+}
+
+#new:Function $Function_802401D0
+{
+    0:  LAW			V1, 80077410
+    8:  LIF			F12, 180.0
+   10:  ADDIU		SP, SP, FFE8
+   14:  SW			RA, 14 (SP)
+   18:  SW			S0, 10 (SP)
+   1C:  SLL			V0, V1, 2
+   20:  ADDU		V0, V0, V1
+   24:  SLL			V0, V0, 2
+   28:  SUBU		V0, V0, V1
+   2C:  SLL			V1, V0, 3
+   30:  ADDU		V0, V0, V1
+   34:  SLL			V0, V0, 3
+   38:  LTF			F0, V0 (800B1DEC)
+   44:  ADD.S		F12, F0, F12
+   48:  JAL			~Func:clamp_angle
+   4C:  COPY		S0, A0
+   50:  TRUNC.W.S	F2, F0
+   54:  SWC1		F2, 84 (S0)
+   58:  LW			RA, 14 (SP)
+   5C:  LW			S0, 10 (SP)
+   60:  ADDIU		V0, R0, 2
+   64:  JR			RA
+   68:  ADDIU		SP, SP, 18
+}
+
+#new:Function $Function_8024023C
+{
+    0:  ADDIU		SP, SP, FFD8
+    4:  SW			S0, 18 (SP)
+    8:  COPY		S0, A0
+    C:  SW			RA, 1C (SP)
+   10:  SDC1		F20, 20 (SP)
+   14:  LW			V0, C (S0)
+   18:  JAL			~Func:get_float_variable
+   1C:  LW			A1, 0 (V0)
+   20:  ADDIU		A0, SP, 10
+   24:  LIA			V0, 8010EFC8
+   2C:  MFC1		A2, F0
+   30:  LWC1		F0, 28 (V0)
+   34:  LWC1		F2, 30 (V0)
+   38:  SWC1		F0, 10 (SP)
+   3C:  SWC1		F2, 14 (SP)
+   40:  LW			A3, 80 (V0)
+   44:  LWC1		F20, 2C (V0)
+   48:  JAL			~Func:add_vec2D_polar
+   4C:  ADDIU		A1, SP, 14
+   50:  COPY		A0, S0
+   54:  LUI			A1, FE36
+   58:  LW			A2, 10 (SP)
+   5C:  JAL			~Func:set_float_variable
+   60:  ORI			A1, A1, 3C80
+   64:  COPY		A0, S0
+   68:  LUI			A1, FE36
+   6C:  MFC1		A2, F20
+   70:  JAL			~Func:set_float_variable
+   74:  ORI			A1, A1, 3C81
+   78:  COPY		A0, S0
+   7C:  LUI			A1, FE36
+   80:  LW			A2, 14 (SP)
+   84:  JAL			~Func:set_float_variable
+   88:  ORI			A1, A1, 3C82
+   8C:  LW			RA, 1C (SP)
+   90:  LW			S0, 18 (SP)
+   94:  LDC1		F20, 20 (SP)
+   98:  ADDIU		V0, R0, 2
+   9C:  JR			RA
+   A0:  ADDIU		SP, SP, 28
+}
+   
+#new:Script $Script_VerticalPipe
+{
+    0:  Call     $Function_80240034 ( ) %check mario's state
+    C:  If  *Var[0]  ==  00000000 
+   1C:  	Return
+   24:  EndIf %execution only gets past this point if you are holding down and are in the right state to go down a pipe
+   2C:  Call     802D2B0C ( *Var[0] ) %checks partner usage?
+   3C:  If  *Var[0]  !=  00000000 
+   4C:  	Call     GetCurrentPartner 	( *Var[1] )
+   5C:  	If  *Var[1]  !=  00000006 %if NOT using watt, don't go down pipe
+   6C:  		Return
+   74:  	Else
+   7C:  		Call     802D2B6C ( ) %force you to stop using watt?
+   88:  		Call     DisablePlayerInput 	( .True )
+   98:  	EndIf
+   A0:  Else
+   A8:  	Call     DisablePlayerInput 	( .True )
+   B8:  EndIf
+   C0:  ExecWait $Script_80243E50 
+   CC:  Return
+   D4:  End
+}
+
+#new:Script $Script_HorizontalPipe
+{
+    0:  Call     802D249C ( *Var[0] )
+	10:  If  *Var[0]  ==  00000000 
+   20:  	Return
+   28:  EndIf
+   30:  Call     GetPlayerActionState 	( *Var[0] )
+   40:  If  *Var[0]  ==  0000001A %action 1A is spinning
+   50:  	Return
+   58:  EndIf
+   60:  Call     802D2B0C ( *Var[0] )
+   70:  If  *Var[0]  !=  00000000 
+   80:  	Call     GetCurrentPartner 	( *Var[1] )
+   90:  	If  *Var[1]  !=  00000006 
+   A0:  		Return
+   A8:  	Else
+   B0:  		Call     802D2B6C ( )
+   BC:  		Call     DisablePlayerInput 	( .True )
+   CC:  	EndIf
+   D4:  Else
+   DC:  	Call     DisablePlayerInput 	( .True )
+   EC:  EndIf
+   F4:  SetGroup 0000001B 
+  100:  Call     $Function_80240000 ( )
+  10C:  Call     DisablePlayerPhysics 	( .True )
+  11C:  Call     ModifyColliderFlags 	( 00000000 *Var[B] 7FFFFE00 )
+  134:  Set  *Var[0]  *Var[A] 
+  144:  Call     $Function_802400F0 ( )
+  150:  Set  *Var[5]  *Var[1] 
+  160:  Set  *Var[6]  *Var[2] 
+  170:  Add  *Var[6]  00000002 
+  180:  Set  *Var[7]  *Var[3] 
+  190:  Set  *Var[8]  *Var[4] 
+  1A0:  Add  *Var[8]  000000B4 
+  1B0:  If  *Var[4]  >=  00000168 
+  1C0:  	Sub  *Var[4]  00000168 
+  1D0:  EndIf
+  1D8:  Call     InterpPlayerYaw 	( *Var[8] 00000001 )
+  1EC:  Wait     00000001 
+  1F8:  Call     PlaySound   	( 00000163 )
+  208:  Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  220:  Call     SetPlayerPos 	( *Var[0] *Var[6] *Var[7] )
+  238:  Call     SetPlayerAnimation 	( .PlayerAnim:StandStill )
+  248:  Call     802D286C ( 00000800 )
+  258:  Call     802D2520 ( 00010000 00000005 00000003 00000001 00000001 00000000 )
+  27C:  Thread
+  284:  	Wait     00000008 
+  290:  	Call     HidePlayerShadow 	( .True )
+  2A0:  EndThread
+  2A8:  Thread
+  2B0:  	Wait     00000003 
+  2BC:  	Loop     00000028 
+  2C8:  		Call     $Function_8024023C ( *Fixed[1.0] )
+  2D8:  		Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  2F0:  		Wait     00000001 
+  2FC:  	EndLoop
+  304:  EndThread
+  30C:  Wait     00000019 
+  318:  ExecWait *Var[C] 
+  324:  Return
+  32C:  End
+}
+
+#new:Script $Script_80243E50
+{
+    0:  Call     $Function_80240000 ( )
+    C:  SetGroup 0000001B 
+   18:  Call     DisablePlayerPhysics 	( .True )
+   28:  Call     HidePlayerShadow 	( .True )
+   38:  Set  *Var[0]  *Var[A] 
+   48:  Call     $Function_802400F0 ( )
+   54:  Call     PlayerMoveTo 	( *Var[1] *Var[3] 00000003 )
+   6C:  Set  *Var[0]  *Var[A] 
+   7C:  Call     $Function_802400F0 ( )
+   88:  Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+   A0:  Call     SetPlayerFlagBits 	( 00200000 .True )
+   B4:  Call     $Function_802401D0 ( )
+   C0:  Call     InterpPlayerYaw 	( *Var[0] 00000000 )
+   D4:  Wait     00000002 
+   E0:  Call     SetPlayerFlagBits 	( 00200000 .False )
+   F4:  Call     PlaySound   	( 00000163 )
+  104:  Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  11C:  Thread
+  124:  	Wait     00000004 
+  130:  	Loop     00000028 
+  13C:  		Sub  *Var[1]  00000001 
+  14C:  		Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  164:  		Wait     00000001 
+  170:  	EndLoop
+  178:  EndThread
+  180:  Call     802D286C ( 00000800 )
+  190:  Call     802D2520 ( 00010002 00000005 00000002 00000001 00000001 00000000 )
+  1B4:  Wait     00000019 
+  1C0:  ExecWait *Var[C] 
+  1CC:  Return
+  1D4:  End
+}
+  
+%ceiling pipe
+%you come out the ceiling
+%used for pit pipes
+
+#new:Script $Script_EnterCeilingPipe
+{
+    C:  SetGroup 0000001B 
+		%Set *Var[A] 0`                        % entry index
+		%Set *Var[B] ~Collider:xxxx        % pipe collider id
+		Call 	 DisablePlayerInput   ( .True )
+   18:  Call     DisablePlayerPhysics 	( .True )
+   28:  Call     HidePlayerShadow 	( .True )
+		Call     GetCurrentPartner 	( *Var[0] )
+   60:  If  *Var[0]  !=  00000000 
+   20:  	Call     DisablePartnerAI 	( 00000000 )
+   70:  	Call     EnableNpcShadow 	( .Npc:Partner .False )
+   84:  	Call     SetNpcPos   	( .Npc:Partner 00000000 FFFFFC18 00000000 )
+		EndIf
+   38:  Set  *Var[0]  *Var[A] 
+   48:  Call     $CeilingPipe_Function1 ( )
+   54:  Call     PlayerMoveTo 	( *Var[1] *Var[3] 00000003 )
+   6C:  Set  *Var[0]  *Var[A] 
+   7C:  Call     $CeilingPipe_Function1 ( )
+   88:  Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+   A0:  Call     SetPlayerFlagBits 	( 00200000 .True )
+   B4:  Call     $CeilingPipe_Function2 ( )
+   C0:  Call     InterpPlayerYaw 	( *Var[0] 00000000 )
+   D4:  Wait     00000002 
+   E0:  Call     SetPlayerFlagBits 	( 00200000 .False )
+  104:  Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  		Call     802D286C ( 00000100 )
+  120:  Call     802D2520 ( 00010000 00000005 00000002 00000001 00000001 00000000 )
+  124:  	Wait     00000004 
+			Call PlaySound            ( 163 )
+  130:  	Loop     00000028 
+  13C:  		Sub  *Var[1]  1`
+  14C:  		Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  164:  		Wait     00000001 
+  170:  	EndLoop
+  274:  Wait     00000001 
+  280:  Call     802D2520 ( 00010000 00000000 00000000 00000000 00000000 00000000 )
+  2B0:  Call     SetPlayerAnimation 	( 00010002 )
+  2C0:  Call     DisablePlayerPhysics 	( .False )
+  2D0:  Call     DisablePlayerInput 	( .False )
+  2E0:  Call     HidePlayerShadow 	( .False )
+		Call     GetCurrentPartner 	( *Var[0] )
+		If  *Var[0]  !=  00000000 
+  22C:  		Call     SetNpcFlagBits ( .Npc:Partner 00000002 .False )
+  244:  		Call     EnablePartnerAI 	( )
+  250:  		Call     EnableNpcShadow 	( .Npc:Partner .True )
+		EndIf
+  344:  Return
+  34C:  End
+}
+  
+ #new:Function $CeilingPipe_Function1
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  JAL       8005ABE8
+   18:  SW        S0, 10 (SP)
+   1C:  DADDU     A0, S1, R0
+   20:  LIO       A1, *Var[0]
+   28:  JAL       ~Func:get_variable
+   2C:  DADDU     S2, V0, R0
+   30:  DADDU     A0, S1, R0
+   34:  LUI       A1, FE36
+   38:  LW        V1, 14 (S2)
+   3C:  SLL       S0, V0, 4
+   40:  ADDU      V1, S0, V1
+   44:  LWC1      F0, 0 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      A2, F2
+   50:  JAL       ~Func:set_variable
+   54:  ORI       A1, A1, 3C81
+   58:  DADDU     A0, S1, R0
+   5C:  LW        V0, 14 (S2)
+   60:  LUI       A1, FE36
+   64:  ADDU      V0, S0, V0
+   68:  LWC1      F0, 4 (V0)
+   6C:  TRUNC.W.S F2, F0
+   70:  MFC1      A2, F2
+   74:  JAL       ~Func:set_variable
+   78:  ORI       A1, A1, 3C82
+   7C:  DADDU     A0, S1, R0
+   80:  LW        V0, 14 (S2)
+   84:  LUI       A1, FE36
+   88:  ADDU      V0, S0, V0
+   8C:  LWC1      F0, 8 (V0)
+   90:  TRUNC.W.S F2, F0
+   94:  MFC1      A2, F2
+   98:  JAL       ~Func:set_variable
+   9C:  ORI       A1, A1, 3C83
+   A0:  DADDU     A0, S1, R0
+   A4:  LW        V0, 14 (S2)
+   A8:  LUI       A1, FE36
+   AC:  ADDU      S0, S0, V0
+   B0:  LWC1      F0, C (S0)
+   B4:  TRUNC.W.S F2, F0
+   B8:  MFC1      A2, F2
+   BC:  JAL       ~Func:set_variable
+   C0:  ORI       A1, A1, 3C84
+   C4:  LW        RA, 1C (SP)
+   C8:  LW        S2, 18 (SP)
+   CC:  LW        S1, 14 (SP)
+   D0:  LW        S0, 10 (SP)
+   D4:  ADDIU     V0, R0, 2
+   D8:  JR        RA
+   DC:  ADDIU     SP, SP, 20
+}
+   
+   %Entering a Pipe (Down Animation)
+	#new:Function $CeilingPipe_Function2
+{
+    0:  LAW       V1, 80077410
+    8:  LIF       F12, 180.0
+   10:  ADDIU     SP, SP, FFE8
+   14:  SW        RA, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  SLL       V0, V1, 2
+   20:  ADDU      V0, V0, V1
+   24:  SLL       V0, V0, 2
+   28:  SUBU      V0, V0, V1
+   2C:  SLL       V1, V0, 3
+   30:  ADDU      V0, V0, V1
+   34:  SLL       V0, V0, 3
+   38:  LTF       F0, V0 (800B1DEC)
+   44:  ADD.S     F12, F0, F12
+   48:  JAL       80029B24
+   4C:  DADDU     S0, A0, R0
+   50:  TRUNC.W.S F2, F0
+   54:  SWC1      F2, 84 (S0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  ADDIU     V0, R0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}

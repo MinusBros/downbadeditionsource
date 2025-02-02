@@ -1,0 +1,110 @@
+% Automatically dumped from section 02
+
+#new:Actor $JrTroopa7 {
+% stats
+[Index]        8Db 
+[Level]         0`b
+[MaxHP]       160`b 
+[Coins]         0`b 
+[Flags]       00000000 
+[StatusTable] $StatusTable_8022C43C_02 
+% ai
+[PartsCount]    3`s 
+[PartsTable]  $PartsTable_8022C640_02 
+[Script]      $Script_Init_JrTroopa7 
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]  40`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         24`b  32`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -20`b  35`b % dx dy
+[StatusIcon]   10`b  25`b % dx dy
+}
+
+
+
+#new:Script $Script_Init_JrTroopa7 {
+    0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   18:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   30:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   48:  Call  SetActorVar   ( .Actor:Self 00000003 00000001 )
+   60:  Call  SetActorVar   ( .Actor:Self 00000004 00000005 )
+		Set   *GB_JrTroopaBattle  00000003
+   78:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_JrTroopa7 )
+   8C:  Call  BindIdle      ( .Actor:Self $Script_Idle_JrTroopa7 )
+   A0:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8022D1C4_02 )
+   B4:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_JrTroopa7 )
+		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:GoldenFlames )
+   C8:  Return
+   D0:  End
+}
+
+#new:Script $Script_Idle_JrTroopa7 {
+    0:  Label  0
+    C:  Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+   24:  Switch  *Var0 
+   30:  	Case  ==  00000002 
+   3C:  		Call  GetStatusFlags    ( .Actor:Self *VarA )
+   50:  		If  *VarA  &  ~Flags:StatusFlags:Sleep|Dizzy % 41000
+   60:  			Call  SetTargetOffset       ( .Actor:Self 00000002  -15`  28` )
+   7C:  			Call  8027D4C8  ( FFFFFF81 00000002 00000004 FFFFFFFA )
+   98:  			Call  $Function_80218AD0_02 ( FFFFFFE7 0000001B FFFFFFFF 0000001B )
+   B4:  		Else
+   BC:  			Call  SetTargetOffset       ( .Actor:Self 00000002  -8`  33` )
+   D8:  			Call  8027D4C8  ( FFFFFF81 00000002 00000000 FFFFFFFA )
+   F4:  			Call  $Function_80218AD0_02 ( FFFFFFEA 0000001E 00000002 0000001C )
+  110:  		EndIf
+  118:  	Default
+  120:  		Call  $Function_80218AD0_02 ( FFFFFFEC 00000023 0000000A 00000019 )
+  13C:  EndSwitch
+  144:  Wait  1`
+  150:  Goto  0
+  15C:  Return
+  164:  End
+}
+
+
+
+#new:Script $Script_TakeTurn_JrTroopa7 {
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If  *Var0  ==  .Partner:Goombario % 1
+  404:  			ExecWait  $Script_HopAttack %Triple hop attack
+				Else
+					ExecWait  $Script_NoGoombarius
+				EndIf
+  418:  Return
+  420:  End
+}
+
+
+#new:Script $Script_NextTurn_JrTroopa7 {
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetBattlePhase    ( *Var0 )
+   38:  Switch  *Var0 
+   44:  	Case  ==  0000000A 
+   50:  		Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
+   68:  		If  *Var0  !&  00000001 
+   78:  			ConstOR  *Var0 00000001 
+   88:  			Call  SetActorVar       ( .Actor:Self 00000002 *Var0 )
+   A0:  			Call  UseBattleCamPreset    ( 0000000E )
+   B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
+   C0:  			Call  MoveBattleCamOver (  20` )
+					Call  ActorSpeak        ( 001300B3 .Actor:Self 00000001 0021001A 0021001B ) % No Goombarius?
+   F0:  			Call  SetAnimation      ( .Actor:Self 00000001 00210003 )
+  108:  		EndIf
+  110:  	Case  ==  0000000C 
+  11C:  	Case  ==  0000000B 
+  128:  	Case  ==  0000000A 
+  134:  EndSwitch
+  13C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  150:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  164:  Return
+  16C:  End
+}

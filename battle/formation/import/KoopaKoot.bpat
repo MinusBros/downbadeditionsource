@@ -1,0 +1,765 @@
+% Koopa Koot battle
+% Made by JaThePlayer because Thamz is lazy lol
+% Tweaked by Minus Bros. to make it work in Down Bad Edition
+
+% Define your graphics here
+#define .AnimStop	00B50000 % Sleep as well
+#define .AnimIdle	00B50001 % poison as well
+#define .AnimPain	00B50005 % Kinda stupid, but it's the best hurt animation. Death, Burn AND Dizzy as well
+#define .AnimSwing  00B50006
+#define .AnimTalk   00B50004
+#define .AnimRun	00B50003
+#define .AnimMiss   00B50007
+#define .AnimHold   00B50007
+% when to heal + buff
+#define .KoopBuff1HP 100`
+#define .KoopBuff2HP 80`
+#define .KoopBuff3HP 60`
+#define .KoopBuff4HP 40`
+#define .Swingcount *GameByte[035]
+
+#new:Actor $KoopaKoot
+{
+% stats
+[Index]         58b % (new) index from ActorTable.xml
+[Level]        100`b 
+[MaxHP]        130`b 
+[Coins]          1`b 
+[Flags]       00000000 
+[StatusTable] $StatusTable_KoopaKoot 
+% ai
+[PartsCount]   1`s 
+[PartsTable] $PartsTable_KoopaKoot 
+[Script]      $Script_Init_KoopaKoot 
+% move effectiveness
+[Escape]        0`b 
+[Item]         0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]    0`b 
+[PowerBounce]  3`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         24`b  24`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -10`b  20`b % dx dy
+[StatusIcon]   10`b  20`b % dx dy
+}
+
+#new:DefenseTable $DefenseTable_KoopaKoot
+{
+.Element:Normal 00000002
+.Element:End
+}
+
+#new:StatusTable $StatusTable_KoopaKoot
+{
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep      0`
+.Status:Poison     0`
+.Status:Frozen     0`
+.Status:Dizzy      0`
+.Status:Fear       0`
+.Status:Static     0`
+.Status:Paralyze  0`
+.Status:Shrink     0`
+.Status:Stop      0`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_KoopaKoot
+{
+00800000 01000000 001400FF $IdleAnimations_KoopaKoot $DefenseTable_KoopaKoot 00000000 00000000 00F60000 00000000 
+}
+
+#new:IdleAnimations $IdleAnimations_KoopaKoot
+{
+.Status:Normal    .AnimIdle
+.Status:Stone     .AnimStop
+.Status:Sleep     .AnimStop
+.Status:Poison    .AnimIdle
+.Status:Stop      .AnimStop
+.Status:Static    .AnimIdle
+.Status:Paralyze  .AnimStop
+.Status:Dizzy     .AnimPain
+.Status:Fear      .AnimPain
+.Status:End
+}
+
+#new:Script $Script_Init_KoopaKoot
+{
+	Call     BindTakeTurn 	( .Actor:Self $Script_TakeTurn_KoopaKoot )
+	Call     BindIdle    	( .Actor:Self $Script_Idle_KoopaKoot )
+    Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_KoopaKoot )
+	Call     SetActorVar	( .Actor:Self 00000001 00000001 ) % Heal + buff 1
+	Call     SetActorVar	( .Actor:Self 00000002 00000001 ) % Heal + buff 2
+	Call     SetActorVar	( .Actor:Self 00000003 00000001 ) % Heal + buff 3
+	Call     SetActorVar	( .Actor:Self 00000004 00000001 ) % Heal + buff 4
+	Call     SetActorVar    ( .Actor:Self 00000005 00000000 ) % Not sure why this is needed but here goes
+    Return
+    End
+}
+
+#new:Script $Script_Idle_KoopaKoot
+{
+  Return
+  End
+}
+
+#new:Script $Script_HandleEvent_KoopaKoot
+{
+    0:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   14:  Call     EnableIdleScript 	( .Actor:Self 00000000 )
+   28:  Call     SetActorScale 	( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   44:  Call     GetLastEvent 	( .Actor:Self *Var[0] )
+   58:  Switch  *Var[0] 
+   64:  	CaseOR  ==  .Event:HitCombo
+   70:  	CaseOR  ==  .Event:Hit
+   7C:  		SetConst  *Var[0]  00000001 
+   8C:  		SetConst  *Var[1]  .AnimPain 
+   9C:  		ExecWait DoNormalHit 
+   A8:  	EndCaseGroup
+   B0:  	Case  ==  .Event:BurnHit
+   BC:  		SetConst  *Var[0]  00000001 
+   CC:  		SetConst  *Var[1]  .AnimPain 
+   DC:  		SetConst  *Var[2]  .AnimPain 
+   EC:  		ExecWait DoBurnHit 
+   F8:  	Case  ==  .Event:BurnDeath
+  104:  		SetConst  *Var[0]  00000001 
+  114:  		SetConst  *Var[1]  .AnimPain 
+  124:  		SetConst  *Var[2]  .AnimPain 
+  134:  		ExecWait DoBurnHit 
+  140:  		SetConst  *Var[0]  00000001 
+  150:  		SetConst  *Var[1]  .AnimPain 
+  160:  		ExecWait DoDeath 
+  16C:  		Return
+  174:  	Case  ==  .Event:SpinSmashHit
+  180:  		SetConst  *Var[0]  00000001 
+  190:  		SetConst  *Var[1]  .AnimPain 
+  1A0:  		ExecWait 8029B998 
+  1AC:  	Case  ==  .Event:SpinSmashDeath
+  1B8:  		SetConst  *Var[0]  00000001 
+  1C8:  		SetConst  *Var[1]  .AnimPain 
+  1D8:  		ExecWait 8029B998 
+  1E4:  		SetConst  *Var[0]  00000001 
+  1F4:  		SetConst  *Var[1]  .AnimPain 
+  204:  		ExecWait DoDeath 
+  210:  		Return
+  218:  	Case  ==  .Event:ShockHit
+  224:  		SetConst  *Var[0]  00000001 
+  234:  		SetConst  *Var[1]  .AnimPain % no shock animation/palette
+  244:  		ExecWait DoShockHit 
+  250:  		SetConst  *Var[0]  00000001 
+  260:  		SetConst  *Var[1]  .AnimPain 
+  270:  		ExecWait 8029BD70 
+  27C:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+  29C:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
+  2B4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimPain )
+  2CC:  		Call     SetGoalToHome 	( .Actor:Self )
+  2DC:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+  2F0:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
+  308:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
+  320:  		Wait     00000005 
+  32C:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+  344:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.6005859] )
+  358:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+  378:  	Case  ==  .Event:ShockDeath
+  384:  		SetConst  *Var[0]  00000001 
+  394:  		SetConst  *Var[1]  .AnimPain % no shock animation/palette
+  3A4:  		ExecWait DoShockHit 
+  3B0:  		SetConst  *Var[0]  00000001 
+  3C0:  		SetConst  *Var[1]  .AnimPain 
+  3D0:  		ExecWait DoDeath 
+  3DC:  		Return
+  3E4:  	Case  ==  .Event:StarBeam
+  3F0:  	CaseOR  ==  00000017
+  3FC:  	CaseOR  ==  .Event:Immune
+  408:  	CaseOR  ==  .Event:AirLiftFailed
+  414:  		SetConst  *Var[0]  00000001 
+  424:  		SetConst  *Var[1]  .AnimIdle 
+  434:  		ExecWait DoImmune 
+  440:  	EndCaseGroup
+  448:  	Case  ==  .Event:Death
+  454:  		SetConst  *Var[0]  00000001 
+  464:  		SetConst  *Var[1]  .AnimPain 
+  474:  		ExecWait DoNormalHit 
+  480:  		Wait     0000000A 
+  48C:  		SetConst  *Var[0]  00000001 
+  49C:  		SetConst  *Var[1]  .AnimPain 
+  4AC:  		ExecWait DoDeath 
+  4B8:  		Return
+  4C0:  	Case  ==  .Event:EndFirstStrike
+  4CC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
+  4E4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRun )
+  4FC:  		Call     SetGoalToHome 	( .Actor:Self )
+  50C:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[4.0] )
+  520:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
+  538:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
+  550:  		Call     HPBarToHome 	( .Actor:Self )
+  560:  	Case  ==  .Event:RecoverStatus
+  56C:  		SetConst  *Var[0]  00000001 
+  57C:  		SetConst  *Var[1]  .AnimIdle 
+  58C:  		ExecWait DoRecover 
+  598:  	Case  ==  .Event:ScareAway
+  5A4:  		SetConst  *Var[0]  00000001 
+  5B4:  		SetConst  *Var[1]  .AnimRun 
+  5C4:  		SetConst  *Var[2]  .AnimPain 
+  5D4:  		ExecWait DoScareAway 
+  5E0:  		Return
+  5E8:  	Case  ==  .Event:BeginAirLift
+  5F4:  		SetConst  *Var[0]  00000001 
+  604:  		SetConst  *Var[1]  .AnimRun
+  614:  		ExecWait DoAirLift 
+  620:  	Case  ==  .Event:BlowAway
+  62C:  		SetConst  *Var[0]  00000001 
+  63C:  		SetConst  *Var[1]  .AnimPain 
+  64C:  		ExecWait DoBlowAway 
+  658:  		Return
+  660:  	Default
+  668:  EndSwitch
+  670:  Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+  688:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  69C:  Call     UseIdleAnimation 	( .Actor:Self .True )
+  6B0:  Return
+  6B8:  End
+}
+
+#new:Script $Script_TakeTurn_KoopaKoot
+{
+		        Call     GetActorVar 	( .Actor:Self 00000001 *Var[1] ) % Deny players the right to gimp boss with Star Beam
+				If *Var[1] == 00000000 % already buffed once
+				Call	GetActorAttackBoost ( .Actor:Self *Var[9] ) 
+				If  *Var[9]  == 0 % you removed his buff
+				ExecWait $Script_HealBuffMega
+				Call     SetActorVar    ( .Actor:Self 00000006 00000001 ) %but cant buff twice in one turn
+			EndIf		
+			EndIf
+% SECTION 1 - ANTI-DANGER
+    Call     GetPlayerHP 	( *Var[0] ) % If player's in danger/peril, always Single Swing
+		If       *Var[0] <=  00000005 
+			ExecWait $Script_SingleSwing
+			Goto 00000002
+		EndIf
+%SECTION 2 - NORMAL ATTACKS
+	Call     GetActorVar 	( .Actor:Self 00000005 *Var[9] )
+	Switch *Var[9] 
+		Case  ==  00000000 
+			ExecWait $Script_SingleSwing
+		Case  ==  00000001
+			Call	GetActorAttackBoost	( .Actor:Self *Var[1] ) % if Koopakoot has an attack boost, increase chance for multiswing
+			If  *Var[1]  >  00000003
+			ExecWait $Script_MultiSwing
+			Else
+			ExecWait $Script_SingleSwing
+			EndIf
+		Case  ==  00000002 
+			Call	GetStatusFlags	( .Actor:Player *Var[0] ) % if the player is already asleep, don't put them to sleep AGAIN.
+				If       *Var[0]  &  00001000
+				ExecWait $Script_SingleSwing
+				Else
+				ExecWait $Script_TalkTooMuch
+				EndIf    
+		Case  ==  00000003 
+			Call	GetActorAttackBoost	( .Actor:Self *Var[1] ) % if Koopakoot has an attack boost, increase chance for multiswing
+			If  *Var[1]  >  00000004
+			ExecWait $Script_MultiSwing
+			Else
+			ExecWait $Script_SingleSwing
+			EndIf  
+		Case  ==  00000004 
+			ExecWait $Script_SingleSwing  
+		Case  ==  00000005 
+				Call	GetStatusFlags	( .Actor:Player *Var[0] ) % if the player is already asleep, don't put them to sleep AGAIN.
+				If       *Var[0]  &  00001000
+				ExecWait $Script_SingleSwing
+				Else
+					Call	GetActorAttackBoost	( .Actor:Self *Var[1] ) % if Koopakoot has an attack boost, increase chance for multiswing
+					If  *Var[1]  >  00000004
+					ExecWait $Script_MultiSwing
+					Else
+					ExecWait $Script_TalkTooMuch
+					EndIf  
+				EndIf   
+		Default
+			Wait 00000001
+		EndSwitch	
+% SECTION 3 - HEAL+BUFF?
+Label 00000002
+Call     GetActorVar 	( .Actor:Self 00000006 *Var[8] ) % If he buffed during his attack (aka he missed) he wont buff again in the same turn due to a bug with the text boxes.
+If *Var[8] == 00000001
+Goto 00000001
+EndIf
+Call     GetPlayerHP 	( *Var[A] ) % If player's dead, have mercy.
+If       *Var[A] <=  00000000 
+Goto 00000001
+EndIf
+			Call     GetActorVar 	( .Actor:Self 00000001 *Var[1] ) % buff 1
+			Call     GetActorVar 	( .Actor:Self 00000002 *Var[2] ) % buff 2
+			Call     GetActorVar 	( .Actor:Self 00000003 *Var[3] ) % buff 3
+			Call     GetActorVar 	( .Actor:Self 00000004 *Var[4] ) % buff 4
+			Call     GetActorHP  	( .Actor:Self *Var[5] ) % current hp - var[5]
+			If *Var[1] == 00000001
+			If *Var[5] <= .KoopBuff1HP
+				ExecWait $Script_HealBuff
+				Call SetActorVar	( .Actor:Self 00000001 00000000 ) % can no longer do the 1st buff
+				Goto 00000001 %- remove the comment to make him buff and attack in one turn
+			EndIf
+			EndIf
+			If *Var[2] == 00000001
+			If *Var[5] <= .KoopBuff2HP
+				ExecWait $Script_HealBuff
+				Call SetActorVar	( .Actor:Self 00000002 00000000 ) % can no longer do the 2nd buff
+				Goto 00000001 %- remove the comment to make him buff and attack in one turn
+			EndIf
+			EndIf
+			If *Var[3] == 00000001
+			If *Var[5] <= .KoopBuff3HP
+				ExecWait $Script_HealBuff
+				Call SetActorVar	( .Actor:Self 00000003 00000000 ) % can no longer do the 3rd buff
+				Goto 00000001 %- remove the comment to make him buff and attack in one turn
+			EndIf
+			EndIf
+			If *Var[4] == 00000001
+			If *Var[5] <= .KoopBuff4HP
+				ExecWait $Script_HealBuff
+				Call SetActorVar	( .Actor:Self 00000004 00000000 ) % can no longer do the 4th buff
+			    Goto 00000001 %- remove the comment to make him buff and attack in one turn
+			EndIf
+			EndIf	
+			Label 00000001
+	%Lets Figure out what to do next!
+	Call     GetActorVar 	( .Actor:Self 00000005 *Var[9] )
+	If *Var[9] == 00000005
+		Call     SetActorVar    ( .Actor:Self 00000005 00000000 )
+	Else
+		Call     AddActorVar 	( .Actor:Self 00000005 00000001 )
+	EndIf
+	Call     SetActorVar    ( .Actor:Self 00000006 00000000 ) %gotta reset this flag
+	Return
+    End
+}
+
+#new:Script $Script_HealBuff
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+    Call     EnableIdleScript 	( .Actor:Self 00000000 )
+	Call	ActorSpeak  	( $KK_Whine3 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+	Wait 00000012
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimHold )
+	Thread
+		Call	8026BF48 ( 00000001 )
+		Call	BoostAttack  ( .Actor:Self 00000001 )
+		Call	8026BF48 ( 00000000 )
+	EndThread
+	Thread
+		Call	8026BF48	( 00000001 )
+		Call    HealActor 	( .Actor:Self 10` 00000000 )
+		Call	8026BF48	( 00000000 )
+	EndThread
+	Label 00000001
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+	Return
+	End
+}
+	
+#new:Script $Script_HealBuffMega
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+    Call     EnableIdleScript 	( .Actor:Self 00000000 )
+	Call	ActorSpeak  	( $KK_Whine4 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+	Wait 00000014
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimHold )
+	Thread
+		Call	8026BF48 ( 00000001 )
+		Call	BoostAttack  ( .Actor:Self 00000005 )
+		Call	8026BF48 ( 00000000 )
+	EndThread
+	Call     GetActorHP  	( .Actor:Self *Var[5] ) % current hp - var[5]
+	If *Var[5] <= 100`
+		Thread
+			Call	8026BF48	( 00000001 )
+			Call    HealActor 	( .Actor:Self 20` 00000000 )
+			Call	8026BF48	( 00000000 )
+		EndThread
+	EndIf
+	Label 00000001
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+	Return
+	End
+}
+	
+#new:Script $Script_MultiSwing
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False ) % run to player
+    Call     EnableIdleScript 	( .Actor:Self 00000000 )
+    Call     SetTargetActor ( .Actor:Self .Actor:Player )
+    Call     UseBattleCamPreset 	( 0000003F )
+    Call     BattleCamTargetActor ( .Actor:Self )
+    Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
+    Call     SetAnimation 	( .Actor:Self 00000001 .AnimRun )
+    Call     SetGoalToTarget 	( .Actor:Self )
+    Call     AddGoalPos 	( .Actor:Self 00000014 00000000 00000000 ) % was 32
+    Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
+    Call     RunToGoal   	( .Actor:Self 00000000 .False )
+    Call     SetAnimation 	( .Actor:Self 00000001 00260001 )
+    Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFF 00000000 )
+    Wait     00000001 
+    Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFE 00000000 )
+    Wait     00000005 
+    Call     SetActorDispOffset ( FFFFFF81 00000000 00000000 00000000 )
+    Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+	Label 00000002
+    Add .Swingcount 1`
+    Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
+	Switch  *Var[0] 
+    	Case  ==  00000006 
+		Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
+			Wait 3`
+			Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimMiss )
+			Wait 8`
+			Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+			Goto 00000001
+    	Case  ==  00000005 % lucky, transparent
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
+			Wait 4`
+			Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimMiss )
+			Wait 8`
+			Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+			If .Swingcount == 15`
+			Goto 00000001
+			Else
+			Goto 00000002
+			EndIf
+	EndSwitch
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
+	Wait 3`
+	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 00000000 00000001 00000020 )
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+	Wait 12`
+		Call     GetPlayerHP 	( *Var[9] ) % If player's dead, have mercy, unless low HP
+		If       *Var[9] <=  00000000 
+			Call     GetActorHP  	( .Actor:Self *Var[8] )
+			If       *Var[8] <=  50`
+			Call	ActorSpeak  	( $KK_NoMercy .Actor:Self 00000001 .AnimTalk .AnimTalk )
+			Goto 00000002
+			EndIf
+		Goto 00000001
+		EndIf
+	If .Swingcount == 8`
+			Goto 00000001
+			Else
+			Goto 00000002
+			EndIf
+	Label 00000001 % attack done, go back to home
+	Call     UseBattleCamPreset 	( 00000002 )
+	Call	MoveBattleCamOver 	( 00000014 )
+	Call	SetGoalToHome 	( .Actor:Self )
+	Call	SetActorSpeed 	( .Actor:Self *Fixed[10.0] )
+	Call	RunToGoal   	( .Actor:Self 00000000 .False )	
+	Wait	8` 
+	Call	EnableIdleScript 	( .Actor:Self 00000001 )
+	Call	UseIdleAnimation 	( .Actor:Self .True )
+	Set .Swingcount 0`
+	Return
+    End
+}
+	
+#new:Script $Script_SingleSwing
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False ) % run to player
+    Call     EnableIdleScript 	( .Actor:Self 00000000 )
+    Call     SetTargetActor ( .Actor:Self .Actor:Player )
+    Call     UseBattleCamPreset 	( 0000003F )
+    Call     BattleCamTargetActor ( .Actor:Self )
+    Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
+    Call     SetAnimation 	( .Actor:Self 00000001 .AnimRun )
+    Call     SetGoalToTarget 	( .Actor:Self )
+    Call     AddGoalPos 	( .Actor:Self 00000014 00000000 00000000 ) % was 32
+    Call     SetActorSpeed 	( .Actor:Self *Fixed[9.0] )
+    Call     RunToGoal   	( .Actor:Self 00000000 .False )
+    Call     SetAnimation 	( .Actor:Self 00000001 00260001 )
+    Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFF 00000000 )
+    Wait     00000001 
+    Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFE 00000000 )
+    Wait     4`
+    Call     SetActorDispOffset ( FFFFFF81 00000000 00000000 00000000 )
+    Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+    Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
+	Switch  *Var[0] 
+    	CaseOR  ==  00000006 
+    	CaseOR  ==  00000005 % lucky, transparent
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
+			Wait 6`
+			Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimMiss )
+			Wait 14`
+			Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+				If       *Var[0]  !&  00001000
+					Wait	30`
+					Call	ActorSpeak  	( $KK_Whine2 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+					Call     SetActorVar    ( .Actor:Self 00000006 00000001 )
+					Wait	5`
+					% boost attack by 1
+					Thread
+						Wait     5` 
+						Call     PlaySoundAtActor 	( .Actor:Self 000002DD )
+					EndThread
+					Thread
+					Call	8026BF48 ( 00000001 )
+					Call	BoostAttack  ( .Actor:Self 00000001 )
+					Call	8026BF48 ( 00000000 )
+					Wait  45`
+					EndThread
+				EndIf
+			Goto 00000001
+	EndSwitch
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimHold )
+	Call	RandInt			( 1` *Var[4] ) % two set wait times
+	If	*Var[4] == 0`
+	Wait 20`
+	Else
+	Wait 10`
+	EndIf
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
+	Wait  2`
+	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 00000000 00000008 00000020 )
+	Wait  5`
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+	Label 00000001 % attack done, go back to home
+	Call     UseBattleCamPreset 	( 00000002 )
+	Call	MoveBattleCamOver 	( 00000014 )
+	Call	SetGoalToHome 	( .Actor:Self )
+	Call	SetActorSpeed 	( .Actor:Self *Fixed[15.0] )
+	Call	RunToGoal   	( .Actor:Self 00000000 .False )	
+	Wait	8` 
+	Call	EnableIdleScript 	( .Actor:Self 00000001 )
+	Call	UseIdleAnimation 	( .Actor:Self .True )
+	Return
+    End
+}
+	
+#new:Script $Script_TalkTooMuch
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+    Call     EnableIdleScript 	( .Actor:Self 00000000 )
+	Call     SetTargetActor ( .Actor:Self .Actor:Player )
+	Call     SetAnimation 	( .Actor:Self 00000001 .AnimTalk )
+	Call     SetGoalToTarget 	( .Actor:Self )
+	Call	RandInt			( 2` *Var[0] ) % which thing to talk about???
+	Switch *Var[0]
+		Case == 00000000
+	Call     ActorSpeak  	( $KKF1 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+		Case == 00000001
+	Call     ActorSpeak  	( $KKF2 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+		Case == 00000002
+	Call     ActorSpeak  	( $KKF3 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+	EndSwitch
+	Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
+	Switch  *Var[0] 
+    	CaseOR  ==  00000006 
+    	CaseOR  ==  00000005 % lucky, transparent
+			Goto 00000001
+	EndSwitch
+	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 12000000 0000FFFF 80001264 00000000 00000020 )
+	Label 00000001
+	Call	GetStatusFlags	( .Actor:Player *Var[0] )
+				If       *Var[0]  !&  00001000
+					Wait	30`
+					Call	ActorSpeak  	( $KK_Whine .Actor:Self 00000001 .AnimTalk .AnimTalk )
+					Call     SetActorVar    ( .Actor:Self 00000006 00000001 )
+					Wait	5`
+					ExecWait $Script_SingleSwing
+					Wait    5`
+					% boost attack by 1
+					Thread
+						Wait     9` 
+						Call     PlaySoundAtActor 	( .Actor:Self 000002DD )
+					EndThread
+					Thread
+					Call	8026BF48 ( 00000001 )
+					Call	BoostAttack  ( .Actor:Self 00000001 )
+					Call	8026BF48 ( 00000000 )
+					EndThread
+				EndIf
+	Call    SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+	Call	EnableIdleScript 	( .Actor:Self 00000001 )
+	Call	UseIdleAnimation 	( .Actor:Self .True )
+	Return
+    End
+}
+
+#string $KKF1
+{
+[Style Right]
+[Shake]Young man, our battle has[BR]
+really brought out the[BR]
+fighting spirit I had[BR]
+back in the day.[BR]
+[Wait][Next]
+......It reminds me...[BR]
+...mafia...a few G's...[BR]
+...and I...[BR]
+...standing face to face...[BR]
+[Wait][Next]
+Then, Donlon....[BR]
+the rat...[BR]
+was....getting shot up...[BR]
+.....was amazing..[BR]
+[Wait][Next]
+..Ow, my back...[BR]
+Gunslinger .........[BR]
+But....shooting.....[BR]
+[Wait][Next]
+...........[BR]
+and...........[BR]
+.....then....[BR]
+...........so......[BR]
+[Wait][Next]
+........[BR]
+...................[BR]
+.....  ..........[BR]
+...  ..........[BR]
+[Wait][End]
+}
+
+#string $KKF2
+{
+[Style Right]
+[Shake]In my younger days I[BR]
+would have already won![BR]
+Did I tell you how one[BR]
+time I...[BR]
+[Wait][Next]
+......sexy babe...[BR]
+...legs......[BR]
+...and I...[BR]
+...standing nearby...[BR]
+[Wait][Next]
+Then, she....[BR]
+bathroom...[BR]
+was....seeing...[BR]
+.....my eyes..[BR]
+[Wait][Next]
+..Horns...[BR]
+Jaw dropped.........[BR]
+But....Koopa.....[BR]
+[Wait][Next]
+...........[BR]
+and...........[BR]
+.....then....[BR]
+...........so......[BR]
+[Wait][Next]
+........[BR]
+...................[BR]
+.....  ..........[BR]
+...  ..........[BR]
+[Wait][End]
+}
+
+#string $KKF3
+{
+[Style Right]
+[Shake]Dang, what a fight this[BR]
+one is, sonny.[BR]
+This warmup really reminds[BR]
+me of something![BR]
+[Wait][Next]
+......like that one...[BR]
+...phantom...menace...[BR]
+...and he...[BR]
+...started striking...[BR]
+[Wait][Next]
+Then, Count....[BR]
+the rat...[BR]
+then....kill him...[BR]
+.....dewit..[BR]
+[Wait][Next]
+..execute...[BR]
+order.........[BR]
+66....was.....[BR]
+[Wait][Next]
+...........[BR]
+blew...........[BR]
+.....Death Star....[BR]
+........ah......[BR]
+[Wait][Next]
+........[BR]
+...................[BR]
+.....  ..........[BR]
+...  ..........[BR]
+[Wait][End]
+}
+
+#string $KK_Whine
+{
+[Style Right]
+[Shake]Hey, you weren't listening![BR]
+I'll teach you some manners![BR]
+I knew the current generation[BR]
+is terrible! Knew it![BR]
+[Wait][End]
+}
+
+#string $KK_Whine2
+{
+[Style Right]
+[Shake]Oh, you think its funny that[BR]
+I missed? Well you won't be[BR]
+laughing when I have your head[BR]
+on a platter, dear boy!
+[Wait][End]
+}
+
+#string $KK_NoMercy
+{
+[Style Right]
+[Shake]I'm not showing you any[BR]
+mercy this late in the game![BR]
+[Wait][End]
+}
+
+#string $KK_Whine3
+{
+[Style Right]
+[Shake]This is no good! My poor[BR]
+soul is getting too old[BR]
+to do this. I need to[BR]
+take my medicine...[BR]
+[Wait][End]
+}
+
+#string $KK_Whine4
+{
+[Style Right]
+[Shake]Oh my poor aching[BR]
+soul, my medicine wore[BR]
+off...[Pause 16]Oh...[Pause 16][BR]
+No, my mistake.[BR]
+[Wait][Next]
+You used the power of[BR]
+the stars to weaken me.[BR]
+What a dirty trick to[BR]
+pull on an old man.[BR]
+[Wait][Next]
+I guess im beat, there's[BR]
+no way I can defeat the[BR]
+Star Spirits. Not unless[BR]
+I accidently took five...[BR]
+[Wait][End]
+}

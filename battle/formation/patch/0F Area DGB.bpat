@@ -1,0 +1,233 @@
+#import LimeoDino.bpat
+
+%LimeoDino is now a reskin of
+%the normally unused Albino Dino.
+%They have low HP and high defense
+%with a funny weakness to Hammer Throw
+%if you dare to try that out.
+%Their attacks also inflict shrink
+%if not guarded, so be careful.
+
+
+
+
+%Clubbas are completely different now
+%from the Flubbas in Dry Dry Desert.
+%They now slam their weapon and create
+%a giant shockwave to attack Mario.
+%Most of the script being borrowed from
+%Mega Quake and reworked into an attack
+%that affects Mario.
+
+
+@	$Clubba
+{
+	[Level]        18`b
+	[MaxHP]        10`b
+	[Coins]         2`b
+}
+
+
+@	$StatusTable_80218058
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep      50`
+	.Status:Poison     50`
+	.Status:Frozen      0`
+	.Status:Dizzy      35`
+	.Status:Fear       70`
+	.Status:Static     30`
+	.Status:Paralyze   50`
+	.Status:Shrink     25`
+	.Status:Stop       40`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod      -1`
+	.Status:PoisonTurnMod     0`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod      0`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod   1`
+	.Status:ShrinkTurnMod     0`
+	.Status:StopTurnMod      -1`
+	.Status:End
+}
+
+
+
+@	$Script_TakeTurn_802186BC
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+   3C:  Call  UseBattleCamPreset    ( 0000003F )
+   4C:  Call  BattleCamTargetActor  ( .Actor:Self )
+   5C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+   74:  Call  GetBattlePhase    ( *Var0 )
+   84:  If  *Var0  ==  00000001
+   94:  	Call  SetGoalToTarget   ( .Actor:Self )
+   A4:  	Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+   C0:  	Add   *Var0  0000001B
+   D0:  	Set   *Var1  00000000
+   E0:  	Sub   *Var2  00000006
+   F0:  	Call  SetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  10C:  	Wait  11`
+  118:  Else
+  120:  	Call  SetAnimation      ( .Actor:Self 00000001 003A0002 )
+  138:  	Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] )
+  14C:  	Call  SetGoalToTarget   ( .Actor:Self )
+  15C:  	Call  GetStatusFlags    ( .Actor:Self *Var0 )
+  170:  	If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
+  180:  		Call  AddGoalPos    ( .Actor:Self  27`  0`  -6` )
+  19C:  	Else
+  1A4:  		Call  AddGoalPos    ( .Actor:Self  10`  0`  -6` )
+  1C0:  	EndIf
+  1C8:  	Wait  1`
+  1E0:  	Call  SetAnimation  ( .Actor:Self 00000001 003A0001 )
+  1F8:  	Wait  4`
+  204:  EndIf
+  20C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
+  230:  Switch  *Var0
+  23C:  	CaseOR  ==  .HitResult:Miss % 6
+  248:  	CaseOR  ==  .HitResult:Lucky % 5
+  254:  		Set   *VarA  *Var0
+  264:  		Call  PlaySoundAtActor  ( .Actor:Self 000020C5 )
+  278:  		Call  SetAnimation      ( .Actor:Self 00000001 003A0008 )
+  290:  		Wait  5`
+  29C:  		If  *VarA  ==  .HitResult:Lucky % 5
+  2AC:  			Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+  2D0:  			Wait  10`
+  2DC:  		EndIf
+  2E4:  		Call  YieldTurn ( )
+  2F0:  		Call  UseBattleCamPreset    ( 00000002 )
+  300:  		Call  SetActorYaw   ( .Actor:Self  180` )
+  314:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+  330:  		SetConst  *Var0  00000001
+  340:  		SetConst  *Var1  003A0002
+  1F0:  			Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.2] )
+  20C:  			Call  ShakeCam  ( .Cam:Battle 00000000  5` *Fixed[1.0] )
+  228:  			Call  ShakeCam  ( .Cam:Battle 00000000  10` *Fixed[2.0] )
+  244:  			Call  ShakeCam  ( .Cam:Battle 00000000  5` *Fixed[1.0] )
+  260:  			Call  ShakeCam  ( .Cam:Battle 00000000  3` *Fixed[0.7] )
+  27C:  			Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[0.4] )
+  298:  			Call  ShakeCam  ( .Cam:Battle 00000000  6` *Fixed[0.1] )
+  2B4:  			Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[0.05] )
+  350:  		ExecWait  DoReturnHome
+  35C:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
+  374:  		Call  SetActorYaw   ( .Actor:Self  0` )
+  388:  		Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  39C:  		Call  UseIdleAnimation      ( .Actor:Self .True )
+  3B0:  		Return
+  3B8:  	EndCaseGroup
+  3C0:  EndSwitch
+  3C8:  Call  SetAnimation      ( .Actor:Self 00000001 003A0009 )
+  3E0:  Wait  7`
+  3EC:  Call  PlaySoundAtActor  ( .Actor:Self 000020C5 )
+  400:  Call  SetAnimation      ( .Actor:Self 00000001 003A000A )
+    291:		Wait  4`
+   88:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   C4:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 0000003C 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  108:  	Wait  2`
+  114:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 0000003C 00000008 00000021 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  158:  	Wait  2`
+  164:  	Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 0000003C 00000008 00000042 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  165: 		Wait  2`
+  31C:  			Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  360:  			Wait  4`
+  36C:  			Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000018 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  3B0:  			Wait  4`
+  3BC:  			Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000030 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  400:  			Wait  4`
+  40C:  			Call  PlayEffect    ( ~FX:SmokeImpact:Large *Var0 *Var1 *Var2 00000048 00000008 00000048 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  460:  			Wait  8`
+  46C:  			Call  PlayEffect    ( ~FX:ShockWave:LargeWhite *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  46D:			Wait 4`
+  809:			SetF  *Var6  *Fixed[0.0]
+  810:  		Set   *Var4  *Var3
+  820:  		Set   *Var5  *Var2
+  830:  		AddF  *Var6  *Fixed[36.0]
+  840:  		Call  AddVectorPolar    ( *Var4 *Var5 *Fixed[300.0] *Var6 )
+  85C:  		Set   *VarA  *VarF
+  86C:  		Call  PlayEffect        ( ~FX:Lightning *Var3 00000001 *Var2 *Var4 00000001 *Var5 *Fixed[4.0] 0000001E 00000000 00000000 00000000 00000000 )
+  8B0:  		Set   *VarF  *VarA
+  46E:	 	Call PlaySoundAtActor	( .Actor:Player 00002018 )
+  47D:				Wait 6`
+  4C0:  		Call  StartRumble   ( 0000000B )
+  4D8:  			Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.24] )
+   430:  Call  SetGoalToTarget   ( .Actor:Self )
+  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000005 00000020 )
+  4F4:  			Call  ShakeCam  ( .Cam:Battle 00000000  3` *Fixed[1.2] )
+  510:  			Call  ShakeCam  ( .Cam:Battle 00000000  7` *Fixed[2.4] )
+  52C:  			Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[1.2] )
+  548:  			Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.84] )
+  564:  			Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.48] )
+  580:  			Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[0.12] )
+  59C:  			Call  ShakeCam  ( .Cam:Battle 00000000  3` *Fixed[0.06] )
+  59D:				Wait	1`
+  468:  Switch  *Var0
+  474:  	CaseOR  ==  .HitResult:Hit % 0
+  480:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  48C:  		Thread
+  494:  			Call  ShakeCam  ( .Cam:Battle 00000000  10` *Fixed[1.5] )
+  4B0:  		EndThread
+  4B8:  		Call  UseBattleCamPreset    ( 00000002 )
+  4C8:  		Wait  7`
+  4D4:  		Call  YieldTurn ( )
+  4E0:  		SetConst  *Var0  00000001
+  4F0:  		SetConst  *Var1  003A0002
+  500:  		ExecWait  DoReturnHome
+  50C:  	EndCaseGroup
+  514:  EndSwitch
+  51C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  530:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  544:  Return
+  54C:  End
+}
+
+
+
+
+
+
+@	$Formation_00
+{
+	$Clubba 00000001 0000000A 00000000 00000000 00000000 00000000
+	$Clubba 00000002 00000009 00000000 00000000 00000000 00000000
+	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+}
+
+@ $Formation_01
+{
+	$Clubba 00000001 0000000A 00000000 00000000 00000000 00000000
+	$LimeoDino 00000002 00000009 00000000 00000000 00000000 00000000
+	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+}
+
+@ $Formation_02
+{
+	$Clubba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Clubba 00000001 00000009 00000000 00000000 00000000 00000000
+	$Clubba 00000002 00000008 00000000 00000000 00000000 00000000
+	$LimeoDino 00000003 00000007 00000000 00000000 00000000 00000000
+}
+
+@ $Formation_03
+{
+	$Clubba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Clubba 00000001 00000009 00000000 00000000 00000000 00000000
+	$Clubba 00000002 00000008 00000000 00000000 00000000 00000000
+	$Clubba 00000003 00000007 00000000 00000000 00000000 00000000
+}
+
+
+@	$FormationTable
+{
+	$SJIS_8021B574 00000003 $Formation_00 $Stage_8021B080 00000000
+	$SJIS_8021B564 00000003 $Formation_01 $Stage_8021B080 00000000
+	$SJIS_8021B554 00000004 $Formation_02 $Stage_8021B080 00000000
+	$SJIS_8021B544 00000004 $Formation_03 $Stage_8021B080 00000000
+	$SJIS_8021B534 00000001 $Formation_04 $Stage_8021B080 00000000
+	$SJIS_8021B518 00000001 $Formation_05 $Stage_8021B080 00000000
+	00000000 00000000 00000000 00000000 00000000
+}

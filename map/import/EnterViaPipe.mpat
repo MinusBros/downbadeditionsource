@@ -1,0 +1,250 @@
+
+% This script is used when entering a map via a warp pipe.
+% (not for entering a warp pipe)
+
+%vertical pipe: you come up out of it
+%usage:
+%set *Var[A] to whatever your makeexit script is
+%then exec the script below
+
+#new:Script $Script_EnterVerticalPipe
+{
+	Call     DisablePlayerInput 	( .True )
+	Call     DisablePlayerPhysics 	( .True )
+	Call     DisablePartnerAI		( 00000000 )
+	Call     HidePlayerShadow		( .True )
+	Call     SetPlayerAnimation		( 00010000 )
+	Call     GetCurrentPartner 		( *Var[0] )
+	If       *Var[0] !=  00000000 
+		Call     EnableNpcShadow	( .Npc:Partner .False )
+		Call     SetNpcPos   		( .Npc:Partner 00000000 FFFFFC18 00000000 )
+	EndIf
+	Call     GetEntryID  		( *Var[0] )
+	Call     $Function_WarpPipeEntry_802400F0 ( )
+	Sub      *Var[2] 00000028 
+	Call     SetPlayerPos 		( *Var[1] *Var[2] *Var[3] )
+	Call     InterpPlayerYaw 	( *Var[4] 00000000 )
+	Call     PlaySound   		( 00000163 )
+	Call     802D286C 			( 00000100 )
+	Call     802D2520			( 00010000 00000005 00000002 00000001 00000001 00000000 )
+	Call     GetPlayerPos		( *Var[0] *Var[1] *Var[2] )
+	Loop     00000028 
+		Add      *Var[1] 00000001 
+		Call     SetPlayerPos	( *Var[0] *Var[1] *Var[2] )
+		Wait     00000001 
+	EndLoop
+	Wait     00000003 
+	Call     GetCurrentPartner 	( *Var[0] )
+	If       *Var[0] !=  00000000 
+		Thread
+			Call     DisablePartnerAI 	( 00000000 )
+			Call     GetPlayerPos		( *Var[0] *Var[1] *Var[2] )
+			Sub      *Var[2] 00000003 
+			Call     SetNpcPos			( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcFlagBits		( .Npc:Partner 00000002 .False )
+			Call     EnablePartnerAI 	( )
+			Call     EnableNpcShadow 	( .Npc:Partner .True )
+		EndThread
+	EndIf
+	Wait     00000002 
+	Call     802D2520 ( 00010000 00000000 00000000 00000000 00000000 00000000 )
+	Wait     00000001 
+	Call     SetPlayerAnimation 	( 00010002 )
+	Call     DisablePlayerPhysics 	( .False )
+	Call     DisablePlayerInput 	( .False )
+	Call     HidePlayerShadow 		( .False )
+	Label    00000000 
+	Call     $Function_WarpPipeEntry_80240020 ( )
+	Wait     00000001 
+	If       *Var[0] !=  FFFFFFFF 
+		Goto     00000000 
+	EndIf
+	Exec     *Var[A] 
+	Call  EnablePartnerAI ( )
+	Return
+	End
+}
+
+#new:Function $Function_WarpPipeEntry_80240020
+{
+	LAH       V0, 8015A552
+	SW        V0, 84 (A0)
+	JR        RA
+	ADDIU     V0, R0, 2
+}
+
+#new:Function $Function_WarpPipeEntry_802400F0
+{
+	ADDIU     SP, SP, FFE0
+	SW        S1, 14 (SP)
+	DADDU     S1, A0, R0
+	SW        RA, 1C (SP)
+	SW        S2, 18 (SP)
+	JAL       8005ABE8
+	SW        S0, 10 (SP)
+	DADDU     A0, S1, R0
+	LIO       A1, FE363C80
+	JAL       ~Func:get_variable
+	DADDU     S2, V0, R0
+	DADDU     A0, S1, R0
+	LUI       A1, FE36
+	LW        V1, 14 (S2)
+	SLL       S0, V0, 4
+	ADDU      V1, S0, V1
+	LWC1      F0, 0 (V1)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C81
+	DADDU     A0, S1, R0
+	LW        V0, 14 (S2)
+	LUI       A1, FE36
+	ADDU      V0, S0, V0
+	LWC1      F0, 4 (V0)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C82
+	DADDU     A0, S1, R0
+	LW        V0, 14 (S2)
+	LUI       A1, FE36
+	ADDU      V0, S0, V0
+	LWC1      F0, 8 (V0)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C83
+	DADDU     A0, S1, R0
+	LW        V0, 14 (S2)
+	LUI       A1, FE36
+	ADDU      S0, S0, V0
+	LWC1      F0, C (S0)
+	TRUNC.W.S F2, F0
+	MFC1      A2, F2
+	JAL       ~Func:set_variable
+	ORI       A1, A1, 3C84
+	LW        RA, 1C (SP)
+	LW        S2, 18 (SP)
+	LW        S1, 14 (SP)
+	LW        S0, 10 (SP)
+	ADDIU     V0, R0, 2
+	JR        RA
+ADDIU SP, SP, 20
+}
+
+#new:Function $Function_WarpPipeEntry_8024023C
+{
+    0:  ADDIU		SP, SP, FFD8
+    4:  SW			S0, 18 (SP)
+    8:  COPY		S0, A0
+    C:  SW			RA, 1C (SP)
+   10:  SDC1		F20, 20 (SP)
+   14:  LW			V0, C (S0)
+   18:  JAL			~Func:get_float_variable
+   1C:  LW			A1, 0 (V0)
+   20:  ADDIU		A0, SP, 10
+   24:  LIA			V0, 8010EFC8
+   2C:  MFC1		A2, F0
+   30:  LWC1		F0, 28 (V0)
+   34:  LWC1		F2, 30 (V0)
+   38:  SWC1		F0, 10 (SP)
+   3C:  SWC1		F2, 14 (SP)
+   40:  LW			A3, 80 (V0)
+   44:  LWC1		F20, 2C (V0)
+   48:  JAL			~Func:add_vec2D_polar
+   4C:  ADDIU		A1, SP, 14
+   50:  COPY		A0, S0
+   54:  LUI			A1, FE36
+   58:  LW			A2, 10 (SP)
+   5C:  JAL			~Func:set_float_variable
+   60:  ORI			A1, A1, 3C80
+   64:  COPY		A0, S0
+   68:  LUI			A1, FE36
+   6C:  MFC1		A2, F20
+   70:  JAL			~Func:set_float_variable
+   74:  ORI			A1, A1, 3C81
+   78:  COPY		A0, S0
+   7C:  LUI			A1, FE36
+   80:  LW			A2, 14 (SP)
+   84:  JAL			~Func:set_float_variable
+   88:  ORI			A1, A1, 3C82
+   8C:  LW			RA, 1C (SP)
+   90:  LW			S0, 18 (SP)
+   94:  LDC1		F20, 20 (SP)
+   98:  ADDIU		V0, R0, 2
+   9C:  JR			RA
+   A0:  ADDIU		SP, SP, 28
+}
+
+%horizontal pipe
+%you come out the side
+%set *Var[A] to your makeexit script
+%then set *Var[B] to your collider id
+%then exec the following script
+
+
+
+#new:Script $Script_EnterHorizontalPipe
+{
+    0:  Call     DisablePlayerInput 	( .True )
+   10:  Call     DisablePlayerPhysics 	( .True )
+   20:  Call     HidePlayerShadow 	( .True )
+   30:  Call     ModifyColliderFlags 	( 00000000 *Var[B] 7FFFFE00 )
+   48:  Call     GetEntryID  	( *Var[0] )
+   58:  Call     $Function_WarpPipeEntry_802400F0 ( )
+   64:  Set  *Var[5]  *Var[1] 
+   74:  Set  *Var[6]  *Var[2] 
+   84:  Set  *Var[7]  *Var[3] 
+   94:  Add  *Var[2]  00000002 
+   A4:  Call     SetPlayerPos 	( *Var[1] *Var[2] *Var[3] )
+   BC:  Call     InterpPlayerYaw 	( *Var[4] 00000000 )
+   D0:  If  *Var[4]  ==  0000005A 
+   E0:  	Add  *Var[5]  00000028 
+   F0:  Else
+   F8:  	Sub  *Var[5]  00000028 
+  108:  EndIf
+  110:  Call     UseSettingsFrom 	( .Cam:Default *Var[5] *Var[6] *Var[7] )
+  12C:  Call     SetPanTarget 	( .Cam:Default *Var[5] *Var[6] *Var[7] )
+  148:  Call     SetCamSpeed 	( .Cam:Default *Fixed[90.0] )
+  15C:  Call     PanToTarget 	( .Cam:Default 00000000 00000001 )
+  174:  Call     GetCurrentPartner 	( *Var[0] )
+  184:  If  *Var[0]  !=  00000000 
+  194:  	Call     DisablePartnerAI 	( 00000000 )
+  1A4:  	Call     EnableNpcShadow 	( .Npc:Partner .False )
+  1B8:  	Call     SetNpcPos   	( .Npc:Partner 00000000 FFFFFC18 00000000 )
+  1D4:  	Call     InterpNpcYaw 	( .Npc:Partner *Var[0] 00000000 )
+  1EC:  EndIf
+  1F4:  Wait     00000001 
+  200:  Call     PlaySound   	( 00000163 )
+  210:  Thread
+  218:  	Wait     00000019 
+  224:  	Call     HidePlayerShadow 	( .False )
+  234:  EndThread
+  23C:  Call     802D286C ( 00000900 )
+  24C:  Call     802D2520 ( 00010002 00000005 00000003 00000001 00000001 00000000 )
+  270:  Loop     00000028 
+  27C:  	Call     $Function_WarpPipeEntry_8024023C ( *Fixed[1.0] )
+  28C:  	Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  2A4:  	Wait     00000001 
+  2B0:  EndLoop
+  2B8:  Call     GetCurrentPartner 	( *Var[0] )
+  2C8:  If  *Var[0]  !=  00000000 
+  2D8:  	Thread
+  2E0:  		Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+  2F8:  		Sub  *Var[2]  00000003 
+  308:  		Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+  324:  		Call     EnableNpcShadow 	( .Npc:Partner .True )
+  338:  		Call     EnablePartnerAI 	( )
+  344:  	EndThread
+  34C:  EndIf
+  354:  Wait     00000005 
+  360:  Call     802D2520 ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+  384:  Call     ModifyColliderFlags 	( 00000001 *Var[B] 7FFFFE00 )
+  39C:  Call     DisablePlayerInput 	( .False )
+  3AC:  Call     DisablePlayerPhysics 	( .False )
+  3BC:  Call     PanToTarget 	( .Cam:Default 00000000 00000000 )
+  3D4:  Exec     *Var[A] 
+  Call  EnablePartnerAI ( )
+  3E0:  Return
+  3E8:  End
+}

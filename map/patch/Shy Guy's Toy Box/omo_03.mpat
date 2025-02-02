@@ -1,0 +1,162 @@
+#define .NpcID:TrainStationToad_00  00
+#define .NpcID:WorldParakarry_02    02
+#define .NpcID:WorldWatt_03         03
+#define .NpcID:ShyGuy_04            04
+#define .NpcID:ShyGuy_05            05
+#define .NpcID:ShyGuy_06            06
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802419C8 80000000 )
+   24:  Call  MakeEntity    ( .Entity:ScriptSpring ~Vec4d:Entity802419EC 80000000 )
+   48:  Call  AssignScript  ( $Script_80241648 )
+   58:  Call  MakeEntity    ( .Entity:HiddenPanel ~Vec4d:Entity80241A20 ~Model:o930 80000000 )
+   80:  Call  AssignPanelFlag   ( *GF_OMO03_HiddenPanel )
+   90:  Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity80241A58 .Item:StoneCap 80000000 )
+   B8:  Call  AssignBlockFlag   ( *GF_OMO03_HiddenItem_StoneCap )
+		Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 )
+   90:  Call  MakeEntity    ( .Entity:RedBlock ~Vec4d:NewHPPlus .Item:HPPlusY 80000000 )
+   B8:  Call  AssignBlockFlag   ( *GF_OMO03_NewHPPlus )
+   C8:  Return
+   D0:  End
+}
+
+
+@	$Script_80241B34
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  If  *GB_StoryProgress  <  .Story:Ch4_ReturnedToyTrain % FFFFFFFB
+   20:  	Call  ShowKeyChoicePopup ( )
+   2C:  	Call  CloseChoicePopup ( )
+   38:  	If  *Var0  ==  00000021
+   48:  		Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0002 ) % Look, we can't very well ride on a tiny little Toy ...
+   68:  	Else
+   70:  		If  *AreaFlag[005]  ==  .False
+   80:  			Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0000 ) % Welcome to Blue Station! Umm... Unfortunately, I c ...
+   A0:  			Set   *AreaFlag[005]  .True
+   B0:  		Else
+   B8:  			Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0001 ) % Welcome to Blue Station! Umm... Unfortunately, I c ...
+   D8:  			Set   *AreaFlag[005]  .False
+   E8:  		EndIf
+   F0:  	EndIf
+   F8:  Else
+  100:  	If  *GF_OMO03_LearnedAboutTrainSwitches  ==  .False
+  110:  		If  *AreaFlag[005]  ==  .False
+  120:  			Thread
+  128:  				Call  SetNpcFlagBits    ( .NpcID:TrainStationToad_00 00000100 .True )
+  140:  				Call  SetNpcJumpscale   ( .NpcID:TrainStationToad_00 *Fixed[1.0] )
+  154:  				Call  GetNpcPos ( .NpcID:TrainStationToad_00 *Var0 *Var1 *Var2 )
+  170:  				Loop  00000002
+  17C:  					Call  NpcJump1  ( .NpcID:TrainStationToad_00 *Var0 *Var1 *Var2 0000000F )
+  19C:  				EndLoop
+  1A4:  				Call  SetNpcFlagBits    ( .NpcID:TrainStationToad_00 00000100 .False )
+  1BC:  			EndThread
+  1C4:  			Wait  10`
+  1D0:  			If  *MapFlag[01]  ==  .False
+  1E0:  				Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0003 ) % Yaaaahoo! We're back in business! This train just  ...
+  200:  				Call  EndSpeech     ( .NpcID:TrainStationToad_00 FFFFFFFF FFFFFFFF 00000000 )
+  21C:  			Else
+  224:  				Call  SpeakToPlayer     ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0003 ) % Yaaaahoo! We're back in business! This train just  ...
+  244:  				Call  ContinueSpeech    ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0005 ) % You can use the switches in front of the station t ...
+  264:  				Set   *GF_OMO03_LearnedAboutTrainSwitches  .True
+  274:  			EndIf
+  27C:  			Set   *AreaFlag[005]  .True
+  28C:  		Else
+  294:  			Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0004 ) % You can use the switches in front of the station t ...
+  2B4:  			Set   *GF_OMO03_LearnedAboutTrainSwitches  .True
+  2C4:  		EndIf
+  2CC:  	Else
+  2D4:  		If  *AreaFlag[006]  ==  .False
+  2E4:  			ExecWait  $Script_8024705C
+  2F0:  		Else
+  2F8:  			ExecWait  $Script_80246108
+  304:  		EndIf
+  30C:  	EndIf
+  314:  EndIf
+  31C:  Call  DisablePlayerInput    ( .False )
+  32C:  Unbind
+  334:  Return
+  33C:  End
+}
+
+
+@	$Script_8024435C
+{
+    0:  Call  SetNpcFlagBits    ( .NpcID:TrainStationToad_00 00000140 .True )
+   18:  Call  SetNpcFlagBits    ( .Npc:Partner 00000140 .True )
+   30:  Thread
+   38:  	UseIntBuffer  *Var0
+   44:  	Get3Int  *Var1 *Var2 *Var3
+   58:  	Call  AddVectorPolar    ( *Var1 *Var2 *Fixed[15.0] *Var3 )
+   74:  	Call  SetPlayerAnimation    ( .PlayerAnim:Walking )
+   84:  	Call  SetPlayerSpeed    ( *Fixed[4.0] )
+   94:  	Call  PlayerMoveTo      ( *Var1 *Var2  0` )
+   AC:  	Call  SetPlayerSpeed    ( *Fixed[0.7] )
+   BC:  	Call  PlayerMoveTo      ( *Var1 *Var2  0` )
+   D4:  	Call  SetPlayerPos      ( *Var1  50` *Var2 )
+   EC:  	Call  SetPlayerAnimation    ( 00010002 )
+   FC:  	Call  InterpPlayerYaw   ( *Var3  0` )
+  110:  EndThread
+  118:  Wait  5`
+  124:  UseIntBuffer  *Var0
+  130:  Get3Int  *Var1 *Var2 *Var3
+  144:  SetF  *VarA  *Var3
+  154:  AddF  *Var3  *Fixed[180.0]
+  164:  Call  AddVectorPolar    ( *Var1 *Var2 *Fixed[15.0] *Var3 )
+  180:  Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.7] )
+  194:  Call  NpcJump0  ( .Npc:Partner *Var1  50` *Var2  10` )
+  1B4:  Call  SetNpcSpeed       ( .Npc:Partner *Fixed[0.5] )
+  1C8:  Call  NpcMoveTo ( .Npc:Partner *Var1 *Var2  0` )
+  1E4:  Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+  1F8:  Call  InterpNpcYaw      ( .Npc:Partner *VarA  0` )
+  210:  Wait  5`
+  21C:  UseIntBuffer  *Var0
+  228:  Get3Int  *Var1 *Var2 *Var3
+  23C:  SetF  *VarA  *Var3
+  24C:  If  *Var3  <  000000B4
+  25C:  	AddF  *Var3  *Fixed[90.0]
+  26C:  Else
+  274:  	SubF  *Var3  *Fixed[90.0]
+  284:  EndIf
+  28C:  SetF  *Var4  *Var1
+  29C:  SetF  *Var5  *Var2
+  2AC:  SetF  *Var6  *Var3
+  2BC:  Call  AddVectorPolar    ( *Var1 *Var2 *Fixed[100.0] *Var3 )
+  2D8:  Call  SetNpcSpeed   ( .NpcID:TrainStationToad_00 *Fixed[3.0] )
+  2EC:  Call  SetNpcAnimation   ( .NpcID:TrainStationToad_00 008B0003 )
+  300:  Call  NpcMoveTo     ( .NpcID:TrainStationToad_00 *Var1 *Var2  0` )
+  31C:  Call  SetNpcAnimation   ( .NpcID:TrainStationToad_00 008B0001 )
+  330:  Call  AddVectorPolar    ( *Var4 *Var5 *Fixed[20.0] *Var6 )
+  34C:  Call  SetNpcJumpscale   ( .NpcID:TrainStationToad_00 *Fixed[0.7] )
+  360:  Call  NpcJump0      ( .NpcID:TrainStationToad_00 *Var4  50` *Var5  10` )
+  380:  Call  InterpNpcYaw  ( .NpcID:TrainStationToad_00 *VarA  0` )
+  398:  Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000005 000F0009 ) % We're leaving! All aboard!
+		Call  SetNpcAnimation   ( .NpcID:TrainStationToad_00 008B0005 )
+		Wait  12`
+		Call  PlaySound     ( 00000395 )
+		Wait  30`
+		Call  SetNpcAnimation   ( .NpcID:TrainStationToad_00 008B0001 )
+		Call  PlaySound     ( 00000083 )
+  3C8:  Call  SetMusicTrack ( 00000000 .Song:ToyboxTrain 00000000 00000008 )
+  3E4:  Wait  10`
+  3F0:  Return
+  3F8:  End
+}
+
+
+@	$Script_Init_80241EB0
+{
+   [10]  	Call  SetNpcAnimation   ( .Npc:Self 008B0001 )
+   [2C]  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241E80 )
+}
+
+
+@	$NpcGroup_8024217C
+{
+	.NpcID:TrainStationToad_00 $NpcSettings_80241AB0 ~Vec3f:NPC_TrainStationToad_00 % 170 50 -115
+	00400D05 $Script_Init_80241EB0 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_TrainStationToad_00
+	~AnimationTable:NPC_TrainStationToad_00 % .Sprite:TrainStationToad
+	00000000 00000000 00000000 001A00B8 % He's an employee of the Toy Box station. The emplo ...
+}

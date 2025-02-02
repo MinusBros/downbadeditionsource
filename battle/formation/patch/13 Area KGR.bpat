@@ -1,0 +1,178 @@
+%Fuzzipede will heal every time he attacks,
+%so you need to outdamage him to win.
+
+@	$Fuzzipede
+{
+	[Level]        50`b
+	[MaxHP]        36`b
+}
+
+
+@	$StatusTable_80218A54
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep      20`
+	.Status:Poison      0`
+	.Status:Frozen      0`
+	.Status:Dizzy      20`
+	.Status:Fear        0`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink     40`
+	.Status:Stop       50`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -2`
+	.Status:PoisonTurnMod     0`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod     -2`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod   0`
+	.Status:ShrinkTurnMod    -1`
+	.Status:StopTurnMod      -2`
+	.Status:End
+}
+
+
+@	$Script_80219D68
+{
+  [148]  	Wait  5`
+}
+
+@	$Script_80218D68
+{
+   [30]  Call  SetActorSpeed     ( .Actor:Self *Fixed[15.0] )
+}
+
+@ $Script_80218FC8
+{
+   [30]  Call  SetActorSpeed     ( .Actor:Self *Fixed[15.0] )
+}
+
+
+@	$Script_802191AC
+{
+   [30]  Call  SetActorSpeed ( .Actor:Self *Fixed[15.0] )
+}
+
+
+%Normal attack
+
+@	$Script_8021A6D8
+{
+   [AC]  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[2.4] )
+   [C0]  Call  SetActorSpeed     ( .Actor:Self *Fixed[12.0] )
+  [144]  Wait  5`
+  [25C]  				Wait  1`
+  [2C0]  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.8] )
+  [34C]  		Wait  15`
+  [370]  			Wait  3`
+  [410]  		Wait  10`
+  [554]  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.8] )
+  [5F4]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 00000000 00000008 00000020 )
+  [638]  Wait  1`
+}
+
+%Steal commands attack
+
+@	$Script_8021B22C
+{
+   [AC]  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[2.8] )
+   [C0]  Call  SetActorSpeed     ( .Actor:Self *Fixed[12.0] )
+  [144]  Wait  12`
+  [378]  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.9] )
+  [460]  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.9] )
+  [4E8]  		Wait  8`
+  [688]  Wait  1`
+  [694]  Call  EnemyDamageTarget     ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 00000000 00000007 00000020 )
+  [A04]  			Wait  4`
+  [AE0]  			Wait  4`
+  [B88]  			Wait  15`
+  [D60]  			Wait  5`
+}
+
+
+
+%Heal Fuzzipede
+
+@	$Script_8021C004
+{
+   [58]  Wait  8`
+   [7C]  Wait  12`
+   [DC]  	Wait  15`
+}
+
+
+
+%Every now and then, Fuzzipede will heal
+%for 6 HP instead of 4.
+
+#new:Script $Script_BigHeal
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  UseBattleCamPreset    ( 0000000E )
+   38:  Call  BattleCamTargetActor  ( .Actor:Self )
+   48:  Call  MoveBattleCamOver (  20` )
+   58:  Wait  7`
+   64:  Call  SetAnimation      ( .Actor:Self 00000001 00410012 )
+   7C:  Wait  12`
+   88:  Call  SetAnimation      ( .Actor:Self 00000001 00410004 )
+   A0:  Thread
+   A8:  	Wait  5`
+   B4:  	Call  PlaySoundAtActor  ( .Actor:Self 0000206D )
+   C8:  	Call  PlaySoundAtActor  ( .Actor:Self 00000214 )
+   DC:  	Wait  16`
+   E8:  	Call  PlaySoundAtActor  ( .Actor:Self 0000025C )
+   FC:  EndThread
+  104:  Thread
+  10C:  	Call  8026BF48  ( 00000001 )
+  11C:  	Call  HealActor ( .Actor:Self 00000006 .False )
+  134:  	Call  8026BF48  ( 00000000 )
+  144:  EndThread
+  158:  Call  UseBattleCamPreset    ( 00000002 )
+  168:  Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  17C:  Call  UseIdleAnimation      ( .Actor:Self .True )
+  190:  Return
+  198:  End
+}
+
+
+@	$Script_TakeTurn_8021C1A4
+{
+    0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   18:  Switch  *Var0
+   24:  	CaseOR  ==  00000000
+   30:  	CaseOR  ==  00000003
+   3C:  		Call  GetActorHP    ( .Actor:Self *Var0 )
+   50:  		Call  GetEnemyMaxHP ( .Actor:Self *Var1 )
+   64:  		Mul   *Var0  00000064
+   74:  		Div   *Var0  *Var1
+   84:  		If  *Var0  <=  00000034
+   94:  			Call  RandInt   ( 000003E8 *Var0 )
+   A8:  			If  *Var0  <  000001F4
+   B8:  				ExecWait  $Script_BigHeal
+   B9:					ExecWait  $Script_8021C004
+   C4:  				Return
+   CC:  			EndIf
+   D4:  		EndIf
+   DC:  	EndCaseGroup
+   E4:  EndSwitch
+   EC:  Call  RandInt   ( 000003E8 *Var0 )
+  100:  If  *Var0  <  000001F4
+  110:  	ExecWait  $Script_8021A6D8
+  111:		ExecWait  $Script_8021C004
+  11C:  Else
+  124:  	Call  $Function_802184F8    ( *Var0 )
+  134:  	If  *Var0  ==  00000000
+  144:  		ExecWait  $Script_8021B22C
+  145:			ExecWait  $Script_BigHeal
+  150:  	Else
+  158:  		ExecWait  $Script_8021A6D8
+  159:  		ExecWait  $Script_8021C004
+  164:  	EndIf
+  16C:  EndIf
+  174:  Return
+  17C:  End
+}

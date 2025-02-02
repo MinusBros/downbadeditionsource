@@ -1,0 +1,81 @@
+%Since coming to Toad Town from Bowser's Castle
+%bypasses the flag to switch the music, also
+%switch the music when loading this area.
+
+@ $EntryList
+{
+~Vec4f:Entry0 %    0.0    0.0  604.0    0.0
+~Vec4f:Entry1 %  612.0    0.0  111.0  270.0
+~Vec4f:Entry2 %    0.0    0.0 -290.0  180.0
+~Vec4f:Entry3 %    0.0 -1000.0    0.0    0.0
+~Vec4f:Entry4
+}
+
+@ $Header
+{
+[EntryCount]  00000005 
+}
+
+#import EnterViaPipe.mpat
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "osr_02" 3 )
+	Wait     00000064 
+	Return
+	End
+}
+	
+#define .Flag_CastlePipeA *GameFlag[173]
+#define .Flag_CastlePipeB *GameFlag[174]
+
+
+@ $Script_Main_EnterWalk
+{
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
+	0:  Set   *GB_WorldLocation  .Location:PeachCastleGrounds
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+   40:  Call  SetCamBGColor ( .Cam:Default 00000000 00000000 00000000 )
+   5C:  Call  SetCamEnabled ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *AreaFlag[001]  .False
+   94:  Set   *GF_Map_PeachCastleGrounds  .True
+   A4:  Call  MakeNpcs      ( .False $NpcGroupList_8024213C )
+		Call 	 MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:PipeLoc 4 $Script_UseBluePipe 00000174 80000000 )
+   B8:  ExecWait  $Script_80240BB4
+   C4:  Exec  $Script_80240DBC
+   D0:  Call  PlaySoundAtF  ( 8000005A 00000001 0000012C 00000002 0000018F )
+   F0:  Call  GetEntryID    ( *Var0 )
+  100:  Switch  *Var0
+  10C:  	Case  ==  ~Entry:Entry3
+  118:  		Call  EnableModel   ( ~Model:o492 .False )
+  12C:  		Exec  $Script_80241AC4
+			Case == 00000004
+				If       .Flag_CastlePipeB ==  00000000 
+					Call     DisablePlayerInput 	( .True )
+					Call     DisablePlayerPhysics 	( .True )
+					Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+					Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+					Call     SetPlayerPos 	( *Var[0] FFFFFC18 *Var[2] )
+					Wait     0000001E 
+					Call     PlaySound   	( 0000208E )
+					Set      .Flag_CastlePipeB 00000001 
+					Wait     0000001E 
+					Call     802D10D8 		( 00000000 )
+					Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+					Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+					Call     DisablePlayerPhysics 	( .False )
+					Call     DisablePlayerInput 	( .False )
+				EndIf
+				Set *Var[A] $Script_80240D74
+				Exec $Script_EnterVerticalPipe
+  138:  	Default
+  140:  		Set   *Var0  $Script_80240D74
+  150:  		Exec  EnterWalk
+  15C:  EndSwitch
+  164:  Wait  1`
+  170:  Return
+  178:  End
+}

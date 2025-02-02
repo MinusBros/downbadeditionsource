@@ -1,0 +1,122 @@
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000003 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]What a neat archway. I[BR]
+bet it took a long time to[BR]
+carve that out.[BR]
+[Wait][Next]
+To the east is Toad Town.[BR]
+To the west is my house.[BR]
+[Wait][End]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:entry0 %  190.0  0.0  -380.0  105.0
+~Vec4f:entry1 %  492.0  0.0  -688.0  180.0
+~Vec4f:entry2 %  719.0  0.0  -354.0  255.0
+}
+
+#new:Script_Main $Script_Main
+{
+	%Set      *WorldMapLocation 0000000A % sets the location on the pause screen map
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:DBE_Prologue 00000000 00000008 )
+	   If  *GF_KMR34_MetalBlock  ==  .False 
+			Call     MakeEntity  	( .Entity:Hammer2BlockWide ~Vec4d:metalblock 80000000 )
+			Call     AssignScript 	( $Script_SmashBlock )
+	EndIf
+	ExecWait $Script_MakeEntities 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+
+  #new:Script $Script_SmashBlock
+{
+	Set  *GF_KMR34_MetalBlock  .True
+	Return
+	End
+}
+		
+#new:Script $Script_RockDestroyed
+{
+	Set  *GF_KMR34_Rock  .True 
+	Return
+	End
+}
+		
+#new:Script $Script_MakeEntities
+{
+	If  *GF_KMR34_Rock  ==  .False 
+		Call     MakeEntity  	( .Entity:BombableRock1 ~Vec4d:bombrock 80000000 )
+		Call     AssignScript 	( $Script_RockDestroyed )
+	EndIf
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:itemblock .Item:MapleSyrup 80000000 )
+	Call     AssignBlockFlag 	( *GF_KMR34_Block )
+	Return
+	End
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0  .Trigger:FloorAbove ~Collider:Entry0 00000001 00000000
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:Entry1 00000001 00000000	
+	Bind     $Script_Entry2  .Trigger:FloorAbove ~Collider:Entry2 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Entry0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_11" 00000001 )
+	Wait     00000054 
+	Return
+	End		
+}
+	
+	#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_33" 00000000 )
+	Wait     00000054 
+	Return
+	End		
+}
+	
+	#new:Script $Script_Entry2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000002 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_10" 00000000 )
+	Wait     00000054 
+	Return
+	End	
+}
