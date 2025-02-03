@@ -6,7 +6,7 @@ A young Goombarius, a Goomba wearing a red hat is searching for love. It's up to
 
 "𝗪𝗵𝗮𝘁'𝘀 𝘁𝗵𝗲 𝗯𝗶𝗴 𝗱𝗲𝗮𝗹?"
 
-This hack originally started out as a joke I amde with my friends where I'd make Goombario rate each enemy depending on how he feels about their looks or personality. It then turned into me recolouring areas and increasing enemy stats. Eventually I went so far into it to give the game its own storyline and making it a goal to change every line of dialogue in the game. Naturally as I'm working at this mostly solo, that's a truly daunting task.
+This hack originally started out as a joke I made with my friends where I'd make Goombario rate each enemy depending on how he feels about their looks or personality. It then turned into me recolouring areas and increasing enemy stats. Eventually I went so far into it to give the game its own storyline and making it a goal to change every line of dialogue in the game. Naturally as I'm working at this mostly solo, that's a truly daunting task.
 
 The game has also received an entirely new OST featuring songs from some of my favourite games such as Mega Man, Ninja Gaiden and Kirby. As I learned Star Rod more, I began to add new features from other hacks like Master Quest and TTYD64 such as Superguarding, custom badges, enemies and more.
 
