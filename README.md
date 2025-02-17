@@ -13,9 +13,7 @@ The game has also received an entirely new OST featuring songs from some of my f
 
 If anybody more knowledgeable would like to add their own badges into the game, feel free to help me out with that.
 I'll also take dialogue suggestions and bug testing as well. Anything to help progress the hack along a little quicker.
-Anyways you can download the mod here, or click the release page for the most recent version.
-
-https://www.mediafire.com/file/3dmeasdxz6gccu5/Down+Bad+Edition.mod/file
+Anyways you can click the release page for the most recent version.
 
 Also if you want to watch my friend harder_dk play the game, we have a series of it on my channel. 
 https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
