@@ -1,0 +1,156 @@
+% automatically dumped from map trd_09
+
+#new:Npc $trd_09_80242240 {
+.NpcID:BillBlaster_10 $NpcSettings_80242150_trd_09 00000000 00000000 00000000 
+00242D00 $Script_Init_802421EC_trd_09 00000000 00000000 0000010E 
+~NoDrops
+FFFFFB14 00000000 00000028 00000000 00000000 FFFF8001 00000000 FFFFFB14 
+00000000 00000028 00000000 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_BillBlaster_10 % .Sprite:BillBlaster
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Function $Function_80240000_trd_09 {
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S3, 1C (SP)
+    8:  COPY      S3, A0
+    C:  SW        RA, 24 (SP)
+   10:  SW        S4, 20 (SP)
+   14:  SW        S2, 18 (SP)
+   18:  SW        S1, 14 (SP)
+   1C:  SW        S0, 10 (SP)
+   20:  LW        S0, C (S3)
+   24:  LW        S2, 148 (S3)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      S1, V0
+   38:  LW        A1, 0 (S0)
+   3C:  ADDIU     S0, S0, 4
+   40:  JAL       ~Func:get_variable
+   44:  COPY      A0, S3
+   48:  COPY      S4, V0
+   4C:  LI        V0, FFFF
+   50:  BNE       S1, V0, .o5C
+   54:  LW        S0, 0 (S0)
+   58:  LH        S1, 8 (S2)
+        .o5C
+   5C:  JAL       ~Func:get_enemy
+   60:  COPY      A0, S1
+   64:  COPY      S2, V0
+   68:  BEQ       S2, R0, .o84
+   6C:  COPY      A0, S3
+   70:  SLL       V0, S4, 2
+   74:  ADDU      V0, S2, V0
+   78:  LW        A2, 6C (V0)
+   7C:  BEQ       R0, R0, .o8C
+   80:  COPY      A1, S0
+        .o84
+   84:  COPY      A1, S0
+   88:  LI        A2, FFFF
+        .o8C
+   8C:  JAL       ~Func:set_variable
+   90:  NOP
+   94:  LW        RA, 24 (SP)
+   98:  LW        S4, 20 (SP)
+   9C:  LW        S3, 1C (SP)
+   A0:  LW        S2, 18 (SP)
+   A4:  LW        S1, 14 (SP)
+   A8:  LW        S0, 10 (SP)
+   AC:  LI        V0, 2
+   B0:  JR        RA
+   B4:  ADDIU     SP, SP, 28
+}
+
+#new:Script $Script_80240820_trd_09 {
+    0:  Call  SetSelfEnemyFlagBits  ( 00200000 00000001 )
+   14:  Return
+   1C:  End
+}
+
+#new:Script $Script_80240A48_trd_09 {
+    0:  Call  SetBattleMusic    ( .Song:SpecialBattle )
+   10:  Call  GetOwnerEncounterTrigger  ( *Var0 )
+   20:  Switch  *Var0 
+   2C:  	Case  ==  .EncounterTrigger:None % 1
+   38:  	CaseOR  ==  .EncounterTrigger:Jump % 2
+   44:  	CaseOR  ==  .EncounterTrigger:Hammer % 4
+   50:  	CaseOR  ==  .EncounterTrigger:Partner % 6
+   5C:  		Set   *Var0  002E0003 
+   6C:  		ExecWait  800936DC 
+   78:  	Case  ==  .EncounterTrigger:Spin % 3
+   84:  		Thread
+   8C:  			Call  800458CC  ( *Var0 )
+   9C:  			If  *Var0  ==  00000000 
+   AC:  				Set   *VarA  00000000 
+   BC:  				Loop  0000001E 
+   C8:  					Add   *VarA  00000028 
+   D8:  					Call  SetNpcRotation    ( .Npc:Self 00000000 *VarA 00000000 )
+   F4:  					Wait  1`
+  100:  				EndLoop
+  108:  			EndIf
+  110:  		EndThread
+  118:  	EndCaseGroup
+  120:  EndSwitch
+  128:  Return
+  130:  End
+}
+
+#new:Script $Script_NpcAI_802419DC_trd_09 {
+    0:  If  *GB_StoryProgress  <  .Story:Ch1_KoopaBrosFiringBlasters % FFFFFFB1
+   10:  	Label  64
+   1C:  	Call  GetNpcVar ( 00000046 00000000 *Var0 )
+   34:  	If  *Var0  ==  00000000 
+   44:  		Wait  1`
+   50:  		Goto  64
+   5C:  	EndIf
+   64:  EndIf
+   6C:  Label  0
+   78:  Set   *VarA  00000014 
+   88:  Loop  0000000A 
+   94:  	Call  $Function_80240000_trd_09 ( *VarA 00000000 *Var0 )
+   AC:  	If  *Var0  ==  00000000 
+   BC:  		Call  GetSelfNpcID      ( *Var0 )
+   CC:  		Call  SetNpcVar ( *VarA 00000000 *Var0 )
+   E4:  		Call  SetNpcAnimation   ( .Npc:Self 002E0002 )
+   F8:  		Wait  15`
+  104:  		Call  SetNpcAnimation   ( .Npc:Self 002E0001 )
+  118:  		Call  RandInt   ( 00000064 *Var0 )
+  12C:  		Add   *Var0  0000003C 
+  13C:  		Wait  *Var0 
+  148:  	EndIf
+  150:  	Add   *VarA  00000001 
+  160:  EndLoop
+  168:  Wait  1`
+  174:  Goto  0
+  180:  Return
+  188:  End
+}
+
+#new:NpcSettings $NpcSettings_80242150_trd_09 {
+002E0001 001A0020 $Script_80240820_trd_09 00000000 $Script_NpcAI_802419DC_trd_09 $Script_80240A48_trd_09 00000000 00000000 
+00000000 00000000 000A0000 
+}
+
+#new:Script $Script_Defeat_802421A8_trd_09 {
+    0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o85 7FFFFE00 )
+   18:  Set   *GF_TRD09_Defeated_BillBlasters  .True 
+   28:  Call  DoNpcDefeat ( )
+   34:  Return
+   3C:  End
+}
+
+#new:Script $Script_Init_802421EC_trd_09 {
+    0:  If  *GF_TRD09_Defeated_BillBlasters  ==  .False 
+   10:  	Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802421A8_trd_09 )
+   24:  Else
+   2C:  	Call  RemoveEncounter   ( .Npc:Self )
+   3C:  EndIf
+   44:  Return
+   4C:  End
+}
+

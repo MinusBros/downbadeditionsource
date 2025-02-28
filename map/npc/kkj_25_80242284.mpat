@@ -1,0 +1,105 @@
+% automatically dumped from map kkj_25
+
+#new:Npc $kkj_25_80242284 {
+.NpcID:BattleKammy_02 $NpcSettings_80241818_kkj_25 00000000 00000000 00000000 
+00840F05 $Script_Init_80241C9C_kkj_25 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_BattleKammy_02 % .Sprite:BattleKammy
+00000000 00000000 $ExtraAnimationList_80241E68_kkj_25 00000000 % no tattle string
+}
+
+#new:Function $Function_80240020_kkj_25 {
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:increment_status_menu_disabled
+    C:  NOP
+   10:  LUI       A1, 437F
+   14:  JAL       ~Func:set_screen_overlay_params_back
+   18:  CLEAR     A0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+#new:NpcSettings $NpcSettings_80241818_kkj_25 {
+00000000 00220018 00000000 00000000 00000000 80077F70 00000000 8007809C 
+00000000 00000000 001A0000 
+}
+
+#new:Script $Script_Idle_80241A3C_kkj_25 {
+    0:  Call  SetSelfVar    ( 00000000 00000000 )
+   14:  Loop
+   20:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   34:  	If  *Var0  !=  00000000 
+   44:  		BreakLoop
+   4C:  	EndIf
+   54:  	Wait  1`
+   60:  EndLoop
+   68:  Call  802D286C  ( 00002000 )
+   78:  Call  802D2520  ( 00010002 00000008 00000000 00000000 00000000 00000000 )
+   9C:  Call  HidePlayerShadow  ( .True )
+   AC:  Call  DisablePartnerAI  ( 00000000 )
+   BC:  Wait  1`
+   C8:  Call  GetNpcPos ( 00000001 *Var0 *Var1 *Var2 )
+   E4:  Call  SetPlayerPos      ( *Var0 *Var1 *Var2 )
+   FC:  Call  ModifyGlobalOverrideFlags ( 00000001 00020000 )
+  110:  Call  StopSound ( 0000022D )
+  120:  Call  StartBossBattle   ( .Song:BowserBattle )
+  130:  Call  EnablePartnerAI ( )
+  13C:  Return
+  144:  End
+}
+
+#new:Script $Script_Defeat_80241B88_kkj_25 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Call  $Function_80240020_kkj_25 ( )
+   1C:  Set   *GF_KKJ25_Defeated_Kammy  .True 
+   2C:  Call  GotoMap   ( $ASCII_8024C708_kkj_25 00000001 ) % kkj_25
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Aux_80241BE4_kkj_25 {
+    0:  Set   *Var3  00000001 
+   10:  Loop
+   1C:  	Loop  00000005 
+   28:  		Call  GetNpcPos ( 00000002 *Var0 *Var1 *Var2 )
+   44:  		Add   *Var1  *Var3 
+   54:  		Call  SetNpcPos ( 00000002 *Var0 *Var1 *Var2 )
+   70:  		Wait  2`
+   7C:  	EndLoop
+   84:  	Mul   *Var3  FFFFFFFF 
+   94:  	Wait  3`
+   A0:  EndLoop
+   A8:  Return
+   B0:  End
+}
+
+#new:Script $Script_Init_80241C9C_kkj_25 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80241A3C_kkj_25 )
+   14:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_80241B88_kkj_25 )
+   28:  Call  BindNpcAux    ( .Npc:Self $Script_Aux_80241BE4_kkj_25 )
+   3C:  Call  SetNpcPos     ( 00000002  460`  10`  0` )
+   58:  Call  SetNpcYaw     ( 00000002  270` )
+   6C:  Call  SetNpcAnimation   ( 00000002 00610004 )
+   80:  Return
+   88:  End
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_80241E68_kkj_25 {
+00610000 00610001 00610004 00610006 00610007 00610008 00610002 0061000C 
+00610003 FFFFFFFF 
+}
+
+#new:ASCII $ASCII_8024C708_kkj_25 {
+"kkj_25"
+}
+

@@ -10,6 +10,25 @@
 	[MaxHP]       180`b
 }
 
+
+@	$Script_Init_80218B40
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021AEEC )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_80218C4C )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80219F30 )
+		Set *GB_EnemyDefense  00000000
+   3C:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   54:  Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
+   6C:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   84:  Call  SetActorVar   ( .Actor:Self 00000002 FFFFFFFF )
+   9C:  Call  SetActorVar   ( .Actor:Self 00000003 FFFFFFFF )
+   B4:  Call  SetActorVar   ( .Actor:Self 00000004 00000201 )
+   CC:  Call  SetActorVar   ( .Actor:Self 00000005 00000202 )
+   E4:  Call  SetActorVar   ( .Actor:Self 00000006 00000203 )
+   FC:  Return
+  104:  End
+}
+
 %Crystal King's animations speed up when he's low on HP.
 
 @	$Script_Idle_80218C4C
@@ -17,7 +36,10 @@
     0:  Set   *VarF  00000000
    10:  Label  0
 		Call  GetActorHP    ( .Actor:Self *Var0 )
-			If  *Var0  <=  00000028 
+			If  *Var0  <=  00000031 
+				If  *GB_EnemyDefense  == 00000000
+					Set *GB_EnemyDefense  00000001
+				EndIf
 				Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[2.0] )
 			Else
 				Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[1.0] )
@@ -137,8 +159,26 @@
 }
 
 
+#new:Script $CrystalKingTaunt
+{
+	Set *GB_EnemyDefense  00000002
+	Call  UseIdleAnimation  ( .Actor:Self .False )
+	Call  EnableIdleScript  ( .Actor:Self 00000000 )
+	Call  UseBattleCamPreset    ( 0000000E )
+	Call  BattleCamTargetActor  ( .Actor:Self )
+	Call  MoveBattleCamOver (  20` )
+	Call  ActorSpeak        ( 00120181 .Actor:Self 00000001 007F001D 007F0009 )
+	Call  EnableIdleScript  ( .Actor:Self 00000001 )
+	Call  UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
+
 @	$Script_TakeTurn_8021AEEC
 {
+		If  *GB_EnemyDefense  == 00000001
+			ExecWait $CrystalKingTaunt		
+		EndIf
     0:  Call  GetActorHP    ( .Actor:Self *Var0 )
    14:  If  *Var0  <=  00000096
    24:  	Call  GetActorVar   ( .Actor:Enemy0 00000000 *Var0 )

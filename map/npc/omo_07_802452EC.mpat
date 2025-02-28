@@ -1,0 +1,89 @@
+% automatically dumped from map omo_07
+
+#new:Npc $omo_07_802452EC {
+.NpcID:Fuzzy_05 $NpcSettings_80243AF8_omo_07 00000000 00000000 00000000 
+00440F00 $Script_Init_80244A20_omo_07 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Fuzzy_05 % .Sprite:Fuzzy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Function $Function_80242E70_omo_07 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ORI       V0, V0, 1000
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Function $Function_80242E8C_omo_07 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ANDI      V0, V0, EFFF
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:NpcSettings $NpcSettings_80243AF8_omo_07 {
+00000000 00170016 00000000 00000000 00000000 80077F70 00000000 8007809C 
+00000000 00000000 000E0001 
+}
+
+#new:Script $Script_Idle_80244834_omo_07 {
+    0:  Label  0
+    C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  If  *Var0  <  000003DE 
+   34:  	Wait  1`
+   40:  	Goto  0
+   4C:  EndIf
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Call  $Function_80242E70_omo_07 ( )
+   70:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   8C:  Call  SetCamProperties      ( .Cam:Default *Fixed[5.0] *Var0 *Var1 *Var2  300` *Fixed[13.0] *Fixed[-9.5] )
+   B8:  If  *GB_OMO_PeachChoice2  ==  00000000 
+   C8:  	Call  SpeakToPlayer ( 00000005 002B000B 002B0001 00000000 000F003C ) % Invalid string ID! 000F003C
+   E8:  Else
+   F0:  	Call  SpeakToPlayer ( 00000006 005A000A 005A0002 00000000 000F003D ) % Invalid string ID! 000F003D
+  110:  EndIf
+  118:  Thread
+  120:  	Call  $Function_80242E8C_omo_07 ( )
+  12C:  	Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  140:  EndThread
+  148:  Call  DisablePlayerInput    ( .False )
+  158:  Call  StartBossBattle       ( .Song:SpecialBattle )
+  168:  Return
+  170:  End
+}
+
+#new:Script $Script_Defeat_802449AC_omo_07 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_OMO07_Item_ThunderRage  .True 
+   38:  		Call  DoNpcDefeat ( )
+   44:  	Case  ==  .Outcome:PlayerLost % 1
+   50:  	Case  ==  .Outcome:PlayerFled % 2
+   5C:  EndSwitch
+   64:  Return
+   6C:  End
+}
+
+#new:Script $Script_Init_80244A20_omo_07 {
+    0:  If  *GB_OMO_PeachChoice2  ==  00000000 
+   10:  	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80244834_omo_07 )
+   24:  	Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802449AC_omo_07 )
+   38:  Else
+   40:  	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   5C:  EndIf
+   64:  Return
+   6C:  End
+}
+

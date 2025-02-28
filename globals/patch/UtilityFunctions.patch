@@ -56,6 +56,26 @@ ADDIU	V0, R0, 2 %functions called from scripts need to return 2 or they will loo
 	NOP
 }
 
+%Some badges use "Equiped" instead of "Equipped" so just patch it twice.
+#new:Function $IsBadgeEquipped
+{
+PUSH	S1, S2, S3
+.Init
+LIO		S2, 8010F498	% position in list
+ADDIU	S3, S2, 78		% end of list
+.Loop
+LH		S1, 0 (S2)
+BEQL	A0, S1, .End
+ADDIU	V0, R0, 1 % return true
+BNE		S2, S3, .Loop
+ADDIU	S2, S2, 2
+ADDIU	V0, R0, 0 % return false
+.End
+POP		S1, S2, S3
+JR		RA
+NOP
+}
+
 
 % Call $ReadAddress ( Address ByteSize *out offset FollowPointer )
 #new:Function $ReadAddress
@@ -459,13 +479,232 @@ JR	RA
 ADDIU	V0, R0, 2
 }
 
-%/
 
+
+
+% Call  $GetItemFlags ( itemID typeFlags targetFlags )
+#export:Function $GetItemFlags
+{
+    PUSH    RA, A0, A1, A2, A3, S0, S1
+    LW      S0, C (A0)
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0) % load arg0
+    LIO     V1, 800878E0 % item table
+    SLL	    S1, V0, 5
+    ADDU	S1, S1, V1
+    % S1 = itemData
+    LW      A0, 14 (SP)
+    LW      A1, 4 (S0) % load arg1
+    JAL     ~Func:set_variable
+    LHU     A2, 18 (S1) % load typeFlags
+    LW      A0, 14 (SP)
+    LW      A1, 8 (S0) % load arg2
+    JAL     ~Func:set_variable
+    LW      A2, 8 (S1) % load targetFlags
+    POP     RA, A0, A1, A2, A3, S0, S1
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+% A0=itemID
+%
+% A1=typeOfFlags (0x00=typeFlags - 0x01=targetFlags)
+%
+% *out=V0=requestFlags
+#export:Function $get_item_flags
+{
+    PUSH    A0, A1, A2, A3, V1
+    COPY    V0, A0
+    LIO     V1, 800878E0 % item table
+    SLL	    A2, V0, 5
+    ADDU	A2, A2, V1
+    % A1 = typeOfFlagsRequested
+    % A2 = itemData
+    BEQL    A1, R0, .End
+    LHU     V0, 18 (A2) % load typeFlags
+    LW      V0, 8 (A2) % load targetFlags
+    .End
+    POP     A0, A1, A2, A3, V1
+    JR      RA
+    NOP
+}
+
+% A0=itemID
+%
+% V0=itemData*
+%
+% Get data from the globals editor data
+%
+% ==Data Struct==
+%
+% 0x00 = `string name`
+%
+% 0x04 = `u16 itemID`
+%
+% 0x08 = `u32 targetFlags`
+%
+% 0x0D = `u8 sell value`
+%
+% 0x10 = `string fullDesc`
+%
+% 0x14 = `string shortDesc`
+%
+% 0x18 = `u16 typeFlags`
+%
+% 0x1A = `u8 moveID`
+%
+% 0x1B = `u8 power/hpGain`
+%
+% 0x1C = `u8 fpGain`
+#export:Function $get_item_global_data
+{
+    PUSH    A0, A1, A2, A3, V1
+    COPY    V0, A0
+    LIO     V1, 800878E0 % item table
+    SLL	    A2, V0, 5
+    ADDU	V0, A2, V1
+    POP     A0, A1, A2, A3, V1
+    JR      RA
+    NOP
+}
+
+% `Call    $GetItemGlobalData ( itemID *out )`
+%
+% Get data from the globals editor data
+%
+% ==Data Struct==
+%
+% 0x00 = `string name`
+%
+% 0x04 = `u16 itemID`
+%
+% 0x08 = `u32 targetFlags`
+%
+% 0x0D = `u8 sell value`
+%
+% 0x10 = `string fullDesc`
+%
+% 0x14 = `string shortDesc`
+%
+% 0x18 = `u16 typeFlags`
+%
+% 0x1A = `u8 moveID`
+%
+% 0x1B = `u8 power/hpGain`
+%
+% 0x1C = `u8 fpGain`
+#export:Function $GetItemGlobalData
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S1
+    COPY    S0, A0
+    LW      A1, C (A0)
+    JAL     ~Func:get_variable
+    LW      A1, 0 (A1) % arg0
+    JAL     $get_item_global_data
+    COPY    A0, V0
+    % save var
+    COPY    A2, V0
+    COPY    A0, S0
+    LW      A1, C (A0)
+    JAL     ~Func:set_variable
+    LW      A1, 4 (A1) % arg1
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S1
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+
+
+% Convert Float to Int
+%
+% Call $Function_ConvertToInt ( float *out )
+#export:Function $Function_ConvertToInt
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
+    COPY    S0, A0
+    LW      A1, C (A0)
+    JAL     ~Func:get_variable
+    LW      A1, 0 (A1)
+    MTC1    V0, F0
+    CVT.W.S F0, F0
+    MFC1	A2, F0
+    NOP
+    COPY    A0, S0
+    LW      A1, C (A0)
+    JAL     ~Func:set_variable
+    LW      A1, 4 (A1)
+    POP     RA, A0, A1, A2, A3, V0, V1, S0
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+% Call $ReadAddressFloat ( Address ByteSize *out offset FollowPointer )
+%
+% Uses set_float_variable for *out
+#new:Function $ReadAddressFloat
+{
+    PUSH    RA, S0, S1, S2, S3, S4
+    LW      S0, C (A0)
+    % Get Argument 5
+    JAL     ~Func:get_variable
+    LW      A1, 10 (S0)
+    COPY    S4, V0
+    % Get Argument 4
+    JAL     ~Func:get_variable
+    LW      A1, C (S0)
+    COPY    S3, V0
+    % Get Argument 3
+    LW      S2, 8 (S0) % load Var from arg2
+    % Get Argument 2
+    JAL     ~Func:get_variable
+    LW      A1, 4 (S0)
+    COPY    S1, V0
+    % Get Argument 1
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0)
+    /%
+    Arg1=V0=Address
+    Arg2=S1=ByteSize
+    Arg3=S2=*out
+    Arg4=S3=Offset
+    Arg5=S4=Pointer Flag
+    %/
+    % A pointer need to be followed?
+    BNEL    S4, R0, .ReadPointer
+    LW      V0, 0 (V0)
+    .ReadPointer
+    % Read Offset
+    ADDU    V0, V0, S3
+    % Read 1, 2 or 4 Bytes
+    % Byte
+    BEQL    S1, R0, .WriteVar
+    LBU     A2, 0 (V0)
+    % Half
+    ORI     T2, R0, 1
+    BEQL    S1, T2, .WriteVar
+    LHU     A2, 0 (V0)
+    % Word
+    ORI     T2, R0, 2
+    BEQ     R0, R0, .WriteVar
+    LW      A2, 0 (V0)
+    .WriteVar
+    % Get Argument 3 and write output
+    JAL 	~Func:set_float_variable
+    COPY    A1, S2  % copy *out in to A1
+    POP     RA, S0, S1, S2, S3, S4
+    JR      RA
+    ORI     V0, R0, 2
+}
 
 
 #export $CreateIcon
 #export $CreateIcon_ignoreViewport
 #export $IsBadgeEquiped
+#export $IsBadgeEquipped
 #export $IsBadgeEquippedScriptVer
 #export $ReadAddress
 #export $WriteAddress
+#export $ReadAddressFloat

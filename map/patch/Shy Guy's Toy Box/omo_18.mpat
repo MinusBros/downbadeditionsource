@@ -1,0 +1,208 @@
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]Do the Shy Guys have a sort of[BR]
+civilization here or something?[BR]
+[Wait][Next]
+How long before a cute Shy Gal[BR]
+pops out and smothers me[BR]
+between her marshmallows?[BR]
+[Wait][Next]
+[Wave]Ah, now that'd be great. [HEART][/fx][BR]
+[Pause 15][Down 2]We gotta get going, Mario.[Wait][End]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry1 %  coordinates
+~Vec4f:Entry2 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	%Set      *WorldMapLocation 0000000A % sets the location on the pause screen map
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
+	Call     MakeNpcs       ( 00000001 $NpcGroups_OMO_18 )
+	ExecWait $Script_MakeEntities 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+	
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity			( .Entity:RedBlock ~Vec4d:invblock1 .Item:Jumpman 80000000 )
+	Call	 AssignBlockFlag 	( *GF_OMO18_BlockAA )
+	Call     MakeEntity       	( .Entity:HiddenYellowBlock ~Vec4d:coinblock1 .Item:PotatoSalad 80000000 )
+	Call     AssignBlockFlag 	( *GF_OMO18_BlockB )
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:coinblock2 .Item:StarPoint 80000000 )
+	Call     AssignBlockFlag 	( *GF_OMO18_BlockC )	
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:coinblock3 .Item:StarPoint 80000000 )
+	Call     AssignBlockFlag 	( *GF_OMO18_BlockD )
+    Call  MakeEntity    ( .Entity:HiddenPanel ~Vec4d:newhiddenpanel ~Model:PlanarGrid 80000000 )
+    Call  AssignPanelFlag   ( *GF_OMO18_HiddenPanel )
+	Return
+	End
+}
+	 
+#new:NpcGroupList $NpcGroups_OMO_18
+{
+00000001 $NPC_YellowSHY 10030000
+00000001 $NPC_BlueSHY   10010000
+00000001 $NPC_GreenSHY  10050000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NPC_YellowSHY
+{
+00000001 $NpcSettings_SHY ~Vec3f:shyguys1
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:20:Mushroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:shyguys1
+003B0401 003B0402 003B0404 003B0404 003B0401 003B0401 003B040C 003B040C 
+003B0415 003B0412 003B0411 003B0410 003B0405 003B0401 003B0401 003B0401 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NPC_BlueSHY
+{
+00000002 $NpcSettings_SHYFAST ~Vec3f:shyguys2
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:20:Mushroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:shyguys2
+003B0101 003B0102 003B0104 003B0104 003B0101 003B0101 003B010C 003B010C 
+003B0115 003B0112 003B0111 003B0110 003B0105 003B0101 003B0101 003B0101 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NPC_GreenSHY
+{
+00000003 $NpcSettings_SHY ~Vec3f:shyguys3
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:20:Mushroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:shyguys3
+003B0201 003B0202 003B0202 003B0202 003B0201 003B0201 003B020C 003B020C 
+003B0215 003B0212 003B0211 003B0210 003B0205 003B0201 003B0201 003B0201 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_SHY
+{
+00000000 00180018 00000000 00000000 $Script_SHYAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+}
+
+#new:NpcSettings $NpcSettings_SHYFAST
+{
+00000000 00180018 00000000 00000000 $Script_SHYAI 80077F70 00000000 8007809C
+00000000 00000000 00060000
+}
+
+
+#new:Script $Script_SHYAI
+{
+     Call     DoBasicAI   	( $AISettings_SHY )
+     Return
+     End
+}
+	
+#new:Script $Script_SHYAIFAST
+{
+     Call     DoBasicAI   	( $AISettings_SHYFAST )
+     Return
+     End
+}
+	
+#new:AISettings $AISettings_SHY
+{
+    1.8 % move speed
+    60` % move time
+    30` % wait time
+   80.0 % alert radius
+    0.0
+    5`
+    3.2 % chase speed
+    60`
+    15`
+  100.0 % chase radius
+    0.0
+    1`
+}
+	
+	#new:AISettings $AISettings_SHYFAST
+{
+    2.5 % move speed
+    60` % move time
+    30` % wait time
+   80.0 % alert radius
+    0.0
+    5`
+    3.2 % chase speed
+    60`
+    15`
+  100.0 % chase radius
+    0.0
+    1`
+}
+	 
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:Entry1 00000001 00000000
+	Bind     $Script_Entry2  .Trigger:FloorAbove ~Collider:Entry2 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "omo_06" 4 )
+	Wait     00000034 
+	Return
+	End	
+}
+		
+	#new:Script $Script_Entry2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "omo_07" 0 )
+	Wait     00000034 
+	Return
+	End	
+}
+

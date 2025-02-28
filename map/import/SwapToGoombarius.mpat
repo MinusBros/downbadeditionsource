@@ -1,0 +1,51 @@
+		
+%This code will swap the active Partner to Goombarius
+%whenever the game calls for it.
+		
+#new:Function $PartnerSwap
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       ~Func:switch_to_partner
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+
+
+
+%Uses the aforementioned function to swap Goombarius
+%out if he's not already out. 
+
+#new:Script $SwapToGoombarius
+{
+		Call  EnablePartnerAI ( )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Goombario % 0
+			Call  $PartnerSwap    ( 00000001 )
+			Thread
+				Set   *MapVar[0]  00000000
+				Wait  1`
+				Set   *MapVar[0]  00000001
+			EndThread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcYaw ( .Npc:Partner  90` )
+			Call  EnablePartnerAI ( )
+			Loop
+				Wait  1`
+				If  *MapVar[0]  ==  00000001
+				BreakLoop
+				EndIf
+			EndLoop
+		Wait  32`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+		Return
+		End
+}

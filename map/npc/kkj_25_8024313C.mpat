@@ -1,0 +1,89 @@
+% automatically dumped from map kkj_25
+
+#new:Npc $kkj_25_8024313C {
+.NpcID:WorldBowser_05 $NpcSettings_80242890_kkj_25 00000000 00000000 00000000 
+00840F05 $Script_Init_80242C74_kkj_25 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_WorldBowser_05 % .Sprite:WorldBowser
+00000000 00000000 $ExtraAnimationList_802430A4_kkj_25 00000000 % no tattle string
+}
+
+#new:Function $Function_80240050_kkj_25 {
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:increment_status_menu_disabled
+    C:  NOP
+   10:  LUI       A1, 437F
+   14:  JAL       ~Func:set_screen_overlay_params_back
+   18:  CLEAR     A0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+#new:NpcSettings $NpcSettings_80242890_kkj_25 {
+00000000 004B0048 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_80242998_kkj_25 {
+    0:  Label  0
+    C:  Call  SetSelfVar    ( 00000000 00000000 )
+   20:  Loop
+   2C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   40:  	If  *Var0  !=  00000000 
+   50:  		BreakLoop
+   58:  	EndIf
+   60:  	Wait  1`
+   6C:  EndLoop
+   74:  Thread
+   7C:  	Call  GetNpcPos     ( 00000005 *Var0 *Var1 *Var2 )
+   98:  	Add   *Var0  FFFFFFB5 
+   A8:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   C4:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   E0:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+   F4:  	Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-7.0] )
+  10C:  	Call  SetCamDistance    ( .Cam:Default  1000` )
+  120:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  138:  EndThread
+  140:  Call  StartBossBattle   ( .Song:FinalBowserBattle )
+  150:  Goto  0
+  15C:  Return
+  164:  End
+}
+
+#new:Script $Script_Defeat_80242B04_kkj_25 {
+    0:  Call  SetEncounterStatusFlags   ( 00000002 .True )
+   14:  Call  $Function_80240050_kkj_25 ( )
+   20:  Set   *GF_KKJ25_Defeated_Bowser  .True 
+   30:  Call  GotoMap   ( $ASCII_8024C710_kkj_25 00000002 ) % kkj_25
+   44:  Wait  100`
+   50:  Return
+   58:  End
+}
+
+#new:Script $Script_Init_80242C74_kkj_25 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80242998_kkj_25 )
+   14:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_80242B04_kkj_25 )
+   28:  Call  SetNpcScale   ( 00000005 *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
+   44:  Call  SetNpcPos     ( 00000005  200`  0`  0` )
+   60:  Call  SetNpcAnimation   ( 00000005 00800002 )
+   74:  Return
+   7C:  End
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_802430A4_kkj_25 {
+00800002 00800004 00800006 0080000D 0080000E FFFFFFFF 
+}
+
+#new:ASCII $ASCII_8024C710_kkj_25 {
+"kkj_25"
+}
+

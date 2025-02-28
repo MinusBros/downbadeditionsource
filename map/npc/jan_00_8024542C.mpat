@@ -1,0 +1,105 @@
+% automatically dumped from map jan_00
+
+#new:Npc $jan_00_8024542C {
+.NpcID:HeartPlant_06 $NpcSettings_8024239C_jan_00 00000000 00000000 00000000 
+00408905 00000000 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_HeartPlant_06 % .Sprite:HeartPlant
+00000000 00000000 00000000 001A00D3 % Invalid string ID! 001A00D3
+}
+
+#new:Function $Function_80240340_jan_00 {
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        RA, 20 (SP)
+    8:  SW        S1, 1C (SP)
+    C:  SW        S0, 18 (SP)
+   10:  LW        S1, 148 (A0)
+   14:  JAL       ~Func:get_npc_unsafe
+   18:  LH        A0, 8 (S1)
+   1C:  LW        V1, 6C (S1)
+   20:  SLTI      V1, V1, 5
+   24:  BEQ       V1, R0, .o9C
+   28:  COPY      S0, V0
+   2C:  JAL       ~Func:rand_int
+   30:  LI        A0, 3E8
+   34:  SLTI      V0, V0, 12D
+   38:  BNE       V0, R0, .o9C
+   3C:  LI        V0, 3
+   40:  LH        V1, A8 (S0)
+   44:  LWC1      F4, 3C (S0)
+   48:  LWC1      F0, 40 (S0)
+   4C:  LIF       F3, 2.3125
+   54:  MTC1      R0, F2
+   58:  SW        V0, 10 (SP)
+   5C:  CVT.D.S   F0, F0
+   60:  ADD.D     F0, F0, F2
+   64:  SW        R0, 14 (SP)
+   68:  MTC1      V1, F2
+   6C:  NOP
+   70:  CVT.S.W   F2, F2
+   74:  ADD.S     F4, F4, F2
+   78:  LW        A1, 38 (S0)
+   7C:  CVT.S.D   F0, F0
+   80:  MFC1      A2, F4
+   84:  MFC1      A3, F0
+   88:  JAL       ~Func:make_item_entity_nodelay
+   8C:  LI        A0, 156
+   90:  LW        V0, 6C (S1)
+   94:  ADDIU     V0, V0, 1
+   98:  SW        V0, 6C (S1)
+        .o9C
+   9C:  LW        RA, 20 (SP)
+   A0:  LW        S1, 1C (SP)
+   A4:  LW        S0, 18 (SP)
+   A8:  LI        V0, 2
+   AC:  JR        RA
+   B0:  ADDIU     SP, SP, 28
+}
+
+#new:Script $Script_80242214_jan_00 {
+    0:  Call  EnableNpcShadow   ( .Npc:Self .False )
+   14:  Call  SetSelfVar        ( 00000000 00000000 )
+   28:  Call  SetSelfVar        ( 00000001 00000000 )
+   3C:  Return
+   44:  End
+}
+
+#new:Script $Script_80242260_jan_00 {
+    0:  Wait  45`
+    C:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80242290_jan_00 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_Interact_80242290_jan_00 {
+    0:  Call  GetSelfVar    ( 00000001 *Var0 )
+   14:  If  *Var0  ==  00000000 
+   24:  	Call  SetSelfVar        ( 00000001 00000001 )
+   38:  	Call  PlaySoundAtNpc    ( .Npc:Self 00002099 00000000 )
+   50:  	Call  SetNpcAnimation   ( .Npc:Self 00430000 )
+   64:  	Wait  1`
+   70:  	Call  $Function_80240340_jan_00 ( )
+   7C:  	Call  SetNpcAnimation   ( .Npc:Self 00430001 )
+   90:  	Thread
+   98:  		Call  BindNpcInteract   ( .Npc:Self 00000000 )
+   AC:  		Exec  $Script_80242260_jan_00 
+   B8:  		Wait  45`
+   C4:  		Call  SetSelfVar        ( 00000001 00000000 )
+   D8:  		Call  SetNpcAnimation   ( .Npc:Self 00430000 )
+   EC:  	EndThread
+   F4:  EndIf
+   FC:  Return
+  104:  End
+}
+
+#new:NpcSettings $NpcSettings_8024239C_jan_00 {
+00000000 0014001C $Script_80242214_jan_00 $Script_Interact_80242290_jan_00 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+

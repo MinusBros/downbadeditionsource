@@ -1,365 +1,104 @@
-#new:Function $Function_ConsumeMultipleLifeShrooms %args: (return var)
-{
-%returns: V0 = 2 (required), return var = # of Life Shrooms found
-%Remember, A0 has script context by default, and A0+C its arguments
-PUSH 	S0, S1, RA
-COPY 	S0, A0  		%store source script pointer
-LW 		S1, C (A0)		%load args pointer into S0 
-LW 		S1, 0 (S1) 		%load arg0 into s0 (we don't need the args after this)	
-LIO 	A0, 8010F444 	%get at Mario's data structure, specifically inventory: 8010F444 = 8010F290 + 1B4 (inventory start)
-ADDIU 	A3, R0, 95		%95 = life shroom. We'll test against this.
-CLEAR	A1				%A1 contains inventory cell number. Once this is A, we're off the end of Mario's inventory table.
-CLEAR	V0	  			%V0 will contain # of life shrooms found 
-.invtestloop
-LHU	  	A2, 0 (A0) 		%put contents of item slot into A2
-BEQ		A2, A3, .foundLS	%jump if life shroom
-ADDIU	A1, A1, 1		%increment counter
-SLTI	A2, A1, A		%we can reuse A2 because the item slot contents weren't a life shroom, so now we test for loop end.
-BNE		A2, R0, .invtestloop	%if A1 < A, jump back to the loop
-ADDIU	A0, A0, 2		%increase inventory cell pointer as we go
-%at this point, we're at the end of the loop
-BEQ 	R0, R0, .finish
-NOP						%get ready to return
-.foundLS
-SH		R0, 0 (A0)		%clear life shroom slot
-ADDIU	V0, V0, 1		%add to counter
-SLTI	A2, A1, A		%test for loop end.	
-%BEQ		A2, R0, .finish	%if at loop end, we have to finish up
-%SLTI	A2, V0, 5		%test for max shrooms (only if not at loop end)
-BNE		A2, R0, .invtestloop %if less than 5 shrooms found AND not at loop end, we jump back (we couldn't reach this line if at loop end, so the AND is implied)
-ADDIU	A0, A0, 2		%don't forget to increase inventory cell pointer! 
-.finish
-%at this point, we've cleared up to 5 life shroom slots and what have you, but we need to store how many slots were cleared for the return.
-COPY 	A0, S0 			%restore source script pointer (we never touch it but I don't know if GetVariable clobbers it)
-COPY 	A1, S1 			%load arg2, Var# to store to
-JAL 	~Func:set_variable
-COPY	A2, V0 			%value to store (0-5) goes into A2
-JAL		~Func:sort_items %we also need to sort Mario's consumables before we get out of here.
-NOP
-ADDIU	V0, R0, 2		%set V0 to 2 (required)
-POP S0, S1, RA
-JR	RA		%now let's get out of here
-NOP
-}
+%lifeshroom mod: using a life shroom will delete the rest of them, so you can't cheese with 10 life shrooms
+%new version: gain 10 HP for each life shroom (so 2 life shrooms will heal 20 hp)
 
-#new:Function $Function_AddLifeShroomsBack %args: (#LS to add)
-{
-PUSH 	RA
-LW 		A1, C (A0)		%load args pointer into A1
-LW 		A1, 0 (A1) 		%load arg 1 into A1 (# shrooms to add)
-JAL 	~Func:get_variable 	%in case a variable was passed to us, get its value out
-NOP 					%result gets put into V0
-LIO 	A0, 8010F444 	%get at Mario's data structure, specifically inventory: 8010F444 = 8010F290 + 1B4 (inventory start)
-ADDIU 	A3, R0, 95		%95 = life shroom. We'll store this.
-CLEAR	A1				%A1 contains inventory cell number. Once this is A, we're off the end of Mario's inventory table.
-.invtestloop
-LHU	  	A2, 0 (A0) 		%put contents of item slot into A2
-BEQ		A2, R0, .freeslot	%jump if empty
-ADDIU	A1, A1, 1		%increment counter
-SLTI	A2, A1, A		%we can reuse A2 because the item slot contents weren't a life shroom, so now we test for loop end.
-BNE		A2, R0, .invtestloop	%if A1 < A, jump back to the loop
-ADDIU	A0, A0, 2		%increase inventory cell pointer as we go
-%at this point, we're at the end of the loop
-BEQ 	R0, R0, .finish
-NOP						%get ready to return
-.freeslot
-ADDIU 	V0, V0, FFFF	%subtract 1 from the number of life shrooms we have left to add
-SH		A3, 0 (A0)		%add life shroom to slot
-SLTI	A2, A1, A		%test for loop end.	
-BEQ		A2, R0, .finish	%if at loop end, we have to finish up
-NOP
-BGTZ	V0, .invtestloop %if we have more life shrooms to do and we're not at loop end, we go back in
-ADDIU	A0, A0, 2
-.finish
-JAL		~Func:sort_items %let's sort and get out
-NOP
-ADDIU	V0, R0, 2		%set V0 to 2 (required)
-POP 	RA
-JR 		RA
-NOP 
-}
-
-
-#new:Function $Function_SubsidiaryRefund %args: (# life shrooms refunding, counting the original one.)
-{
-PUSH 	RA
-LW 		A1, C (A0)		%load args pointer into A1
-LW 		A1, 0 (A1) 		%load arg 1 into A1 (# shrooms currently being used)
-JAL ~Func:get_variable 	%in case a variable was passed to us, get its value out
-NOP 					%result gets put into V0
-ADDIU	V0, V0, FFFF	%subtract one life shroom - it's handled by the normal code
-BLEZ	V0, .bail
-ADDIU	A0, R0, 104
-JAL  $IsBadgeEquiped	%check for refund badge (does not alter V0)
-NOP
-BEQ		A0, R0, .bail	%if not equipped, bail
-NOP
-LAH		A1, 80088B8C	%put sale price of life shroom into A1
-BLEZ	A1, .bail
-SLL		A0, A1, 1		%otherwise, prepare for 3/4ing it - multiply by 2 by shifting right
-ADDU	A0, A0, A1		%add a copy to mul by 3
-SRL		A0, A0, 2		%shift right twice to divide by 4
-MULT	A0, V0				%multiply refund price by number of shrooms
-MFLO	A0				
-BLEZ	A0, .bail		%if the result is <= 0, bail out
-NOP
-JAL		~Func:add_coins%now edit Mario's coin balance by the required amount
-NOP
-.bail
-ADDIU	V0, R0, 2		%store 2 into V0 (required for func calling convention)
-POP 	RA
-JR 		RA
-NOP
-}
-
-%medicine man is itemID 150
-
-#new:Function $Function_QuickHealMario %args: (HP to heal to)
-{
-PUSH 	RA
-LW 		A1, C (A0)		%load args pointer into A1
-LW 		A1, 0 (A1) 		%load arg 1 into A1 (HP to heal)
-JAL 	~Func:get_variable 	%in case a variable was passed to us, get its value out
-NOP 					%result gets put into V0
-%time out to check for medicine man
-JAL  	$IsBadgeEquiped	
-ADDIU 	A0, R0, 150		%medicine man badge ID
-BEQ  	A0, R0, .nomedman	%if medicine man is equipped...
-SRL  	A0, V0, 1			%healing * .5
-ADDU 	V0, V0, A0			%+=1 to be *1.5
-.nomedman
-LAB		A0, 8010F293	%load Mario's max HP
-SLT		A1, A0, V0		%if A0 (max) < V0 (heal amt), set A1 to indicate overcap
-BNEL	A1, R0, .restore	
-COPY	V0, A0			%if overcap, set current HP to max instead (only run on jump)
-.restore
-SAB		V0, 8010F292	%store result to Mario's HP
-ADDIU	V0, R0, 2		%store 2 into V0 (required for func calling convention)
-POP 	RA
-JR 		RA
-NOP
-}
-
-%note to self. The required line before returning from a Call() IS NOT 'ADDIU V0, V0, 2'. That's "V0 += 2". You want, 'ADDIU V0, R0, 2', which is "V0 = 2". 
-
-#new:Script:Battle $Script_DummyLifeShroomAnimation
-{
-		Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-		Add	 *Var[2] *Var[6]	%adjust z coordinate to prevent Z-fighting
-  134:  Call     MakeItemEntity ( .Item:LifeShroom *Var[0] *Var[1] *Var[2] 00000001 00000000 ) %life shroom appears
-  158:  Set  *Var[A]  *Var[0]  		%var A takes return from that function, because, OK then
-  168:  Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] ) %get position of mario again
-  		Add	 *Var[2] *Var[6]
-  184:  Set  *Var[3]  0000001E 	
-  194:  Set  *Var[4]  00000010 
-  1A4:  Loop     *Var[3] 
-  1B0:  	Add  *Var[4]  00000008 
-  1C0:  	If  *Var[4]  >  000000FF 
-  1D0:  		Set  *Var[4]  000000FF 
-  1E0:  	EndIf
-  1E8:  	AddF  *Var[1]  *Fixed[1.0] 
-  1F8:  	Call     SetItemPos  	( *Var[A] *Var[0] *Var[1] *Var[2] )
-  214:  	Wait     00000001 
-  220:  EndLoop
-  		Wait	0000000A
-  390:  Call     RemoveItemEntity 	( *Var[A] )
-}
-
-%for battle lib, Star Rod _always_ behaves as if 'pack script opcodes' is turned off
-@Data 001B62A0 %this patches Script_UseLifeShroom to just feed into UpdatedLifeShroom
-{
-00000046 00000001 $Script_UpdatedLifeShroom %ExecWait
-00000002 00000000 %Return
-00000001 00000000 %End
-}
-
-%if you compile Master Quest with 'pack script opcodes' turned off I don't know if the sky will fall on your head or not. It might.
-
-/% % 'pack script opcode' turned on version % THIS DOESN'T WORK DON'T USE IT
-@Data 001B62A0 %this patches Script_UseLifeShroom to just feed into UpdatedLifeShroom
-00460001 $Script_UpdatedLifeShroom %ExecWait
-00020000 %Return
-00010000 %End
+%Function we're hooked into
+%18FAF4 - 18FAC8
+%2C
+/%
+% 0018FAC8 --> 802611E8
+#new:Function $Function_802611E8
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  LIA       A0, 8010F290
+   14:  SW        S1, 14 (SP)
+   18:  LIA       S1, 80088B80	%item table
+   20:  SW        RA, 1C (SP)
+   24:  SW        S0, 10 (SP)
+   28:  LBU       V0, 2 (A0)	%load player HP
+   2C:  LBU       V1, 1B (S1)	%HP of life shroom		hook here
+   30:  ADDU      V0, V0, V1	%						hook here
+   34:  SB        V0, 2 (A0)	%store player HP
+   38:  SLL       V0, V0, 18
+   3C:  LB        V1, 3 (A0)	%load max HP
+   40:  SRA       V0, V0, 18	
+   44:  SLT       V1, V1, V0	
+   48:  LBU       V0, 3 (A0)	%load max hp again?
+   4C:  BEQ       V1, R0, .o58
+   50:  COPY      S0, A0
+   54:  SB        V0, 2 (A0)
+        .o58
+   58:  JAL       800E7644		%find life shroom? (what happens if it can't find any?)
+   5C:  ADDIU     A0, R0, 95	%life shroom ID
+   60:  SLL       V0, V0, 1
+   64:  ADDU      V0, V0, S0
+   68:  JAL       {Func:SortConsumableItems}	%
+   6C:  SH        R0, 1B4 (V0)					%delete life shroom?
+   70:  LB        V1, 1B (S1)
+   74:  SW        V1, 90 (S2)
+   78:  LW        RA, 1C (SP)
+   7C:  LW        S2, 18 (SP)
+   80:  LW        S1, 14 (SP)
+   84:  LW        S0, 10 (SP)
+   88:  ADDIU     V0, R0, 2
+   8C:  JR        RA
+   90:  ADDIU     SP, SP, 20
 %/
 
-#new:Script:Battle $Script_UpdatedLifeShroom
+@Hook 18FAF4 
 {
-		Call     $Function_ConsumeMultipleLifeShrooms( *Var[9] ) 
-		If	*Var[9] == 0
-			Return  %Open letter to the event dispatch system: I can't stop you from calling this multiple times but I can at least make it so that only one of those calls does something
-			% Or to put it another way: Mario is already being revived. PLEASE WAIT
-		EndIf
-		If *Var[9] > 5	%Var 8 stores extra
-			Set *Var[8] *Var[9]
-			Sub	*Var[8] 00000005
-			Set *Var[9] 00000005 
-		Else
-			Set *Var[8] 00000000
-		EndIf
-		Set *Var[7] *Var[9] %something clobbers *Var[9] later so we're gonna use *Var[7] also
-    0:  Call     UseIdleAnimation ( 00000000 00000000 )
-   14:  ChildThread						%fade out partner
-   1C:  	Call     80261388 ( )		%checks partner's existence
-   28:  	If  *Var[0]  ==  00000001 
-   38:  		Call     DispatchEvent ( 00000100 00000040 )
-   4C:  		Call     SetActorFlagBits ( 00000100 00000004 00000001 )
-   64:  		Set  *Var[0]  000000FF 
-   74:  		Loop     0000000A 
-   80:  			Sub  *Var[0]  00000019 
-   90:  			If  *Var[0]  <  00000000 
-   A0:  				Set  *Var[0]  00000000 
-   B0:  			EndIf
-   B8:  			Call     SetPartAlpha ( 00000100 FFFFFFFF *Var[0] )
-   D0:  			Wait     00000001 
-   DC:  		EndLoop
-   E4:  		Call     SetPartAlpha ( 00000100 FFFFFFFF 00000000 )
-   FC:  	EndIf
-  104:  EndChildThread
-  10C:  Call     802610CC ( )
-  %at this point we need to call ConsumeMultipleLifeShrooms, which will give us how many shrooms are to be consumed.
-  %it also clears out Mario's inventory in an appropriate manner.
-  %then we loop the life shroom animations.
-  		Sub		*Var[9] 00000001	%LS count subtracted for SubsidiaryRefund. We'll get this sorted after
-  		Set		*Var[6] 00000000	%z coordinate tracker for loop
-  		If	*Var[9] > 0
-  			Loop 	*Var[9]
-  				Exec $Script_DummyLifeShroomAnimation
-  				Wait 00000009
-  				Add	*Var[6] 00000001
-  			EndLoop 
-  		EndIf
-  		%actual life shroom animation
-  118:  Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-  		Add	 *Var[2] *Var[6]
-  134:  Call     MakeItemEntity ( .Item:LifeShroom *Var[0] *Var[1] *Var[2] 00000001 00000000 ) %life shroom appears
-  158:  Set  *Var[A]  *Var[0]  		%var A takes return from that function, because, OK then
-  168:  Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] ) %get position of mario again
-  		Add	 *Var[2] *Var[6]
-  184:  Set  *Var[3]  0000001E 	
-  194:  Set  *Var[4]  00000010 
-  1A4:  Loop     *Var[3] 
-  1B0:  	Add  *Var[4]  00000008 
-  1C0:  	If  *Var[4]  >  000000FF 
-  1D0:  		Set  *Var[4]  000000FF 
-  1E0:  	EndIf
-  1E8:  	AddF  *Var[1]  *Fixed[1.0] 
-  1F8:  	Call     SetItemPos  	( *Var[A] *Var[0] *Var[1] *Var[2] )
-  214:  	Wait     00000001 
-  220:  EndLoop  
-  228:  Set  *Var[3]  *Var[0] 
-  238:  Set  *Var[4]  *Var[1] 
-  248:  Set  *Var[5]  *Var[2] 
-  258:  Call     802613A8 ( )	%sets selected item ID in battle struct to 95 ('Life Shroom')
-  264:  Call     80260E90 ( ) %handles refund proc for life shroom
-  270:  If  *Var[0]  >  00000000 		%this is the return from that fn
-  280:  	Wait     *Var[0] 
-  28C:  	Wait     0000000F 
-  298:  	Call     80261064 ( ) %I have no idea what this is
-  2A4:  EndIf
-  		If	*Var[7] > 0
-  			Call	 $Function_SubsidiaryRefund( *Var[7] ) %pay for the extra life shrooms consumed
-  		EndIf
-  2AC:  Call     PlaySoundAtActor ( 00000000 00000372 )
-  2C0:  Add  *Var[4]  0000000F 
-  2D0:  Call     PlayEffect  	( ~FX:EnergyOut:ShortStreaks *Var[3] *Var[4] *Var[5] *Fixed[1.0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  314:  Set  *Var[0]  *Var[F] 
-  324:  Loop     00000004  		%life shroom blinks
-  330:  	Call     SetItemFlags ( *Var[A] 00000040 00000001 )
-  348:  	Wait     00000002 
-  354:  	Call     SetItemFlags ( *Var[A] 00000040 00000000 )
-  36C:  	Wait     00000008 
-  378:  EndLoop
-  380:  Call     RemoveEffect 	( *Var[0] )
-  390:  Call     RemoveItemEntity 	( *Var[A] )
-  3A0:  Call     PlaySoundAtActor ( 00000000 00002055 )
-  3B4:  Call     PlayEffect  	( 00000022 00000001 *Var[3] *Var[4] *Var[5] 00000046 00000046 0000000A 00000014 00000000 00000000 00000000 00000000 00000000 ) %circular healing sparkles?
-  3F8:  Wait     00000014 
-  404:  Call     PlaySoundAtActor ( 00000000 00000373 )
-  418:  Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-  434:  Call     PlayEffect  	( ~FX:RedShimmer:Spiral *Var[0] *Var[1] *Var[2] 00000032 00000014 00000020 0000001E 00000000 00000000 00000000 00000000 00000000 )
-  478:  Wait     00000028 
-  484:  Call     PlayEffect  	( ~FX:RedShimmer:Spiral *Var[0] *Var[1] *Var[2] 0000001E 00000032 00000020 0000001E 00000000 00000000 00000000 00000000 00000000 )
-  4C8:  ChildThread % Mario shakes! 
-  4D0:  	Loop     00000003 
-  4DC:  		Call     8026BA04 ( 00000000 00000001 00000000 00000000 )
-  4F8:  		Wait     00000004 
-  504:  		Call     8026BA04 ( 00000000 FFFFFFFF 00000000 00000000 )
-  520:  		Wait     00000004 
-  52C:  	EndLoop
-  534:  	Loop     00000003 
-  540:  		Call     8026BA04 ( 00000000 00000001 00000000 00000000 )
-  55C:  		Wait     00000002 
-  568:  		Call     8026BA04 ( 00000000 FFFFFFFF 00000000 00000000 )
-  584:  		Wait     00000002 
-  590:  	EndLoop
-  598:  	Loop     00000007 
-  5A4:  		Call     8026BA04 ( 00000000 00000001 00000000 00000000 )
-  5C0:  		Wait     00000001 
-  5CC:  		Call     8026BA04 ( 00000000 FFFFFFFF 00000000 00000000 )
-  5E8:  		Wait     00000001 
-  5F4:  	EndLoop
-  5FC:  EndChildThread
-  604:  Wait     00000032 
-  610:  ChildThread
-  618:  	Call     80261164 ( )
-  624:  EndChildThread
-  62C:  Call     PlaySoundAtActor ( 00000000 00000374 )
-  640:  Call     SetActorRotation ( 00000000 00000000 00000000 00000000 )
-  65C:  Call     SetActorYaw ( FFFFFF81 00000000 )
-  %%% 670:  %Call     $Function_802611E8 ( )	%this function actually uses /consumes the life shroom and heals Mario.
-  				 %note that once the fuction returns, ScriptPointer+90 has the amount of Life Shroom healing, ignoring overcap. Passed to PlayEffect?
-  		%Add *Var[9] 00000001
-  		Mul *Var[7] 0000000A 
-  		Call	 $Function_QuickHealMario( *Var[7] ) %this replaces the old life shroom use fn
-  		If	*Var[8] > 0
-  			Call	 $Function_AddLifeShroomsBack( *Var[8] ) %we ate all lifeshrooms, so add any overcap back
-  		EndIf
-  67C:  Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-  698:  Add  *Var[1]  00000019 
-  6A8:  Call     PlayEffect  	( ~FX:Recover:HP *Var[0] *Var[1] *Var[2] *Var[7] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  6EC:  Call     FreezeBattleCam ( 00000000 )
-  6FC:  Call     UseBattleCamPreset ( 00000002 )
-  70C:  Call     MoveBattleCamOver ( 0000000F )
-  71C:  ChildThread							%fade in partner
-  724:  	Call     80261388 ( )	
-  730:  	If  *Var[0]  ==  00000001 
-  740:  		Call     SetActorFlagBits ( 00000100 00000004 00000000 )
-  758:  		Set  *Var[0]  00000000 
-  768:  		Loop     0000000A 
-  774:  			Add  *Var[0]  00000019 
-  784:  			If  *Var[0]  >  000000FF 
-  794:  				Set  *Var[0]  000000FF 
-  7A4:  			EndIf
-  7AC:  			Call     SetPartAlpha ( 00000100 FFFFFFFF *Var[0] )
-  7C4:  			Wait     00000001 
-  7D0:  		EndLoop
-  7D8:  		Call     DispatchEvent ( 00000100 00000041 )
-  7EC:  		Call     SetPartAlpha ( 00000100 FFFFFFFF 000000FF )
-  804:  	EndIf
-  80C:  EndChildThread
-  814:  ChildThread
-  81C:  	Loop     00000005 
-  828:  		Wait     00000002 
-  834:  		Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-  850:  		Call     PlayEffect  	( ~FX:EmitterVolume:GoldShimmer1 *Var[0] *Var[1] *Var[2] 00000014 00000014 *Fixed[1.0] 0000000A 00000032 00000000 00000000 00000000 00000000 )
-  894:  	EndLoop
-  89C:  EndChildThread
-  8A4:  Call     PlaySoundAtActor ( 00000000 00000160 )
-  8B8:  Call     SetActorJumpGravity ( 00000000 *Fixed[1.0] )
-  8CC:  Call     SetActorSpeed ( 00000000 *Fixed[1.0] )
-  8E0:  Call     GetActorPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-  8FC:  Set  *Var[1]  00000000 
-  90C:  Call     SetJumpAnimations ( 00000000 00000000 00010007 00010008 00010009 )
-  92C:  Call     SetGoalPos ( 00000000 *Var[0] *Var[1] *Var[2] )
-  948:  Call     80273444 ( 00000014 00000000 00000000 )
-  960:  Call     SetAnimation ( 00000000 00000000 00010009 )
-  978:  Wait     00000004 
-  984:  Call     SetAnimation ( 00000000 00000000 00010002 )
-  99C:  Wait     0000000A 
-  9A8:  Call     UseIdleAnimation ( 00000000 00000001 )
-  9BC:  Call     8026127C ( )
-  9C8:  Return
-  9D0:  End
+%item table starts 1B4 after the player data start address (8010F290), ends at 1C8
+PUSH	V0, T0, T1, A0
+ADD		V1, A0, R0
+ORI		T1, R0, 0	%life shroom counter
+.loop
+NOP
+LBU		V0, 1B4 (V1)
+ORI		AT, R0, 95
+BNE		V0, AT, .notls
+NOP
+SB		R0, 1B4 (V1)
+ADDIU	T1, T1, 1
+.notls
+ADDIU	V1, V1, 1
+LIO		T0, 8010F2A4 %8010F454
+BLT		V1, T0 .loop
+NOP
+%loop is done, now calculate new HP increase
+%add more HP if needed
+LBU     V1, 1B (S1)	%HP of life shroom (hooked over) *this is from the item table
+MULT	V1, T1
+NOP
+NOP
+MFLO	V1
+%Cap V1 to 99
+ORI		T0, R0, 64
+BLT		V1, T0, .skip
+NOP
+ORI		V1, R0, 63
+.skip
+%I have no idea what sets *Var[3] to the heal amount, so let's just set it here
+%above function moved the value in A0 to S2
+ORI		A0, S2, 0
+%LIO		A1, FE363C83	%Var[3]
+LIO		A1, FE363C87	%Var[7]
+JAL		~Func:set_variable
+ORI		A2, V1, 0
+POP		V0, T0, T1, A0
+J        8026121C
+ADDU    V0, V0, V1 	%hooked over
 }
+
+%apparently changing *Var[3] doesn't work correctly
+%it doesn't change the value shown when it's supposed to
+%Change that specific part of the script
+@Data 1B6968
+{
+FE363C87
+}
+
+
+%Change 800DC070 + 88 to allow use of multiple items per turn (All values seem to work, negative values only allow 1 item)
+
 
 

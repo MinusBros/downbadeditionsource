@@ -1,6 +1,27 @@
+%Completely change this room by having the key somewhere
+%outside Bower's Castle.
+%The locked door takes you to the room you'd normally
+%go to to get the key.
+
+@	$Header
+{
+	[EntryCount]  00000002
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -345.0    0.0  -80.0   90.0
+	~Vec4f:Entry1 %  330.0    0.0  -25.0  270.0
+}
+
 @	$Script_802413A0
 {
     [0]  Call  SetMusicTrack ( 00000000 .Song:BowsersCastleCaves 00000000 00000008 )
+}
+
+@	$Script_Main
+{
+	[10]  Call  SetSpriteShading  ( .Shading:tik_23 )
 }
 
 @	$Script_ExitDoubleDoor_80241610
@@ -17,8 +38,53 @@
 
 @	$Script_ExitDoubleDoor_80241758
 {
-   [68]  Wait  15`
-   [88]  Wait  80`
+   94:  Return
+   9C:  End
+}
+
+@	$Script_802417FC
+{
+    0:  Bind  $Script_ExitDoubleDoor_80241610 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+   38:  Return
+   40:  End
+}
+
+
+@	$Script_EnterDoubleDoor_80241844
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Set   *Var0  00000000
+   38:  		Set   *Var2  ~Model:o407
+   48:  		Set   *Var3  ~Model:o408
+   58:  		Exec  EnterDoubleDoor
+   64:  		Exec  $Script_802417FC
+   70:  	Case  ==  ~Entry:Entry1
+   7C:  		Set   *Var0  00000001
+   8C:  		Set   *Var2  ~Model:o410
+   9C:  		Set   *Var3  ~Model:o409
+   AC:  		Exec  EnterDoubleDoor
+   B8:  		Exec  $Script_802417FC
+  118:  EndSwitch
+  120:  Return
+  128:  End
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_KPA52_UnlockedDoor  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80241578 80000000 )
+   34:  	Set   *MapVar[0]  *Var0
+   44:  	BindLock  $Script_80241418 .Trigger:WallPressA 00004000 $ItemList_80241410 00000000 00000001
+   64:  Else
+   6C:  	Bind  $Script_ExitDoubleDoor_802416B4 .Trigger:WallPressA ~Collider:tte1 00000001 00000000
+   88:  EndIf
+   5C:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:NewBlock .Item:SweetShroom 80000000 )
+   84:  Call  AssignBlockFlag   ( *GF_KPA52_Block )
+   90:  Return
+   98:  End
 }
 
 @	$AISettings_80241B10
@@ -35,4 +101,10 @@
   140.0 % chase radius
    20.0
     0`
+}
+
+
+@	$ASCII_802439C8
+{
+	"kpa_08"
 }

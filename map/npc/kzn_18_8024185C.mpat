@@ -1,0 +1,87 @@
+% automatically dumped from map kzn_18
+
+#new:Npc $kzn_18_8024185C {
+.NpcID:PutridPiranha_01 $NpcSettings_80240DEC_kzn_18 00000000 00000000 00000000 
+00200004 $Script_Init_80241618_kzn_18 00000000 00000000 0000010E 
+~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_PutridPiranha_01 % .Sprite:PutridPiranha
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Function $Function_80240350_kzn_18 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ORI       V0, V0, 1000
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Function $Function_8024036C_kzn_18 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ANDI      V0, V0, EFFF
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:NpcSettings $NpcSettings_80240DEC_kzn_18 {
+00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_802413B4_kzn_18 {
+    0:  Label  0
+    C:  Wait  1`
+   18:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   30:  If  *Var1  >  00000064 
+   40:  	Goto  0
+   4C:  EndIf
+   54:  If  *Var0  <  00000064 
+   64:  	Goto  0
+   70:  EndIf
+   78:  Call  DisablePlayerInput    ( .True )
+   88:  Call  $Function_80240350_kzn_18 ( )
+   94:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   B0:  Call  SetPanTarget      ( .Cam:Default  285`  25`  35` )
+   CC:  Call  SetCamDistance    ( .Cam:Default  400` )
+   E0:  Call  SetCamSpeed       ( .Cam:Default *Fixed[2.5] )
+   F4:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  10C:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+  120:  Wait  10`
+  12C:  Call  SetNpcPos ( .Npc:Self  285`  25`  35` )
+  148:  Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MoleSurface 00000000 )
+  160:  Call  SetNpcAnimation   ( .Npc:Self 00360017 )
+  174:  Wait  30`
+  180:  Call  SetNpcAnimation   ( .Npc:Self 00360001 )
+  194:  Call  SpeakToPlayer     ( .Npc:Self 00360004 00360001 00000000 001000FF ) % Invalid string ID! 001000FF
+  1B4:  Wait  10`
+  1C0:  Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MoleDig 00000000 )
+  1D8:  Call  SetNpcAnimation   ( .Npc:Self 00360018 )
+  1EC:  Wait  25`
+  1F8:  Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  214:  Call  $Function_8024036C_kzn_18 ( )
+  220:  Call  ResetCam  ( .Cam:Default *Fixed[3.0] )
+  234:  Set   *GF_KZN18_IntruderAlert  .True 
+  244:  Call  DisablePlayerInput    ( .False )
+  254:  Return
+  25C:  End
+}
+
+#new:Script $Script_Init_80241618_kzn_18 {
+    0:  If  *GF_KZN18_IntruderAlert  ==  .False 
+   10:  	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_802413B4_kzn_18 )
+   24:  Else
+   2C:  	Call  RemoveNpc ( .Npc:Self )
+   3C:  EndIf
+   44:  Return
+   4C:  End
+}
+

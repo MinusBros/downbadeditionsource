@@ -1,70 +1,54 @@
 % #export .powerPlusPID 00000141 %temp example
-
-% #new:Function $IsBadgeEquipped %checks for badge ID
-% {
-% PUSH    s1, s2, s3
-% .Init
-% LIO     s2, 8010F498    % position in list
-% ADDIU   s3, s2, 78        % end of list
-% .Loop
-% LH      s1, 0 (s2)
-% BEQL    a0, s1, .End
-% ADDIU   a0, r0, 1 % return true
-% BNE     s2, s3, .Loop
-% ADDIU   s2, s2, 2
-% ADDIU   a0, r0, 0 % return false
-% .End
-% ADDU    v0, a0, r0 %move result to v0 to follow calling convention
-% POP     s1, s2, s3
-% JR      RA
-% NOP
-% }
+% #export .nomedman 00000150 %
 
 
-% #new:Function $IsBadgeEquipped2 { %takes arg a0, badge ID to look for
-%     LIO t0, 8010F498 %equipped badges address
-%     DADDU t1, r0, r0 %loop counter
-%     .loop
-%     LH t2, 0000 (t0)
-%     BEQL t2, a0, .exit
-%     ORI v0, r0, 0001 %returns true
-%     ADDIU t1, t1, 1
-%     SLTI t2, t1, 64` %64 total badges
-%     BNE t2, r0, .loop
-%     ADDIU t0, t0, 2
-%     ORI v0, r0, 0000 %return false
-%     .exit
-%     JR RA
-%     NOP
-% }
 
-% #new:Function $API_IsBadgeEquipped %checks for badge ID in first arg, returns result (0 if not, 1 if equipped) to second Var
-% {
-% PUSH    s0, s1, s2, ra
-% LW      s0, 000C (a0) %load ptr to args
-% JAL     ~Func:get_variable
-% LW      a1, 0000 (s0) %load first arg and get result of Var
-% %badgeID on v0
-% ADDU    s1, v0, r0 %first arg value on s1
-% %%
-% .Init
-% LIO     s2, 8010F498    % position in list
-% ADDIU   s3, s2, 78        % end of list
-% .Loop
-% LH      t0, 0 (s2)
-% BEQL    s1, t0, .End
-% ADDIU   s1, r0, 1 % return true
-% BNE     s2, s3, .Loop
-% ADDIU   s2, s2, 2
-% ADDIU   s1, r0, 0 % return false
-% .End
-% ADDU    a2, s1, r0
-% JAL ~Func:set_variable
-% LW      a1, 0004 (s0) %load first arg and get result of Var
-% POP     s0, s1, s2, ra
-% JR      RA
-% ORI     v0, r0, 0002
-% }
+#new:Function $IsBadgeEquipped2 { %takes arg a0, badge ID to look for
+     LIO t0, 8010F498 %equipped badges address
+     DADDU t1, r0, r0 %loop counter
+     .loop
+     LH t2, 0000 (t0)
+     BEQL t2, a0, .exit
+     ORI v0, r0, 0001 %returns true
+     ADDIU t1, t1, 1
+     SLTI t2, t1, 64` %64 total badges
+     BNE t2, r0, .loop
+     ADDIU t0, t0, 2
+     ORI v0, r0, 0000 %return false
+     .exit
+     JR RA
+     NOP
+}
+
+
+
+#new:Function $API_IsBadgeEquipped %checks for badge ID in first arg, returns result (0 if not, 1 if equipped) to second Var
+{
+	PUSH    s0, s1, s2, ra
+	LW      s0, 000C (a0) %load ptr to args
+	JAL     ~Func:get_variable
+	LW      a1, 0000 (s0) %load first arg and get result of Var
+	%badgeID on v0
+	ADDU    s1, v0, r0 %first arg value on s1
+	%%%
+	.Init
+	LIO     s2, 8010F498    % position in list
+	ADDIU   s3, s2, 78        % end of list
+	.Loop
+	LH      t0, 0 (s2)
+	BEQL    s1, t0, .End
+	ADDIU   s1, r0, 1 % return true
+	BNE     s2, s3, .Loop
+	ADDIU   s2, s2, 2
+	ADDIU   s1, r0, 0 % return false
+	.End
+	ADDU    a2, s1, r0
+	JAL ~Func:set_variable
+	LW      a1, 0004 (s0) %load first arg and get result of Var
+	POP     s0, s1, s2, ra
+	JR      RA
+	ORI     v0, r0, 0002
+}
 
 #export:Function $DrawMenuBox {
     ADDIU        SP, SP, -58
@@ -102,6 +86,18 @@
 
 
 
-% #export $IsBadgeEquipped2
-% #export $API_IsBadgeEquipped
-% #export $IsBadgeEquipped
+
+
+% FIRST ATTACK DOESN'T WORK
+% so that it can damage boost first strikes instead
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@Function 1C938  %1C764 + 1D4
+{
+	NOP
+	CLEAR V0
+}
+
+
+  #export $IsBadgeEquipped2
+  #export $API_IsBadgeEquipped

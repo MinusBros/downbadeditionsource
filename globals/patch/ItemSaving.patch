@@ -1,0 +1,56 @@
+%save and load inventory out of a special data block
+
+%20 bytes
+#new:Data $SavedItems
+{
+00000000 00000000 00000000 00000000 00000000
+}
+
+%8010F444 = item inventory start
+
+#export:Function $Function_SaveItems
+{
+	PUSH	T0, T1, T2		%not required but hmm
+	ORI		T2, R0, 0
+	.loopstart
+	SLTIU	V0, T2, 14
+	BEQ		V0, R0, .end
+	NOP
+	LI		T0, $SavedItems
+	LI		T1, 8010F444
+	ADDU	T0, T0, T2
+	ADDU	T1, T1, T2
+	LW		T1, 0 (T1)
+	SW		T1, 0 (T0)
+	ADDIU	T2, T2, 4
+	BEQ		R0, R0, .loopstart
+	NOP
+	.end
+	POP		T0, T1, T2		%not required but hmm
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+
+#export:Function $Function_LoadItems
+{
+	PUSH	T0, T1, T2		%not required but hmm
+	ORI		T2, R0, 0
+	.loopstart
+	SLTIU	V0, T2, 14
+	BEQ		V0, R0, .end
+	NOP
+	LI		T0, 8010F444
+	LI		T1, $SavedItems
+	ADDU	T0, T0, T2
+	ADDU	T1, T1, T2
+	LW		T1, 0 (T1)
+	SW		T1, 0 (T0)
+	ADDIU	T2, T2, 4
+	BEQ		R0, R0, .loopstart
+	NOP
+	.end
+	POP		T0, T1, T2		%not required but hmm
+	JR		RA
+	ORI		V0, R0, 2
+}

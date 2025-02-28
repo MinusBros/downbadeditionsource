@@ -65,7 +65,7 @@
 	.Item:HeartFinder     10`    0024007C % After beating an enemy, makes more hearts appear t ...
 	.Item:FlowerFinder    10`    0024007D % After beating an enemy, makes more flowers appear  ...
 	.Item:MoneyMoney      12`    0024009A % After a battle, lets Mario get twice as many coins ...
-	.Item:CrazyHeart     12`    00240079 % Restores HP automatically during battle at a slow  ...
+	.Item:CrazyHeart      12`    00240079 % Restores HP automatically during battle at a slow  ...
 	.Item:FlowerSaverA    15`    0024007B % During battle, saves 1 FP every time you attack.
 	.Item:FlowerFanatic   20`	 0024007B
 	.Item:PowerPlusA      20`    00240073 % Increases Mario's Jump and Hammer attack powers by ...
@@ -73,11 +73,103 @@
 
 
 %Raised badge cap from 15 to 18 to not "tap him out" early.
+%After buying from Merlow the first time, he'll give you a
+%free Speedy Spin as thanks.
 @	$Script_Interact_802436A0
 {
-   [38]  If  *MerlowSaleCount  >=  00000012
+    0:  ExecWait  $Script_8024351C
+    C:  ExecWait  $Script_8024356C
+   18:  If  *VarC  !=  00000000
+   28:  	Return
+   30:  EndIf
+   38:  If  *MerlowSaleCount  >=  00000012
+   48:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004C ) % Oh, you wanna trade Star Pieces for Badges, do you ...
+   68:  	Return
+   70:  EndIf
+   78:  If  *MapFlag[00]  ==  .True
+   88:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004D ) % You want to trade more?
+   A8:  Else
+   B0:  	If  *GF_HOS06_Met_Merlow  ==  .False
+   C0:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004A ) % I'm the famous Merlow of Shooting Star Summit. I c ...
+   E0:  		Set   *GF_HOS06_Met_Merlow  .True
+   F0:  	Else
+   F8:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004B ) % I'm the famous Merlow of Shooting Star Summit. Got ...
+  118:  	EndIf
+  120:  EndIf
+  128:  Call  ShowChoice    ( 001E0014 ) % Yes No
+  138:  If  *Var0  ==  00000001
+  148:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004E ) % Later!
+  168:  	Return
+  170:  EndIf
+  178:  Call  $Function_80240A68    ( *Var0 )
+  188:  If  *Var0  ==  00000000
+  198:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004F ) % Ahhh... I can tell you don't have any Star Pieces. ...
+  1B8:  	Return
+  1C0:  EndIf
+  1C8:  Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0050 ) % Which Badges do you want to swap for?
+  1E8:  Label  0
+  1F4:  Call  $Function_80240AD0 ( )
+  200:  Wait  5`
+  20C:  If  *Var0  ==  FFFFFFFF
+  21C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0051 ) % Ahh... Did you change your mind? I see...
+  23C:  	Return
+  244:  EndIf
+  24C:  Call  $Function_80240A68    ( *Var3 )
+  25C:  If  *Var3  <  *Var1
+  26C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0051 ) % Ahh... Did you change your mind? I see...
+  28C:  	Goto  0
+  298:  EndIf
+  2A0:  Call  SetMessageString  ( *Var4 00000000 )
+  2B4:  Call  SetMessageValue   ( *Var1 00000001 )
+  2C8:  Call  SetMessageValue   ( *Var5 00000002 )
+  2DC:  If  *Var1  ==  00000001
+  2EC:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0053 ) % I'm going to exchange "" for Star Piece. The numbe ...
+  30C:  Else
+  314:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0052 ) % I'm going to exchange "" for Star Pieces. The numb ...
+  334:  EndIf
+  33C:  Set   *Var3  *Var0
+  34C:  Call  ShowChoice    ( 001E000D ) % Yes No
+  35C:  If  *Var0  ==  00000001
+  36C:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0054 ) % Ahh... Did you change your mind? You're an indecis ...
+  38C:  	Goto  0
+  398:  EndIf
+  3A0:  Call  CloseMessage ( )
+  3AC:  Mul   *Var1  FFFFFFFF
+  3BC:  Call  AddStarPieces ( *Var1 )
+  3CC:  Add   *MerlowSaleCount  00000001
+  3DC:  Set   *MapFlag[00]  .True
+  3EC:  Call  $Function_80240A94    ( *Var2 )
+  3FC:  Set   *Var0  *Var3
+  40C:  Set   *Var1  00000002
+  41C:  ExecWait  $Script_80242C0C
+  428:  Call  AddBadge  ( *Var0 *Var1 )
+		If  *GF_HOS06_MerlowThankYouGift == 0`
+			Set *GF_HOS06_MerlowThankYouGift 1`
+			Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A002F ) % First time shopping.
+			Set   *Var0  0000011F % Speedy Spin
+			ExecWait  $Script_80242C0C
+			Call  AddBadge  ( .Item:SpeedySpin *Var0 )
+		EndIf 
+  43C:  If  *MerlowSaleCount  >=  00000012
+  44C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
+  46C:  	Return
+  474:  EndIf
+  47C:  Call  $Function_80240A68    ( *Var0 )
+  48C:  If  *Var0  <=  00000000
+  49C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
+  4BC:  	Return
+  4C4:  EndIf
+  4CC:  Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0056 ) % All right then, mister. Why don't we swap some mor ...
+  4EC:  Call  ShowChoice    ( 001E000D ) % Yes No
+  4FC:  If  *Var0  ==  00000001
+  50C:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0057 ) % You don't want to? Oh well. At least I was able to ...
+  52C:  	Return
+  534:  EndIf
+  53C:  Call  CloseMessage ( )
+  548:  Goto  0
+  554:  Return
+  55C:  End
 }
-
 
 
 

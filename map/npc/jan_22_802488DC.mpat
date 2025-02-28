@@ -1,0 +1,83 @@
+% automatically dumped from map jan_22
+
+#new:Npc $jan_22_802488DC {
+.NpcID:RafaelRaven_05 $NpcSettings_802424B4_jan_22 00000000 00000000 00000000 
+00400705 $Script_Init_802432F0_jan_22 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_RafaelRaven_05 % .Sprite:RafaelRaven
+00000000 00000000 00000000 001A00D0 % Invalid string ID! 001A00D0
+}
+
+#new:Function $Function_80240FA8_jan_22 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ORI       V0, V0, 1000
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Script $Script_80242488_jan_22 {
+    0:  Call  SetNpcScale   ( .Npc:Self *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
+   1C:  Return
+   24:  End
+}
+
+#new:NpcSettings $NpcSettings_802424B4_jan_22 {
+00000000 00620050 $Script_80242488_jan_22 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Interact_80243118_jan_22 {
+    0:  Call  GetNpcPos     ( 00000005 *Var0 *Var1 *Var2 )
+   1C:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   38:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   54:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-8.5] )
+   6C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.5] )
+   80:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   98:  Call  $Function_80240FA8_jan_22 ( )
+   A4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+   B8:  Wait  10`
+   C4:  Call  SetNpcFlagBits    ( 00000005 00000100 .True )
+   DC:  Call  NpcFacePlayer ( .Npc:Self 00000000 )
+   F0:  Call  SpeakToPlayer ( .Npc:Self 00C40009 00C40002 00000000 001000C7 ) % Invalid string ID! 001000C7
+  110:  Wait  10`
+  11C:  Call  SpeakToPlayer ( .Npc:Self 00C40009 00C40002 00000000 001000C8 ) % Invalid string ID! 001000C8
+  13C:  Call  SetNpcVar     ( 00000006 00000000 0000000A )
+  154:  Call  BindNpcInteract   ( .Npc:Self 00000000 )
+  168:  Return
+  170:  End
+}
+
+#new:Script $Script_Idle_80243290_jan_22 {
+    0:  Label  0
+    C:  If  *GB_StoryProgress  <  .Story:Ch5_RafaelWaitingForMario % 17
+   1C:  	Wait  1`
+   28:  	Goto  0
+   34:  EndIf
+   3C:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80243118_jan_22 )
+   50:  Return
+   58:  End
+}
+
+#new:Script $Script_Init_802432F0_jan_22 {
+    0:  Switch  *GB_StoryProgress 
+    C:  	Case  ==  .Story:Ch5_RafaelMovedRoot % 16
+   18:  		Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80243290_jan_22 )
+   2C:  	Case  ==  .Story:Ch5_RafaelWaitingForMario % 17
+   38:  		Call  SetNpcPos ( .Npc:Self  125`  0`  -40` )
+   54:  		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .False )
+   6C:  		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80243118_jan_22 )
+   80:  	Default
+   88:  		Call  RemoveNpc ( .Npc:Self )
+   98:  EndSwitch
+   A0:  Return
+   A8:  End
+}
+

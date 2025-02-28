@@ -1,6 +1,170 @@
+#define .NpcID:Bootler_00           00
+#define .NpcID:WorldSkolar_02       02
 
+#import SwapToGoombarius.mpat
 
 @	$Script_MakeEntities
 {
    [E0]  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80243220 .Item:FirePop 80000000 )
+}
+
+%Speed up cutscene by half a second and force Goombarius to comment.
+
+@	$Script_80241AAC
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerPhysics  ( .True )
+   20:  Call  SetPlayerPos  (  -800`  0`  0` )
+   38:  Call  SetNpcPos     ( .Npc:Partner  -800`  0`  0` )
+   54:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   68:  Call  SetCamType    ( .Cam:Default 00000001 .True )
+   80:  Call  SetCamPitch   ( .Cam:Default *Fixed[40.0] *Fixed[-63.59375] )
+   98:  Call  SetCamDistance        ( .Cam:Default  720` )
+   AC:  Call  SetCamPosA    ( .Cam:Default  89`  84` )
+   C4:  Call  SetCamPosB    ( .Cam:Default  89`  84` )
+   DC:  Call  SetCamPosC    ( .Cam:Default  0`  0` )
+   F4:  Call  SetPanTarget  ( .Cam:Default  75`  0`  309` )
+  110:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  128:  Call  $Function_8024066C ( )
+  134:  Wait  20`
+  140:  ChildThread
+  148:  	Call  $Function_80240790 ( )
+  154:  	Wait  90`
+  160:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  174:  	Loop
+  180:  		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  198:  		Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  1B4:  		Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+  1D0:  		Call  SetCamDistance    ( .Cam:Default  -350` )
+  1E4:  		Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+  1F8:  	EndLoop
+  200:  EndChildThread
+  208:  Wait  40`
+  214:  Call  SetPlayerPos      (  -701`  0`  -34` )
+  22C:  Call  SetNpcPos ( .Npc:Partner  -701`  0`  -34` )
+  248:  Call  DisablePlayerPhysics  ( .False )
+  258:  Call  SetPlayerFlagBits ( 00200000 .True )
+  26C:  Call  PlayerMoveTo      (  -407`  103`  120` )
+  284:  Call  SetPlayerFlagBits ( 00200000 .False )
+  298:  Wait  8`
+  2A4:  Thread
+  2AC:  	Wait  15`
+  2B8:  	Call  PlayerFaceNpc ( .Npc:Partner .False )
+  2CC:  EndThread
+		ExecWait $SwapToGoombarius
+  30C:  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E0024 ) % Hey, we made it, Mario! We got out of the forest!  ...
+  3B8:  Call  EnablePartnerAI ( )
+  3C4:  Call  DisablePlayerInput    ( .False )
+  3D4:  Return
+  3DC:  End
+}
+
+%Remove unncecessary music calls and have Goombarius speak
+%after cutscene if he's still out.
+
+@	$Script_80242560
+{
+    0:  Wait  25`
+    C:  Call  PlaySoundAtCollider   ( ~Collider:mon .Sound:MetalGateOpen 00000000 )
+   24:  Call  MakeLerp  ( 00000000 00000050 0000001E .Easing:Linear )
+   40:  Loop
+   4C:  	Call  UpdateLerp ( )
+   58:  	Call  RotateModel   ( ~Model:h_mon1 *Var0 00000000 00000001 00000000 )
+   78:  	Call  RotateModel   ( ~Model:h_mon2 *Var0 00000000 FFFFFFFF 00000000 )
+   98:  	Wait  1`
+   A4:  	If  *Var1  ==  00000000
+   B4:  		BreakLoop
+   BC:  	EndIf
+   C4:  EndLoop
+   CC:  Call  ModifyColliderFlags   ( 00000000 ~Collider:mon 7FFFFE00 )
+   E4:  Call  SetPlayerSpeed        ( *Fixed[2.0] )
+   F4:  Call  PlayerMoveTo  (  -101`  17`  0` )
+  10C:  Wait  25`
+  118:  Call  ModifyColliderFlags   ( 00000001 ~Collider:mon 7FFFFE00 )
+  130:  Call  MakeLerp  ( 00000050 00000000 00000008 .Easing:QuadraticIn )
+  14C:  Loop
+  158:  	Call  UpdateLerp ( )
+  164:  	Call  RotateModel   ( ~Model:h_mon1 *Var0 00000000 00000001 00000000 )
+  184:  	Call  RotateModel   ( ~Model:h_mon2 *Var0 00000000 FFFFFFFF 00000000 )
+  1A4:  	Wait  1`
+  1B0:  	If  *Var1  ==  00000000
+  1C0:  		BreakLoop
+  1C8:  	EndIf
+  1D0:  EndLoop
+  1D8:  Call  PlaySoundAtCollider   ( ~Collider:mon .Sound:MetalGateClose 00000000 )
+  1F0:  Call  ShakeCam      ( .Cam:Default 00000000  15` *Fixed[1.5] )
+  20C:  Wait  15`
+  218:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  22C:  Call  SetCamType    ( .Cam:Default 00000000 .True )
+  244:  Call  SetCamPitch   ( .Cam:Default *Fixed[19.5] *Fixed[-14.9] )
+  25C:  Call  SetCamDistance        ( .Cam:Default  350` )
+  270:  Call  SetCamPosA    ( .Cam:Default  -133`  52` )
+  288:  Call  SetCamPosB    ( .Cam:Default  23`  -109` )
+  2A0:  Call  SetCamPosC    ( .Cam:Default  0`  0` )
+  2B8:  Call  SetPanTarget  ( .Cam:Default  23`  0`  -109` )
+  2D4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2EC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  31C:  Call  PlaySoundAtNpc        ( .NpcID:Bootler_00 .Sound:BooVanish 00000000 )
+  334:  SetF  *Var0  *Fixed[0.0]
+  344:  Loop  0000005A
+  350:  	AddF  *Var0  *Fixed[2.6669922]
+  360:  	Call  802CFD30  ( 00000000 00000007 *Var0 00000000 00000000 00000000 )
+  384:  	Wait  1`
+  390:  EndLoop
+  398:  Call  SpeakToPlayer ( .NpcID:Bootler_00 00BF0004 00BF0001 00000000 000E0028 ) % Welcome, sirs and madam! I'm pleased you made it t ...
+  3D4:  Wait  5`
+  3E0:  Call  SetCamPitch   ( .Cam:Default *Fixed[0.0] *Fixed[-25.0] )
+  3F8:  Call  SetCamDistance    ( .Cam:Default  550` )
+  40C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  424:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  438:  Wait  5`
+  444:  Call  ShowMessageAtScreenPos    ( 000E0029  160`  40` ) % Please go to the third floor. There you will hear  ...
+  45C:  Wait  25`
+  468:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  47C:  Call  SetCamPitch   ( .Cam:Default *Fixed[19.5] *Fixed[-14.9] )
+  494:  Call  SetCamDistance    ( .Cam:Default  350` )
+  4A8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  4C0:  Wait  5`
+  4CC:  Call  SpeakToPlayer ( .NpcID:Bootler_00 00BF0004 00BF0001 00000000 000E002A ) % I'll see you there...
+  4EC:  Call  PlaySoundAtNpc    ( .NpcID:Bootler_00 .Sound:BooAppear 00000000 )
+  504:  SetF  *Var0  *Fixed[240.0]
+  514:  Loop  0000005A
+  520:  	SubF  *Var0  *Fixed[2.6669922]
+  530:  	Call  802CFD30  ( 00000000 00000007 *Var0 00000000 00000000 00000000 )
+  554:  	Wait  1`
+  560:  EndLoop
+  568:  Call  RemoveNpc     ( .NpcID:Bootler_00 )
+  578:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  58C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  5A4:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  5C0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  5DC:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  5F4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  608:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  2E4:  Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 0
+			Call  DisablePartnerAI      ( 00000000 )
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E0024 ) % New Goombarius comment.
+			Call  EnablePartnerAI  ( )
+		EndIf
+  620:  Return
+  628:  End
+}
+
+
+
+@	$Script_ExitWalk_80241EC8
+{
+   [50]  Wait  50`
+}
+
+@	$Script_ExitWalk_80241F34
+{
+   [40]  Wait  50`
+}
+
+@	$Script_ExitDoubleDoor_80241F90
+{
+   [78]  Wait  15`
+   [98]  Wait  90`
 }

@@ -1,0 +1,89 @@
+% automatically dumped from map omo_04
+
+#new:Npc $omo_04_802433E0 {
+.NpcID:Goomba_00 $NpcSettings_80243050_omo_04 00000000 00000000 00000000 
+00440F00 $Script_Init_802432C0_omo_04 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Goomba_00 % .Sprite:Goomba
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Function $Function_80241E04_omo_04 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ORI       V0, V0, 1000
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Function $Function_80241E20_omo_04 {
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 0 (V1)
+    C:  ANDI      V0, V0, EFFF
+   10:  SH        V0, 0 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:NpcSettings $NpcSettings_80243050_omo_04 {
+00000000 00170016 00000000 00000000 00000000 80077F70 00000000 8007809C 
+00000000 00000000 000E0001 
+}
+
+#new:Script $Script_Idle_802430D4_omo_04 {
+    0:  Label  0
+    C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  If  *Var0  <  0000041A 
+   34:  	Wait  1`
+   40:  	Goto  0
+   4C:  EndIf
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Call  $Function_80241E04_omo_04 ( )
+   70:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   8C:  Call  SetCamProperties      ( .Cam:Default *Fixed[5.0] *Var0 *Var1 *Var2  300` *Fixed[13.0] *Fixed[-9.5] )
+   B8:  If  *GB_OMO_PeachChoice1  ==  00000000 
+   C8:  	Call  SpeakToPlayer ( 00000000 00260003 00260001 00000000 000F003A ) % Invalid string ID! 000F003A
+   E8:  Else
+   F0:  	Call  SpeakToPlayer ( 00000001 00390005 00390002 00000000 000F003B ) % Invalid string ID! 000F003B
+  110:  EndIf
+  118:  Thread
+  120:  	Call  $Function_80241E20_omo_04 ( )
+  12C:  	Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  140:  EndThread
+  148:  Call  DisablePlayerInput    ( .False )
+  158:  Call  StartBossBattle       ( .Song:SpecialBattle )
+  168:  Return
+  170:  End
+}
+
+#new:Script $Script_Defeat_8024324C_omo_04 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_OMO04_Item_Mushroom  .True 
+   38:  		Call  DoNpcDefeat ( )
+   44:  	Case  ==  .Outcome:PlayerLost % 1
+   50:  	Case  ==  .Outcome:PlayerFled % 2
+   5C:  EndSwitch
+   64:  Return
+   6C:  End
+}
+
+#new:Script $Script_Init_802432C0_omo_04 {
+    0:  If  *GB_OMO_PeachChoice1  ==  00000000 
+   10:  	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_802430D4_omo_04 )
+   24:  	Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_8024324C_omo_04 )
+   38:  Else
+   40:  	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   5C:  EndIf
+   64:  Return
+   6C:  End
+}
+

@@ -16,8 +16,8 @@
 [Escape]       40`b 
 [Item]         50`b 
 [AirLift]      50`b 
-[Hurricane]    50`b % Bow's "Spook" as well
-[UpAndAway]    90`b 
+[Hurricane]    10`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
 [PowerBounce]  70`b 
 [SpinSmash]     0`b % weight (0-4)
 % ui positions
@@ -206,7 +206,7 @@
 #new:Script $Script_8021D0E8_22 {
     0:  Call  PlaySoundAtActor  ( .Actor:Self 000002D2 )
    14:  Call  SetAnimation      ( .Actor:Self 00000001 00530008 )
-   2C:  Wait  18`
+   2C:  Wait  20`
    38:  Call  SetActorVar       ( .Actor:Self 00000008 00000001 )
    50:  Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_8021CA6C_22 )
    68:  Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8021CAA0_22 )
@@ -255,8 +255,11 @@
   314:  End
 }
 
+%For some reason Dry Bones keep crashing the game when they die
+%so make them unkillable I guess.
+
 #new:Script $Script_HandleEvent_8021D404_22 {
-	0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  GetLastEvent      ( .Actor:Self *Var0 )
    3C:  Switch  *Var0 
@@ -282,7 +285,11 @@
   174:  		ExecWait  DoBurnHit 
   180:  		SetConst  *Var0  00000001 
   190:  		SetConst  *Var1  0053000C 
-  1A0:  		ExecWait  DoDeath 
+  318:  		Call  GetActorVar   ( .Actor:Self 00000008 *Var0 )
+  330:  		If  *Var0  ==  00000000 
+  340:  			Wait  10`
+  34C:  			ExecWait  $Script_8021D0E8_22 
+  358:  		EndIf
   1AC:  		Return
   1B4:  	Case  ==  .Event:SpinSmashHit % B
   1C0:  		SetConst  *Var0  00000001 

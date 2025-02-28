@@ -1,9 +1,165 @@
+#define .NpcID:TayceT_00            00
+
 @	 $Script_8024B6E8
 {
    [F4]  Wait  5`
   [1A0]  	Wait  3`
   [230]  Wait  3`
   [340]  Wait  5`
+}
+
+@	$Script_802490F8
+{
+   [78]  Wait  2`
+   [A4]  Wait  8`
+   [C4]  Wait  5`
+}
+
+@	$Script_802490F8
+{
+    0:  Call  SetNpcFlagBits    ( .NpcID:TayceT_00 00000100 .True )
+   18:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0002 )
+		Call  SetNpcSpeed   ( .Npc:Self *Fixed[12.0] )
+   2C:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  20` )
+   48:  Call  NpcMoveTo ( .NpcID:TayceT_00  -220`  -425`  30` )
+   64:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0007 )
+   A4:  Wait  8`
+   B0:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0008 )
+   C4:  Wait  4`
+   D0:  Call  SetNpcYaw ( .NpcID:TayceT_00  90` )
+   E4:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0002 )
+   F8:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  20` )
+  114:  Call  NpcMoveTo ( .NpcID:TayceT_00  -236`  -318`  20` )
+  130:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0001 )
+  144:  Call  SetNpcFlagBits    ( .NpcID:TayceT_00 00000100 .False )
+  15C:  Return
+  164:  End
+}
+
+
+%Completely rework Tayce T. to make her more "bulk-friendly". 
+%Let's say you wanna fill your inventory with recipes.
+%Having a few less dialogue boxes to mash through will
+%save a lot of time, much like Zess T. in TTYD Remake.
+
+@	$Script_80249684
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  If  *GF_MAC02_Met_TayceT  ==  .False
+   20:  	Set   *GF_MAC02_Met_TayceT  .True
+   30:  	Set   *AreaFlag[001]  .True
+   40:  	Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040000 ) % Oh my goodness, it's Mario! My name is Tayce T. I  ...
+   60:  Else
+   E0:  Call  $Function_80243040    ( *Var0 )
+   F0:  If  *Var0  <=  00000000
+  100:  	Call  SpeakToPlayer    ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040003 ) % Oh my. You don't have any ingredients for me. I ca ...
+  120:  	Goto  9
+  12C:  EndIf
+   68:  	If  *AreaFlag[001]  ==  .False
+   78:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040001 ) % Oh, it's Mario! Hi there! Would you like me to coo ...
+   98:  		Set   *AreaFlag[001]  .True
+   A8:  	Else
+   B0:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040002 ) % Yes, honey? Would you like me to cook you somethin ...
+   D0:  	EndIf
+   D8:  EndIf
+  1A8:  Label  1
+  1B4:  Set   *Var3  00000000
+  1C4:  Call  $Function_802430D0 ( )
+  1D0:  Set   *Var0  $End[368]
+  1E0:  Set   *Var1  00000000
+  1F0:  ExecWait  $Script_80248A48
+  1FC:  Switch  *Var0
+  208:  	Case  ==  00000000
+  214:  	Case  ==  FFFFFFFF
+				Goto  9
+  2B0:  	Default
+  2B8:  		Set   *Var8  *Var0
+  2C8:  		Call  AddItem   ( *Var0 *Var1 )
+  2DC:  EndSwitch
+  2E4:  If  *Var3  ==  00000001
+  2F4:  	Goto  1
+  300:  EndIf
+  308:  If  *GF_MAC02_TayceT_HasCookbook  ==  .False
+  318:  	Goto  5
+  324:  EndIf
+  32C:  Call  $Function_80243040    ( *Var0 )
+  33C:  If  *Var0  <  00000002
+  34C:  	Goto  5
+  358:  EndIf
+  360:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040007 ) % Would you like me to use another ingredient?
+  380:  Call  ShowChoice    ( 001E0010 ) % Yes No
+  390:  Call  CloseMessage ( )
+  39C:  If  *Var0  ==  00000001
+  3AC:  	Goto  5
+  3B8:  EndIf
+  3C0:  Label  2
+  3CC:  Call  RemoveItem    ( *Var8 *Var0 )
+  3E0:  Set   *Var3  00000000
+  3F0:  Call  $Function_802430D0 ( )
+  3FC:  Set   *Var0  $End[368]
+  40C:  Set   *Var1  00000000
+  41C:  ExecWait  $Script_80248A48
+  428:  Call  AddItem       ( *Var8 *Var1 )
+  43C:  Switch  *Var0
+  448:  	Case  ==  00000000
+  454:  	Case  ==  FFFFFFFF
+				Goto  9
+  520:  	Default
+  528:  		Set   *Var9  *Var0
+  538:  		Call  AddItem   ( *Var0 *Var1 )
+  54C:  		If  *Var8  ==  *Var9
+  55C:  			Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040009 ) % This is the same kind as the first ingredient. Ple ...
+  57C:  			Set   *Var3  00000001
+  58C:  		EndIf
+  594:  EndSwitch
+  59C:  If  *Var3  ==  00000001
+  5AC:  	Goto  2
+  5B8:  EndIf
+  5C0:  Set   *Var0  *Var8
+  5D0:  Call  $Function_80241874    ( *Var0 )
+  5E0:  Call  SetMessageString  ( *Var0 00000000 )
+  5F4:  Set   *Var1  *Var9
+  604:  Call  $Function_80241874    ( *Var1 )
+  69C:  Call  $Function_80242DBC    ( *Var6 *Var7 *Var8 *Var9 )
+  6B8:  Call  RemoveItem        ( *Var8 *Var0 )
+  6CC:  Call  RemoveItem        ( *Var9 *Var0 )
+  6E0:  Goto  6
+  6EC:  Label  5
+  6F8:  Set   *Var0  *Var8
+  708:  Call  $Function_80241874    ( *Var0 )
+  7A0:  Call  $Function_80242C44    ( *Var6 *Var7 *Var8 *GF_MAC02_TayceT_HasCookbook )
+  7BC:  Call  RemoveItem    ( *Var8 *Var0 )
+  7D0:  Label  6
+  7DC:  Call  SpeakToPlayer        ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 0004000D ) % I'll whip something special up just for you, honey ...
+  7FC:  ExecWait  $Script_802490F8
+  808:  Switch  *Var7
+  814:  	Case  ==  00000000
+  820:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040012 ) % Oh... I'm so sorry. This recipe didn't work out. O ...
+  840:  	Case  ==  00000002
+  84C:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 0004000F ) % All done! It smells delicious!
+  86C:  	Case  ==  00000003
+  878:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040010 ) % Oh, sweet success! This dish is one of my specialt ...
+  898:  	Case  ==  00000004
+  8A4:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040013 ) % OK, all finished! ...I don't exactly know what it  ...
+  8C4:  	Default
+  8CC:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040011 ) % Here you are! This recipe's not too bad.
+  8EC:  EndSwitch
+  8F4:  Call  ContinueSpeech        ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040014 ) % Here, please!
+  914:  Call  $Function_80242F60    ( *Var6 )
+  924:  Set   *Var0  *Var6
+  934:  Set   *Var1  00000000
+		Thread
+			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA000D )
+			Wait  20`
+			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0001 )
+		EndThread
+  944:  ExecWait  $Script_80246154
+  950:  Call  AddItem   ( *Var6 *Var0 )
+  964:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040015 ) % Come back anytime, hon. I look forward to it!
+  984:  Label  9
+  990:  Call  DisablePlayerInput    ( .False )
+  9A0:  Return
+  9A8:  End
 }
 
 @	$Script_ToggleVis_80244CC0

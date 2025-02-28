@@ -1,0 +1,109 @@
+% automatically dumped from map mac_06
+
+#new:Npc $mac_06_802446E8 {
+.NpcID:JrTroopa_03 $NpcSettings_80243408_mac_06 00000000 00000000 00000000 
+00440D0D $Script_Init_8024428C_mac_06 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_JrTroopa_03 % .Sprite:JrTroopa
+00000000 00000000 $ExtraAnimationList_802446D8_mac_06 001A0006 % Invalid string ID! 001A0006
+}
+
+#new:Function $Function_802415FC_mac_06 {
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        RA, 18 (SP)
+    8:  SDC1      F24, 30 (SP)
+    C:  SDC1      F22, 28 (SP)
+   10:  SDC1      F20, 20 (SP)
+   14:  JAL       ~Func:get_npc_safe
+   18:  LI        A0, 3
+   1C:  LWC1      F2, 38 (V0)
+   20:  LIF       F0, 10.0
+   28:  LWC1      F20, 3C (V0)
+   2C:  ADD.S     F24, F2, F0
+   30:  MTC1      R0, F0
+   34:  LWC1      F22, 40 (V0)
+   38:  C.LT.S    F20, F0
+   3C:  NOP
+   40:  BC1F      .o74
+   44:  CLEAR     A0
+   48:  MFC1      A1, F24
+   4C:  MFC1      A2, F20
+   50:  MFC1      A3, F22
+   54:  JAL       ~Func:playFX_23
+   58:  SWC1      F0, 10 (SP)
+   5C:  LI        A0, 46
+   60:  MFC1      A2, F24
+   64:  MFC1      A3, F20
+   68:  CLEAR     A1
+   6C:  JAL       ~Func:sfx_adjust_env_sound_pos
+   70:  SWC1      F22, 10 (SP)
+        .o74
+   74:  LW        RA, 18 (SP)
+   78:  LDC1      F24, 30 (SP)
+   7C:  LDC1      F22, 28 (SP)
+   80:  LDC1      F20, 20 (SP)
+   84:  LI        V0, 2
+   88:  JR        RA
+   8C:  ADDIU     SP, SP, 38
+}
+
+#new:NpcSettings $NpcSettings_80243408_mac_06 {
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_80244114_mac_06 {
+    0:  Call  SetSelfVar    ( 00000000 00000000 )
+   14:  Loop
+   20:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   34:  	If  *Var0  !=  00000000 
+   44:  		BreakLoop
+   4C:  	EndIf
+   54:  	Wait  1`
+   60:  EndLoop
+   68:  Wait  60`
+   74:  Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
+   90:  Call  PlaySound     ( 80000055 )
+   A0:  Call  SetNpcAnimation   ( .Npc:Self 0021000C )
+   B4:  Call  SetNpcPos     ( .Npc:Self  250`  -30`  500` )
+   D0:  Wait  5`
+   DC:  ChildThread
+   E4:  	Loop
+   F0:  		Call  $Function_802415FC_mac_06 ( )
+   FC:  		Wait  5`
+  108:  	EndLoop
+  110:  EndChildThread
+  118:  Call  SetNpcSpeed   ( .Npc:Self *Fixed[2.0] )
+  12C:  Call  NpcMoveTo     ( .Npc:Self  -300`  500`  0` )
+  148:  Call  GotoMap       ( $ASCII_80244950_mac_06 00000001 ) % mac_05
+  15C:  Wait  100`
+  168:  Return
+  170:  End
+}
+
+#new:Script $Script_Init_8024428C_mac_06 {
+    0:  If  *GB_StoryProgress  >=  .Story:Ch5_SushieJoinedParty % F
+   10:  	If  *GF_MAC01_Defeated_JrTroopa4  ==  .False 
+   20:  		Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80244114_mac_06 )
+   34:  		Return
+   3C:  	EndIf
+   44:  EndIf
+   4C:  Call  RemoveNpc ( .Npc:Self )
+   5C:  Return
+   64:  End
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_802446D8_mac_06 {
+00210000 00210003 0021000C FFFFFFFF 
+}
+
+#new:ASCII $ASCII_80244950_mac_06 {
+"mac_05"
+}
+

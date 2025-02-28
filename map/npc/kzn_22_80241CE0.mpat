@@ -1,0 +1,99 @@
+% automatically dumped from map kzn_22
+
+#new:Npc $kzn_22_80241CE0 {
+.NpcID:Kolorado_00 $NpcSettings_80240F20_kzn_22 00000000 00000000 00000000 
+00110509 $Script_Init_8024131C_kzn_22 00000000 00000000 0000005A 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Kolorado_00 % .Sprite:Kolorado
+00000000 00000000 00000000 001A0000 % Invalid string ID! 001A0000
+}
+
+#new:Function $Function_80240340_kzn_22 {
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  LAH       A2, 8015A552
+   14:  JAL       ~Func:set_variable
+   18:  LW        A1, 0 (V0)
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+#new:NpcSettings $NpcSettings_80240F20_kzn_22 {
+00000000 00280018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_80240FD0_kzn_22 {
+    0:  Loop
+    C:  	Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[0.5] )
+   28:  EndLoop
+   30:  Return
+   38:  End
+}
+
+#new:Script $Script_Idle_80241010_kzn_22 {
+    0:  Exec  $Script_80240FD0_kzn_22 
+    C:  Label  0
+   18:  Call  $Function_80240340_kzn_22 ( *Var0 )
+   28:  If  *Var0  !=  0000000E 
+   38:  	Wait  1`
+   44:  	Goto  0
+   50:  EndIf
+   58:  Call  DisablePlayerInput    ( .True )
+   68:  Call  GetPlayerAnimation    ( *Var0 )
+   78:  If  *Var0  ==  0008001A % 8001A
+   88:  	Wait  35`
+   94:  EndIf
+   9C:  Wait  10`
+   A8:  EndIf
+   B0:  Call  PlayerFaceNpc ( 00000000 .False )
+   C4:  Set   *AreaFlag[00C]  .True 
+   D4:  Thread
+   DC:  Call  SetNpcAnimation   ( .Npc:Self 00B60007 )
+   F0:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  10C:  Label  1
+  118:  Call  SetNpcJumpscale   ( .Npc:Self *Fixed[2.0] )
+  12C:  Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
+  144:  Call  NpcJump0  ( .Npc:Self *Var0 *Var1 *Var2  15` )
+  164:  If  *AreaFlag[00E]  ==  .False 
+  174:  	Wait  1`
+  180:  	Goto  1
+  18C:  EndIf
+  194:  EndThread
+  19C:  Wait  10`
+  1A8:  Call  GetNpcPos     ( .Npc:Self *Var3 *Var4 *Var5 )
+  1C4:  Call  UseSettingsFrom   ( .Cam:Default *Var3 *Var4 *Var5 )
+  1E0:  Call  SetPanTarget  ( .Cam:Default *Var3 *Var4 *Var5 )
+  1FC:  Call  SetCamDistance    ( .Cam:Default *Fixed[350.0] )
+  210:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-4.0] )
+  228:  Call  SetCamPosB    ( .Cam:Default *Fixed[480.0] *Fixed[299.6] )
+  240:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.0] )
+  254:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  26C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  280:  Thread
+  288:  Call  SetPlayerSpeed    ( *Fixed[3.0] )
+  298:  Call  PlayerMoveTo      (  250`  210`  0` )
+  2B0:  EndThread
+  2B8:  Wait  20`
+  2C4:  Call  ShowMessageAtWorldPos ( 00100116  440`  240`  165` ) % Invalid string ID! 00100116
+  2E0:  Wait  20`
+  2EC:  Set   *AreaFlag[00D]  .True 
+  2FC:  Return
+  304:  End
+}
+
+#new:Script $Script_Init_8024131C_kzn_22 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80241010_kzn_22 )
+   14:  Return
+   1C:  End
+}
+

@@ -8,27 +8,57 @@
 %reach Shooting Star Summit.
 %Happy Heart A is obtainable after Chapter 1.
 
+
+
+%I can't get Medicine Man to work properly,
+%so remove it from the pool for now.
+
+
+
+% ====================================================
+% Changed the way Rowf selects badges from his table.
+% Now you can supply up to 64` badges. As a bonus,
+% Flag_MAC_03 through Flag_MAC_12 are no longer used.
+% ====================================================
+
+% When the number of badges in the table is changed,
+% be sure to update this number! Maximum is 40 (64`).
+#define .NumRowfBadges 19`
+
+%FFFFFF80 == After Chapter 1
+%FFFFFFCB == After Chapter 2
+%FFFFFFF3 == After Chapter 3
+%00000007 == After Chapter 4
+%00000029 == After Chapter 5
+%0000003B == After Chapter 6
+
 @	$RowfBadgeInventory
 {
-	.Item:HappyHeartA     50`    00240079 % Restores HP automatically during battle at a slow  ...
-	.Item:FirstAttack     25`    00240087 % Lets Mario destroy a weaker enemy with a First Str ...
-	.Item:Multibounce     50`    0024005E % Jumps on all enemies in a row if action command is ...
-	.Item:DDownPound      50`    00240069 % Disables an enemy's defense power and injures it.
-	.Item:DodgeMaster     75`    00240080 % Makes the action command work more frequently.
-	.Item:SleepStomp      50`    0024005C % If it works, the enemy Mario jumps on falls asleep ...
-	.Item:DoubleDip      100`    0024006D % During battle, lets you use two items during one t ...
-	.Item:JumpCharge      75`    0024005A % When charged, Mario's Jump power goes up by 2.
-	.Item:SpinSmash       25`    00240068 % If Mario hits an enemy, it smashes into the ones b ...
-	.Item:GroupFocus      50`    0024006F % Lets Mario's party members use the Focus command a ...
-	.Item:AllorNothing   100`    00240093 % If the action command works, attack power +1. If n ...
-	.Item:HPPlusC         50`    00240071 % Increases maximum HP by 5.
-	.Item:FPPlusC         50`    00240072 % Increases maximum FP by 5.
-	.Item:SSmashChg       75`    00240065 % When supercharged, Mario's Hammer power goes up by ...
-	.Item:DamageDodgeA   100`    00240075 % If you do the action command, decreases Mario's da ...
-	.Item:MegaQuake      200`    0024006C % Severely damages all enemies on the ground or ceil ...
+ FFFFFF80	.Item:HappyHeartA     50`    00240079 % Restores HP automatically during battle at a slow  ...
+ FFFFFF80	.Item:FirstAttack     25`    00240087 % Lets Mario destroy a weaker enemy with a First Str ...
+ FFFFFF80	.Item:Multibounce     50`    0024005E % Jumps on all enemies in a row if action command is ...
+ FFFFFF80	.Item:DDownPound      50`    00240069 % Disables an enemy's defense power and injures it.
+ FFFFFFCB	.Item:SpinSmash       50`    00240068 % If Mario hits an enemy, it smashes into the ones b ...
+ FFFFFFCB	.Item:SleepStomp      50`    0024005C % If it works, the enemy Mario jumps on falls asleep ...
+ FFFFFFCB	.Item:DoubleDip      100`    0024006D % During battle, lets you use two items during one t ...
+ FFFFFFF3	.Item:DodgeMaster     75`    00240080 % Makes the action command work more frequently.
+ FFFFFFF3	.Item:JumpCharge      75`    0024005A % When charged, Mario's Jump power goes up by 2.
+ %FFFFFFF3	.Item:HealthyHealthy 100`    0024005A % Change this later.
+ FFFFFFF3	.Item:HPPlusC        100`    00240071 % Increases maximum HP by 5.
+ 00000007	.Item:AllorNothing   100`    00240093 % If the action command works, attack power +1. If n ...
+ 00000007   .Item:SuperJump       75`    00230115 % Tornado Jump added.
+ 00000007	.Item:DamageDodgeA   100`    00240075 % If you do the action command, decreases Mario's da ...
+ 00000029	.Item:SSmashChg       75`    00240065 % When supercharged, Mario's Hammer power goes up by ...
+ 00000029	.Item:MegaQuake      200`    0024006C % Severely damages all enemies on the ground or ceil ...
+ 00000029   .Item:SuperSmash     175`	 00230067 % Multi-Smash added.
+ 0000003B   .Item:MegaHPDrain    175`	 00230114 % Mega HP Drain added.
+ 0000003B	.Item:FPPlusC        100`    00240072 % Increases maximum FP by 5.
+ 0000003B	.Item:ShrinkSmash    150`    00240072 % Recoil Throw added.
 }
 
 
+
+%Play song when you enter Merlon's house.
 
 @	$Script_ToggleVis_80247A70
 {
@@ -649,4 +679,300 @@ FFFFFFF2 00000012 % < chapter 4 start
 02010202 01000201 00010201 00020100 
 02000102 00000001 00020002 02010001
 02020102 02010102 00020102 01000201
+}
+
+
+
+
+
+% Do not change anything below this point!
+% =================================================
+
+#new:Function $Function_HasBadge % args: A0 = badgeID
+{
+	LIO		A2, 8010F344
+	ADDIU	A3, A2, 100
+	.Loop
+	LH		A1, 0 (A2)
+	BEQL	A0, A1, .End
+	ADDIU	V0, R0, 1 % return true
+	BNE		A2, A3, .Loop
+	ADDIU	A2, A2, 2
+	ADDIU	V0, R0, 0 % return false
+	.End
+	JR		RA
+	NOP
+}
+
+% How does the game know to refresh the badges?
+% A bunch of maps set Flag_Rowf_Badges_Chosen to false in their Main script.
+% Some examples: mim_10, flo_00, hos_00, kmr_10, etc.
+	
+% Modified to support more badges and work with the more detailed table.
+@ $Function_802400C8
+{
+	ADDIU	SP, SP, -80
+	SW		RA, 3C (SP)
+	SW		S8, 38 (SP)
+	SW		S7, 34 (SP)
+	SW		S6, 30 (SP)
+	SW		S5, 2C (SP)
+	SW		S4, 28 (SP)
+	SW		S3, 24 (SP)
+	SW		S2, 20 (SP)
+	SW		S1, 1C (SP)
+	SW		S0, 18 (SP)
+	% save story progress to S5
+	LIO		A1, *GB_StoryProgress
+	JAL		~Func:get_variable
+	DADDU	S8, A0, R0
+	DADDU	S5, V0, R0
+	% allocate memory
+	JAL		8002ACE4	% allocate 0x30 bytes for shop inventory
+	ADDIU	A0, R0, 30
+	DADDU	S7, V0, R0
+	SW		R0, 0 (V0)
+	SW		R0, 4 (V0)
+	SW		R0, 8 (V0)
+	SW		R0, 0 (S7)
+	SW		R0, C (S7)
+	SW		R0, 18 (S7)
+	SW		R0, 24 (S7)
+	% check whether we should refresh shop inventory
+	LIO		A1, *GF_MAC01_RowfBadgesChosen
+	JAL		~Func:get_variable
+	DADDU	A0, S8, R0
+	BNE		V0, R0, .LoadBadges
+	DADDU	A0, S8, R0
+	% loop0: for each badge in Rowf's stock, copy the index
+	% of available badges to a temporary array on the stack
+	DADDU	S1, R0, R0 % badge table counter (0 to NumRowfBadges-1)
+	ADDIU	S2, SP, 50 % index array position
+	DADDU	S3, R0, R0 % saved badge count
+	DADDU	A0, R0, R0
+	.Loop0
+	LIA		S6, $RowfBadgeInventory
+	SLL		S0, S1, 4
+	DADDU	S0, S0, S6 % get ith entry in badge data table
+	% check required story progress
+	LW		V0, 0 (S0)
+	SLT		S4, S5, V0
+	BNEL	S4, R0, .EndLoop0
+	ADDIU	S1, S1, 1
+	% check if player has the badge
+	JAL		$Function_HasBadge
+	LW		A0, 4 (S0)
+	BNEL	V0, R0, .EndLoop0
+	ADDIU	S1, S1, 1
+	% save index to array
+	SB		S1, 0 (S2)
+	ADDIU	S2, S2, 1
+	ADDIU	S3, S3, 1
+	ADDIU	S1, S1, 1
+	.EndLoop0
+	SLTIU	V0, S1, .NumRowfBadges
+	BNE		V0, R0, .Loop0
+	% did we find any?
+	DADDU	A0, R0, R0
+	BEQ		S3, R0, .Done1
+	DADDU	S5, R0, R0
+	% randomly choose 3 badges for the shop
+	ADDIU	S4, SP, 50
+	ADDIU	S2, S3, FFFF
+	DADDU	S0, S7, R0
+	.Loop1
+	% get random badge index (0 to num-1)
+	JAL		~Func:rand_int
+	DADDU	A0, S2, R0
+	DADDU	S1, V0, R0
+	ADDU	V0, S4, V0
+	LBU		A2, 0 (V0)
+	% get badge from table (entry size increased: C -> 10 bytes)
+	LIA		A3, $RowfBadgeInventory
+	SLL		V1, A2, 4
+	ADDU	V1, V1, A3
+	% copy selected badge to inventory
+	LW		V0, 4 (V1)
+	SW		V0, 0 (S0)
+	LW		V0, 8 (V1)
+	SW		V0, 4 (S0)
+	LW		V0, C (V1)
+	SW		V0, 8 (S0)
+	% save index to (Byte_Rowf_Badge0 + i)
+	LIO		A1, *GB_MAC01_Rowf_Badge0
+	ADDU	A1, S5, A1
+	JAL		~Func:set_variable
+	DADDU	A0, S8, R0
+  	ADDIU	S5, S5, 1
+	SLTI	V0, S5, 3
+	BEQ		V0, R0, .Done1
+	ADDIU	S0, S0, C
+	% if chosen index < max, remove it from the table
+	SLT		V0, S1, S2
+	BEQ		V0, R0, .EndLoop1
+	DADDU	V1, S1, R0
+	.ShiftTable
+	ADDIU	V0, S1, 1
+	DADDU	S1, V0, R0
+	ADDU	V0, S4, V0
+	LBU		V0, 0 (V0)
+	ADDU	V1, S4, V1
+	SB		V0, 0 (V1)
+	SLT		V0, S1, S2
+	BNE		V0, R0, .ShiftTable
+	DADDU	V1, S1, R0
+	.EndLoop1
+	ADDIU	S3, S3, FFFF
+	BNE		S3, R0, .Loop1
+	ADDIU	S2, S2, FFFF
+	.Done1
+	DADDU	A0, S8, R0
+	LIO		A1, *GB_MAC01_Rowf_NumBadges
+	JAL		~Func:set_variable
+	DADDU	A2, S5, R0
+	DADDU	A0, S8, R0
+	LIO		A1, *GF_MAC01_RowfBadgesChosen
+	JAL		~Func:set_variable
+	ADDIU	A2, R0, 1
+	% Return with Var[3] == 0
+	BEQ		R0, R0, .Return
+	SW		R0, 90 (S8)
+	%
+	.LoadBadges
+	LIO		A1, *GB_MAC01_Rowf_NumBadges
+	JAL		~Func:get_variable
+	RESERVED
+	DADDU	S5, V0, R0
+	BLEZ	S5, .Return1
+	DADDU	S1, R0, R0
+	LIO		S3, *GB_MAC01_Rowf_Badge0
+	LIA		S6, $RowfBadgeInventory
+	DADDU	S0, S7, R0
+	.Loop3
+	% Load the previously chosen badges to the inventory.
+	% Very similar to the code in Loop1
+	DADDU	A0, S8, R0
+	JAL		~Func:get_variable
+	ADDU	A1, S1, S3
+	DADDU	A2, V0, R0
+	% get badge from table (entry size increased: C -> 10 bytes)
+	SLL		V1, A2, 4
+	ADDU	V1, V1, S6
+	% copy selected badge to inventory
+	LW		V0, 4 (V1)
+	SW		V0, 0 (S0)
+	LW		V0, 8 (V1)
+	SW		V0, 4 (S0)
+	LW		V0, C (V1)
+	SW		V0, 8 (S0)
+	ADDIU	S1, S1, 1
+	SLT		V0, S1, S5
+	BNE		V0, R0, .Loop3
+	ADDIU	S0, S0, C
+	.Return1
+	ADDIU	V0, R0, 1
+	SW		V0, 90 (S8) % var[3] = 1
+	.Return
+	SW		S5, 84 (S8) % var[0] = num badges
+	SW		S7, 8C (S8) % var[2] = inventory ptr
+	LW		RA, 3C (SP)
+	LW		S8, 38 (SP)
+	LW		S7, 34 (SP)
+	LW		S6, 30 (SP)
+	LW		S5, 2C (SP)
+	LW		S4, 28 (SP)
+	LW		S3, 24 (SP)
+	LW		S2, 20 (SP)
+	LW		S1, 1C (SP)
+	LW		S0, 18 (SP)
+	ADDIU	V0, R0, 2
+	JR		RA
+	ADDIU	SP, SP, 80
+}
+	
+% this function returns the number of badges remaining on *Var[0]
+% all references to the 'bought' flags are removed
+@ $Function_80244984
+{
+	PUSH	RA, S0, S1, S2, S3
+	DADDU	S3, A0, R0
+	LIA		S0, $RowfBadgeInventory
+	DADDU	S1, R0, R0
+	DADDU	S2, R0, R0
+	.CheckBadgesLoop
+	JAL		$Function_HasBadge
+	LW		A0, 4 (S0)
+	XORI	V0, V0, 1
+	DADDU	S1, S1, V0
+	ADDIU	S2, S2, 1
+	SLTIU	V0, S2, .NumRowfBadges
+	BNE		V0, R0, .CheckBadgesLoop
+	ADDIU	S0, S0, 10
+	SW		S1, 84 (S3)
+	POP		RA, S0, S1, S2, S3
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+
+% Story progress checks are now part of Function_802400C8, do not set flags here.
+@ $Script_80248070
+{
+		% -- Removed --
+  1C0:  Call     $Function_802400C8 ( )
+%  1CC:  Set      *MapVar[2] *Var[1] 
+  1DC:  If       *Var[3] ==  00000000 
+  1EC:     Set      *GF_MAC01_RowfBadgeAvailableA 00000000 
+  1FC:     Set      *GF_MAC01_RowfBadgeAvailableB 00000000 
+  20C:     Set      *GF_MAC01_RowfBadgeAvailableC 00000000 
+  21C:     If       *Var[0]  <  00000003 
+  22C:        Set      *GF_MAC01_RowfBadgeAvailableC 00000001 
+  23C:     EndIf
+  244:     If       *Var[0]  <  00000002 
+  254:        Set      *GF_MAC01_RowfBadgeAvailableB 00000001 
+  264:     EndIf
+  26C:     If       *Var[0]  <  00000001 
+  27C:        Set      *GF_MAC01_RowfBadgeAvailableA 00000001 
+  28C:     EndIf
+  294:  EndIf
+  29C:  Call     MakeShop    	( $RowfItemPositions *Var[2] $RowfDummyPriceList 00000000 )
+  2B8:  Call     MakeShopOwner 	( $ShopOwnerRowf )
+  2C8:  If       *Var[3] ==  00000001 
+  2D8:     If       *Var[0] >=  00000003 
+  2E8:        If       *GF_MAC01_RowfBadgeAvailableC ==  00000001 
+  2F8:           Call     $Function_80240044 ( 00000002 )
+  308:        EndIf
+  310:     EndIf
+  318:     If       *Var[0] >=  00000002 
+  328:        If       *GF_MAC01_RowfBadgeAvailableB ==  00000001 
+  338:           Call     $Function_80240044 ( 00000001 )
+  348:        EndIf
+  350:     EndIf
+  358:     If       *Var[0] >=  00000001 
+  368:        If       *GF_MAC01_RowfBadgeAvailableA ==  00000001 
+  378:           Call     $Function_80240044 ( 00000000 )
+  388:        EndIf
+  390:     EndIf
+  398:  EndIf
+  3A0:  Return
+  3A8:  End
+}
+
+% this is where the 'bought' flag is usually set,
+% so the function has been modified to skip that.
+@ $Function_80240044
+{
+	PUSH	RA
+	LW		V0, C (A0)
+	JAL		~Func:get_variable
+	LW		A1, 0 (V0)
+	LAW		V1, 8007419C
+	ADDIU	A1, R0, 40
+	LW		A0, 140 (V1)
+	SLL		V1, V0, 4
+	ADDU	V1, V1, A0
+	JAL		80134148
+	LW		A0, 0 (V1)
+	POP		RA
+	JR		RA
+	ADDIU	V0, R0, 2
 }

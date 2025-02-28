@@ -1,0 +1,163 @@
+% automatically dumped from map omo_12
+
+#new:Npc $omo_12_80242964 {
+.NpcID:BigLanternGhost_00 $NpcSettings_80240850_omo_12 00000000 00000000 00000000 
+00040F04 $Script_Init_80242284_omo_12 00000001 00000000 0000005A 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_BigLanternGhost_00 % .Sprite:BigLanternGhost
+00000000 00000000 $ExtraAnimationList_8024293C_omo_12 001A00B9 % Invalid string ID! 001A00B9
+}
+
+#new:Function $Function_80240314_omo_12 {
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 28 (SP)
+   10:  SW        S3, 24 (SP)
+   14:  SW        S2, 20 (SP)
+   18:  SW        S0, 18 (SP)
+   1C:  LW        S0, C (S1)
+   20:  LW        A1, 0 (S0)
+   24:  JAL       ~Func:get_variable
+   28:  ADDIU     S0, S0, 4
+   2C:  LW        A1, 0 (S0)
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S1
+   38:  JAL       ~Func:get_variable
+   3C:  COPY      S3, V0
+   40:  LW        A1, 0 (S0)
+   44:  ADDIU     S0, S0, 4
+   48:  COPY      A0, S1
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      S2, V0
+   54:  COPY      A0, S1
+   58:  LW        A1, 0 (S0)
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      S0, V0
+   64:  LI        A0, 1
+   68:  COPY      A1, A0
+   6C:  SW        S0, 10 (SP)
+   70:  COPY      S0, V0
+   74:  COPY      A2, S3
+   78:  JAL       ~Func:set_screen_overlay_center_worldpos
+   7C:  COPY      A3, S2
+   80:  MTC1      S0, F0
+   84:  NOP
+   88:  CVT.S.W   F0, F0
+   8C:  MFC1      A1, F0
+   90:  JAL       ~Func:set_screen_overlay_alpha
+   94:  LI        A0, 1
+   98:  LUI       A1, 437F
+   9C:  JAL       ~Func:set_screen_overlay_params_back
+   A0:  ADDIU     A0, R0, B
+   A4:  LW        RA, 28 (SP)
+   A8:  LW        S3, 24 (SP)
+   AC:  LW        S2, 20 (SP)
+   B0:  LW        S1, 1C (SP)
+   B4:  LW        S0, 18 (SP)
+   B8:  LI        V0, 2
+   BC:  JR        RA
+   C0:  ADDIU     SP, SP, 30
+}
+
+#new:NpcSettings $NpcSettings_80240850_omo_12 {
+00000000 0044003C 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_80241E60_omo_12 {
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	Wait  1`
+   2C:  	If  *Var0  !=  00000000 
+   3C:  		BreakLoop
+   44:  	EndIf
+   4C:  EndLoop
+   54:  Wait  1`
+   60:  Call  StartBossBattle   ( .Song:SpecialBattle )
+   70:  Return
+   78:  End
+}
+
+#new:Script $Script_Defeat_80241EE0_omo_12 {
+    0:  Wait  1`
+    C:  Call  GetBattleOutcome  ( *Var0 )
+   1C:  Switch  *Var0 
+   28:  	Case  ==  .Outcome:PlayerWon % 0
+   34:  		Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+   48:  		Set   *AreaByte[1]  00000000 
+   58:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   74:  		Call  $Function_80240314_omo_12 ( *Var0 *Var1 *Var2 00000064 )
+   90:  		Thread
+   98:  			Set   *MapFlag[00]  .False 
+   A8:  			Call  SpeakToPlayer ( 00000000 006D0008 006D0008 00000000 000F0054 ) % Invalid string ID! 000F0054
+   C8:  			Set   *MapFlag[00]  .True 
+   D8:  		EndThread
+   E0:  		Thread
+   E8:  			Wait  15`
+   F4:  			Call  SetNpcJumpscale   ( 00000002 *Fixed[1.0] )
+  108:  			Call  SetNpcPos ( 00000002  0`  0`  20` )
+  124:  			Call  NpcJump0  ( 00000002  0`  0`  20`  10` )
+  144:  			Call  SetNpcPos ( 00000003  0`  0`  20` )
+  160:  		EndThread
+  168:  		Call  SetNpcAnimation   ( .Npc:Self 006D0007 )
+  17C:  		Call  SetNpcSpeed       ( .Npc:Self *Fixed[10.0] )
+  190:  		Call  NpcMoveTo ( .Npc:Self  400`  0`  0` )
+  1AC:  		Label  0
+  1B8:  		If  *MapFlag[00]  ==  .False 
+  1C8:  			Wait  1`
+  1D4:  			Goto  0
+  1E0:  		EndIf
+  1E8:  		Call  GetNpcPos ( 00000002 *Var3 *Var4 *Var5 )
+  204:  		SubF  *Var3  *Var0 
+  214:  		SubF  *Var4  *Var1 
+  224:  		SubF  *Var5  *Var2 
+  234:  		DivF  *Var3  *Fixed[60.0] 
+  244:  		DivF  *Var4  *Fixed[60.0] 
+  254:  		DivF  *Var5  *Fixed[60.0] 
+  264:  		SetF  *Var6  *Fixed[2.1669922] 
+  274:  		SetF  *Var7  *Fixed[100.0] 
+  284:  		Loop  0000003C 
+  290:  			AddF  *Var0  *Var3 
+  2A0:  			AddF  *Var1  *Var4 
+  2B0:  			AddF  *Var2  *Var5 
+  2C0:  			AddF  *Var7  *Var6 
+  2D0:  			Call  $Function_80240314_omo_12 ( *Var0 *Var1 *Var2 *Var7 )
+  2EC:  			Wait  1`
+  2F8:  		EndLoop
+  300:  		Set   *AreaByte[1]  00000003 
+  310:  		Set   *AreaByte[2]  00000066 
+  320:  		Wait  1`
+  32C:  		Call  SetNpcVar ( 00000002 00000000 00000001 )
+  344:  		Set   *GB_StoryProgress  .Story:Ch4_DefeatedLanternGhost 
+  354:  		Call  DisablePlayerInput    ( .False )
+  364:  		Call  RemoveNpc ( .Npc:Self )
+  374:  	Case  ==  .Outcome:PlayerLost % 1
+  380:  	Case  ==  .Outcome:PlayerFled % 2
+  38C:  EndSwitch
+  394:  Return
+  39C:  End
+}
+
+#new:Script $Script_Init_80242284_omo_12 {
+    0:  If  *GB_StoryProgress  >=  .Story:Ch4_DefeatedLanternGhost % 1
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+   30:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80241E60_omo_12 )
+   44:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_80241EE0_omo_12 )
+   58:  Return
+   60:  End
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_8024293C_omo_12 {
+006D0001 006D0006 006D0007 006D0008 006D000F 006D0005 006D0002 006D0003 
+006D0004 FFFFFFFF 
+}
+

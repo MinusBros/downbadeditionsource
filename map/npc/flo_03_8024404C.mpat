@@ -1,0 +1,197 @@
+% automatically dumped from map flo_03
+
+#new:Npc $flo_03_8024404C {
+.NpcID:MontyMole_04 $NpcSettings_80240EB0_flo_03 00000000 00000000 00000000 
+00000F01 $Script_Init_8024360C_flo_03 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_MontyMole_04 % .Sprite:MontyMole
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_802406A0_flo_03 {
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  If  *Var0  ==  ~Entry:Entry2 
+   20:  	Call  SetMusicTrack ( 00000000 .Song:SunshineReturns 00000000 00000008 )
+   3C:  Else
+   44:  	Switch  *GB_StoryProgress 
+   50:  		Case  <=  .Story:Ch6_AskedToDefeatMontyMoles % 2C
+   5C:  			If  *GF_FLO03_DefeatedAll_MontyMoles  ==  .False 
+   6C:  				Call  SetMusicTrack ( 00000000 .Song:MontyMoleAssault 00000000 00000008 )
+   88:  			Else
+   90:  				Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsCloudy 00000000 00000008 )
+   AC:  			EndIf
+   B4:  		Case  <  .Story:Ch6_DestroyedPuffPuffMachine % 35
+   C0:  			Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsCloudy 00000000 00000008 )
+   DC:  		Default
+   E4:  			Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsSunny 00000000 00000008 )
+  100:  	EndSwitch
+  108:  EndIf
+  110:  Return
+  118:  End
+}
+
+#new:NpcSettings $NpcSettings_80240EB0_flo_03 {
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:IntTable $IntTable_80240FB4_flo_03 {
+0000004B 00000000 FFFFFFF1 00000023 00000000 FFFFFF9C 00000082 00000000 
+00000000 
+}
+
+#new:Script $Script_Defeat_80241F64_flo_03 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  GetSelfNpcID  ( *Var0 )
+   38:  		Switch  *Var0 
+   44:  			Case  ==  00000002 
+   50:  				Set   *GF_FLO03_Defeated_MontyMoleA  .True 
+   60:  			Case  ==  00000003 
+   6C:  				Set   *GF_FLO03_Defeated_MontyMoleB  .True 
+   7C:  			Case  ==  00000004 
+   88:  				Set   *GF_FLO03_Defeated_MontyMoleC  .True 
+   98:  			Case  ==  00000005 
+   A4:  				Set   *GF_FLO03_Defeated_MontyMoleD  .True 
+   B4:  		EndSwitch
+   BC:  		Set   *Var0  00000000 
+   CC:  		Add   *Var0  *GF_FLO03_Defeated_MontyMoleA 
+   DC:  		Add   *Var0  *GF_FLO03_Defeated_MontyMoleB 
+   EC:  		Add   *Var0  *GF_FLO03_Defeated_MontyMoleC 
+   FC:  		Add   *Var0  *GF_FLO03_Defeated_MontyMoleD 
+  10C:  		If  *Var0  !=  00000004 
+  11C:  			Call  SetNpcAnimation   ( 00000000 00C70006 )
+  130:  		Else
+  138:  			Call  SetNpcAnimation   ( 00000000 00C70001 )
+  14C:  			Set   *GF_FLO03_DefeatedAll_MontyMoles  .True 
+  15C:  			ExecWait  $Script_802406A0_flo_03 
+  168:  		EndIf
+  170:  		Call  DoNpcDefeat ( )
+  17C:  	Case  ==  .Outcome:PlayerLost % 1
+  188:  		Call  SetNpcAnimation   ( .Npc:Self 002F0101 )
+  19C:  	Case  ==  .Outcome:PlayerFled % 2
+  1A8:  		Call  SetNpcAnimation   ( .Npc:Self 002F0101 )
+  1BC:  EndSwitch
+  1C4:  Return
+  1CC:  End
+}
+
+#new:Script $Script_Hit_80242138_flo_03 {
+    0:  If  *GB_StoryProgress  ==  .Story:Ch6_AskedToDefeatMontyMoles % 2C
+   10:  	Call  GetOwnerEncounterTrigger  ( *Var0 )
+   20:  	If  *Var0  !=  .EncounterTrigger:None % 1
+   30:  		Call  SetNpcAnimation   ( .Npc:Self 002F0105 )
+   44:  	EndIf
+   4C:  EndIf
+   54:  Return
+   5C:  End
+}
+
+#new:Script $Script_Idle_80242A94_flo_03 {
+    0:  Loop
+    C:  	If  *MapVar[C]  ==  00000000 
+   1C:  		If  *AreaFlag[019]  ==  .True 
+   2C:  			Goto  0
+   38:  		EndIf
+   40:  		Set   *Var3  00000001 
+   50:  	Else
+   58:  		Label  0
+   64:  		Call  GetNpcPos ( 00000004 *Var0 *Var1 *Var2 )
+   80:  		Call  IsPlayerWithin    ( *Var0 *Var2 *MapVar[F] *Var3 )
+   9C:  	EndIf
+   A4:  	Call  GetCurrentPartner ( *Var9 )
+   B4:  	If  *Var9  ==  00000009 
+   C4:  		Set   *Var3  00000000 
+   D4:  	EndIf
+   DC:  	If  *MapVar[E]  ==  00000001 
+   EC:  		Set   *Var3  00000000 
+   FC:  	EndIf
+  104:  	If  *Var3  ==  00000001 
+  114:  		If  *AreaFlag[019]  ==  .False 
+  124:  			Call  SetNpcFlagBits    ( 00000004 00008048 .True )
+  13C:  			Call  NpcFacePlayer     ( 00000004 00000001 )
+  150:  			Wait  1`
+  15C:  			Set   *AreaFlag[019]  .True 
+  16C:  			If  *MapVar[C]  !=  00000000 
+  17C:  				If  *GB_StoryProgress  <  .Story:Ch6_AskedToDefeatMontyMoles % 2C
+  18C:  					Set   *Var1  00000004 
+  19C:  				Else
+  1A4:  					Set   *Var1  0000000A 
+  1B4:  				EndIf
+  1BC:  				Call  PlaySoundAtNpc        ( 00000004 00000262 00000000 )
+  1D4:  				Call  ShowEmote ( 00000004 .Emote:Exclamation  0` *Var1 .True  0`  0`  0`  0` )
+  204:  				Wait  *Var1 
+  210:  				Call  SetSelfEnemyFlagBits  ( 17100000 00000001 )
+  224:  			EndIf
+  22C:  			Call  PlaySoundAtNpc    ( 00000004 .Sound:MoleDig 00000000 )
+  244:  			Call  SetNpcAnimation   ( 00000004 002F0111 )
+  258:  			Wait  20`
+  264:  			If  *GF_FLO03_Defeated_MontyMoleC  ==  .False 
+  274:  				Call  SetNpcPos ( 00000004  0`  -50`  0` )
+  290:  			EndIf
+  298:  			Wait  45`
+  2A4:  		EndIf
+  2AC:  	Else
+  2B4:  		If  *AreaFlag[019]  ==  .True 
+  2C4:  			If  *GF_FLO03_Defeated_MontyMoleC  ==  .False 
+  2D4:  				Call  RandInt   ( 00000002 *Var0 )
+  2E8:  				Add   *Var0  00000001 
+  2F8:  				UseIntBuffer  $IntTable_80240FB4_flo_03 
+  304:  				Loop  *Var0 
+  310:  					Get3Int  *Var1 *Var2 *Var3 
+  324:  				EndLoop
+  32C:  				Call  SetNpcPos ( 00000004 *Var1 *Var2 *Var3 )
+  348:  			EndIf
+  350:  			Call  SetNpcFlagBits    ( 00000004 00008048 .True )
+  368:  			Set   *AreaFlag[019]  .False 
+  378:  			Call  NpcFacePlayer     ( 00000004 00000001 )
+  38C:  			Wait  1`
+  398:  			Call  PlaySoundAtNpc    ( 00000004 .Sound:MoleSurface 00000000 )
+  3B0:  			Call  SetNpcAnimation   ( 00000004 002F0110 )
+  3C4:  			Wait  10`
+  3D0:  			Call  SetSelfEnemyFlagBits  ( 17100000 00000000 )
+  3E4:  			Call  RandInt   ( 00000028 *Var0 )
+  3F8:  			Add   *Var0  00000032 
+  408:  			Set   *MapVar[C]  *Var0 
+  418:  		Else
+  420:  			If  *MapVar[C]  >  00000000 
+  430:  				Sub   *MapVar[C]  00000001 
+  440:  			EndIf
+  448:  		EndIf
+  450:  	EndIf
+  458:  	Wait  1`
+  464:  EndLoop
+  46C:  Return
+  474:  End
+}
+
+#new:Script $Script_Init_8024360C_flo_03 {
+    0:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_80242138_flo_03 )
+   14:  Call  BindNpcDefeat     ( .Npc:Self $Script_Defeat_80241F64_flo_03 )
+   28:  Call  EnableNpcShadow   ( 00000004 .False )
+   3C:  Switch  *GB_StoryProgress 
+   48:  	Case  <  .Story:Ch6_AskedToDefeatMontyMoles % 2C
+   54:  		Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80242A94_flo_03 )
+   68:  		Call  SetNpcAnimation   ( 00000004 002F0110 )
+   7C:  	Case  ==  .Story:Ch6_AskedToDefeatMontyMoles % 2C
+   88:  		If  *GF_FLO03_Defeated_MontyMoleC  ==  .False 
+   98:  			Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80242A94_flo_03 )
+   AC:  			Call  SetNpcAnimation   ( 00000004 002F0110 )
+   C0:  			Call  SetEnemyFlagBits  ( 00000004 00000001 00000000 )
+   D8:  		Else
+   E0:  			Call  SetNpcPos ( 00000004  0`  -1000`  0` )
+   FC:  		EndIf
+  104:  	Default
+  10C:  		Call  SetNpcPos ( 00000004  0`  -1000`  0` )
+  128:  EndSwitch
+  130:  Return
+  138:  End
+}
+

@@ -52,6 +52,32 @@
    [88]  Wait  80`
 }
 
+
+@	$Script_EnterDoubleDoor_802403E8
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Set   *Var0  00000000
+   38:  		Set   *Var2  00000081
+   48:  		Set   *Var3  00000083
+   58:  		Exec  EnterDoubleDoor
+   64:  		Exec  $Script_80240388
+   70:  	Case  ==  ~Entry:Entry1
+   7C:  		Set   *Var0  00000001
+   8C:  		Set   *Var2  00000087
+   9C:  		Set   *Var3  00000085
+   AC:  		Exec  EnterDoubleDoor
+   B8:  		Exec  $Script_80240388
+   70:  	Case  ==  ~Entry:Entry2
+   B8:  		Set   *VarA  $Script_80240388
+				Exec  $Script_EnterVerticalPipe
+				Wait  1`
+   C4:  EndSwitch
+   CC:  Return
+   D4:  End
+}
+
 @	$Script_MakeEntities
 {
     0:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80241DE0 80000000 )
@@ -166,12 +192,12 @@
   12C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
   148:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
   15C:  Call  SetCamPitch   ( .Cam:Default *Fixed[11.0] *Fixed[-2.5] )
-  174:  Call  SetCamDistance    ( .Cam:Default  80` )
   188:  Call  SetCamPosA    ( .Cam:Default *Fixed[5.0] *Fixed[-3.5] )
   1A0:  Call  SetCamPosB    ( .Cam:Default *Fixed[0.0] *Fixed[0.0] )
   1B8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   128:  EndThread
 		%/
+  174:  Call  SetCamDistance    ( .Cam:Default  80` )
   1E0:  Call  MakeLerp  ( FFFFFA60 00000000 00000014 .Easing:QuadraticOut )
   1FC:  Loop
   208:  	Call  UpdateLerp ( )
@@ -195,7 +221,7 @@
    FC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   114:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   128:  EndThread
-  290:  Call  StartBossBattle   ( .Song:MailCall )
+  290:  Call  StartBossBattle   ( .Song:MailCall ) %Monstar Battle Theme
   2A0:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
   2B8:  If  *Var0  <  000002BC
   2C8:  	Add   *Var0  0000001E
@@ -208,13 +234,14 @@
 
 @ $Script_Defeat_80240AF4
 {
-	   5C:  Call  DoNpcDefeat ( )
-			Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
-			Call  ResetCam      ( .Cam:Default *Fixed[90.0] )
-		0:  Call  RemoveNpc ( .NpcID:BattleKooper_00 )
-	   10:  Call  RemoveNpc ( .NpcID:BattleKooper_01 )
-			Set   *GF_KPA53_Defeated_PeachImposter  .True
-			Bind  $Script_ExitDoubleDoor_802402E4 .Trigger:WallPressA 0000000E 00000001 00000000
+    0:  Call  RemoveNpc ( .NpcID:BattleKooper_00 )
+   10:  Call  RemoveNpc ( .NpcID:BattleKooper_01 )
+		Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
+		Call  ResetCam      ( .Cam:Default *Fixed[90.0] )
+   20:  Set   *GF_KPA53_Defeated_PeachImposter  .True
+   30:  Bind  $Script_ExitDoubleDoor_802402E4 .Trigger:WallPressA 0000000E 00000001 00000000
+   4C:  Call  DisablePlayerInput    ( .False )
+   5C:  Call  DoNpcDefeat ( )
    68:  Return
 		End
 }

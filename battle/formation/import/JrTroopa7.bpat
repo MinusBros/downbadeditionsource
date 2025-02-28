@@ -9,8 +9,8 @@
 [Flags]       00000000 
 [StatusTable] $StatusTable_8022C43C_02 
 % ai
-[PartsCount]    3`s 
-[PartsTable]  $PartsTable_8022C640_02 
+[PartsCount]    1`s 
+[PartsTable]  $PartsTable_JrTroopa7
 [Script]      $Script_Init_JrTroopa7 
 % move effectiveness
 [Escape]        0`b 
@@ -27,14 +27,13 @@
 [StatusIcon]   10`b  25`b % dx dy
 }
 
-
-
 #new:Script $Script_Init_JrTroopa7 {
     0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
    18:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
    30:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
    48:  Call  SetActorVar   ( .Actor:Self 00000003 00000001 )
    60:  Call  SetActorVar   ( .Actor:Self 00000004 00000005 )
+        Call  SetEnemyHP    ( .Actor:Self  28` )
 		Set   *GB_JrTroopaBattle  00000003
    78:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_JrTroopa7 )
    8C:  Call  BindIdle      ( .Actor:Self $Script_Idle_JrTroopa7 )
@@ -43,6 +42,31 @@
 		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:GoldenFlames )
    C8:  Return
    D0:  End
+}
+
+
+%Immune to all except Goombarius's Gun.
+%Well you could also use Bombette, but
+%he'll notice if you have her out.
+
+#new:DefenseTable $DefenseTable_JrTroopa7 {
+.Element:Normal 00000063
+.Element:Blast  00000003
+.Element:End
+}
+
+%This defense table is only set if
+%Goombarius happens to not be at
+%Ultra Rank.
+
+#new:DefenseTable $DefenseTable_Oops {
+.Element:Normal 00000063
+.Element:Jump  00000000
+.Element:End
+}
+
+#new:PartsTable $PartsTable_JrTroopa7 {
+00800000 01000000 001A00FF $IdleAnimations_8022C370_02 $DefenseTable_JrTroopa7 00000000 00000000 FEFA0000 00000000 
 }
 
 #new:Script $Script_Idle_JrTroopa7 {
@@ -74,7 +98,7 @@
 #new:Script $Script_TakeTurn_JrTroopa7 {
 				Call  GetCurrentPartnerID   ( *Var0 )
 				If  *Var0  ==  .Partner:Goombario % 1
-  404:  			ExecWait  $Script_HopAttack %Triple hop attack
+  404:  			ExecWait  $GunAttack7
 				Else
 					ExecWait  $Script_NoGoombarius
 				EndIf
@@ -96,8 +120,22 @@
    A0:  			Call  UseBattleCamPreset    ( 0000000E )
    B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
    C0:  			Call  MoveBattleCamOver (  20` )
-					Call  ActorSpeak        ( 001300B3 .Actor:Self 00000001 0021001A 0021001B ) % No Goombarius?
-   F0:  			Call  SetAnimation      ( .Actor:Self 00000001 00210003 )
+					Call  ActorSpeak        ( 001300B9 .Actor:Self 00000001 0021001A 0021001B ) % Today we finish this
+   F0:  			Call  SetAnimation      ( .Actor:Self 00000001 00210005 )
+  138:  			Call  UseBattleCamPreset    ( 0000000E )
+  148:  			Call  BattleCamTargetActor  ( .Actor:Partner )
+  158:  			Call  MoveBattleCamOver (  25` )
+  168:  			Wait  15`
+  174:  			Call  UseIdleAnimation  ( .Actor:Partner .False )
+  188:  			Call  SetAnimation      ( .Actor:Partner 00000001 000D0004 )
+  1A0:  			Call  ActorSpeak        ( 001300BA .Actor:Partner 00000001 0009000F 000D0001 ) % Fine by me
+					Call  UseIdleAnimation  ( .Actor:Partner .True )
+					Call  UseBattleCamPreset    ( 0000000E )
+   B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
+   C0:  			Call  MoveBattleCamOver (  20` )
+					Call  ActorSpeak        ( 001300BB .Actor:Self 00000001 0021001A 0021001B ) % Check this out
+					Wait  15`
+					ExecWait $ImmuneAll
   108:  		EndIf
   110:  	Case  ==  0000000C 
   11C:  	Case  ==  0000000B 
@@ -107,4 +145,102 @@
   150:  Call  UseIdleAnimation  ( .Actor:Self .True )
   164:  Return
   16C:  End
+}
+
+#new:Script $ImmuneAll
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
+   C0:  			Call  MoveBattleCamOver (  20` )
+   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+   3C:  Call  SetGoalToTarget   ( .Actor:Self )
+   4C:  Call  SetAnimation      ( .Actor:Self 00000001 0024002A )
+   64:  Wait  4`
+   70:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast1 )
+   84:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
+   98:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
+   A8:  	Set   *Var3  00000000 
+   B8:  	Set   *Var4  00000024 
+   C8:  	SetF  *Var5  *Fixed[1.0] 
+   D8:  Else
+   E0:  	Set   *Var3  00000000 
+   F0:  	Set   *Var4  0000000E 
+  100:  	SetF  *Var5  FA84329A 
+  110:  EndIf
+  118:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  134:  Add   *Var0  *Var3 
+  144:  Add   *Var1  *Var4 
+  154:  Call  PlayEffect        ( ~FX:GatherEnergyPink *Var0 *Var1 *Var2 *Var5 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  1B8:  Wait  20`
+  1C4:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:BigPowerUp )
+  1F0:  Call  $Function_80218F60_02 ( )
+  1FC:  Call  MakeLerp  ( 00000000 000000C8 0000003C .Easing:CosInOut )
+  218:  Label  0
+  224:  Call  UpdateLerp ( )
+  230:  Call  $Function_80218FA4_02 ( *Var0 )
+  240:  Wait  1`
+  24C:  If  *Var1  ==  00000001 
+  25C:  	Goto  0
+  268:  EndIf
+  270:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+  28C:  Call  RandInt   ( 00000028 *Var1 )
+  2A0:  Add   *Var0  *Var1 
+  2B0:  Add   *Var0  00000032 
+  2C0:  Set   *Var1  000000C8 
+  2D0:  Call  PlaySoundAtActor  ( .Actor:Self 00000366 )
+			Call  PlaySoundAtActor  ( .Actor:Self 00002125 )
+  474:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  490:  	Add   *Var1  0000003C 
+  4A0:  	Add   *Var2  0000000C 
+  4B0:  	Call  PlayEffect    ( ~FX:RainbowShimmer *Var0 *Var1 *Var2 00000069 00000078 00000025 0000003C 00000000 00000000 00000000 00000000 00000000 )
+   1C:  Call  GetActorLevel     ( .Actor:Partner *Var0 )
+   30:  Switch  *Var0
+   3C:  	Case  ==  00000000
+   48:  		Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_Oops )
+   68:  	Case  ==  00000001
+   74:  		Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_Oops )
+   C0:  EndSwitch
+		Wait  60`
+   A0:  			Call  UseBattleCamPreset    ( 0000000E )
+   B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
+   C0:  			Call  MoveBattleCamOver (  20` )
+					Call  ActorSpeak        ( 001300C7 .Actor:Self 00000001 00210024 00210024 ) % Hahaha
+   F0:  			Call  SetAnimation      ( .Actor:Self 00000001 00210005 )
+  138:  			Call  UseBattleCamPreset    ( 0000000E )
+  148:  			Call  BattleCamTargetActor  ( .Actor:Partner )
+  158:  			Call  MoveBattleCamOver (  25` )
+  168:  			Wait  15`
+  174:  			Call  UseIdleAnimation  ( .Actor:Partner .False )
+  188:  			Call  SetAnimation      ( .Actor:Partner 00000001 000D0004 )
+  1A0:  			Call  ActorSpeak        ( 001300C8 .Actor:Partner 00000001 0009000F 000D0001 ) % I have a gun
+					Call  UseIdleAnimation  ( .Actor:Partner .True )
+		Return
+		End
+}
+
+#new:Script $GunAttack7
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+		Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+    0:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+   1C:  Sub   *Var0  0000001E
+  13C:  Call  SetAnimation  ( .Actor:Self 00000001 0021002C )
+  		Wait  6`
+		Wait  3`
+		Call  SetAnimation  ( .Actor:Self 00000001 0021002D )
+  4BC:  Call  PlaySoundAtActor  ( .Actor:Self 00002008 )
+  7A1:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+		Sub   *Var0  0000001E
+  7A2:  Call  PlayEffect    ( ~FX:Explosion1 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Wait  6`
+		Call  PlaySoundAtActor  ( .Actor:Self 00002010 )
+		Call  SetGoalToTarget   ( .Actor:Self )
+  488:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:Blast|NoContact 00000000 00000000 0000000F 00000070 )
+  850:  Wait  20`
+  A54:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  A68:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  A7C:  Return
+  A84:  End
 }

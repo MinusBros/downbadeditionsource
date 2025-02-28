@@ -1,0 +1,120 @@
+%SR 0.4.4 has an unavoidable issue where there is a bug in is_ability_active. This causes Attack FX badges to break.
+%This patch replaces that code with code that allows for any number of badges to have sound FX to be attached to them!
+
+#define .NumBadgesWithFX 7` %set this to indicate the number of badges have FX attached.
+
+#new:Function $GetAttackFxSoundId { %returns 0 if none is applicable
+	PUSH 	RA, S0
+	ADDIU	A0, R0, FFFC %-4
+	LI		A1, .NumBadgesWithFX
+	MULT	A0, A1
+	MFLO	S0 %we'll need this later to restore SP
+	ADDU	SP, SP, S0 %moves SP in a *negative* direction, making more space - specifically N words of it
+	%now we write to clear the N array items
+	COPY	A0, SP
+	LI		A1, .NumBadgesWithFX %number of cells left to write
+	.clearloop
+	SW		R0, 0 (A0)
+	ADDIU	A1, A1, FFFF
+	BGTZ 	A1, .clearloop
+		ADDIU	A0, A0, 4
+	%with that sorted out, we loop through the badge list and 
+	%this is sadly O(n^2) [well, n*m] but the only better way I can think of is to sort the equipped badge list and have the fx badge list be sorted, and the sort is only O(n log n) if I implement merge sort or something. No thanks. O(n^2) it is.
+	LA		V0, $BadgesWithFX
+	COPY	V1, SP %slot to store to
+	LI		A1, .NumBadgesWithFX %number of badges left to check
+	LI		A2, 0 %number of slots stored to
+	% $IsBadgeEquiped *only* clobbers A0 so we can safely keep A1, A2, V0, V1.
+	.checkloop
+	JAL		$IsBadgeEquiped %returns on A0
+		LW 		A0, 0 (V0)
+	BEQ 	A0, R0, .checkcycle
+		ADDIU 	A1, A1, FFFF %subtract counter of # badges left to check - technically part of .checkcycle code
+	%if we get here, we are wearing a badge with FX. Add the relevant sound ID to the list.
+	LW 		A0, 4 (V0)
+	SW 		A0, 0 (V1)
+	ADDIU 	V1, V1, 4
+	ADDIU	A2, A2, 1 
+	.checkcycle
+	BGTZ	A1, .checkloop
+		ADDIU V0, V0, 8 
+	%if we get here, we are done checking. Now we need to return a sound ID or nothing.
+	BEQ		A2, R0, .done
+		LI		V0, 0 %sound ID  = 0
+	%otherwise we have a valid sound ID! But we need to call a random check.
+	JAL		~Func:rand_int
+		ADDIU	A0, A2, FFFF
+	%V0 has the badge ID to get.
+	SLL		V0, V0, 2 %*4 - now moving in words
+	ADDU	V0, SP, V0  %add to array base (stack pointer)
+	LW		V0, 0 (V0) %get sound ID from array cell
+	%now we return it on V0.
+	.done
+	SUBU	SP, SP, S0 %restore SP before POP
+	POP 	RA, S0
+	JR 		RA
+		NOP
+}
+
+
+% 001A0224 --> 80271944 - calc_player_damage_enemy
+
+@Function 1A06BC { %1A0224 + 498
+	JAL 	$GetAttackFxSoundId %returns on V0
+		NOP
+	NOP
+}
+
+@Function 1A0708 { %1A0224 + 4E4
+	LWC1	F0, 14 (S2)	 %mario goal Z - to be stored to 5th arg of sound play
+	J 		80271E90		%80271944 + 54C
+		COPY 	A0, S0	%sound ID - 1st arg of sound play
+}
+
+% Function at 802B6048 (00E24F18) - action_hammer_play_hit_fx
+
+@Function E250D4 { %E24F18 + 1BC
+	%S0 has sound to play - normally, by default, a hammer sound
+	JAL 	$GetAttackFxSoundId %returns on V0
+		NOP
+	BNEL 	V0, R0, .jumpto
+		COPY 	S0, V0	%if attack FX check asks for a non-hammer sound, replace S0
+	.jumpto
+	J 	802B625C %802B6048 + 214
+		NOP
+}
+
+
+#new:Data $BadgesWithFX {  %table format - badge id, sound effect id. Only the number of rows in the #define will be read.
+	000000F3	00000372	%A - healing sound
+	00000145	000000F1	%D - bellbell plant
+	00000146	000000DC	%B - slide whistle
+	00000147	00002072	%E - yoshi!
+	00000148	00002073	%C - oof
+	00000149	0000205B	%F - flowers
+	00000151	00002089	%G - spring
+}
+
+
+/%
+% A0 = badge ID, returns boolean on A0
+% Doesn't follow calling convention, deal with it.
+#new:Function $IsBadgeEquiped
+{
+PUSH	S1, S2, S3
+.Init
+LIO		S2, 8010F498	% position in list
+ADDIU	S3, S2, 78		% end of list
+.Loop
+LH		S1, 0 (S2)
+BEQL	A0, S1, .End
+ADDIU	A0, R0, 1 % return true
+BNE		S2, S3, .Loop
+ADDIU	S2, S2, 2
+ADDIU	A0, R0, 0 % return false
+.End
+POP		S1, S2, S3
+JR		RA
+NOP
+}
+%/

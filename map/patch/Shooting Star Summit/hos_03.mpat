@@ -1,57 +1,127 @@
+#import EnterViaPipe.mpat
+
+
+
+@	$Header
+{
+	[EntryCount]  0000000C
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -497.0    0.0  479.0   45.0
+	~Vec4f:Entry1 %  705.0    0.0    0.0  270.0
+	~Vec4f:Entry2 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry3 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry4 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry5 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry6 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry7 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry8 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry9 %    0.0    0.0    0.0    0.0
+	~Vec4f:EntryA %  354.0    0.0  294.0  117.0
+	~Vec4f:EntryB
+}
+
+%I originally wanted to have a shop theme for this map,
+%but it kept bugging out, so I'll make the shop theme
+%play for the whole map cuz it's really relaxing.
+
+@	$Script_80243630
+{
+    [0]  Call  SetMusicTrack ( 00000000 .Song:StarShop 00000000 00000008 )
+}
+
+
+@ $Script_MakeEntities
+{
+		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:EntryB $Script_UseBluePipe ~Index:*GF_Star_BluePipeA 80000000 )
+		If  *GF_Star_BluePipeA == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+    0:  Call  MakeEntity        ( .Entity:SavePoint ~Vec4d:Entity8024BD00 80000000 )
+   24:  Call  SetEntityCullMode ( 00000003 )		
+   34:  Return
+   3C:  End
+}
+
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Star_BluePipeA  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
 %Gotta have a really good inventory for late game.
 
 @	$ShopInventory_8024BB5C
 {
-	.Item:UltraShroom    00000064 0023000B %
-	.Item:JamminJelly    00000064 00230018 %
+	.Item:UltraShroom    0000003C 0023000B %
+	.Item:JamminJelly    0000003C 00230018 %
 	.Item:LifeShroom     00000096 0024000C %
-	.Item:ShootingStar   0000004B 00240004 %
-	.Item:HustleDrink    0000008C 0023010D %
-	.Item:RepelGel       00000078 0023002C %
+	.Item:ShootingStar   00000032 00240004 %
+	.Item:HustleDrink    00000064 0023010D %
+	.Item:RepelGel       00000064 0023002C %
 	00000000 00000000 00000000
 }
 
 
-%This shop doesn't have a toggle visibility, so we're
-%going to search for Mario's coordinates to
-%determine if the shop song should play.
-
-@	$Script_80243748
+@	$Script_Main_EnterWalk
 {
-    0:  Bind  $Script_ExitWalk_80243690 .Trigger:FloorAbove ~Collider:deilisw 00000001 00000000
-   1C:  Bind  $Script_ExitWalk_802436EC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
-   80:  If  *Var0  !=  00000000
-   90:  	Goto  14
-   9C:  EndIf
-   A4:  Label  A
-   B0:  Wait  1`
-   BC:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
-   D4:  If  *Var1  >  FFFFFFDD
-			If  *Var2  >  00000112
-				Thread
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Wait  24`
-					Call  PushSong      ( .Song:StarShop 00000000 )
-				EndIf
-				EndIf
-				EndThread
-  120:  	Wait  1`
-  12C:  	Goto  14
-  138:  EndIf
-  140:  Goto  A
-  14C:  Label  14
-  158:  Wait  1`
-  188:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
-			If  *Var2  <  000000FB
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
-				EndIf
-  1DC:  	Wait  1`
-  1E8:  	Goto  A
-  1F4:  EndIf
-  1FC:  Goto  14
-   38:  Return
-   40:  End
+    0:  Set   *GB_WorldLocation  .Location:StarHaven
+   10:  Call  SetSpriteShading  ( .Shading:hos_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  90`  90`  90` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  If  *GB_StoryProgress  ==  .Story:Ch8_OpenedPathToStarWay % 5A
+   94:  	Set   *GB_StoryProgress  .Story:Ch8_ReachedStarHaven
+   A4:  EndIf
+   AC:  Set   *GF_Map_StarHaven  .True
+   BC:  Call  MakeNpcs  ( .False $NpcGroupList_8024BAE4 )
+   D0:  ExecWait  $Script_MakeEntities
+   DC:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+   F4:  Call  GetLoadType   ( *Var1 )
+  104:  If  *Var1  ==  00000001
+  114:  	Exec  EnterSavePoint
+  120:  	Exec  $Script_80243748
+  12C:  Else
+			Call  GetEntryID    ( *Var0 )	
+			Switch  *Var0
+				Case == B
+					Set   *VarA  $Script_80243748					
+					Exec $Script_EnterVerticalPipe
+				Default
+  134:  			Set   *Var0  $Script_80243748
+  144:  			Exec  EnterWalk
+			EndSwitch
+  150:  	Wait  1`
+  15C:  EndIf
+  164:  Exec  $Script_80243BD8
+  170:  Call  UseAdvancedDoorSounds ( 00000006 )
+  180:  Exec  $Script_80243630
+  18C:  Call  PlaySound ( 80000063 )
+  19C:  Exec  $Script_80244650
+  1A8:  Exec  $Script_8024BCBC
+  1B4:  Exec  $Script_802456C4
+  1C0:  Exec  $Script_80243790
+  1CC:  Return
+  1D4:  End
+}
+
+
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap     	( "hos_07" 3 )
+	Wait     00000064 
+	Return
+	End
 }

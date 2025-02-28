@@ -1,0 +1,71 @@
+% automatically dumped from map jan_06
+
+#new:Npc $jan_06_80245C40 {
+.NpcID:HurtPlant_05 $NpcSettings_80244F7C_jan_06 00000000 00000000 00000000 
+00408D01 00000000 00000000 00000000 0000005A 
+~Items:10:TastyTonic:5:SuperSoda:5
+~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:0:2
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_HurtPlant_05 % .Sprite:HurtPlant
+00000000 00000000 00000000 001A00D3 % Invalid string ID! 001A00D3
+}
+
+#new:Script $Script_NpcAI_80244D3C_jan_06 {
+    0:  Call  EnableNpcShadow   ( .Npc:Self .False )
+   14:  Call  SetNpcAnimation   ( .Npc:Self 00440001 )
+   28:  Call  SetSelfVar        ( 00000000 00000000 )
+   3C:  Label  0
+   48:  Call  GetSelfVar        ( 00000000 *Var0 )
+   5C:  If  *Var0  ==  00000000 
+   6C:  	Wait  1`
+   78:  	Goto  0
+   84:  EndIf
+   8C:  SetGroup  00000000 
+   98:  Call  SetTimeFreezeMode ( 00000001 )
+   A8:  Call  DisablePlayerInput    ( .True )
+   B8:  Call  NpcFacePlayer     ( .Npc:Self 00000000 )
+   CC:  Call  SetNpcAnimation   ( .Npc:Self 00440008 )
+   E0:  Wait  15`
+   EC:  Call  PlaySoundAtNpc    ( .Npc:Self 0000209A 00000000 )
+  104:  Wait  10`
+  110:  Call  SetPlayerAnimation    ( 0001002B )
+  120:  Wait  5`
+  12C:  Call  SetNpcAnimation   ( .Npc:Self 00440002 )
+  140:  Call  DisablePlayerInput    ( .False )
+  150:  Call  SetTimeFreezeMode ( 00000000 )
+  160:  Call  StartBattle ( )
+  16C:  Return
+  174:  End
+}
+
+#new:Script $Script_80244EB8_jan_06 {
+    0:  Call  SetSelfVar    ( 00000000 00000001 )
+   14:  Return
+   1C:  End
+}
+
+#new:Script $Script_80244EDC_jan_06 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  DoNpcDefeat ( )
+   34:  	Case  ==  .Outcome:PlayerFled % 2
+   40:  		Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80244D3C_jan_06 )
+   54:  	Case  ==  .Outcome:EnemyFled % 3
+   60:  		Call  SetEnemyFlagBits  ( .Npc:Self 00000010 00000001 )
+   78:  		Call  RemoveNpc ( .Npc:Self )
+   88:  EndSwitch
+   90:  Return
+   98:  End
+}
+
+#new:NpcSettings $NpcSettings_80244F7C_jan_06 {
+00000000 0014001C 00000000 $Script_80244EB8_jan_06 $Script_NpcAI_80244D3C_jan_06 00000000 00000000 $Script_80244EDC_jan_06 
+00000000 00000000 00100000 
+}
+

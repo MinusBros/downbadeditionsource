@@ -5,6 +5,74 @@
 #define .NpcID:FlyingMagikoopa_04   04
 #define .NpcID:FlyingMagikoopa_05   05
 
+%A new lock has been added to this room, requiring
+%the player to go to a room from TTYD64 to get it.
+
+% Add new exit to kpa_139
+
+@ $Header {
+    [MainScript]  $Script_Main
+    [EntryList]   $EntryList
+    [EntryCount]  00000003
+    [Background]  80200000
+    [MapTattle]   00190177
+}
+
+@ $EntryList {
+    ~Vec4f:Entry0 % -100.0 -160.0  116.0  120.0
+    ~Vec4f:Entry1 % -100.0  200.0  102.0  120.0
+    ~Vec4f:Entry2
+}
+
+
+
+
+@ $Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .True $NpcGroupList_80243B98 )
+   84:  ExecWait  $Script_MakeEntities
+   9C:  Wait  1`
+   A8:  Exec  $Script_80242718
+        Exec  $Script_InitNewStuff
+   C0:  Return
+   C8:  End
+}
+
+#new:Script $Script_InitNewStuff
+{
+    Call    GetEntryID ( *Var0 )
+    If *Var0 != ~Entry:Entry2
+        Exec  $Script_EnterDoubleDoor_8024263C
+    Else
+        Exec  $Script_802425F4
+    EndIf
+    Exec    $Script_802423A0
+    Return
+    End
+}
+
+@ $Script_802425F4
+{
+    0:  Bind  $Script_ExitDoubleDoor_802424AC .Trigger:WallPressA ~Collider:tts 00000001 00000000
+        Bind  $Script_Exit2 .Trigger:FloorTouch ~Collider:Exit2 00000001 00000000
+		Bind  $Script_ExitDoubleDoor_80242550 .Trigger:WallPressA ~Collider:ttsw 00000001 00000000
+   38:  Return
+   40:  End
+}
+
+#new:Script $Script_Exit2
+{
+    Call    DisablePlayerInput ( .True )
+	Call    GotoMap   ( "kpa_139" 0 )
+	Wait    50`
+	Return
+	End
+}
 
 @	$Script_802423A0
 {
@@ -17,10 +85,15 @@
 
 @	$Script_MakeEntities
 {
-    [0]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80243BE0 .Item:SweetShroom 80000000 )
-   [38]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80243C18 .Item:JamminJelly 80000000 )
-   [70]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80243C50 .Item:EggMissile 80000000 )
-   [A8]  Call  MakeItemEntity    ( .Item:PleaseComeBack ~Vec3d:Item80243C88 .ItemSpawnMode:Fixed_NeverVanish *GF_KPA61_Item_JamminJelly )
+    0:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80243BE0 .Item:SweetShroom 80000000 )
+   28:  Call  AssignBlockFlag   ( *GF_KPA61_ItemBlock_SuperShroomA )
+   38:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80243C18 .Item:JamminJelly 80000000 )
+   60:  Call  AssignBlockFlag   ( *GF_KPA61_ItemBlock_MapleSyrup )
+   70:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80243C50 .Item:EggMissile 80000000 )
+   98:  Call  AssignBlockFlag   ( *GF_KPA61_ItemBlock_SuperShroomB )
+   A8:  Call  MakeItemEntity    ( .Item:PleaseComeBack ~Vec3d:Item80243C88 .ItemSpawnMode:Fixed_NeverVanish *GF_KPA61_Item_JamminJelly )
+   CC:  Return
+   D4:  End
 }
 
 

@@ -1,0 +1,70 @@
+% automatically dumped from map sbk_30
+
+#new:Npc $sbk_30_80243828_1F0 {
+.NpcID:Archeologist_01 $NpcSettings_80241FC8_sbk_30 00000000 00000000 00000000 
+00002D01 $Script_Init_80243638_sbk_30 00000000 00000000 0000010E 
+~NoDrops
+FFFFFF12 00000000 00000070 00000064 00000000 FFFF8001 00000000 FFFFFF12 
+00000000 00000070 00000000 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Archeologist_01 % .Sprite:Archeologist
+00000000 00000000 00000000 001A008C % Invalid string ID! 001A008C
+}
+
+#new:NpcSettings $NpcSettings_80241FC8_sbk_30 {
+00000000 002A0018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_80243498_sbk_30 {
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00B80004 )
+   14:  Label  0
+   20:  Call  RandInt       ( 00000032 *Var0 )
+   34:  Add   *Var0  00000001 
+   44:  Wait  *Var0 
+   50:  Call  GetNpcYaw     ( .Npc:Self *Var0 )
+   64:  Add   *Var0  000000B4 
+   74:  Call  InterpNpcYaw  ( .Npc:Self *Var0  5` )
+   8C:  Goto  0
+   98:  Return
+   A0:  End
+}
+
+#new:Script $Script_Interact_80243540_sbk_30 {
+    0:  Switch  *GB_StoryProgress 
+    C:  	Case  <  .Story:Ch2_GotPulseStone % FFFFFFC1
+   18:  		If  *AreaFlag[002]  ==  .False 
+   28:  			Set   *Var0  000D004E 
+   38:  			Set   *AreaFlag[002]  .True 
+   48:  		Else
+   50:  			Set   *Var0  000D004F 
+   60:  			Set   *AreaFlag[002]  .False 
+   70:  		EndIf
+   78:  	Default
+   80:  		If  *GF_SBK_GaveArtifactToKolorado  ==  .False 
+   90:  			Set   *Var0  000D0050 
+   A0:  		Else
+   A8:  			Set   *Var0  000D0051 
+   B8:  		EndIf
+   C0:  EndSwitch
+   C8:  Call  SpeakToPlayer ( .Npc:Self 00B80004 00B80001 00000000 *Var0 ) % variable string ID
+   E8:  Return
+   F0:  End
+}
+
+#new:Script $Script_Init_80243638_sbk_30 {
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80243540_sbk_30 )
+   14:  Call  GetEntryID        ( *Var0 )
+   24:  Switch  *Var0 
+   30:  	CaseOR  ==  ~Entry:Entry4 
+   3C:  	CaseOR  ==  ~Entry:Entry5 
+   48:  		Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80243498_sbk_30 )
+   5C:  	EndCaseGroup
+   64:  EndSwitch
+   6C:  Return
+   74:  End
+}
+
