@@ -700,6 +700,530 @@ ADDIU	V0, R0, 2
 }
 
 
+
+
+% Fade screen brightness to black
+%
+% *Var0 (Float) = Fade Speed (Normally 25.0)
+%
+% *Var1 (Float) = New Brightness (0.00 - 255.0)(255.0 = Fully Black)
+%
+% Fade Color = 8015C790 (isn't implement in this Script)
+%
+% [ ! ] Writes in Var2
+#new:Script:Global $Script_FadeScreenOut
+{
+	Loop
+		Call 	$WriteAddress ( 80156903 0 0 .False .False ) % remove brightness lock
+		Call 	$ReadAddressFloat  ( 80156904 2 *Var2 .False .False ) % load brightness
+		AddF	*Var2 *Var0 % fade speed
+		If *Var2 >= *Var1
+			SetF 	*Var2 *Var1
+            Call 	$WriteAddress ( 80156903 0 1 .False .False ) % Use default fade shape
+			Call 	$WriteAddressFloat  ( 80156904 2 *Var2 .False .False ) % save brightness
+			BreakLoop
+		EndIf
+		Call 	$WriteAddressFloat  ( 80156904 2 *Var2 .False .False ) % save brightness
+		Wait 	1
+	EndLoop
+	Return
+	End
+}
+
+
+
+% Call $WriteAddressFloat ( Address ByteSize NewValue Offset FollowPointer )
+%
+% Treats the new value to set as a float
+#new:Function $WriteAddressFloat
+{
+    PUSH    RA, S0, S1, S2, S3, S4, S5
+    COPY    S5, A0
+    LW      S0, C (A0)
+    % Get Argument 5
+    COPY    A0, S5
+    JAL     ~Func:get_variable
+    LW      A1, 10 (S0)
+    COPY    S4, V0
+    % Get Argument 4
+    COPY    A0, S5
+    JAL     ~Func:get_variable
+    LW      A1, C (S0)
+    COPY    S3, V0
+    % Get Argument 3
+    COPY    A0, S5
+    JAL     ~Func:get_float_variable
+    LW      A1, 8 (S0) % load Var from arg2
+    MFC1    V0, F0
+    COPY    S2, V0
+    % Get Argument 2
+    COPY    A0, S5
+    JAL     ~Func:get_variable
+    LW      A1, 4 (S0)
+    COPY    S1, V0
+    % Get Argument 1
+    COPY    A0, S5
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0)
+    /%
+    Arg1=V0=Address
+    Arg2=S1=ByteSize
+    Arg3=S2=NewValue
+    Arg4=S3=Offset
+    Arg5=S4=Pointer Flag
+    %/
+    % A pointer need to be followed?
+    BNEL    S4, R0, .ReadPointer
+    LW      V0, 0 (V0)
+    .ReadPointer
+    % Read Offset
+    ADDU    V0, V0, S3
+    % Write 1, 2 or 4 Bytes
+    % Byte
+    BEQL    S1, R0, .End
+    SB      S2, 0 (V0)
+    % Half
+    ORI     T2, R0, 1
+    BEQL    S1, T2, .End
+    SH      S2, 0 (V0)
+    % Word
+    ORI     T2, R0, 2
+    BEQ     R0, R0, .End
+    SW      S2, 0 (V0)
+    .End
+    POP     RA, S0, S1, S2, S3, S4, S5
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+
+% Call $WriteBitFlag ( Address FollowPointer offset bitIndex(0-7) NewValue )
+%
+% Write a single bit from an address
+#new:Function $WriteBitFlag
+{
+    PUSH    RA, S0, S1, S2, S3, S4
+    LW      S0, C (A0)
+    % Get Argument 5
+    JAL     ~Func:get_variable
+    LW      A1, 10 (S0)
+    COPY    S4, V0
+    % Get Argument 4
+    JAL     ~Func:get_variable
+    LW      A1, C (S0)
+    COPY    S3, V0
+    % Get Argument 3
+    JAL     ~Func:get_variable
+    LW      A1, 8 (S0)
+    COPY    S2, V0
+    % Get Argument 2
+    JAL     ~Func:get_variable
+    LW      A1, 4 (S0)
+    COPY    S1, V0
+    % Get Argument 1
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0)
+    /%
+    Arg1=V0=Address
+    Arg2=S1=FollowPointer
+    Arg3=S2=Offset
+    Arg4=S3=bitIndex
+    Arg5=S4=NewValue
+    %/
+    % A pointer need to be followed?
+    BNEL    S1, R0, .ReadPointer
+    LW      V0, 0 (V0)
+    .ReadPointer
+    % Read Offset
+    ADDU    V0, V0, S2
+    % Read bit
+    LBU     A2, 0 (V0) % load address
+    COPY    T0, A2
+    /%
+    Bits as hex
+    bit0=1
+    bit1=2
+    bit2=4
+    bit3=8
+    bit4=10
+    bit5=20
+    bit6=40
+    bit7=80
+    %/
+    %===============
+    .bit0
+    %===============
+    BNE     S3, R0, .bit1
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 31` % bit0
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit0_as_False
+    NOP
+    .Set_bit0_as_True
+    % Check if bit0 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit0 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 1
+    .Set_bit0_as_False
+    % Check if bit0 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit0 as False
+    ORI     T1, R0, 1
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit1
+    %===============
+    ORI     T1, R0, 1
+    BNE     S3, T1, .bit2
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 30` % bit1
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit1_as_False
+    NOP
+    .Set_bit1_as_True
+    % Check if bit1 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit1 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 2
+    .Set_bit1_as_False
+    % Check if bit1 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit1 as False
+    ORI     T1, R0, 2
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit2
+    %===============
+    ORI     T1, R0, 2
+    BNE     S3, T1, .bit3
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 29` % bit2
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit2_as_False
+    NOP
+    .Set_bit2_as_True
+    % Check if bit2 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit2 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 4
+    .Set_bit2_as_False
+    % Check if bit2 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit2 as False
+    ORI     T1, R0, 4
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit3
+    %===============
+    ORI     T1, R0, 3
+    BNE     S3, T1, .bit4
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 28` % bit3
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit3_as_False
+    NOP
+    .Set_bit3_as_True
+    % Check if bit3 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit3 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 8
+    .Set_bit3_as_False
+    % Check if bit3 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit3 as False
+    ORI     T1, R0, 8
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit4
+    %===============
+    ORI     T1, R0, 4
+    BNE     S3, T1, .bit5
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 27` % bit4
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit4_as_False
+    NOP
+    .Set_bit4_as_True
+    % Check if bit4 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit4 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 10
+    .Set_bit4_as_False
+    % Check if bit4 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit4 as False
+    ORI     T1, R0, 10
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit5
+    %===============
+    ORI     T1, R0, 5
+    BNE     S3, T1, .bit6
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 26` % bit5
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit5_as_False
+    NOP
+    .Set_bit5_as_True
+    % Check if bit5 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit5 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 20
+    .Set_bit5_as_False
+    % Check if bit5 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit5 as False
+    ORI     T1, R0, 20
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit6
+    %===============
+    ORI     T1, R0, 6
+    BNE     S3, T1, .bit7
+    NOP
+    % get current bit boolean value
+    SLL    	T0, T0, 25` % bit6
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit6_as_False
+    NOP
+    .Set_bit6_as_True
+    % Check if bit6 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit6 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 40
+    .Set_bit6_as_False
+    % Check if bit6 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit6 as False
+    ORI     T1, R0, 40
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    %===============
+    .bit7
+    %===============
+    % get current bit boolean value
+    SLL    	T0, T0, 24` % bit7
+    SRL 	T0, T0, 31` % Get Bool
+    % New value will be False?
+    BEQ     S4, R0, .Set_bit7_as_False
+    NOP
+    .Set_bit7_as_True
+    % Check if bit7 is already true
+    BNE     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit7 as True
+    BEQ     R0, R0, .SaveBit
+    ADDIU   A2, A2, 80
+    .Set_bit7_as_False
+    % Check if bit7 is already False
+    BEQ     T0, R0, .End % it is, bypass everything
+    NOP
+    % Set bit7 as False
+    ORI     T1, R0, 80
+    BEQ     R0, R0, .SaveBit
+    SUBU    A2, A2, T1
+    .SaveBit
+    SB      A2, 0 (V0)
+    .End
+    POP     RA, S0, S1, S2, S3, S4
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+
+% Fade screen brightness from black
+%
+% *Var0 (Float) = Fade Speed (Normally 25.0)
+%
+% *Var1 (Float) = New Brightness (0.00 - 255.0)(255.0 = Fully Black)
+%
+% Fade Color = 8015C790 (isn't implement in this Script)
+%
+% [ ! ] Writes in Var2
+#new:Script:Global $Script_FadeScreenIn
+{
+	Loop
+		Call 	$WriteAddress ( 80156903 0 0 .False .False ) % remove brightness lock
+		Call 	$ReadAddressFloat  ( 80156904 2 *Var2 .False .False ) % load brightness
+		SubF	*Var2 *Var0 % fade speed
+		If *Var2 <= *Var1
+			SetF 	*Var2 *Var1
+            Call 	$WriteAddress ( 80156903 0 1 .False .False ) % Use default fade shape
+			Call 	$WriteAddressFloat  ( 80156904 2 *Var2 .False .False ) % save brightness
+			BreakLoop
+		EndIf
+		Call 	$WriteAddressFloat  ( 80156904 2 *Var2 .False .False ) % save brightness
+		Wait 	1
+	EndLoop
+	Return
+	End
+}
+
+
+
+% Call $ReadBitFlag ( Address FollowPointer offset bitIndex(0-7) *out )
+%
+% Read a single bit from an address
+#new:Function $ReadBitFlag
+{
+    PUSH    RA, S0, S1, S2, S3, S4
+    LW      S0, C (A0)
+    % Get Argument 5
+    LW      S4, 10 (S0) % load *out from arg5
+    % Get Argument 4
+    JAL     ~Func:get_variable
+    LW      A1, C (S0)
+    COPY    S3, V0
+    % Get Argument 3
+    JAL     ~Func:get_variable
+    LW      A1, 8 (S0)
+    COPY    S2, V0
+    % Get Argument 2
+    JAL     ~Func:get_variable
+    LW      A1, 4 (S0)
+    COPY    S1, V0
+    % Get Argument 1
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0)
+    /%
+    Arg1=V0=Address
+    Arg2=S1=FollowPointer
+    Arg3=S2=Offset
+    Arg4=S3=bitIndex
+    Arg5=S4=*out
+    %/
+    % A pointer need to be followed?
+    BNEL    S1, R0, .ReadPointer
+    LW      V0, 0 (V0)
+    .ReadPointer
+    % Read Offset
+    ADDU    V0, V0, S2
+    % Read bit
+    LBU     A2, 0 (V0) % load address
+    BEQL    S3, R0, .GetBit
+    SLL    	A2, A2, 31` % bit0
+    ORI     T0, R0, 1
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 30` % bit1
+    ORI     T0, R0, 2
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 29` % bit2
+    ORI     T0, R0, 3
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 28` % bit3
+    ORI     T0, R0, 4
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 27` % bit4
+    ORI     T0, R0, 5
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 26` % bit5
+    ORI     T0, R0, 6
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 25` % bit6
+    ORI     T0, R0, 7
+    BEQL    S3, T0, .GetBit
+    SLL    	A2, A2, 24` % bit7
+    .GetBit
+    SRL 	A2, A2, 31` % Get Bool
+    % Get Argument 5 and write output
+    JAL 	~Func:set_variable
+    COPY    A1, S4  % copy *out in to A1
+    POP     RA, S0, S1, S2, S3, S4
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+
+
+
+%Change backgrounds in Kinoko Town based on story progression.
+%Code by Rain.
+
+#define .STORY_CH7_STAR_SPRIT_DEPARTED 89`
+
+#new:ASCII $MapBg {"nok_bg"}
+#new:ASCII $MapBg2 {"obk_bg"}
+
+#new:Data $NewMapBgList {$MapBg $MapBg2}
+
+#new:ASCII $StrFormat {"%s"}
+
+%if story less than STORY_CH7_STAR_SPRIT_DEPARTED, return 0 ("nok_bg") else, return 1 ("obk_bg")
+#new:Function $GetBackgroundIndexToLoad {
+    LABU t0, 800DBD70 %story progress
+    SLTI v0, t0, .STORY_CH7_STAR_SPRIT_DEPARTED
+    JR RA
+    XORI v0, v0, 1
+}
+
+#export:Function $SetDynamicMapBackground {
+    ADDIU sp, sp, -18
+    SW ra, 0014 (sp)
+
+    JAL $GetBackgroundIndexToLoad
+    NOP
+
+    LI t0, $NewMapBgList
+    SLL t1, v0, 2 %multiply by sizeof(ptr)
+    ADDU t0, t0, t1
+
+    LW a2, 0000 (t0) %load ptr to background string
+
+    LI a0, 800D9668 %wMapBgName
+    LI a1, $StrFormat %how to format the string
+    JAL ~Func:sprintf
+    NOP
+
+    LW ra, 0014 (sp)
+    JR RA
+    ADDIU sp, sp, 18
+}
+
+
+
 #export $CreateIcon
 #export $CreateIcon_ignoreViewport
 #export $IsBadgeEquiped
@@ -708,3 +1232,8 @@ ADDIU	V0, R0, 2
 #export $ReadAddress
 #export $WriteAddress
 #export $ReadAddressFloat
+#export $Script_FadeScreenIn
+#export $Script_FadeScreenOut
+#export $WriteAddressFloat
+#export $WriteBitFlag
+#export $ReadBitFlag

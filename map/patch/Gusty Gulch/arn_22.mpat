@@ -1,0 +1,104 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]Hey, I got a joke.[BR]
+[Pause 10]What do deserts and ladies[BR]
+have in common?[BR]
+[Wait][Next]
+They're both smoking hot![BR]
+[Pause 30].................[BR]
+[Wait][Next]
+Alright, how about this then?[BR]
+[Pause 15]What do deserts and schools[BR]
+have in common?[BR]
+[Wait][Next]
+You get sick of them real fast![BR]
+[Pause 30].....................[BR]
+[Wait][Next]
+I mean.....[Pause 15] am I wrong?[BR]
+[Pause 10]That wasn't really a joke,[BR]
+was it?[BR]
+[Wait][End]
+}
+	
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set      *GB_WorldLocation  .Location:DryDryDesert
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 00000017 00000000 00000008 )
+	Call     802D611C ( 00000000 )
+	Wait 00000001
+	Call     802D60E8 ( 000000FA )
+	ExecWait $Script_MakeEntities 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity       	( .Entity:HiddenYellowBlock ~Vec4d:invblock1 .Item:SuperShroom 80000000 )
+	Call     AssignBlockFlag 	( *GF_ARN22_HiddenBlock )
+	Return
+	End
+}
+  
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:Entry0 00000001 00000000 
+	Bind     $Script_Entry2  .Trigger:FloorAbove ~Collider:Entry1 00000001 00000000 
+    Return
+    End
+}
+	
+	#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "sbk_03" 4 )
+	Wait     00000064 
+	Return
+	End	
+}
+
+	#new:Script $Script_Entry2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "arn_21" 1 )
+	Wait     00000064 
+	Return
+	End
+}
+	

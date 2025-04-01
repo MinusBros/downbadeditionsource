@@ -94,6 +94,25 @@
 	[Size]         85`b  92`b % width height
 }
 
+%Honestly surprised Bower doesn't have any unique
+%sleeping or dizzy animations, so I decided to
+%give him some.
+
+@	$IdleAnimations_802214B0
+{
+	.Status:Normal    00810002
+	.Status:Stone     00810000
+	.Status:Sleep     00810025
+	.Status:Poison    00810002
+	.Status:Stop      00810000
+	.Status:Static    00810000
+	.Status:Paralyze  00810000
+	.Status:Paralyze  00810000
+	.Status:Dizzy     0081000B
+	.Status:Dizzy     0081000B
+	.Status:End
+}
+
 
 %Bower gets multiple actions per turn.
 %When he Star Rods, he will immediately 
@@ -857,9 +876,9 @@
   528:  Call  SetAnimation      ( .Actor:Self 00000001 00810013 )
   540:  Call  GetPartEventFlags ( .Actor:Self 00000001 *Var1 )
   558:  If  *Var1  &  00080000
-  568:  	Set   *Var0  00000010
+  568:  	Set   *Var0  00000018
   578:  Else
-  580:  	Set   *Var0  00000008
+  580:  	Set   *Var0  0000000C
   590:  EndIf
   598:  Call  GetStatusFlags    ( .Actor:Self *VarF )
   5AC:  If  *VarF  !&  ~Flags:StatusFlags:Shrink % 80000
@@ -1017,7 +1036,7 @@
   1B4:  Call  SetActorSpeed ( .Actor:Self *Fixed[9.0] )
   1C8:  Call  RunToGoal     ( .Actor:Self  0` .False )
   1E0:  Call  SetAnimation  ( .Actor:Self 00000001 00810009 )
-  1F8:  Wait  15`
+  1F8:  Wait  12`
   204:  Call  SetAnimation  ( .Actor:Self 00000001 00810015 )
   21C:  Call  PlaySoundAtActor  ( .Actor:Self 0000035E )
   230:  Wait  3`
@@ -1054,7 +1073,7 @@
   40C:  	Call  80269EAC  ( 0000000C )
   41C:  	Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 00000000 *Var0 00000020 )
   444:  EndIf
-  284:  		Wait  18`
+  284:  		Wait  19`
   204:  Call  SetAnimation  ( .Actor:Self 00000001 00810023 )
   21C:  Call  PlaySoundAtActor  ( .Actor:Self 0000035E )
   374:  Call  SetGoalToTarget   ( .Actor:Self )
@@ -1125,7 +1144,7 @@
   [5A0]  		Wait  20`
   [5F4]  		Wait  20`
   [620]  Wait  1`
-  [664]  	Set   *Var0  0000001E
+  [664]  	Set   *Var0  00000019
   [67C]  	Set   *Var0  0000000F
   [6EC]  		Wait  8`
   [710]  		Wait  20`
@@ -1144,9 +1163,9 @@
   [53C]  		Call  SetActorSpeed ( .Actor:Self *Fixed[15.0] )
   [58C]  Wait  3`
   [5D0]  	Set   *Var0  00000000
-  [5E0]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010164 0000001E 00000020 )
+  [5E0]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010164 00000020 00000020 )
   [610]  	Set   *Var0  00000000
-  [620]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010164 0000000F 00000020 )
+  [620]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010164 00000010 00000020 )
   [680]  		Wait  10`
   [6B8]  		Call  SetActorSpeed ( .Actor:Self *Fixed[15.0] )
 }
@@ -1354,7 +1373,7 @@
   154:  			Call  GetActorVar   ( .Actor:Self 00000006 *Var0 )
   16C:  			If  *Var0  >  00000001
   17C:  				Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
-						ExecWait  $Script_Shockwave3
+						ExecWait  $Script_DisableJump3
   194:  				ExecWait  $Script_HealSelf3
   1A0:  				Return
   1A8:  			Else
@@ -1363,6 +1382,7 @@
   1D4:  					Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
 							ExecWait  $Script_Thunderbolt3
   1EC:  					ExecWait  $Script_HealSelf3
+							ExecWait  $Script_8022F300
   1F8:  					Return
   200:  				EndIf
   208:  			EndIf
@@ -1402,30 +1422,31 @@
   3B8:  End
 }
 
+%Bowser behaves strangely, so I'm just going
+%to rescript how he selects moves.
+%Have a high chance to use breath as first move.
+%Then coin flip between claw swipe and disable jump.
 %Move selector 1
 
 @	$Script_80230A2C
 {
     0:  Call  RandInt   ( 00000050 *Var0 )
-   14:  If  *Var0  <  00000014
-   24:  	Call  GetActorVar   ( .Actor:Self 00000005 *Var0 )
-   3C:  	If  *Var0  >=  00000002
-				ExecWait  $Script_FireBreath3
-   4C:  		ExecWait  $Script_DisableJump3
-   58:  		Return
-   60:  	EndIf
-   68:  EndIf
-   70:  Call  RandInt   ( 0000003C *Var0 )
-   84:  If  *Var0  <  00000014
-   94:  	Call  GetActorVar   ( .Actor:Self 00000004 *Var0 )
-   AC:  	If  *Var0  >=  00000002
-				ExecWait  $Script_FireBreath3
-   BC:  		ExecWait  $Script_ClawSwipe3
-   C8:  		Return
-   D0:  	EndIf
+   14:  If  *Var0  <  00000040
+			ExecWait  $Script_FireBreath3
+		Else
+			Call  RandInt   ( 00000000 *Var0 )
+			If  *Var0  ==  00000000
+				ExecWait  $Script_ClawSwipe3
+			Else
+				ExecWait  $Script_DisableJump3
+			EndIf
+		EndIf
+   70:  Call  RandInt   ( 00000000 *Var0 )
+   84:  If  *Var0  ==  00000000
+   BC:  	ExecWait  $Script_ClawSwipe3
+   D0: 	Else
+			ExecWait  $Script_DisableJump3
    D8:  EndIf
-   E0:  ExecWait  $Script_FireBreath3
-		ExecWait  $Script_ClawSwipe3
    EC:  Return
    F4:  End
 }
@@ -1443,7 +1464,7 @@
    44:  Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
    5C:  If  *Var0  >=  00000006
    6C:  	Call  RandInt   ( 0000001E *Var0 )
-   80:  	If  *Var0  <  00000014
+   80:  	If  *Var0  <  00000011
    90:  		ExecWait  $Script_Shockwave3
 				ExecWait  $Script_DisableJump3
    9C:  	Else
@@ -1469,7 +1490,7 @@
   158:  EndIf
   160:  Call  RandInt   ( 0000006E *Var0 )
   174:  If  *Var0  <  0000001E
-  184:  	If  *Var0  <  00000014
+  184:  	If  *Var0  <  00000010
   194:  		ExecWait  $Script_Shockwave3
 				ExecWait  $Script_Thunderbolt3
   1A0:  	Else
@@ -1495,7 +1516,7 @@
   [5A0]  		Wait  20`
   [5F4]  		Wait  20`
   [620]  Wait  1`
-  [664]  	Set   *Var0  0000001E
+  [664]  	Set   *Var0  00000019
   [67C]  	Set   *Var0  0000000F
   [6EC]  		Wait  8`
   [710]  		Wait  20`
@@ -1684,9 +1705,9 @@
   528:  Call  SetAnimation      ( .Actor:Self 00000001 00810013 )
   540:  Call  GetPartEventFlags ( .Actor:Self 00000001 *Var1 )
   558:  If  *Var1  &  00080000
-  568:  	Set   *Var0  00000010
+  568:  	Set   *Var0  00000018
   578:  Else
-  580:  	Set   *Var0  00000008
+  580:  	Set   *Var0  0000000C
   590:  EndIf
   598:  Call  GetStatusFlags    ( .Actor:Self *VarF )
   5AC:  If  *VarF  !&  ~Flags:StatusFlags:Shrink % 80000
@@ -1810,4 +1831,64 @@
   F2C:  ExecWait  $Script_80228508
   F38:  Return
   F40:  End
+}
+
+
+@	$Script_Thunderbolt3
+{
+  [140]  	Wait  40`
+  [2E8]  	Wait  40`
+  [4BC]  		Wait  5`
+  [4FC]  			Wait  10`
+  [51C]  			Wait  10`
+  [53C]  		Call  SetActorSpeed ( .Actor:Self *Fixed[15.0] )
+  [58C]  Wait  3`
+  [5D0]  	Set   *Var0  00000000
+  [5E0]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010164 00000020 00000020 )
+  [610]  	Set   *Var0  00000000
+  [620]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010164 00000010 00000020 )
+  [680]  		Wait  10`
+  [6B8]  		Call  SetActorSpeed ( .Actor:Self *Fixed[15.0] )
+}
+
+
+@	$Script_Shockwave3
+{
+  [1B0]  Wait  2`
+  [3B8]  Wait  15`
+  [41C]  Wait  3`
+  [5AC]  Wait  5`
+  [678]  				Wait  10`
+  [684]  				Return
+  [68C] 			Default
+  [694]  				Wait  2`
+  [73C]  					Set   *Var1  00000004
+  [74C]  				Else
+  [754]  					Set   *Var1  00000004
+  [764]  				EndIf
+  [76C]  				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoOtherDamagePopups|Magic|Cosmic|IgnoreDefense 0000FFFF 00000000 *Var1 00000020 )
+  [7D4]  				Wait  10`
+  [8D0]  Wait  1`
+  [8FC]  	Set   *Var1  00000002
+  [914]  	Set   *Var1  00000002
+  [92C]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoOtherDamagePopups|Magic|Cosmic|IgnoreDefense 0000FFFF 00000000 *Var1 00000020 )
+  [9AC]  		Wait  5`
+}
+
+
+#new:Formation $Formation_05
+{
+	$Bowser1 00000002 0000000A 00000000 00000000 00000000 00000000
+}
+
+
+@	$FormationTable
+{
+	$SJIS_80234968 00000001 $Formation_00 $Stage_80234274 00000000
+	$SJIS_80234950 00000001 $Formation_01 $Stage_802342E0 00000000
+	$SJIS_80234938 00000001 $Formation_02 $Stage_802342E0 00000000
+	$SJIS_80234920 00000001 $Formation_03 $Stage_802345E8 00000000
+	$SJIS_80234908 00000001 $Formation_04 $Stage_802345E8 00000000
+	00000000 	   00000001 $Formation_05 $Stage_802345E8 00000000
+	00000000 00000000 00000000 00000000 00000000
 }

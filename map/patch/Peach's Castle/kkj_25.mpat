@@ -32,7 +32,7 @@
 @	$Script_802463F4
 {
    [10]  Wait  5`
-  [144]  Call  SetPlayerAnimation    ( 0003000E )
+  [144]  Call  SetPlayerAnimation    ( 00010002 )
   [2A8]  Call  SetCamSpeed   ( .Cam:Default *Fixed[120.0] )
   [2D4]  Wait  3`
   [3D4]  Wait  5`
@@ -44,6 +44,7 @@
   [6CC]  Wait  25`
   [9EC]  Wait  15`
   [A2C]  Wait  10`
+  [A38]  Call  SetPlayerAnimation    ( 0004000E )
   [BA8]  Wait  5`
   [BD4]  Wait  5`
 }
@@ -73,7 +74,7 @@
 %Before final battle
 @	$Script_80248998
 {
-   [20]  Call  SetPlayerAnimation    ( 0003000E )
+   [20]  Call  SetPlayerAnimation    ( 0004000E )
   [1FC]  Wait  10`
   [220]  Wait  10`
   [244]  Wait  5`
@@ -211,9 +212,9 @@
   608:  		EndLoop
   610:  EndSwitch
   618:  Call  SetNpcAnimation       ( .Npc:Partner 00000106 )
-  62C:  Wait  20`
+  62C:  Wait  10`
   638:  Call  SetPlayerAnimation    ( 00010002 )
-  648:  Wait  20`
+  648:  Wait  15`
   654:  Call  SpeakToPlayer ( .NpcID:BattleKooper_16 000C0000 000A0001 00000000 001300AB ) % Oh, Mario!
   674:  Thread
   67C:  	Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000A0002 )
@@ -386,4 +387,71 @@
 @	$Script_Defeat_80242B04
 {
 	[44]  Wait  50`
+}
+
+
+#new:Script $BowserRevenge
+{
+  A54:  Call  GetNpcPos     ( .NpcID:WorldBowser_15 *Var0 *Var1 *Var2 )
+  A70:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  A8C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  AA8:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  ABC:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-10.5] )
+  AD4:  Call  SetCamDistance    ( .Cam:Default  300` )
+  AE8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  B00:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000C0006 )
+  B14:  Call  SetNpcAnimation   ( .NpcID:Twink_18 0020000E )
+  B28:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_15 0080000D )
+  B3C:  Call  SetNpcJumpscale   ( .NpcID:WorldBowser_15 *Fixed[1.0] )
+  B50:  Call  NpcJump0      ( .NpcID:WorldBowser_15  300`  0`  40`  20` )
+  B70:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_15 00800002 )
+		Return
+		End
+}
+
+%Copied this script from DSE to make the final fourth Bowser work.
+
+#new:Script $StartBowser4
+{
+	Set *Var2 $Battles
+	Set *Var0 00000000
+	Call	$Function_SetBattle ( *Var[2] *Var[0] )
+	Call	StartBossBattle ( .Song:Brawl )
+	Return
+	End 
+}
+
+#new:IntTable $Battles
+{
+23050000 % Bowser 4
+}
+
+#new:Function $Function_SetBattle % ( $BattleTable, index )
+{
+	% push stack
+	PUSH      RA, S0, S1, S2
+	% read script args
+	DADDU     S1, A0, R0
+	LW        S0, C (A0)
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable % get battle table
+	ADDIU     S0, S0, 4
+	LW        A1, 0 (S0)
+	JAL       ~Func:get_variable % get battle index
+	DADDU     S2, V0, R0
+	% get encounter struct
+	LW        S0, 148 (S1)
+	LB        V1, 4 (S0)
+	SLL       V1, V1, 2
+	LTW       A0, V1 (800B0F38)
+	% get battle from table
+	SLL       V0, V0, 2
+	DADDU     V0, V0, S2
+	LW        V0, 0 (V0)
+	% set battle ID
+	SW        V0, 44 (A0)
+	% pop stack and return 2
+	POP       RA, S0, S1, S2
+	JR        RA
+	ADDIU V0, R0, 2
 }

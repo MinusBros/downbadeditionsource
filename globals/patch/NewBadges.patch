@@ -3,10 +3,14 @@
 %Tornado Jump (See Move_SuperJump.bpat)
 %Multi-Smash (See Move_SuperSmash.bpat)
 %Recoil Throw (See Move_ShrinkSmash.bpat)
-%Medicine Man (doesn't work yet)
+%Attack FX M (See NewAttackFX.patch)
 %Jumpman
 %Hammerman
+%Pity Flower
+%Perfect Stand
 %Perfect Power (AKA Perfect Rush)
+%First Attack from Dark Star Edition
+%Star Gift (WIP)
 
 
 
@@ -192,34 +196,19 @@ NOP
     NOP
 }
 
-%I can't get Medicine Man to work for some reason.
+%Healthy Healthy -> Perfect Stand
 
-%medicine man is itemID 150
+%Remove healthy healthy effect
+%80277D74
+%Need this to fix stone cap stuff
 
-#new:Function $Function_QuickHealMario %args: (HP to heal to)
+%Overwrite 8027792C
+%but wait! this is in IncreaseMaxHealth.patch!
+%Code moved: last stand now occurs after damage (Makes it less ultra OP)
+@Function 1A620C
 {
-PUSH 	RA
-LW 		A1, C (A0)		%load args pointer into A1
-LW 		A1, 0 (A1) 		%load arg 1 into A1 (HP to heal)
-JAL 	~Func:get_variable 	%in case a variable was passed to us, get its value out
-NOP 					%result gets put into V0
-%time out to check for medicine man
-JAL  	$IsBadgeEquiped	
-ADDIU 	A0, R0, 150		%medicine man badge ID
-BEQ  	A0, R0, .nomedman	%if medicine man is equipped...
-SRL  	A0, V0, 1			%healing * .5
-ADDU 	V0, V0, A0			%+=1 to be *1.5
-.nomedman
-LAB		A0, 8010F293	%load Mario's max HP
-SLT		A1, A0, V0		%if A0 (max) < V0 (heal amt), set A1 to indicate overcap
-BNEL	A1, R0, .restore	
-COPY	V0, A0			%if overcap, set current HP to max instead (only run on jump)
-.restore
-SAB		V0, 8010F292	%store result to Mario's HP
-ADDIU	V0, R0, 2		%store 2 into V0 (required for func calling convention)
-POP 	RA
-JR 		RA
-NOP
+	LHU		V1, 1B8 (S3)	%hooked over (Load mario HP)
+	ORI		V1, R0, 0	%Reset V1 to 0 (Ignore last stand code)
 }
 
 
@@ -317,3 +306,54 @@ NOP
 }
 %LW		A0, 18 (SP) %hooked over
 %LB		V0, 221 (A0) %hooked over	(Attack power boost)
+
+
+
+
+
+%First Attack -> (increases first attack damage)
+/%
+@Function 1C938	%80041538
+{
+ORI	V0, R0, 0 %negate first attack instakilling
+}
+%/
+%	^ inside function
+% 0001C764 --> 80041364
+
+
+
+
+%/
+
+%Star Gift is now its own badge instead
+%of replacing Pretty Lucky.
+
+%Star Gift
+%double SP regen
+
+@Function 1A5C28
+{
+ORI	V0, R0, 0 %negate lucky day damage avoidance
+}
+
+@Hook 1726E8
+{
+PUSH 	RA, S0, S1, A0 %idk, but if we don't then things break
+ADDIU	S0, V0, 0 %move V0 to S0 temporarily
+JAL     $IsBadgeEquipped %~Func:is_ability_active %800E9D48
+ORI		A0, R0, 170 %pretty lucky
+SAB		R0, 8010EFAF %^ the normal ability checker function is too messy to use here (changes a lot of registers around and causes problems)
+BEQ		A0, R0 .no
+ADDIU	V0, S0, 0
+ORI 	S1, R0, 1
+SAB		S1, 8010EFAF
+ADDIU	V0, V0, 20		
+.no
+ADDIU	V0, V0, 20		%normal SP gain (*each bar is 256 units, you get 32 units per turn, so you get one per 8 turns, or one per 4 turns if doubled)
+POP		RA, S0, S1, A0
+J		80243E10
+SW		V1, 0 (S0) %hooked over
+}
+
+%/

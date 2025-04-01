@@ -11,10 +11,30 @@ VALUE:JumpTable             patch body for jump table
 % 0831F8 --> 800E9D48
 @Hook 831F8 % $is_ability_active
 {
+	PUSH	A0, A1, A2
+	LAB		A1, 800DBE00
+	LI		A2, 12`
+	BEQ		A1, A2, .test
+	NOP
+	LI		A2, 15`
+	BEQ		A1, A2, .test
+	NOP
+	BEQ		R0, R0, .normal
+	NOP
+	.test
+	LI		A2, 21`
+	BEQ		A0, A2, .hardcodetrue
+	NOP
+	.normal
+	POP		A0, A1, A2
     PUSH    RA
     JAL     $AutoIsAbilityActive
     NOP
     JPOP    RA
+	.hardcodetrue
+	POP		A0, A1, A2
+	JR		RA
+	ORI		V0, R0, 1
 }
 
 #new:Function $AutoIsAbilityActive

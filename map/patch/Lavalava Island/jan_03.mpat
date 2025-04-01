@@ -1,0 +1,253 @@
+#define .NpcID:Toad_00              00
+#define .NpcID:Yoshi_01             01
+#define .NpcID:VillageLeader_02     02
+#define .NpcID:Yoshi_03             03
+#define .NpcID:Yoshi_04             04
+#define .NpcID:YoshiKid_05          05
+#define .NpcID:YoshiKid_06          06
+#define .NpcID:YoshiKid_07          07
+#define .NpcID:YoshiKid_08          08
+#define .NpcID:YoshiKid_09          09
+#define .NpcID:Raven_10             0A
+#define .NpcID:Raven_11             0B
+#define .NpcID:Raven_12             0C
+#define .NpcID:Raven_13             0D
+#define .NpcID:Raven_14             0E
+#define .NpcID:Kolorado_15          0F
+#define .NpcID:WorldSushie_16       10
+#define .NpcID:ChuckQuizmo_17       11
+
+@	$Header
+{
+	[EntryCount]  00000005
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -583.0    0.0    0.0   90.0
+	~Vec4f:Entry1 % -405.0    0.0 -405.0  135.0
+	~Vec4f:Entry2 %  583.0    0.0    0.0  270.0
+	~Vec4f:Entry3 % -540.0   35.0  195.0  180.0
+	~Vec4f:Entry4 %  147.0   35.0 -129.0  180.0
+}
+
+%Replace shop owner sprite with the leader's friend
+
+@	$ShopOwnerNPC_80244AC4
+{
+	00000001 00C30101 00C30104 $Script_80244A58 00000000 00000000 $IntTable_80244960
+}
+
+
+
+@	$ShopInventory_802449BC
+{
+	.Item:Xbox     		 000001F4 00230111 % A flower that burns all enemies with fireballs. At ...
+	.Item:SnowmanDoll    0000000F 00240001 % A snowman that crushes all enemies. Attack Power:  ...
+	.Item:ThunderRage    00000012 00240002 % Lightning that strikes all enemies. Attack Power:  ...
+	.Item:FrightJar      0000000A 0024002A %
+	.Item:CocoPop        0000000F 0023004E % 
+	.Item:Melon          0000000F 00230023 %
+	00000000 00000000 00000000
+}
+
+
+
+@	$Script_ToggleVis_8024EDA0
+{
+    0:  Switch  *Var0
+    C:  	Case  ==  00000000
+   18:  		Call  EnableGroup   ( ~Model:g126 .True )
+				Thread
+				If *ShopState == 00000000
+					Set *ShopState 00000001
+					Wait  24`
+					Call  PushSong      ( .Song:JungleShop 00000000 )
+				EndIf
+				EndThread
+   2C:  	Case  ==  00000003
+   38:  		Call  EnableGroup   ( ~Model:g126 .False )
+				If *ShopState == 00000001
+					Set *ShopState 00000000
+					Call  PopSong ( )
+				EndIf
+   4C:  EndSwitch
+   54:  Return
+   5C:  End
+}
+
+
+#import EnterViaPipe.mpat
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_JAN03_WarpPipe  ==  .False
+   10:  	If  *GF_TIK08_WarpPipe  ==  .True
+   20:  		Call  GetEntryID    ( *Var0 )
+   30:  		If  *Var0  !=  ~Entry:Entry3
+   40:  			Set   *GF_JAN03_WarpPipe  .True
+   50:  		EndIf
+   58:  	EndIf
+   60:  EndIf
+   68:  Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:Entity8024EC40 ~Entry:Entry3 $Script_8024EA00 ~Index:*GF_JAN03_WarpPipe 80000000 )
+   		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry4 $Script_ToMtLavaLava ~Index:*GF_JAN03_BluePipe2 80000000 )
+   98:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity8024EC70 80000000 )
+   BC:  Call  MakeEntity    ( .Entity:ScriptSpring ~Vec4d:Entity8024EC94 80000000 )
+   E0:  Call  AssignScript  ( $Script_8024EA98 )
+   F0:  Return
+   F8:  End
+}
+
+@	$Script_EnterWalk_80244304
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_802442A0
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+        Switch  *Var0
+   64:  	Case  ==  ~Entry:Entry0
+   68:  	Set   *Var0  $Script_802442A0
+   78:  	Exec  EnterWalk
+   AC:  	Case  ==  ~Entry:Entry1
+   68:  	Set   *Var0  $Script_802442A0
+   78:  	Exec  EnterWalk
+   F4:  	Case  ==  ~Entry:Entry2
+   68:  	Set   *Var0  $Script_802442A0
+   78:  	Exec  EnterWalk
+			Case  ==  ~Entry:Entry3
+   8C:  	If  *GF_JAN03_WarpPipe  ==  .False
+   9C:  		Call  DisablePlayerInput    ( .True )
+   AC:  		Call  DisablePlayerPhysics  ( .True )
+   BC:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   D4:  		Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   F0:  		Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+  108:  		Wait  30`
+  114:  		Call  PlaySound ( 0000208E )
+  124:  		Set   *GF_JAN03_WarpPipe  .True
+  134:  		Wait  30`
+  140:  		Call  SetPlayerActionState  ( .ActionState:Idle )
+  150:  		Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  168:  		Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  184:  		Call  DisablePlayerPhysics  ( .False )
+  194:  		Call  DisablePlayerInput    ( .False )
+  1A4:  	EndIf
+  1AC:  	Set   *VarA  $Script_802442A0
+  1BC:  	ExecWait  $Script_802433C0
+  1C8:  	Wait  1`
+  			Case  ==  ~Entry:Entry4
+   8C:  	If  *GF_JAN03_BluePipe2  ==  .False
+   9C:  		Call  DisablePlayerInput    ( .True )
+   AC:  		Call  DisablePlayerPhysics  ( .True )
+   BC:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   D4:  		Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   F0:  		Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+  108:  		Wait  30`
+  114:  		Call  PlaySound ( 0000208E )
+  124:  		Set   *GF_JAN03_BluePipe2  .True
+  134:  		Wait  30`
+  140:  		Call  SetPlayerActionState  ( .ActionState:Idle )
+  150:  		Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  168:  		Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  184:  		Call  DisablePlayerPhysics  ( .False )
+  194:  		Call  DisablePlayerInput    ( .False )
+  1A4:  	EndIf
+  1AC:  	Set   *VarA  $Script_802442A0	
+			ExecWait  $Script_EnterVerticalPipe
+			Wait  1`
+  10C:  EndSwitch
+  1DC:  Return
+  1E4:  End
+}
+
+#new:Script $Script_ToMtLavaLava
+{
+    0:  Call  GotoMap   ( $ASCII_BluePipe 00000003 ) % kzn_18
+   14:  Wait  100`
+   20:  Return
+   28:  End
+}
+
+#new:ASCII $ASCII_BluePipe
+{
+	"kzn_18"
+}
+
+
+
+
+@	$NpcGroup_8024CC04
+{
+	.NpcID:Toad_00 $NpcSettings_80244B30 ~Vec3f:NPC_Toad_00 % 275 0 -70
+	00002D09 $Script_Init_8024AA3C 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_Toad_00
+	~AnimationTable:NPC_Toad_00 % .Sprite:Toad
+	00000000 00000000 00000000 001A00CE % He's the Toad of the Toad House. He was sent here  ...
+	%
+	% $NpcGroup_8024CC04[1F0]
+	.NpcID:Yoshi_01 $NpcSettings_80244B88 ~Vec3f:NPC_Yoshi_01 % 125 30 -425
+	00002D09 $Script_Init_8024AA7C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Yoshi_01
+	~AnimationTable:NPC_Yoshi_01 % .Sprite:Yoshi
+	00000000 00000000 00000000 001A00C8 % He's a Yoshi who's set up a little shop on the isl ...
+	%
+	% $NpcGroup_8024CC04[3E0]
+	.NpcID:Yoshi_03 $NpcSettings_80244C04 ~Vec3f:NPC_Yoshi_03 % -350 0 -220
+	00002D09 $Script_Init_8024AF1C 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Yoshi_03
+	~AnimationTable:NPC_Yoshi_03 % .Sprite:Yoshi
+	00000000 00000000 00000000 001A00C1 % A Yoshi. I've seen pictures in books of these guys ...
+	%
+	% $NpcGroup_8024CC04[5D0]
+	.NpcID:Yoshi_04 $NpcSettings_80244C04 ~Vec3f:NPC_Yoshi_04 % -100 0 -80
+	00002D09 $Script_Init_8024B34C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Yoshi_04
+	~AnimationTable:NPC_Yoshi_04 % .Sprite:Yoshi
+	00000000 00000000 00000000 001A00C2 % This Yoshi loves food like nobody's business! I wo ...
+	%
+	% $NpcGroup_8024CC04[7C0]
+	.NpcID:YoshiKid_05 $NpcSettings_80244CAC ~Vec3f:NPC_YoshiKid_05 % -450 0 -160
+	00002D09 $Script_Init_8024B930 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_YoshiKid_05
+	~AnimationTable:NPC_YoshiKid_05 % .Sprite:YoshiKid
+	00000000 00000000 00000000 001A00C3 % He's a green Yoshi kid. He's an excitable rascal,  ...
+	%
+	% $NpcGroup_8024CC04[9B0]
+	.NpcID:YoshiKid_06 $NpcSettings_80244CAC ~Vec3f:NPC_YoshiKid_06 % -340 0 -385
+	00002D09 $Script_Init_8024BA10 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_YoshiKid_06
+	~AnimationTable:NPC_YoshiKid_06 % .Sprite:YoshiKid
+	00000000 00000000 00000000 001A00C7 % Yoshi kids are so cheerful. This red Yoshi kid, th ...
+	%
+	% $NpcGroup_8024CC04[BA0]
+	.NpcID:YoshiKid_07 $NpcSettings_80244CAC ~Vec3f:NPC_YoshiKid_07 % -260 0 -220
+	00002D09 $Script_Init_8024BA7C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_YoshiKid_07
+	~AnimationTable:NPC_YoshiKid_07 % .Sprite:YoshiKid
+	00000000 00000000 00000000 001A00C4 % He's a blue Yoshi kid. He thinks he's different fr ...
+	%
+	% $NpcGroup_8024CC04[D90]
+	.NpcID:YoshiKid_08 $NpcSettings_80244CAC ~Vec3f:NPC_YoshiKid_08 % -460 0 150
+	00002D09 $Script_Init_8024BAE8 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_YoshiKid_08
+	~AnimationTable:NPC_YoshiKid_08 % .Sprite:YoshiKid
+	00000000 00000000 00000000 001A00C6 % He's a yellow Yoshi kid. Whoa! He's cheery, huh? T ...
+	%
+	% $NpcGroup_8024CC04[F80]
+	.NpcID:YoshiKid_09 $NpcSettings_80244CAC ~Vec3f:NPC_YoshiKid_09 % -320 0 80
+	00002D09 $Script_Init_8024BBA4 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_YoshiKid_09
+	~AnimationTable:NPC_YoshiKid_09 % .Sprite:YoshiKid
+	00000000 00000000 00000000 001A00C5 % He's a purple Yoshi kid. Not a care in the world!  ...
+}

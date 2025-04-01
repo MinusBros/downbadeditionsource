@@ -1,8 +1,132 @@
+%After freeing Kalmar, Kinoko Town becomes dark
+%and covered in fog due to Bower, so change
+%this map based on story progression.
+
+
+
+
+
+@	$Script_Init_80249684
+{
+    0:  If  *GB_StoryProgress  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+   10:  	Return
+   18:  EndIf
+   20:  If  *GB_StoryProgress  >  .Story:Ch4_GotTayceTsCake % FFFFFFFD
+   30:  	Return
+   38:  EndIf
+   40:  If  *GF_MAC00_DictionaryStolen  !=  .False
+   50:  	Return
+   58:  EndIf
+   60:  Exec  $Script_802492DC
+   6C:  Return
+   74:  End
+}
+
+
+@	$Script_80243C20
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  ==  .Story:Intro % FFFFFF80
+   18:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+   34:  	Case  ==  .Story:Epilogue % 60
+   40:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+   5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   6C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   88:  	Default
+   90:  		Exec  $Script_8024E420
+   9C:  EndSwitch
+   A4:  Call  GetEntryID    ( *Var0 )
+   B4:  Switch  *Var0
+   C0:  	CaseOR  ==  ~Entry:Entry4
+   CC:  	CaseOR  ==  ~Entry:Entry5
+   D8:  	CaseOR  ==  ~Entry:Entry6
+   E4:  	CaseOR  ==  ~Entry:Entry7
+   F0:  		Call  ClearAmbientSounds    ( 000000FA )
+  100:  	EndCaseGroup
+  108:  EndSwitch
+  110:  Return
+  118:  End
+}
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+		Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  If  *GB_StoryProgress  >=  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
+   94:  	Set   *GF_Map_ToadTown  .True
+   A4:  EndIf
+   AC:  Call  SetRenderMode ( ~Model:minka1_yuka 00000015 )
+   C0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:dummy 7FFFFE00 )
+   D8:  Switch  *GB_StoryProgress
+   E4:  	Case  ==  .Story:Intro % FFFFFF80
+   F0:  		Call  MakeNpcs  ( .False $NpcGroupList_802531FC )
+  104:  	Case  >=  .Story:Epilogue % 60
+  110:  		Call  MakeNpcs  ( .False $NpcGroupList_80255334 )
+  124:  	Default
+  12C:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E1A8 )
+  140:  EndSwitch
+  148:  ExecWait  $Script_MakeEntities
+  154:  Exec  $Script_80245BF8
+  160:  Exec  $Script_8024E3A8
+  16C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:water 00000001 )
+  184:  Exec  $Script_8024EAF0
+  190:  Call  EnableTexPanning      ( ~Model:water .True )
+  1A4:  Thread
+  1AC:  	Set   *Var0  00000001
+  1BC:  	Set   *Var1  00000000
+  1CC:  	Set   *Var2  00000000
+  1DC:  	Set   *Var3  00000000
+  1EC:  	Set   *Var4  00000078
+  1FC:  	Set   *Var5  00000000
+  20C:  	Set   *Var6  00000001
+  21C:  	Set   *Var7  00000000
+  22C:  	Set   *Var8  00000000
+  23C:  	Set   *Var9  00000000
+  24C:  	Set   *VarA  00000000
+  25C:  	Set   *VarB  00000000
+  26C:  	Set   *VarC  00000000
+  27C:  	Exec  $Script_UpdateTexturePan_80244A70
+  288:  EndThread
+  290:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op_1 00000004 )
+  2A8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op2 00000004 )
+  2C0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op3 00000004 )
+  2D8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op_1 00080000 )
+  2F0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op2 00080000 )
+  308:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op3 00080000 )
+  320:  Call  $Function_802405EC    ( 00000061 )
+  330:  Call  $Function_802405EC    ( 00000062 )
+  340:  Call  $Function_802405EC    ( 00000063 )
+  350:  Call  GetDemoState  ( *Var0 )
+  360:  If  *Var0  !=  00000000
+  370:  	Set   *VarA  $Script_80244CD4
+  380:  	Exec  $Script_80243D40
+  38C:  	ExecWait  $Script_8024EAB4
+  398:  	Return
+  3A0:  EndIf
+  3A8:  Exec  $Script_80243C20
+  3B4:  If  *GB_StoryProgress  ==  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
+  3C4:  	Set   *GB_StoryProgress  .Story:Ch0_ArrivedAtToadTown
+  3D4:  	Exec  $Script_8024F64C
+  3E0:  EndIf
+  3E8:  Exec  $Script_EnterWalk_80244D74
+  3F4:  Wait  1`
+  400:  Call  $Function_80240624 ( )
+  40C:  Return
+  414:  End
+}
+
 %Move final Master to a separate Battle Formation.
 
 @	$DojoBattleIDs
 {
-	00000300 00000301 00000302 00000303 00000404
+	00000300 00000301 00000302 00000303 00000404 %Fifth slot is final Master
 }
 
 
@@ -29,8 +153,9 @@
 %Shop toggle visibility.
 %Change song to shop theme when you enter
 %and revert when you leave.
+
 @	$Script_ToggleVis_80245784
-{
+{		
     0:  Switch  *Var0
     C:  	Case  ==  00000000
    18:  		Call  SetGroupEnabled   ( ~Model:shop_in 00000001 )
@@ -56,23 +181,29 @@
 %Dojo toggle visibility
 %Change song to dojo theme when you enter
 %and revert when you leave.
+%Also don't do it at all if past Chapter 7.
+
 @	$Script_ToggleVis_8024592C
 {
     0:  Switch  *Var0
     C:  	Case  ==  00000000
    18:  		Call  SetGroupEnabled   ( ~Model:minka_inn 00000001 )
    2C:  		Set   *MapFlag[0B]  .True
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Call  PushSong      ( 000000A5 00000000 )	%Heavy Lobster / Dojo Theme
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Call  PushSong      ( 000000A5 00000000 )	%Heavy Lobster / Dojo Theme
+					EndIf
 				EndIf
    3C:  	Case  ==  00000003
    48:  		Call  SetGroupEnabled   ( ~Model:minka_inn 00000000 )
    5C:  		Call  802D5EE0  ( 00000000 )
    6C:  		Set   *MapFlag[0B]  .False
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+						Call  PopSong ( )
+					EndIf
 				EndIf
    7C:  EndSwitch
    84:  Return

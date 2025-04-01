@@ -1,0 +1,86 @@
+%Add Save Block functionality so the player
+%doesn't have to walk as far if they die
+%to Jr. Troopa.
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeItemEntity    ( .Item:Letter11 ~Vec3d:Item80243400 .ItemSpawnMode:Fixed_NeverVanish *GF_JAN01_Item_Letter11 )
+   24:  Call  MakeEntity        ( .Entity:BellbellPlant ~Vec4d:Entity80243424 80000000 )
+   48:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80243448 .Item:RepelGel 80000000 )
+   70:  Call  AssignBlockFlag   ( *GF_JAN01_HiddenItem_RepelGel )
+   80:  Call  MakeEntity        ( .Entity:BellbellPlant ~Vec4d:Entity80243480 80000000 )
+   A4:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity802434A4 .Item:Pebble 80000000 )
+   CC:  Call  AssignBlockFlag   ( *GF_JAN01_HiddenItem_Mystery )
+   DC:  Call  MakeItemEntity    ( .Item:StarPoint ~Vec3d:Item802434DC .ItemSpawnMode:Fixed_NeverVanish *GF_JAN01_Item_CoinA )
+  100:  Call  MakeItemEntity    ( .Item:StarPoint ~Vec3d:Item80243500 .ItemSpawnMode:Fixed_NeverVanish *GF_JAN01_Item_CoinB )
+  124:  Call  MakeEntity        ( .Entity:SpinningFlower ~Vec4d:Entity80243524 80000000 )
+		Call  MakeEntity        ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+  148:  Return
+  150:  End
+}
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:JadeJungle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .False $NpcGroupList_802433B0 )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_8024413C
+   9C:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+   B4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+   CC:  Set   *Var0  $Script_802415C4
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+			ExecWait $Script_802415C4
+		Else
+			Exec  EnterWalk
+   40:  EndIf
+   E8:  Wait  1`
+   F4:  Exec  $Script_80241430
+  100:  Call  PlaySound ( 80000017 )
+  110:  Call  EnableTexPanning  ( ~Model:o75 .True )
+  124:  Call  EnableTexPanning  ( ~Model:o7 .True )
+  138:  Call  EnableTexPanning  ( ~Model:o6 .True )
+  14C:  Thread
+  154:  	Set   *Var0  00000001
+  164:  	Set   *Var1  FFFFFF9C
+  174:  	Set   *Var2  0000015E
+  184:  	Set   *Var3  00000000
+  194:  	Set   *Var4  00000000
+  1A4:  	Set   *Var5  00000001
+  1B4:  	Set   *Var6  00000001
+  1C4:  	Set   *Var7  00000000
+  1D4:  	Set   *Var8  00000000
+  1E4:  	Set   *Var9  00000000
+  1F4:  	Set   *VarA  00000000
+  204:  	Set   *VarB  00000000
+  214:  	Set   *VarC  00000000
+  224:  	Exec  $Script_UpdateTexturePan_80241470
+  230:  EndThread
+  238:  Thread
+  240:  	Set   *Var0  00000002
+  250:  	Set   *Var1  00000064
+  260:  	Set   *Var2  000000C8
+  270:  	Set   *Var3  00000000
+  280:  	Set   *Var4  00000000
+  290:  	Set   *Var5  00000001
+  2A0:  	Set   *Var6  00000001
+  2B0:  	Set   *Var7  00000000
+  2C0:  	Set   *Var8  00000000
+  2D0:  	Set   *Var9  00000000
+  2E0:  	Set   *VarA  00000000
+  2F0:  	Set   *VarB  00000000
+  300:  	Set   *VarC  00000000
+  310:  	Exec  $Script_UpdateTexturePan_80241470
+  31C:  EndThread
+  324:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o144 00000001 )
+  33C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o145 00000001 )
+  354:  Call  $Function_8024030C ( )
+  360:  Return
+  368:  End
+}

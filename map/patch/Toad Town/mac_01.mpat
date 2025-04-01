@@ -3,9 +3,48 @@
   [A4]  LA        A3, $Global_ItemHudScripts
 }
 
+
+
+@	$Script_80246770
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  ==  .Story:Intro % FFFFFF80
+   18:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+   34:  	Case  ==  .Story:Epilogue % 60
+   40:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+   5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   6C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   88:  	Default
+   90:  		Exec  $Script_802488A8
+   9C:  EndSwitch
+   A4:  Return
+   AC:  End
+}
+
+
+@	$Script_80246850
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   38:  	Default
+   40:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+   5C:  		Wait  20`
+   68:  		Call  802D5EE0      ( 00000000 )
+   78:  		Call  802D5F28      ( 00000000 00000002 00000002 )
+   90:  EndSwitch
+   98:  Return
+   A0:  End
+}
+
+
 %Speedy Spin and Happy Heart have swapped places.
-%Speedy Spin can now be obtained as soon as you
-%reach Shooting Star Summit.
+%A Speedy Spin can now be obtained as soon as you
+%reach Shooting Star Summit or in Prologue.
 %Happy Heart A is obtainable after Chapter 1.
 
 
@@ -58,6 +97,87 @@
 
 
 
+
+@	$Script_Main
+{
+		Call  SetSpriteShading  ( .Shading:None )
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  90`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *AreaFlag[00E]  .False
+   94:  Set   *AreaFlag[00F]  .False
+   A4:  Set   *AreaFlag[010]  .False
+   B4:  Set   *AreaFlag[011]  .False
+   C4:  Set   *AreaFlag[012]  .False
+   D4:  Set   *AreaFlag[013]  .False
+   E4:  Set   *AreaFlag[014]  .False
+   F4:  Set   *AreaFlag[015]  .False
+  104:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+  114:  	Exec  $Script_80248070
+  120:  Else
+  128:  	Call  EnableGroup   ( ~Model:jutan1 .False )
+  13C:  EndIf
+  144:  Switch  *GB_StoryProgress
+  150:  	Case  ==  .Story:Intro % FFFFFF80
+  15C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025FA2C )
+  170:  	Case  >=  .Story:Epilogue % 60
+  17C:  		Call  MakeNpcs  ( .False $NpcGroupList_80261830 )
+  190:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+  19C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFF0 )
+  1B0:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+  1BC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F044 )
+  1D0:  	Case  ==  .Story:Ch1_DefeatedJrTroopa % FFFFFFB6
+  1DC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F080 )
+  1F0:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+  200:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0BC )
+  214:  	Case  ==  .Story:Ch6_ReturnedToToadTown % 3C
+  220:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0F8 )
+  234:  	Default
+  23C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFA8 )
+  250:  EndSwitch
+  258:  If  *GB_StoryProgress  >=  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+  268:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt 7FFFFE00 )
+  280:  EndIf
+  288:  Exec  $Script_8025A2F0
+  294:  Exec  $Script_MakeEntities
+  2A0:  Exec  $Script_80247D18
+  2AC:  Exec  $Script_80248818
+  2B8:  Exec  $Script_80248428
+  2C4:  Exec  $Script_80246770
+  2D0:  Call  UseDoorSounds ( .DoorSounds:Large )
+  2E0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+  2F0:  Exec  $Script_EnterWalk_80246C94
+  2FC:  Wait  1`
+  308:  Call  EnableTexPanning      ( ~Model:hikari .True )
+  31C:  Thread
+  324:  	SetGroup  00000000
+  330:  	Set   *Var0  00000000
+  340:  	Set   *Var1  00000000
+  350:  	Label  0
+  35C:  	Add   *Var0  FFFFFF9C
+  36C:  	Add   *Var1  FFFFFF38
+  37C:  	If  *Var0  <  00000000
+  38C:  		Add   *Var0  00010000
+  39C:  	EndIf
+  3A4:  	If  *Var1  <  00000000
+  3B4:  		Add   *Var0  00010000
+  3C4:  	EndIf
+  3CC:  	Call  SetTexPanOffset   ( 00000003 00000000 *Var0 00000000 )
+  3E8:  	Call  SetTexPanOffset   ( 00000003 00000001 *Var1 *Var1 )
+  404:  	Wait  1`
+  410:  	Goto  0
+  41C:  EndThread
+  424:  Bind  $Script_8024F27C .Trigger:WallPressA ~Collider:o335 00000001 00000000
+  440:  Exec  $Script_8025023C
+  44C:  Exec  $Script_80262604
+  458:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  46C:  Return
+  474:  End
+}
+
 %Play song when you enter Merlon's house.
 
 @	$Script_ToggleVis_80247A70
@@ -86,10 +206,12 @@
   124:  				Return
   12C:  		EndSwitch
 				Thread
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Wait  24`
-					Call  PushSong      ( 000000AC 00000000 )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Wait  24`
+						Call  PushSong      ( 000000AC 00000000 )
+					EndIf
 				EndIf
 				EndThread
   134:  		Call  SetGroupEnabled   ( ~Model:dr_in 00000001 )
@@ -97,6 +219,7 @@
   158:  	Case  ==  00000001
   164:  	Case  ==  00000002
   170:  	Case  ==  00000003
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
 				If *ShopState == 00000001
 					Set *ShopState 00000000
 					Call  PopSong ( )
@@ -104,6 +227,7 @@
 							Exec $Script_80246850
 							Set *MerlonState 00000000
 						EndIf
+				EndIf
 				EndIf
   17C:  		Call  SetGroupEnabled   ( ~Model:dr_in 00000000 )
   190:  		Set   *MapFlag[0A]  .False
@@ -304,7 +428,9 @@
   1E8:  ExecWait  $Script_8024EC64
   1F4:  Wait  10`
   200:  Call  PushSong      ( 000000AC 00000000 )
-		Set *MerlonState 00000001
+		If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+			Set *MerlonState 00000001
+		EndIf
 		Switch *Byte_Settings_Difficulty
 					Case == 0
 						Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00210000 )

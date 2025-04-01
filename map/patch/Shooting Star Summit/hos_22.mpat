@@ -9,7 +9,8 @@
 
 %This is an unused map from TTYD64!
 %I'm going to turn it into the new star temple
-%because the one from Pro Mode got kinda stale.
+%because I wanted something to make it stand
+%out from the Pro Mode one.
 
 %Problem. This unused map comes with no .mpat,
 %so copy the data from DSE to make it function
@@ -249,6 +250,96 @@
   1E4:  ADDIU     SP, SP, 18
 }
 
+
+
+#new:Function $Function_802407E8
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  CLEAR     A0
+    8:  ADDIU     A1, SP, 10
+    C:  ADDIU     A2, SP, 14
+   10:  ADDIU     A3, SP, 18
+   14:  SW        RA, 34 (SP)
+   18:  SW        S4, 30 (SP)
+   1C:  SW        S3, 2C (SP)
+   20:  SW        S2, 28 (SP)
+   24:  SW        S1, 24 (SP)
+   28:  JAL       ~Func:mdl_get_copied_vertices
+   2C:  SW        S0, 20 (SP)
+   30:  LW        V0, 18 (SP)
+   34:  BLEZ      V0, .oE0
+   38:  CLEAR     S0
+   3C:  LI        S4, 55555556
+   44:  COPY      S3, S0
+        .o48
+   48:  MULT      S0, S4
+   4C:  SRA       V1, S0, 1F
+   50:  MFHI      T1
+   54:  SUBU      V1, T1, V1
+   58:  SLL       V0, V1, 1
+   5C:  ADDU      V0, V0, V1
+   60:  SUBU      V0, S0, V0
+   64:  LAHU      V1, $ByteTable_80243BD0[2]
+   6C:  ADDIU     V0, V0, 1
+   70:  MULT      V1, V0
+   74:  LW        V0, 14 (SP)
+   78:  SLL       A1, S0, 4
+   7C:  ADDU      S2, V0, A1
+   80:  MFLO      V1
+   84:  ADDU      A0, V1, S3
+   88:  LW        V1, 10 (SP)
+   8C:  ANDI      A0, A0, FFFF
+   90:  JAL       ~Func:sins
+   94:  ADDU      S1, V1, A1
+   98:  SLL       V0, V0, 10
+   9C:  SRA       V0, V0, 10
+   A0:  SLL       V1, V0, 1
+   A4:  ADDU      V1, V1, V0
+   A8:  SLL       V1, V1, 3
+   AC:  ADDU      V1, V1, V0
+   B0:  SLL       V0, V1, 1
+   B4:  BLTZL     V0, .oBC
+   B8:  ADDIU     V0, V0, 7FFF
+        .oBC
+   BC:  ADDIU     S3, S3, 2AAA
+   C0:  ADDIU     S0, S0, 1
+   C4:  SRA       V0, V0, F
+   C8:  LHU       V1, 2 (S1)
+   CC:  LW        A0, 18 (SP)
+   D0:  ADDU      V1, V1, V0
+   D4:  SLT       A0, S0, A0
+   D8:  BNE       A0, R0, .o48
+   DC:  SH        V1, 2 (S2)
+        .oE0
+   E0:  LA        V1, 8009A66C
+   E8:  LW        V0, 0 (V1)
+   EC:  CLEAR     A0
+   F0:  COPY      S0, V0
+   F4:  ADDIU     V0, V0, 8
+   F8:  SW        V0, 0 (V1)
+   FC:  LUI       V0, DE00
+  100:  JAL       ~Func:mdl_get_copied_gfx
+  104:  SW        V0, 0 (S0)
+  108:  LA        A0, $ByteTable_80243BD0[2]
+  110:  LHU       V1, 0 (A0)
+  114:  SW        V0, 4 (S0)
+  118:  ADDIU     V1, V1, A3
+  11C:  SH        V1, 0 (A0)
+  120:  LW        RA, 34 (SP)
+  124:  LW        S4, 30 (SP)
+  128:  LW        S3, 2C (SP)
+  12C:  LW        S2, 28 (SP)
+  130:  LW        S1, 24 (SP)
+  134:  LW        S0, 20 (SP)
+  138:  JR        RA
+  13C:  ADDIU     SP, SP, 38
+}
+
+#new:ByteTable $ByteTable_80243BD0
+{
+	00000000 00000000
+}
+
 #new:Header $Header
 { 
 	[MainScript]  $Script_Main
@@ -268,8 +359,14 @@
 
 #string $MapTattle
 {
-[STYLE:TATTLE][EnableCDownNext]Shooting Star Summit is just[BR]
-a bit further to the east.
+[STYLE:TATTLE][EnableCDownNext]So this is the inside of the[BR]
+Love Temple, eh?[BR]
+[Wait][Next]
+Not quite what I imagined,[BR]
+but it gets the job done.[BR]
+[Wait][Next]
+[Pause 3][Shake][PrintRising]Hey![/fx][Pause 10] I'm here to pray I[BR]
+get laid before I'm old!
 [WAIT][END]
 }
 
@@ -288,11 +385,17 @@ a bit further to the east.
 	Call	SetCamEnabled		( .Cam:Default .True )
 	Call	SetCamLeadPlayer		( .Cam:Default .False )
 	ExecWait  $Script_MakeEntities
-	Exec    $Script_UpdateTexturePan_80243B30
+	Exec  $Script_StarPan
 	Call	SetMusicTrack	( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
-	Set     *Var[0]  $Script_CreateExitTriggers 
+	Call     GetLoadType 	( *Var[1] )
+	If       *Var[1] ==  00000001 
+		Exec     EnterSavePoint 
+		Exec     $Script_CreateExitTriggers 
+	Else
+		Set  *Var[0]  $Script_CreateExitTriggers 
+		Exec	EnterWalk 
+	EndIf
 	Call	MakeNpcs    	( 00000000 $BossNpcGroups )
-	Exec	EnterWalk 
 	Wait	1
 	Return
 	End
@@ -338,7 +441,47 @@ a bit further to the east.
 }
 
 
-
+#new:Script $Script_StarPan
+{
+  48C:  Thread
+  494:  	Set   *Var0  00000006
+  4A4:  	Set   *Var1  00000000
+  4B4:  	Set   *Var2  00000BB8
+  4C4:  	Set   *Var3  00000000
+  4D4:  	Set   *Var4  00000000
+  4E4:  	Set   *Var5  00000000
+  4F4:  	Set   *Var6  00000001
+  504:  	Set   *Var7  00000000
+  514:  	Set   *Var8  00000000
+  524:  	Set   *Var9  00000000
+  534:  	Set   *VarA  00000000
+  544:  	Set   *VarB  00000000
+  554:  	Set   *VarC  00000000
+  564:  	Exec  $Script_UpdateTexturePan_80243B30
+  570:  EndThread
+  578:  Call  SetTexPanner  ( ~Model:o159_1 00000006 )
+		Call  SetTexPanner  ( ~Model:o159_2 00000006 )
+  58C:  Thread
+  594:  	Set   *Var0  00000007
+  5A4:  	Set   *Var1  00000000
+  5B4:  	Set   *Var2  00000FA0
+  5C4:  	Set   *Var3  00000000
+  5D4:  	Set   *Var4  00000000
+  5E4:  	Set   *Var5  00000000
+  5F4:  	Set   *Var6  00000001
+  604:  	Set   *Var7  00000000
+  614:  	Set   *Var8  00000000
+  624:  	Set   *Var9  00000000
+  634:  	Set   *VarA  00000000
+  644:  	Set   *VarB  00000000
+  654:  	Set   *VarC  00000000
+  664:  	Exec  $Script_UpdateTexturePan_80243B30
+  670:  EndThread
+  678:  Call  SetTexPanner  ( ~Model:o160_1 00000007 )
+		Call  SetTexPanner  ( ~Model:o160_2 00000007 )
+  6D4:  Return
+  6DC:  End
+}
 
 #new:Script $Script_UpdateTexturePan_80243B30
 {
@@ -365,14 +508,14 @@ a bit further to the east.
 
 #new:NpcGroupList $BossNpcGroups
 {
-00000001 $NpcGroup_Ch0 39000000
-00000001 $NpcGroup_Ch1 32000000
-00000001 $NpcGroup_Ch2 33000000
-00000001 $NpcGroup_Ch3 34000000
-00000001 $NpcGroup_Ch4 35000000
-00000001 $NpcGroup_Ch5 36000000
-00000001 $NpcGroup_Ch6 37000000
-00000001 $NpcGroup_Ch7 38000000
+00000001 $NpcGroup_Ch0 32000000
+00000001 $NpcGroup_Ch1 33000000
+00000001 $NpcGroup_Ch2 34000000
+00000001 $NpcGroup_Ch3 35000000
+00000001 $NpcGroup_Ch4 36000000
+00000001 $NpcGroup_Ch5 37000000
+00000001 $NpcGroup_Ch6 38000000
+00000001 $NpcGroup_Ch7 39000000
 00000000 00000000 00000000 
 }
 
@@ -482,14 +625,15 @@ a bit further to the east.
 % 3: idle animation
 #new:IntTable $NpcProperties
 {
-0000005F *Flag_Rematch8 00D60002 00D60004 $Ch8_Strings .Song:CrystalKingBattle 		    .Item:UltraShroom		.Item:UltraShroom
-FFFFFFB5 *Flag_Rematch1 00190002 00190001 $Ch1_Strings .Song:FakeBowserBattle		.Item:UltraShroom		.Item:UltraShroom
-FFFFFFCB *Flag_Rematch2 001A0002 001A0001 $Ch2_Strings .Song:TutankoopaBattle	.Item:UltraShroom	.Item:UltraShroom
-FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.Item:UltraShroom	.Item:UltraShroom
-00000007 *Flag_Rematch4 001C0002 001C0001 $Ch4_Strings .Song:GeneralGuyBattle	.Item:UltraShroom	.Item:UltraShroom
-00000027 *Flag_Rematch5 001D0002 001D0001 $Ch5_Strings .Song:UnusedOpening	.Item:UltraShroom	.Item:UltraShroom
+FFFFFF98 *Flag_Rematch0 00200009 00200001 $Ch0_Strings .Song:GoombaKingBattle  	.Item:UltraShroom	.Item:UltraShroom
+FFFFFFB5 *Flag_Rematch1 00190002 00190001 $Ch1_Strings .Song:FakeBowserBattle		.Item:UltraShroom	.Item:UltraShroom
+FFFFFFCB *Flag_Rematch2 001A0002 001A0001 $Ch2_Strings .Song:TutankoopaBattle	.Item:JamminJelly	.Item:WhackasBump
+FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.Item:LifeShroom	.Item:LifeShroom
+00000007 *Flag_Rematch4 001C0002 001C0001 $Ch4_Strings .Song:GeneralGuyBattle	.Item:HustleDrink	.Item:HustleDrink
+00000027 *Flag_Rematch5 001D0002 001D0001 $Ch5_Strings .Song:LavaPiranhaBattle	.Item:UltraShroom	.Item:UltraShroom
 0000003B *Flag_Rematch6 001E0002 001E0001 $Ch6_Strings .Song:HuffNPuffBattle		.Item:JamminJelly	.Item:JamminJelly
 00000059 *Flag_Rematch7 001F0002 001F0001 $Ch7_Strings .Song:CrystalKingBattle	.Item:UltraShroom  .Item:UltraShroom
+0000005F *Flag_Rematch8 00D60002 00D60004 $Ch8_Strings .Song:CrystalKingBattle 		    .Item:UltraShroom		.Item:UltraShroom
 }
 	
 % Define names for NPC variables for readability.
@@ -510,7 +654,7 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 	Call	BindNpcDefeat 	( .Npc:Self $Script_AfterBattle )
 	Call	BindNpcAux		( .Npc:Self $Script_FloatingHologramAux )
 	Call	GetSelfNpcID	( *Var[0] )	
-	If  *Var[0]  ==  0
+	If  *Var[0]  ==  8
 		Call	BindNpcInteract ( .Npc:Self $Script_Interact_Peach )
 	Else
 		Call	BindNpcInteract ( .Npc:Self $Script_Interact_Spirits )
@@ -586,8 +730,9 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 	
 #new:Script $Script_Interact_Peach
 {
-	% must clear all other rematches to face giga bowser
+	% must clear all other rematches
 	Set  *Var[2]  0
+	Add  *Var[2]  *Flag_Rematch0
 	Add  *Var[2]  *Flag_Rematch1
 	Add  *Var[2]  *Flag_Rematch2
 	Add  *Var[2]  *Flag_Rematch3
@@ -595,7 +740,7 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 	Add  *Var[2]  *Flag_Rematch5
 	Add  *Var[2]  *Flag_Rematch6
 	Add  *Var[2]  *Flag_Rematch7
-	If  *Var[2]  ==  7
+	If  *Var[2]  ==  8
 		Exec	$Script_Conversation_Spirits 
 		Wait	30` 
 	Else
@@ -630,17 +775,14 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 	Call     GetSelfVar 	( .BattleOutcome *Var[0] )
 	If  *Var[0]  ==  00000000 % won
 		Call	$Function_LoadItems ( )
-		%regardless of whether it is your first time or not, try to update the star for winning with super curse / ultra curse
 		Call	GetSelfNpcID	( *VarA )			%equal to boss
-		%If curse state > curse flag return value, update it to the new value (+ force play the effect)!
 		Set *Flag[0] .False
 		If *VarB > *VarC
 			Set *Flag[0] .True			%change dialogue)
 			Call	GetSelfVar 	( .CompletionFlag *Var[1] )
 			Call	GetValueByRef	( *Var[1] *Var[A] )
-			If	*Var[A]  ==  .True	%not first time (so effect won't normally appear)
+			If	*Var[A]  ==  .True
 				Call	GetSelfNpcID	( *Var[0] )	
-				%Call	GetSelfVar		( .EffectPos *Var[5] )
 				UseIntBuffer  *Var[5]
 				Get3Int	( *Var[0] *Var[1] *Var[2] )
 				Add		*Var[2]  10`
@@ -650,39 +792,41 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 			EndIf
 		EndIf
 		%now set flag stuff
-		Call	GetSelfVar 	( .CompletionFlag *Var[1] )
-		Call	GetValueByRef	( *Var[1] *Var[A] )
-		If	*Var[A]  ==  .False
-			% first rematch win
-			Call	SetValueByRef	( *Var[1] .True )
-			Call	GetSelfNpcID	( *Var[0] )	
-			%Call	GetSelfVar		( .EffectPos *Var[5] )
-			UseIntBuffer  *Var[5]
-			Get3Int	( *Var[0] *Var[1] *Var[2] )
-			Add		*Var[2]  10`
-			Call	PlaySoundAt 	( 00000055 00000000 *Var[0] *Var[1] *Var[2] )
-			Call	PlayEffect  	( 00000083 00000003 *Var[0] *Var[1] *Var[2] 00000001 30` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-			%ExecWait	$Script_UpdateCompletionIndicators
-			Wait	45`
-		EndIf
+		Call	SetMusicTrack	( 00000000 .Song:ShootingStarSummit 00000000 00000008 ) %Some boss music tends to break, so play this as a failsafe.
+		Call    PlaySoundAtPlayer ( 00000349 00000000 )
 		Call	GetSelfNpcID	( *Var[2] )	
 		Call	GetSelfVar	( .TalkAnimation *Var[3] )
 		Call	GetSelfVar	( .IdleAnimation *Var[4] )
 		Call	GetSelfVar		( .Strings *Var[5] )
+		Switch	*Var[2]
+			Case  ==  0
+				If  *Flag_Rematch0  == .False
+					Set *Flag_Rematch0  .True
+					Call	SpeakToPlayer ( *Var[2] *Var[3] *Var[4] 00000000 *Var[6] )
+					Call	ShowGotItem	( .Item:StarPiece 00000001 00000000 )
+					Call	AddStarPieces	( 1 )
+				EndIf
+			Case  ==  1
+				Set *Flag_Rematch1  .True
+			Case  ==  2
+				Set *Flag_Rematch2  .True
+			Case  ==  3
+				Set *Flag_Rematch3  .True
+			Case  ==  4
+				Set *Flag_Rematch4  .True
+			Case  ==  5
+				Set *Flag_Rematch5  .True
+			Case  ==  6
+				Set *Flag_Rematch6  .True
+			Case  ==  7
+				Set *Flag_Rematch7  .True
+			Case  ==  8
+				Set *Flag_Rematch8  .True
+		EndSwitch 
+		EndIf
+		Call	GetSelfNpcID	( *Var[2] )	
 		UseIntBuffer  *Var[5]
 		% give reward: star pieces or item
-		If  *Var[A]  ==  .False
-			If *Flag[0] == .True
-				GetIntN *Var[6]  5
-			Else
-				GetIntN *Var[6]  3
-			EndIf
-			Call	GetSelfNpcID	( *Var[0] )			
-				Call	SpeakToPlayer ( *Var[2] *Var[3] *Var[4] 00000000 *Var[6] )
-				Call	ShowGotItem	( .Item:StarPiece 00000001 00000000 )
-				Call	ShowGotItem	( .Item:StarPiece 00000001 00000000 )
-				Call	AddStarPieces	( 2 )
-		Else
 			If *Flag[0] == .True
 				GetIntN *Var[6]  5
 			Else
@@ -704,9 +848,8 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 				Call	ShowGotItem	( *Var[2] 00000001 00000000 )
 				Call	AddItem		( *Var[2] *Var[2] )
 			EndIf
-		EndIf
-	EndIf
 	Call	DisablePlayerInput 	( .False )
+	Call    StopSound ( 00000349 )			
 	Goto	0 
 	Return
 	End
@@ -739,8 +882,8 @@ FFFFFFF3 *Flag_Rematch3 001B0002 001B0001 $Ch3_Strings .Song:TubbaBlubbaBattle	.
 
 #string $YesNo
 {
-[STYLE:CHOICE:78:5A:4B:2E][DelayOff][Cursor:00][Option:00]Yes[BR]
-[Cursor:01][Option:01]No
+[STYLE:CHOICE:71:5A:6B:2E][DelayOff][Cursor:00][Option:00]Yessir[BR]
+[Cursor:01][Option:01]Wuss out
 [Option:FF][DelayOn][SetCancel:01][EndChoice:02][END]
 }
 	
@@ -791,22 +934,22 @@ $Ch8_Offer $Ch8_Rejected $Ch8_Accepted $Ch8_Reward1 $Ch8_Reward2 $Ch8_Reward3
 
 #string $Ch0_Offer
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]Hey Mario, ready for a rematch[BR]
-against the Goomba King and his[BR]
-two lackeys?[BR]
+[STYLE:RIGHT][Voice Star][DitherFade 217]The flippin' Goomba King is back![BR]
+[Pause 5]Do you want to challenge him to[BR]
+a rematch or what?[BR]
 [Yield][END]
 }
 
 #string $Ch0_Accepted
 {
-[NEXT][Voice Star][DitherFade 217]Alright, show them who's boss![WAIT][END]
+[NEXT][Voice Star][DitherFade 217]Ha! Yeah, get him![WAIT][END]
 }
 
 #string $Ch0_Rejected
 {
-[NEXT][Voice Star][DitherFade 217]Aww man, I was ready to watch[BR]
-an exciting battle.[PAUSE:8].[PAUSE:8].[PAUSE:10] let me know[BR]
-if you change your mind.[WAIT][END]
+[NEXT][Voice Star][DitherFade 217]Probably for the best.[BR]
+[Pause 10]You might have become a[BR]
+Mario sandwich.[WAIT][END]
 }
 
 #string $Ch0_Reward1
@@ -831,22 +974,22 @@ Here, take this reward.[WAIT][END]
 
 #string $Ch1_Offer
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]Well met, Mario.[BR]
-The Koopa Bros are prepared[BR]
-for a rematch, are you?[BR]
+[STYLE:RIGHT][Voice Star][DitherFade 217]Hoho! Welcome, lad.[BR]
+[Pause 5]Would you like to challenge the[BR]
+Coop Notes to a rematch?[BR]
 [Yield][END]
 }
 
 #string $Ch1_Accepted
 {
-[NEXT][Voice Star][DitherFade 217]Give them no quarter.[WAIT][END]
+[NEXT][Voice Star][DitherFade 217]Ruffle their jimmies.[WAIT][END]
 }
 
 #string $Ch1_Rejected
 {
-[NEXT][Voice Star][DitherFade 217]Very well, gather your strength[BR]
-and return when you're ready[BR]
-to defeat them.[WAIT][END]
+[NEXT][Voice Star][DitherFade 217]Ah, I see.[BR]
+[Pause 3]You should gather your resources[BR]
+and prepare yourself.[WAIT][END]
 }
 
 #string $Ch1_Reward1
@@ -871,15 +1014,16 @@ Have this item as a reward.[WAIT][END]
 
 #string $Ch2_Offer
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]Good to see you![BR]
-Would you like to try a rematch[BR]
-against king Tutankoopa?[BR]
+[STYLE:RIGHT][Voice Star][DitherFade 217]Hello, dear. [HEART][BR]
+The most I can offer you is a[BR]
+duel against Tutankoopa today.[BR]
+[Pause 10]How's that sound?[BR]
 [Yield][END]
 }
 
 #string $Ch2_Accepted
 {
-[NEXT][Voice Star][DitherFade 217]I know you can do it, Mario![WAIT][END]
+[NEXT][Voice Star][DitherFade 217]Believe in yourself and win![WAIT][END]
 }
 
 #string $Ch2_Rejected
@@ -890,9 +1034,9 @@ you're feeling ready.[WAIT][END]
 
 #string $Ch2_Reward1
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]Wonderful![BR]
-Please take my last two star[BR]
-pieces as a reward.[WAIT][END]
+[STYLE:RIGHT][Voice Star][DitherFade 217]Oh my! [HEART][BR]
+That was simply wonderful![BR]
+I'm proud of you.[WAIT][END]
 }
 
 #string $Ch2_Reward2
@@ -911,24 +1055,24 @@ reward for your trouble.[WAIT][END]
 
 #string $Ch3_Offer
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]Good day, Mario.[BR]
-Are you ready for another round[BR]
-with the 'invincible' Tubba Blubba?[BR]
+[STYLE:RIGHT][Voice Star][DitherFade 217]If it isn't much to ask...[BR]
+Do you dare picking a fight an[BR]
+enhanced Inappropriate Tubbs?[BR]
 [Yield][END]
 }
 
 #string $Ch3_Accepted
 {
-[NEXT][Voice Star][DitherFade 217]This should be interesting.[BR]
-Best of luck, and keep your[BR]
-wits about you.[BR]
+[NEXT][Voice Star][DitherFade 217]This will be quite the haymaker.[BR]
+Okay, don't hold back![BR]
 [WAIT][END]
 }
 
 #string $Ch3_Rejected
 {
-[NEXT][Voice Star][DitherFade 217]Wisdom is knowing when to fight.[BR]
-I'll be here when you're ready.[BR]
+[NEXT][Voice Star][DitherFade 217]That's okay.[BR]
+You should ensure you're fully[BR]
+confident first.[BR]
 [WAIT][END]
 }
 
@@ -1051,24 +1195,27 @@ This is for you.[BR]
 
 #string $Ch6_Offer
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]Hello again, Mario.[BR]
-Do you want another fight with[BR]
-master Huff N Puff?[BR]
+[STYLE:RIGHT][Voice Star][DitherFade 217]Snort.[BR]
+It theems the Lord of Thunder[BR]
+has returned for a secound bout,[BR]
+my friend.[BR]
+[Wait][Next]
+Do you want to give it a go?[BR]
 [Yield][END]
 }
 
 #string $Ch6_Accepted
 {
-[NEXT][Voice Star][DitherFade 217]Be careful, you barely beat[BR]
-him the first time![BR]
+[NEXT][Voice Star][DitherFade 217]This battle's about to get [BR]
+heated, I can already tell![BR]
 [WAIT][END]
 }
 
 #string $Ch6_Rejected
 {
-[NEXT][Voice Star][DitherFade 217]I don't blame you.[BR]
-But, if you change your mind,[BR]
-you know where to find me.[BR]
+[NEXT][Voice Star][DitherFade 217]Scientifically speaking, you're[BR]
+able to win no matter what, [Pause 5]but[BR]
+I understand your choice.[BR]
 [WAIT][END]
 }
 
@@ -1217,9 +1364,10 @@ worried...[BR]
 
 #string $String_PeachNotReady
 {
-[STYLE:RIGHT][Voice Star][DitherFade 217]I'm so glad to see you're safe.[PAUSE:18][BR]
-But you're not ready for this[BR]
-fight until you finish the others.[BR]
+[STYLE:RIGHT][DitherFade 217]Yo, Mr. Doohickey![BR]
+[Pause 5]You might think you're ready[BR]
+fo the end,[Pause 5] but [SizeWave]nuh-uh![/fx][BR]
+[Pause 3]You're not!![BR]
 [WAIT][END]
 }
 
@@ -1343,13 +1491,15 @@ fight until you finish the others.[BR]
 
 #string $StarSpiritTattle
 {
-[STYLE:TATTLE][EnableCDownNext]It's one of the honorable[BR]
-Star Spirits. Well it's[BR]
-just a projection.[BR]
-[WAIT][NEXT]
-At least nothing bad[BR]
-happens when we talk[BR]
-to them.[BR]
+[STYLE:TATTLE][EnableCDownNext]One of the Love Deities, huh.[BR]
+[Pause 10]They seem to be arranging[BR]
+some sort of...[BR]
+[Pause 10]Well...[Pause 10][PrintRising] something[/fx]![BR]
+[Wait][Next]
+[PrintRising]Heck if I know![/fx][BR]
+[Pause 10]And besides,[Pause 2] what does any[BR]
+of this have to do with old[BR]
+Goombarius getting cooch?[BR]
 [WAIT][END]
 }
 
