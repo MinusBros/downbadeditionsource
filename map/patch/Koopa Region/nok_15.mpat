@@ -1,0 +1,101 @@
+%Add a new item cuz why not.
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80243C50 00000006 80000000 )
+		Call  MakeItemEntity    ( .Item:POWBlock ~Vec3d:NewItem .ItemSpawnMode:Fixed_NeverVanish *GF_NOK15_SecretItem )
+   28:  Return
+   30:  End
+}
+
+
+
+#define .Npc:MrTrooper 00000004
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:PleasantPath
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .False $NpcGroupList_8024429C )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_80244C78
+   9C:  Exec  $Script_8024372C
+   80:  If  *GB_StoryProgress  ==  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+			If  *GF_NOK15_MrTrooperSpotted  == .False
+				Thread
+					Call  SetNpcPos     ( .Npc:MrTrooper -448` 1` -48` )
+					Wait  1`
+					Call  SetNpcSpeed   ( .Npc:MrTrooper *Fixed[5.0] )
+					Call  NpcMoveTo ( .Npc:MrTrooper -956` -39`  0` )
+					Wait  1`
+					Call  SetNpcPos     ( .Npc:MrTrooper -886` -189` -48` )
+					Wait  2`
+					Set   *GF_NOK15_MrTrooperSpotted  .True
+				EndThread
+			EndIf
+   A4:  EndIf
+   A8:  If  *GF_NOK15_BombedWall  ==  .False
+   B8:  	Call  EnableModel   ( ~Model:bomb_ato .False )
+   CC:  	Bind  $Script_80243680 .Trigger:PointBomb $TriggerCoord_80243670 00000001 00000000
+   E8:  Else
+   F0:  	Call  EnableModel   ( ~Model:bomb_1 .False )
+  104:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt1 7FFFFE00 )
+  11C:  EndIf
+  124:  Exec  $Script_80242810
+  130:  Call  GetEntryID    ( *Var0 )
+  140:  If  *Var0  <=  ~Entry:Entry2
+  150:  	Set   *Var0  $Script_80243998
+  160:  	Exec  EnterWalk
+  16C:  Else
+  174:  	Set   *VarA  $Script_80243998
+  184:  	Exec  $Script_80242850
+  190:  EndIf
+  198:  Wait  1`
+  1A4:  Return
+  1AC:  End
+}
+
+
+@	$NpcGroupList_8024429C
+{
+	00000001 $NpcGroup_80243EBC 050D0001
+	00000001 $NpcGroup_802440AC 05140001
+	00000001 $NpcGroup_MrTrooper 00000000
+	00000000 00000000 00000000
+}
+
+
+#new:NpcGroup $NpcGroup_MrTrooper
+{
+	.Npc:MrTrooper $NpcSettings_MrTrooper ~Vec3f:MrTrooper
+	00640D0D $Script_Init_MrTrooper 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:MrTrooper
+	~AnimationTable:MrTrooper % .Sprite:JrTroopa
+	00000000 00000000 00000000 001A0006 % That's Jr. Troopa. He used to boot us out of the f ...
+}
+
+
+#new:NpcSettings $NpcSettings_MrTrooper
+{
+	00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+#new:Script $Script_Init_MrTrooper
+{
+    0:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_MrTrooper )
+   3C:  Return
+   44:  End
+}
+
+
+#new:Script $Script_Idle_MrTrooper
+{
+	Return
+	End
+}

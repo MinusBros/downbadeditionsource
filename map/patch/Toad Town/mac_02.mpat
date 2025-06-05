@@ -1,4 +1,66 @@
 #define .NpcID:TayceT_00            00
+#define .NpcID:FiceT_01             01
+
+%New plot point that demands you get a Forest Pass from Fice T.
+
+@	$Script_Interact_8024A9E0
+{
+		If *GF_OaklieAskedForID == .True
+			If *GF_GotIDFromFiceT == .False
+				Call  SpeakToPlayer ( .NpcID:FiceT_01 00AB0006 00AB0006 00000000 00040094 ) % Hello
+				Call  SetPlayerAnimation    ( 00080007 )
+				Wait  30`
+				Call  SpeakToPlayer ( .NpcID:FiceT_01 00AB0006 00AB0006 00000000 00040095 ) % Here's your Forest Pass.
+				Set   *Var0  0000001B
+				%Set   *Var1  00000003
+				ExecWait  $Script_80246154
+				Call  AddKeyItem    ( .Item:ForestPass )
+				Set *GF_GotIDFromFiceT .True
+				Return
+			EndIf
+		EndIf
+    0:  Set   *Var3  00000000
+   10:  Switch  *GB_StoryProgress
+   1C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   28:  		Set   *Var0  00040021
+   38:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   44:  		Set   *Var3  00000001
+   54:  		Set   *Var0  0004002A
+   64:  		Set   *Var1  0004002B
+   74:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   80:  		Set   *Var0  0004002C
+   90:  		Set   *Var1  0004002D
+   A0:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+   AC:  		Set   *Var0  0004002E
+   BC:  		Set   *Var1  0004002F
+   CC:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+   D8:  		Set   *Var0  00040030
+   E8:  		Set   *Var1  00040031
+   F8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  104:  		Set   *Var0  00040032
+  114:  		Set   *Var1  00040033
+  124:  	Case  <  .Story:Epilogue % 60
+  130:  		Set   *Var0  00040034
+  140:  		Set   *Var1  00040035
+  150:  EndSwitch
+  158:  Call  GetCurrentPartnerID   ( *Var2 )
+  168:  If  *Var2  ==  .Partner:Bow % 9
+  178:  	Call  SpeakToPlayer ( .NpcID:FiceT_01 00AB0006 00AB0006 00000000 *Var1 ) % variable string ID
+  198:  Else
+  1A0:  	If  *Var3  ==  00000000
+  1B0:  		Call  SpeakToPlayer ( .NpcID:FiceT_01 00AB0004 00AB0001 00000000 *Var0 ) % variable string ID
+  1D0:  	Else
+  1D8:  		Call  SpeakToPlayer ( .NpcID:FiceT_01 00AB0006 00AB0006 00000000 *Var0 ) % variable string ID
+  1F8:  	EndIf
+  200:  EndIf
+  208:  ExecWait  $Script_8024A8C8
+  214:  ExecWait  $Script_8024A918
+  220:  If  *VarC  !=  00000000
+  230:  	Return
+  238:  EndIf
+  240:  Return
+  248:  End
+}
 
 @	 $Script_8024B6E8
 {
@@ -35,6 +97,9 @@
   15C:  Return
   164:  End
 }
+
+
+
 
 
 %Completely rework Tayce T. to make her more "bulk-friendly". 
@@ -213,8 +278,316 @@
 	*GF_MAC02_DiscoveredRecipe_29 *GF_MAC02_DiscoveredRecipe_2A *GF_MAC02_DiscoveredRecipe_2B *GF_MAC02_DiscoveredRecipe_2C
 	*GF_MAC02_DiscoveredRecipe_2D *GF_MAC02_DiscoveredRecipe_2E *GF_MAC02_DiscoveredRecipe_2F *GF_MAC02_DiscoveredRecipe_30
 	*GF_MAC02_DiscoveredRecipe_31 *GF_MAC02_DiscoveredRecipe_32 *GF_MAC02_DiscoveredRecipe_33 *GF_MAC02_DiscoveredRecipe_34
-	*GF_MAC02_DiscoveredRecipe_35 *GF_MAC02_DiscoveredRecipe_36  00000000
+	*GF_MAC02_DiscoveredRecipe_35 *GF_MAC02_DiscoveredRecipe_36 *GF_MAC02_DiscoveredRecipe_37 00000000
 }
+
+
+
+% COOKING OVERHAUL
+% By JaThePlayer
+
+
+
+#define .InstantCooking .False % Set to .True to make Tayce T immediately give you the cooked item
+
+#define .CookbookItemID .Item:Cookbook % Item that needs to be delivered to Tayce T to get access to two item cooking
+
+% Tayce T's reactions:
+#define .rMistake 0 % Oh... I'm so sorry. This recipe didn't work out.
+#define .rNormal 1 % Here you are! This recipe's not too bad. 
+#define .rDelicious 2 % All done! It smells delicious! 
+#define .rSpecialty 3 % Oh, sweet success! This dish is one of my specialties...
+#define .rIdk 4 % OK, all finished! ...I don't exactly know what it is...
+% If you want more, define them in $Script_80249684
+
+% Item1, Item2(FFFFFFFF if it's a 1 item recipe), Out
+#new:IntTable $IntTable_RecipeTable
+{
+.Item:Apple .Item:CakeMix .Item:ApplePie
+.Item:Egg .Item:CakeMix .Item:BigCookie
+.Item:Goomnut .Item:CakeMix .Item:BigCookie
+.Item:RedBerry .Item:CakeMix .Item:BigCookie
+.Item:YellowBerry .Item:CakeMix .Item:BigCookie
+.Item:BlueBerry .Item:CakeMix .Item:BigCookie
+.Item:KoopaLeaf .Item:Goomnut .Item:BlandMeal
+.Item:KoopaLeaf .Item:RedBerry .Item:BlandMeal
+.Item:KoopaLeaf .Item:YellowBerry .Item:BlandMeal
+.Item:KoopaLeaf .Item:BlueBerry .Item:BlandMeal
+.Item:StrangeLeaf .Item:Goomnut .Item:BlandMeal
+.Item:StrangeLeaf .Item:DriedPasta .Item:BlandMeal
+.Item:IcedPotato .Item:Mushroom .Item:BlandMeal
+.Item:IcedPotato .Item:VoltShroom .Item:BlandMeal
+.Item:IcedPotato .Item:SuperShroom .Item:BlandMeal
+.Item:IcedPotato .Item:LifeShroom .Item:BlandMeal
+.Item:IcedPotato .Item:CakeMix .Item:BlandMeal
+.Item:IcedPotato .Item:Egg .Item:BlandMeal
+.Item:IcedPotato .Item:Coconut .Item:BlandMeal
+.Item:IcedPotato .Item:DriedPasta .Item:BlandMeal
+.Item:FireFlower .Item:Goomnut .Item:BlandMeal
+.Item:FireFlower .Item:VoltShroom .Item:BlandMeal
+.Item:FireFlower .Item:SuperShroom .Item:BlandMeal
+.Item:FireFlower .Item:LifeShroom .Item:BlandMeal
+.Item:FriedShroom .Item:PotatoSalad .Item:BlandMeal
+.Item:Egg .Item:Mushroom .Item:BlandMeal
+.Item:Egg .Item:VoltShroom .Item:BlandMeal
+.Item:Egg .Item:SuperShroom .Item:BlandMeal
+.Item:Egg .Item:LifeShroom .Item:BlandMeal
+.Item:Egg .Item:DriedPasta .Item:BlandMeal
+.Item:DriedPasta .Item:Goomnut .Item:BlandMeal
+.Item:DriedPasta .Item:Coconut .Item:BlandMeal
+.Item:DriedPasta .Item:Mushroom .Item:BlandMeal
+.Item:DriedPasta .Item:VoltShroom .Item:BlandMeal
+.Item:DriedPasta .Item:SuperShroom .Item:BlandMeal
+.Item:DriedPasta .Item:LifeShroom .Item:BlandMeal
+.Item:DriedPasta .Item:RedBerry .Item:BlandMeal
+.Item:DriedPasta .Item:YellowBerry .Item:BlandMeal
+.Item:DriedPasta .Item:BlueBerry .Item:BlandMeal
+.Item:Egg .Item:StrangeLeaf .Item:BoiledEgg
+.Item:Egg .Item:StinkyHerb .Item:BoiledEgg
+.Item:CakeMix FFFFFFFF .Item:Cake
+.Item:Coconut .Item:CakeMix .Item:CocoPop
+.Item:PotatoSalad .Item:ShroomSteak .Item:DeluxeFeast
+.Item:WhackasBump .Item:StrangeLeaf .Item:DeluxeFeast
+.Item:StrangeLeaf FFFFFFFF .Item:DizzyDial
+.Item:StrangeLeaf .Item:VoltShroom .Item:DizzyDial
+.Item:StrangeLeaf .Item:StinkyHerb .Item:DizzyDial
+.Item:FireFlower .Item:Egg .Item:EggMissile
+.Item:VoltShroom .Item:CakeMix .Item:ElectroPop
+.Item:DriedFruit .Item:StrangeLeaf .Item:FireFlower
+.Item:CakeMix .Item:FireFlower .Item:FirePop
+.Item:Egg FFFFFFFF .Item:FriedEgg
+.Item:DriedShroom FFFFFFFF .Item:FriedShroom
+.Item:Mushroom FFFFFFFF .Item:FriedShroom
+.Item:SuperShroom FFFFFFFF .Item:FriedShroom
+.Item:DriedShroom .Item:Mushroom .Item:FriedShroom
+.Item:DriedShroom .Item:FireFlower .Item:FriedShroom
+.Item:FireFlower .Item:IcedPotato .Item:FrozenFries
+.Item:SpecialShake .Item:StinkyHerb .Item:HealthyJuice
+.Item:SpecialShake .Item:DriedShroom .Item:HealthyJuice
+.Item:SpecialShake .Item:StrangeLeaf .Item:HealthyJuice
+.Item:CakeMix .Item:HoneySyrup .Item:HoneyCandy
+.Item:Mushroom .Item:HoneySyrup .Item:HoneyShroom
+.Item:SuperShroom .Item:HoneySyrup .Item:HoneySuper
+.Item:LifeShroom .Item:HoneySyrup .Item:HoneySuper
+.Item:VoltShroom .Item:HoneySyrup .Item:HoneySuper
+.Item:UltraShroom .Item:HoneySyrup .Item:HoneyUltra
+.Item:DriedShroom .Item:SuperShroom .Item:HotShroom
+.Item:Mushroom .Item:SuperShroom .Item:HotShroom
+.Item:DriedShroom .Item:VoltShroom .Item:HotShroom
+.Item:Mushroom .Item:VoltShroom .Item:HotShroom
+.Item:SuperShroom .Item:VoltShroom .Item:HotShroom
+.Item:Mushroom .Item:FireFlower .Item:HotShroom
+.Item:LifeShroom FFFFFFFF .Item:HotShroom
+.Item:VoltShroom FFFFFFFF .Item:HotShroom
+.Item:CakeMix .Item:JamminJelly .Item:JellyPop
+.Item:Mushroom .Item:JamminJelly .Item:JellyShroom1
+.Item:SuperShroom .Item:JamminJelly .Item:JellySuper
+.Item:LifeShroom .Item:JamminJelly .Item:JellySuper
+.Item:VoltShroom .Item:JamminJelly .Item:JellySuper
+.Item:UltraShroom .Item:JamminJelly .Item:JellyUltra
+.Item:CakeMix .Item:KoopaLeaf .Item:KookyCookie
+.Item:CakeMix .Item:StinkyHerb .Item:KookyCookie
+.Item:CakeMix .Item:MapleSyrup .Item:KookyCookie
+.Item:KoopaLeaf .Item:DriedPasta .Item:Koopasta
+.Item:KoopaLeaf FFFFFFFF .Item:KoopaTea
+.Item:Lemon .Item:CakeMix .Item:LemonCandy
+.Item:SuperShroom .Item:KoopaLeaf .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:VoltShroom .Item:KoopaLeaf .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:UltraShroom .Item:KoopaLeaf .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:LifeShroom .Item:KoopaLeaf .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:SuperShroom .Item:Goomnut .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:VoltShroom .Item:Goomnut .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:UltraShroom .Item:Goomnut .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:LifeShroom .Item:Goomnut .Item:SweetShroom		%Life shroom -> Sweet shroom
+.Item:SuperShroom .Item:StrangeLeaf .Item:SweetShroom	%Life shroom -> Sweet shroom	
+.Item:UltraShroom .Item:StrangeLeaf .Item:SweetShroom	%Life shroom -> Sweet shroom
+.Item:LifeShroom .Item:StrangeLeaf .Item:SweetShroom	%Life shroom -> Sweet shroom
+.Item:Lime .Item:CakeMix .Item:LimeCandy
+.Item:Mushroom .Item:MapleSyrup .Item:MapleShroom
+.Item:SuperShroom .Item:MapleSyrup .Item:MapleSuper
+.Item:LifeShroom .Item:MapleSyrup .Item:MapleSuper
+.Item:VoltShroom .Item:MapleSyrup .Item:MapleSuper
+.Item:UltraShroom .Item:MapleSyrup .Item:MapleUltra
+.Item:Goomnut FFFFFFFF .Item:NuttyCake
+.Item:IcedPotato FFFFFFFF .Item:PotatoSalad
+.Item:Mushroom .Item:CakeMix .Item:ShroomCake				%Shroom cake is a bit different now
+.Item:SuperShroom .Item:CakeMix .Item:SuperShroomCake		%super shroom cake 
+.Item:UltraShroom FFFFFFFF .Item:ShroomSteak
+.Item:UltraShroom .Item:Mushroom .Item:ShroomSteak
+.Item:UltraShroom .Item:SuperShroom .Item:ShroomSteak
+.Item:LifeShroom .Item:Mushroom .Item:ShroomSteak
+.Item:LifeShroom .Item:SuperShroom .Item:ShroomSteak
+.Item:LifeShroom .Item:UltraShroom .Item:ShroomSteak
+.Item:VoltShroom .Item:UltraShroom .Item:ShroomSteak
+.Item:DriedShroom .Item:UltraShroom .Item:ShroomSteak
+.Item:DriedShroom .Item:LifeShroom .Item:ShroomSteak
+.Item:RedBerry .Item:StrangeLeaf .Item:SleepySheep
+.Item:YellowBerry .Item:StrangeLeaf .Item:SleepySheep
+.Item:BlueBerry .Item:StrangeLeaf .Item:SleepySheep
+.Item:DriedPasta FFFFFFFF .Item:Spaghetti
+.Item:Melon FFFFFFFF .Item:SpecialShake
+.Item:Melon .Item:Lime .Item:SpecialShake
+.Item:Melon .Item:Lemon .Item:SpecialShake
+.Item:Melon .Item:HoneySyrup .Item:SpecialShake
+.Item:Melon .Item:MapleSyrup .Item:SpecialShake
+.Item:Melon .Item:JamminJelly .Item:SpecialShake
+.Item:Melon .Item:Apple .Item:SpecialShake
+.Item:Melon .Item:RedBerry .Item:SpecialShake
+.Item:Melon .Item:YellowBerry .Item:SpecialShake
+.Item:Melon .Item:BlueBerry .Item:SpecialShake
+.Item:Melon .Item:KoopaLeaf .Item:SpecialShake
+.Item:Melon .Item:StrangeLeaf .Item:SpecialShake
+.Item:JamminJelly .Item:Coconut .Item:SpecialShake
+.Item:JamminJelly .Item:Lime .Item:SpecialShake
+.Item:JamminJelly .Item:Lemon .Item:SpecialShake
+.Item:JamminJelly .Item:HoneySyrup .Item:SpecialShake
+.Item:JamminJelly .Item:MapleSyrup .Item:SpecialShake
+.Item:JamminJelly .Item:Apple .Item:SpecialShake
+.Item:JamminJelly .Item:RedBerry .Item:SpecialShake
+.Item:JamminJelly .Item:YellowBerry .Item:SpecialShake
+.Item:JamminJelly .Item:BlueBerry .Item:SpecialShake
+.Item:FireFlower FFFFFFFF .Item:SpicySoup
+.Item:StrangeLeaf .Item:CakeMix .Item:StrangeCake
+.Item:HoneySyrup FFFFFFFF .Item:SuperSoda
+.Item:MapleSyrup FFFFFFFF .Item:SuperSoda
+.Item:Apple FFFFFFFF .Item:SuperSoda
+.Item:BlueBerry FFFFFFFF .Item:SuperSoda
+.Item:RedBerry FFFFFFFF .Item:SuperSoda
+.Item:YellowBerry FFFFFFFF .Item:SuperSoda
+.Item:JamminJelly FFFFFFFF .Item:SuperSoda
+.Item:HoneySyrup .Item:MapleSyrup .Item:SuperSoda
+.Item:HoneySyrup .Item:KoopaLeaf .Item:SuperSoda
+.Item:Lime .Item:MapleSyrup .Item:SuperSoda
+.Item:Apple .Item:MapleSyrup .Item:SuperSoda
+.Item:Lime .Item:KoopaLeaf .Item:SuperSoda
+.Item:Lime .Item:Lemon .Item:SuperSoda
+.Item:Lime .Item:BlueBerry .Item:SuperSoda
+.Item:Lime .Item:RedBerry .Item:SuperSoda
+.Item:Lime .Item:YellowBerry .Item:SuperSoda
+.Item:Lime .Item:Apple .Item:SuperSoda
+.Item:Lemon .Item:BlueBerry .Item:SuperSoda
+.Item:Lemon .Item:RedBerry .Item:SuperSoda
+.Item:Lemon .Item:YellowBerry .Item:SuperSoda
+.Item:Lemon .Item:MapleSyrup .Item:SuperSoda
+.Item:Lemon .Item:KoopaLeaf .Item:SuperSoda
+.Item:Lemon .Item:Apple .Item:SuperSoda
+.Item:Apple .Item:BlueBerry .Item:SuperSoda
+.Item:Apple .Item:RedBerry .Item:SuperSoda
+.Item:Apple .Item:YellowBerry .Item:SuperSoda
+.Item:JamminJelly .Item:KoopaLeaf .Item:SuperSoda
+.Item:YellowBerry .Item:BlueBerry .Item:SuperSoda
+.Item:YellowBerry .Item:RedBerry .Item:SuperSoda
+.Item:BlueBerry .Item:RedBerry .Item:SuperSoda
+.Item:Coconut .Item:BlueBerry .Item:SuperSoda
+.Item:Coconut .Item:RedBerry .Item:SuperSoda
+.Item:Coconut .Item:YellowBerry .Item:SuperSoda
+.Item:Coconut .Item:Apple .Item:SuperSoda
+.Item:Coconut .Item:Melon .Item:SuperSoda
+.Item:Coconut .Item:KoopaLeaf .Item:SuperSoda
+.Item:BlueBerry .Item:MapleSyrup .Item:SuperSoda
+.Item:RedBerry .Item:MapleSyrup .Item:SuperSoda
+.Item:YellowBerry .Item:MapleSyrup .Item:SuperSoda
+.Item:KoopaLeaf .Item:MapleSyrup .Item:SuperSoda
+.Item:Coconut .Item:MapleSyrup .Item:SuperSoda
+.Item:CakeMix .Item:UltraShroom .Item:UltraShroomCake		%Ultra shroom cake
+.Item:CakeMix .Item:LifeShroom .Item:SuperShroomCake	%Super shroom cake
+.Item:RedBerry .Item:HoneySyrup .Item:TastyTonic
+.Item:YellowBerry .Item:HoneySyrup .Item:TastyTonic
+.Item:BlueBerry .Item:HoneySyrup .Item:TastyTonic
+.Item:Apple .Item:HoneySyrup .Item:TastyTonic
+.Item:Lemon .Item:HoneySyrup .Item:TastyTonic
+.Item:Lime .Item:HoneySyrup .Item:TastyTonic
+.Item:Coconut .Item:HoneySyrup .Item:TastyTonic
+.Item:Lime FFFFFFFF .Item:TastyTonic
+.Item:Lemon FFFFFFFF .Item:TastyTonic
+.Item:BubbleBerry FFFFFFFF .Item:TastyTonic
+.Item:Coconut FFFFFFFF .Item:TastyTonic
+.Item:DriedFruit .Item:VoltShroom .Item:ThunderRage
+.Item:Mushroom .Item:KoopaLeaf .Item:VoltShroom
+.Item:Mushroom .Item:Goomnut .Item:VoltShroom
+.Item:Mushroom .Item:StrangeLeaf .Item:VoltShroom
+.Item:Mushroom .Item:DriedFruit .Item:VoltShroom
+.Item:SuperShroom .Item:DriedFruit .Item:VoltShroom
+.Item:UltraShroom .Item:DriedFruit .Item:VoltShroom
+.Item:LifeShroom .Item:DriedFruit .Item:VoltShroom
+.Item:Melon .Item:CakeMix .Item:YoshiCookie
+.Item:WhackasBump FFFFFFFF .Item:YummyMeal
+.Item:DriedFruit .Item:DriedPasta .Item:YummyMeal
+.Item:DriedFruit .Item:IcedPotato .Item:YummyMeal
+.Item:FireFlower .Item:UltraShroom .Item:YummyMeal
+.Item:DriedPasta .Item:UltraShroom .Item:YummyMeal
+.Item:Egg .Item:UltraShroom .Item:YummyMeal
+.Item:IcedPotato .Item:UltraShroom .Item:YummyMeal
+.Item:StrangeLeaf .Item:IcedPotato .Item:YummyMeal
+.Item:HotShroom .Item:PotatoSalad .Item:YummyMeal
+.Item:Spaghetti .Item:PotatoSalad .Item:YummyMeal
+%New Stuff%
+.Item:CakeMix 	.Item:ShootingStar .Item:StarCake
+}
+
+
+
+
+
+
+
+%screw this, rewrite it to actually make sense
+@ $Function_80242F60
+{
+	PUSH	  	RA, S0, S1, S2, S3, S4
+	LW        	V0, C (A0)
+	JAL       	~Func:get_variable
+	LW        	A1, 0 (V0)
+	COPY      	S4, V0
+	%S4 = V0	
+	LA        	S0, $RecipesDiscovedIDs	
+	LA        	S1, $RecipesDiscovedFlags
+	.looptop
+	LW			S3, 0 (S0)
+	BNE			S3, S4, .postcheck
+	NOP
+	%success, set flag to 1
+	CLEAR     	A0
+	LW		  	A1, 0 (S1)
+	JAL       	~Func:set_variable
+	LI        	A2, 1
+	BEQ			R0, R0, .end
+	NOP
+	.postcheck
+	%post check
+	ADDI	  	S0, S0, 4
+	ADDI	  	S1, S1, 4
+	LW		  	S2, 0 (S1)
+	BEQ			S2, R0, .end
+	NOP
+	BEQ			R0, R0, .looptop
+	NOP
+	.end
+	POP			RA, S0, S1, S2, S3, S4
+	JR			RA
+	LI			V0, 2
+}
+
+
+%Allow access to new items?
+@ $Function_802430D0
+{
+    0:  LI        A0, D9		%5A		%??? table has this many entries *Good thing to know: this is another way the game filters out key items from regular inventory?
+    4:  LA        V1, $End[6CC] %$End[4D0]
+    C:  LI        V0, DF		%DA
+        .o10
+   10:  SW        V0, 0 (V1)
+   14:  ADDIU     V1, V1, FFFC
+   18:  ADDIU     A0, A0, FFFF
+   1C:  BGEZ      A0, .o10
+   20:  ADDIU     V0, V0, FFFF
+   24:  SAW       R0, $End[6D0]
+   2C:  JR        RA
+   30:  LI        V0, 2
+}
+
+
+
 
 
 

@@ -4,13 +4,13 @@
 %Multi-Smash (See Move_SuperSmash.bpat)
 %Recoil Throw (See Move_ShrinkSmash.bpat)
 %Attack FX M (See NewAttackFX.patch)
+%Medicine Man (See Item_Food.bpat)
 %Jumpman
 %Hammerman
 %Pity Flower
-%Perfect Stand
+%Perfect Stand (WIP)
 %Perfect Power (AKA Perfect Rush)
-%First Attack from Dark Star Edition
-%Star Gift (WIP)
+%Star Gift
 
 
 
@@ -196,21 +196,6 @@ NOP
     NOP
 }
 
-%Healthy Healthy -> Perfect Stand
-
-%Remove healthy healthy effect
-%80277D74
-%Need this to fix stone cap stuff
-
-%Overwrite 8027792C
-%but wait! this is in IncreaseMaxHealth.patch!
-%Code moved: last stand now occurs after damage (Makes it less ultra OP)
-@Function 1A620C
-{
-	LHU		V1, 1B8 (S3)	%hooked over (Load mario HP)
-	ORI		V1, R0, 0	%Reset V1 to 0 (Ignore last stand code)
-}
-
 
 
 %Perfect Power, which is a variant of Perfect Rush from DSE.
@@ -308,52 +293,98 @@ NOP
 %LB		V0, 221 (A0) %hooked over	(Attack power boost)
 
 
+% FIRST ATTACK DOESN'T WORK
+% so that it can damage boost first strikes instead
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-%First Attack -> (increases first attack damage)
-/%
-@Function 1C938	%80041538
+@Function 1C938  %1C764 + 1D4
 {
-ORI	V0, R0, 0 %negate first attack instakilling
-}
-%/
-%	^ inside function
-% 0001C764 --> 80041364
-
-
-
-
-%/
-
-%Star Gift is now its own badge instead
-%of replacing Pretty Lucky.
-
-%Star Gift
-%double SP regen
-
-@Function 1A5C28
-{
-ORI	V0, R0, 0 %negate lucky day damage avoidance
+	NOP
+	CLEAR V0
 }
 
-@Hook 1726E8
+
+
+%Copied from ForThamz.patch
+%Add Star Gift from Master Quest, but make it a new badge
+%instead of overwriting Pretty Lucky.
+
+
+#new:Function $FixSPOverflow
 {
-PUSH 	RA, S0, S1, A0 %idk, but if we don't then things break
-ADDIU	S0, V0, 0 %move V0 to S0 temporarily
-JAL     $IsBadgeEquipped %~Func:is_ability_active %800E9D48
-ORI		A0, R0, 170 %pretty lucky
-SAB		R0, 8010EFAF %^ the normal ability checker function is too messy to use here (changes a lot of registers around and causes problems)
-BEQ		A0, R0 .no
-ADDIU	V0, S0, 0
-ORI 	S1, R0, 1
-SAB		S1, 8010EFAF
-ADDIU	V0, V0, 20		
-.no
-ADDIU	V0, V0, 20		%normal SP gain (*each bar is 256 units, you get 32 units per turn, so you get one per 8 turns, or one per 4 turns if doubled)
-POP		RA, S0, S1, A0
-J		80243E10
-SW		V1, 0 (S0) %hooked over
+	PUSH t0, t1, t2
+	LAB t0, 8010F520 %current sp as int
+	LAB t1, 8010F51E %starspirits saved (max SP)
+	SLT t2, t0, t1 %if current sp is less than max, store 01 into t2
+	BNE t2, r0, .end %if t2 = 1 (not 0)
+	NOP
+	SAB t1, 8010F520
+	SAB r0, 8010F521
+    .end
+	POP t0, t1, t2
+	JR RA
+	NOP
 }
 
-%/
+#new:Function $ResetStarIconMaybe
+{
+	PUSH t0, t1
+	LAB t0, 8010F520 %current sp as int
+	LAB t1, 8010F51E %starspirits saved (max SP)
+	SLT t0, t0, t1 %if current sp is less than max, store 01 into t0
+	BNE t0, r0, .end %if t2 = 1 (not 0)
+		NOP
+	SAB 		  R0, 8010EFAF 
+    .end
+	POP t0, t1
+	JR RA
+	NOP
+}
+
+@Hook 1726F0                                % Hooking into the SP Regen Function
+{
+  PUSH        V0                            % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Pretty Lucky
+  ADDIU       A0, R0, 170                    % id of badge (Star Gift - 170) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  ORI 		  v0, r0, 0001
+  SAB 		  v0, 8010EFAF 					% If 01, star appears
+  JAL         $ResetStarIconMaybe               
+  NOP
+  LIO         S0, $SPSubtractArguments3      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  JAL         $FixSPOverflow                
+  NOP
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0                            % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  J           80243E14                      % Return to the Script
+  NOP                                       % Nullpointer below the J, because a J ALWAYS reads the next line too
+  .NotEquipped
+  ORI 		  v0, r0, 0000
+  SAB 		  v0, 8010EFAF 					% If 00, no star appears
+  LIO         S0, $SPSubtractArgument2      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  JAL         $FixSPOverflow                
+  NOP
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0                            % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  J           80243E14                      % Return to the Script
+  NOP                                       % Nullpointer below the J, because a J ALWAYS reads the next line too
+}
+
+#new:Data $SPSubtractArguments3
+{
+FFFFFFFF 000000C0                           % DO NOT CHANGE - It doubles the regen!
+}
+
+#new:Data $SPSubtractArgument2
+{
+FFFFFFFF 000000E0
+}
+
+

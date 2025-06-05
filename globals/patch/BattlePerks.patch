@@ -1,0 +1,118 @@
+#new:Data $BattlePerks	
+{
+00000000 %four bytes: mega bomb tracker, hustle cache, happy badge turn even/odd counter, free partner action check
+}
+
+
+%dodge master just that little bit better
+
+@Function 1978B0 %1977AC+104
+{
+	ADDIU S0, R0, 6
+}
+
+
+#new:Function $Function_refund_current_move_fp
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  LA        A0, 800DC070
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S1, 14 (SP)
+   18:  SW        S0, 10 (SP)
+   1C:  LH        V1, 17C (A0)
+   20:  LA        S2, 8010F290
+   28:  SLL       V0, V1, 2
+   2C:  ADDU      V0, V0, V1
+   30:  SLL       V0, V0, 2
+   34:  LTB       S0, V0 (8008F071)
+   40:  LW        S1, D8 (A0)
+   44:  BEQ       S0, R0, .o74
+   48:  COPY      A0, S1
+   4C:  JAL       802672AC	%~Func:player_team_is_ability_active
+   50:  LI        A1, 18	%flower saver
+   54:  SUBU      S0, S0, V0
+   58:  COPY      A0, S1
+   5C:  JAL       802672AC	%~Func:player_team_is_ability_active
+   60:  LI        A1, 26	%flower fanatic
+   64:  SLL       V0, V0, 1
+   68:  SUBU      S0, S0, V0
+   6C:  BLEZL     S0, .o74
+   70:  LI        S0, 1
+        .o74
+   74:  LBU       V0, 5 (S2)
+   78:  ADDU      V0, V0, S0	%this DOES NOT check if the FP would overcap, but since we just deducted it it's probably fine
+   7C:  SB        V0, 5 (S2)
+   80:  LW        RA, 1C (SP)
+   84:  LW        S2, 18 (SP)
+   88:  LW        S1, 14 (SP)
+   8C:  LW        S0, 10 (SP)
+   94:  ADDIU     SP, SP, 20 
+   90:  JR        RA
+   		ADDIU	  V0, R0, 2 %required script return code
+}
+	%get arg: cost
+	
+	%check flower savers and subtract (maybe use is_abil_active)
+	
+	%flower fanatic too
+
+	%if result is below 1, rectify to 1
+	
+	%add to Mario's FP
+	
+	%rectify FP if above max
+	
+	
+	
+	
+%%%%%%% FREE ACTIONS FOR PARTNERS
+%%%%%%% Calling $FreePartnerTurn will make a partner action not use a turn. Used for Goombario's tattle.
+
+#new:Function $FreeTurn
+{
+ADDIU 	V0, R0, 1
+SAB 	V0, $BattlePerks[3]
+JR RA
+ADDIU	V0, R0, 2
+}
+
+@Hook 174D74   %00174D30 --> 80246450 - end player turn + 44
+{
+	%since we got here at the very start of the function, we can just redirect control flow and have done with it. Critically, we can use the function's own turn set functionality to cause Mario to get another turn.
+	LAB			S0, $BattlePerks[3]
+	BEQL		S0, R0, .normal
+		LW			S0, D8 (S3)  %in original code - eaten by hook
+		
+	SAB			R0, $BattlePerks[3] %reset free byte	
+	J			80246AEC	%80246450+69C %calls state update and gets out
+	ADDIU		A0, R0, C 	%'renew turn' value
+	
+	.normal
+	J 			8024649C %80246450+4C
+	LW			V0, 0 (A0) %in original code
+	
+}
+
+
+@Hook 175B1C %EndPartnerTurn (8024721C) +20
+{
+	%now uses the same strategy as the Mario one, but different registers are unused
+	%this means turn doesn't cycle over to Mario after a free action
+	LAB			V0, $BattlePerks[3]
+	BEQL		V0, R0, .normal
+		LW			V0, 4 (S0)  %in original code - eaten by hook
+		
+	SAB			R0, $BattlePerks[3] %reset free byte	
+	J			8024728C	%8024721C+70 %calls state update and gets out
+	ADDIU		A0, R0, C 	%'renew turn' value
+	
+	.normal
+	J 			80247244 %8024721C+28
+	ORI			V0, V0, 4 %in original code	
+}
+
+
+#export $FreeTurn
+#export $BattlePerks
+#export $Function_refund_current_move_fp

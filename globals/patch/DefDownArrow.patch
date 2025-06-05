@@ -1,0 +1,518 @@
+%Add a new arrow to display when an enemy has defdown
+
+%Same as the chill out arrow but red
+
+%note: chill out normally displays on top
+
+
+%What code reads from the chill out value to determine if an arrow should appear?
+%	Notes
+%		Using ram editing to apply chill out will cause an arrow to appear, so the check is every frame
+%		Also, applying chill out will make an arrow appear, but removing it will not make the arrow fade out
+%		However, anything that hides the icons temporarily will cause the arrow to end up in the correct state (either appearing or not appearing)
+
+%223 + actor pointer is the one read to determine if chill out is applied
+
+%Code that checks it every frame
+%	8026F3FC
+%		run sometimes (not always)?
+%	80256D60
+%		Run every frame when stuff should be displayed
+%		Does control chill out arrow appearing and part of disappearing (Setting it to 0 will not make the arrow immediately disappear)
+%		note that the partner can have a chill out arrow
+
+%Part of 
+%	001848C0 --> 80255FE0
+%around D80
+/%  
+  D74:  LH        A0, 436 (S2)		 %some kind of effect related thing	
+  D78:  JAL       80047A30			%invis stuff?
+  D7C:  LI        A1, E
+        .oD80
+  D80:  LB        V0, 223 (S2)
+  D84:  BEQ       V0, R0, .oDBC
+  D88:  NOP
+  D8C:  JAL       80047B38				%Add chill out
+  D90:  LH        A0, 436 (S2)
+  D94:  BEQ       R0, R0, .oDBC
+  D98:  NOP
+        .oD9C						%Looks like stuff for the other statuses
+  D9C:  JAL       800478F8
+  DA0:  LH        A0, 436 (S2)
+  DA4:  JAL       80047A00
+  DA8:  LH        A0, 436 (S2)
+  DAC:  JAL       80047B08
+  DB0:  LH        A0, 436 (S2)
+  DB4:  JAL       80047BE4
+  DB8:  LH        A0, 436 (S2)
+        .oDBC
+  DBC:  LW        A0, 84 (S1)
+%/
+
+
+%Arrow fade out
+%	Occurs when the turn counter ticks from 1 to 0
+%	80242860 looks like the code to look for
+
+%Part of 
+% 00170904 --> 80242024
+%around 83C
+
+%BNEZL		V0, 80242878		%Skip if its not time to fade out
+%ADDIU		S2, S2, 1			%	usually skipped over?
+%LH			A0, 436 (V1)		%?	changing this doesn't do much
+%JAL		80047B84			%remove chill out effect? (not in libs)
+%SB			R0, 223 (V1)		%Remove chill out
+%SAW		S4, 8029F258		%animation timer? (low values cause the animation to stop early, but effect still disappears)
+%ADDIU		S2, S2, 1
+%SLTI		V0, S2, 18			%Branch jumps to here (check all enemy chill out vals?)
+%BNEZ		V0, 80242824
+%ADDIU		S0, S0, 4
+
+
+
+%80047B38
+/%
+	SLL		V0, A0, 1		%A0 * 2
+	ADDU	V0, V0, A0		%A0 * 3
+	SLL		V0, V0, 2		%A0 * 12
+	SUBU	V0, V0, A0		%A0 * 11
+	LAW		V1, 800A0F44
+	SLL		V0, V0, 4		%A0 * 176 (0xB0)
+	ADDU	A1, V1, V0		
+	ADDIU	V1, R0, FFDF
+	LW		V0, 0 (A1)
+	LB		A0, 68 (A1)		%if nonzero, skip to end
+	AND		V0, V0, V1
+	BNEZ	A0, 80047B7C	%end
+	SW		V0, 0 (A1)
+	ADDIU	V0, R0, 1
+	SB		V0, 68 (A1)
+	SB		V0, 6A (A1)
+	JR		RA
+	NOP
+%/
+
+#new:Function $WeirdFunctionA
+{
+	SLL		V0, A0, 1		%A0 * 2
+	ADDU	V0, V0, A0		%A0 * 3
+	SLL		V0, V0, 2		%A0 * 12
+	SUBU	V0, V0, A0		%A0 * 11
+	LAW		V1, 800A0F44
+	SLL		V0, V0, 4		%A0 * 176 (0xB0)
+	ADDU	A1, V1, V0		
+	ADDIU	V1, R0, FFDF
+	LW		V0, 0 (A1)
+	LB		A0, 88 (A1)		%if nonzero, skip to end
+	AND		V0, V0, V1
+	BNE		A0, R0, 		.end	%end
+	SW		V0, 0 (A1)
+	ADDIU	V0, R0, 1
+	SB		V0, 88 (A1)
+	SB		V0, 8A (A1)
+	.end
+	JR		RA
+	NOP
+}
+
+%80047B84
+/%
+	SLL		V0, A0, 1		%A0 * 2
+	ADDU	V0, V0, A0		%A0 * 3
+	SLL		V0, V0, 2		%A0 * 12
+	SUBU	V0, V0, A0		%A0 * 11
+	LAW		V1, 800A0F44
+	SLL		V0, V0, 4		%A0 * 176 (0xB0)
+	ADDU	A0, V1, V0
+	LB		V0, 68 (A0)
+	BEQZ	V0, 80047BDC	%end
+	LBU		V1, 68 (A0)
+	LB		V0, 69 (A0)
+	BNEZ	V0, 80047BDC	%end
+	ADDIU	V0, R0, 1
+	SB		V1, 69 (A0)
+	LW		V1, 70 (A0)
+	SB		V0, 6B (A0)
+	ADDIU	V0, R0, A
+	SB		R0, 68 (A0)
+	SB		R0, 6A (A0)
+	SB		V0, 6D (A0)
+	SB		V1, 74 (A0)
+	JR		RA
+	NOP
+%/
+
+#new:Function $WeirdFunctionB
+{
+	SLL		V0, A0, 1		%A0 * 2
+	ADDU	V0, V0, A0		%A0 * 3
+	SLL		V0, V0, 2		%A0 * 12
+	SUBU	V0, V0, A0		%A0 * 11
+	LAW		V1, 800A0F44
+	SLL		V0, V0, 4		%A0 * 176 (0xB0)
+	ADDU	A0, V1, V0
+	LB		V0, 88 (A0)
+	BEQ		V0, R0, .end	%end
+	LBU		V1, 88 (A0)
+	LB		V0, 89 (A0)
+	BNE		V0, R0, .end	%end
+	ADDIU	V0, R0, 1
+	SB		V1, 89 (A0)
+	LW		V1, 80 (A0)
+	SB		V0, 8B (A0)
+	ADDIU	V0, R0, A
+	SB		R0, 88 (A0)
+	SB		R0, 8A (A0)
+	SB		V0, 8D (A0)
+	SB		V1, 94 (A0)
+	.end
+	JR		RA
+	NOP
+}
+
+%Clear space for new stuff
+%look around 80047608
+
+%It looks like a lot of data in the weird icon data struct is unused
+
+%800476D0
+@Hook 22AD0
+{
+	SB		R0, 88 (A0)
+	SB		R0, 89 (A0)
+	SB		R0, 8A (A0)
+	SB		R0, 8B (A0)
+	SB		R0, 8D (A0)
+	SB		R0, 94 (A0)
+	SW		R0, 80 (A0)		%Base game doesn't clear out 70 + pointer 
+	%
+	SB		R0, 78 (A0)
+	J		800476D8
+	SB		R0, 79 (A0)
+}
+
+
+
+%Star rod won't let me declare things of these data types :(
+/%
+#new:HudElementScript $HudElementScript_DefDownArrow
+{
+	SetVisible
+	SetCustomSize   ( 16` 16` )
+	Loop
+		SetCI       ( 6` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+		SetCI       ( 6` $IntTable_DefDownArrow_RasterB $IntTable_DefDownArrow_PaletteB )
+	Restart
+	End
+}
+
+%16 x 16
+#new:IntTable $IntTable_DefDownArrow_RasterA
+{
+	00000555 55500000 
+	00054211 11245000 
+	00521111 11112500 
+	05211177 78111250
+	04111176 68111140 
+	F2111176 68111125 
+	F1111176 68111115 
+	F1111176 68111115
+	F1177776 68888115 
+	F1117666 66681115 
+	F1111766 66811125 
+	F1111176 68111140
+	F1111117 81111250 
+	F1111111 11112500 
+	F1111111 11245000 
+	FFFFFFFF FFF00000
+}
+
+#new:IntTable $IntTable_DefDownArrow_PaletteA
+{
+	4210DEF7 B5AD94A5 52954211 003F00F3 00230001 00010001 00010001 00012109
+}
+	%Original
+	%4210 DEF7 B5AD 94A5 5295 4211 F801 C8C1 8801 0001 0001 0001 0001 0001 0001 2109
+	%[01000 01000 01000 0] [8,8,8,0]
+	%[11011 11011 11011 1] [27,27,27,1]
+	%[10110 10110 10101 1] [22,22,21,1]
+	%[10110 10110 10101 1] [22,22,21,1]
+	%[01010 01010 01010 1] [10,10,10,1]
+	%[01000 01000 01000 1] [8,8,8,1]
+	%[11111 00000 00000 1] [15,0,0,1]		003F [0,0,15,1]
+	%[11001 00011 00000 1] [25,3,0,1] 		00F3 [0,3,25,1] [00000 00011 11001 1]
+	%[10001 00000 00000 1] [17,0,0,1]		0023 [0,0,17,1] [00000 00000 10001 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00100 00100 00100 1] [4,4,4,1]
+	
+	
+%16 x 16
+#new:IntTable $IntTable_DefDownArrow_RasterB
+{
+	00000555 55500000 
+	00054211 11245000 
+	00521111 11112500 
+	05211111 11111250
+	04111177 78111140 
+	F2111176 68111125 
+	F1111176 68111115 
+	F1111176 68111115
+	F1111176 68111115 
+	F1177776 68888115 
+	F1117666 66681125 
+	F1111766 66811140
+	F1111176 68111250 
+	F1111117 81112500 
+	F1111111 11245000 
+	FFFFFFFF FFF00000
+}
+
+#new:IntTable $IntTable_DefDownArrow_PaletteB
+{
+	4210DEF7 B5AD94A5 52954211 003F00F3 00230001 00010001 00010001 00012109
+}
+
+%fadeout and fadein are also hud elements (!?)
+
+% Origin: HEURISTIC
+% 0009F78C --> 801062DC
+#new:HudElementScript $HudElementScript_DefDownArrow_FadeIn
+{
+	SetVisible
+	SetCustomSize   ( 16` 16` )
+	SetAlpha    ( 30` )
+	AddTexelOffset  ( 0000000A FFFFFFF6 )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 50` )
+	AddTexelOffset  ( 00000008 FFFFFFF8 )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 80` )
+	AddTexelOffset  ( 00000006 FFFFFFFA )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 120` )
+	AddTexelOffset  ( 00000005 FFFFFFFB )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 170` )
+	AddTexelOffset  ( 00000004 FFFFFFFC )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 200` )
+	AddTexelOffset  ( 00000003 FFFFFFFD )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 220` )
+	AddTexelOffset  ( 00000002 FFFFFFFE )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 240` )
+	AddTexelOffset  ( 00000001 FFFFFFFF )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 255` )
+	AddTexelOffset  ( 00000000 00000000 )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	Loop
+		SetCI       ( 6` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+		SetCI       ( 6` $IntTable_DefDownArrow_RasterB $IntTable_DefDownArrow_PaletteB )
+	Restart
+	End
+}
+
+% Origin: HEURISTIC
+% 0009F90C --> 8010645C
+#new:HudElementScript $HudElementScript_DefDownArrow_FadeOut
+{
+	SetVisible
+	SetCustomSize   ( 16` 16` )
+	SetAlpha    ( 255` )
+	AddTexelOffset  ( 00000000 00000000 )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 240` )
+	AddTexelOffset  ( 00000001 FFFFFFFF )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 220` )
+	AddTexelOffset  ( 00000002 FFFFFFFE )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 200` )
+	AddTexelOffset  ( 00000003 FFFFFFFD )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 170` )
+	AddTexelOffset  ( 00000004 FFFFFFFC )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 120` )
+	AddTexelOffset  ( 00000005 FFFFFFFB )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 80` )
+	AddTexelOffset  ( 00000006 FFFFFFFA )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 50` )
+	AddTexelOffset  ( 00000008 FFFFFFF8 )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	SetAlpha    ( 30` )
+	AddTexelOffset  ( 0000000A FFFFFFF6 )
+	SetCI       ( 1` $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA )
+	End
+}
+%/
+
+
+%16 x 16
+#new:Data $IntTable_DefDownArrow_RasterA
+{
+	00000555 55500000 
+	00054211 11245000 
+	00521111 11112500 
+	05211177 78111250
+	04111176 68111140 
+	F2111176 68111125 
+	F1111176 68111115 
+	F1111176 68111115
+	F1177776 68888115 
+	F1117666 66681115 
+	F1111766 66811125 
+	F1111176 68111140
+	F1111117 81111250 
+	F1111111 11112500 
+	F1111111 11245000 
+	FFFFFFFF FFF00000
+}
+
+#new:Data $IntTable_DefDownArrow_PaletteA
+{
+	4210DEF7 B5AD94A5 52954211 003F00F3 00230001 00010001 00010001 00012109
+}
+	%Original
+	%4210 DEF7 B5AD 94A5 5295 4211 F801 C8C1 8801 0001 0001 0001 0001 0001 0001 2109
+	%[01000 01000 01000 0] [8,8,8,0]
+	%[11011 11011 11011 1] [27,27,27,1]
+	%[10110 10110 10101 1] [22,22,21,1]
+	%[10110 10110 10101 1] [22,22,21,1]
+	%[01010 01010 01010 1] [10,10,10,1]
+	%[01000 01000 01000 1] [8,8,8,1]
+	%[11111 00000 00000 1] [15,0,0,1]		003F [0,0,15,1]
+	%[11001 00011 00000 1] [25,3,0,1] 		00F3 [0,3,25,1] [00000 00011 11001 1]
+	%[10001 00000 00000 1] [17,0,0,1]		0023 [0,0,17,1] [00000 00000 10001 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00000 00000 00000 1]
+	%[00100 00100 00100 1] [4,4,4,1]
+	
+	
+%16 x 16
+#new:Data $IntTable_DefDownArrow_RasterB
+{
+	00000555 55500000 
+	00054211 11245000 
+	00521111 11112500 
+	05211111 11111250
+	04111177 78111140 
+	F2111176 68111125 
+	F1111176 68111115 
+	F1111176 68111115
+	F1111176 68111115 
+	F1177776 68888115 
+	F1117666 66681125 
+	F1111766 66811140
+	F1111176 68111250 
+	F1111117 81112500 
+	F1111111 11245000 
+	FFFFFFFF FFF00000
+}
+
+#new:Data $IntTable_DefDownArrow_PaletteB
+{
+	4210DEF7 B5AD94A5 52954211 003F00F3 00230001 00010001 00010001 00012109
+}
+
+
+
+%Normal
+#new:Data $HudElementScript_DefDownArrow
+{
+	00000008 
+	00000013 00000010 00000010 
+	00000004 
+	00000002 00000006 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	00000002 00000006 $IntTable_DefDownArrow_RasterB $IntTable_DefDownArrow_PaletteB 
+	00000003 
+	00000000
+}
+
+%Fadein
+#new:Data $HudElementScript_DefDownArrow_FadeIn
+{
+	00000008 
+	00000013 00000010 00000010
+	0000000F 0000001E 
+	0000000C 0000000A FFFFFFF6 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 00000032 
+	0000000C 00000008 FFFFFFF8 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 00000050
+	0000000C 00000006 FFFFFFFA 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 00000078 
+	0000000C 00000005 FFFFFFFB
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA
+	0000000F 000000AA 
+	0000000C 00000004 FFFFFFFC 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 000000C8 0000000C
+	00000003 FFFFFFFD 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 000000DC
+	0000000C 00000002 FFFFFFFE 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 000000F0 
+	0000000C 00000001 FFFFFFFF
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA
+	0000000F 000000FF 
+	0000000C 00000000 00000000 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	00000004 
+	00000002 00000006 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	00000002 00000006 $IntTable_DefDownArrow_RasterB $IntTable_DefDownArrow_PaletteB 
+	00000003 
+	00000000
+}
+
+%Fadeout
+#new:Data $HudElementScript_DefDownArrow_FadeOut
+{
+	00000008 
+	00000013 00000010 00000010
+	0000000F 000000FF 
+	0000000C 00000000 00000000 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 000000F0 
+	0000000C 00000001 FFFFFFFF 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 000000DC 
+	0000000C 00000002 FFFFFFFE 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 000000C8 
+	0000000C 00000003 FFFFFFFD 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA
+	0000000F 000000AA 
+	0000000C 00000004 FFFFFFFC 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 00000078 
+	0000000C 00000005 FFFFFFFB 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 00000050 
+	0000000C 00000006 FFFFFFFA 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	0000000F 00000032 
+	0000000C 00000008 FFFFFFF8
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA
+	0000000F 0000001E 
+	0000000C 0000000A FFFFFFF6 
+	00000002 00000001 $IntTable_DefDownArrow_RasterA $IntTable_DefDownArrow_PaletteA 
+	00000000
+}

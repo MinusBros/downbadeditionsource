@@ -1,0 +1,76 @@
+%Subtract sp
+%8010EFAF set to 01 for star flash
+
+#new:Function $SPSubtractMainFunction
+{
+PUSH a0, a1, v0, ra
+JAL ~Func:get_variable
+LW a1, 0000 (s0) %arg 1 from script, what to subtract
+%returns value to v0 regardless if it was a var or not
+PUSH v0 %push int amount to stack
+JAL ~Func:get_variable
+LW a1, 0004 (s0)
+ADD v1, v0, r0 %move v0 to v1
+POP v0 %restore int amount from stack
+JAL $SPSubtractionFunction
+NOP
+POP a0, a1, v0, ra
+JR ra
+NOP
+}
+
+#new:Function $SPSubtractionFunction %takes args v0, v1 (v0 = int amount to subtract, v1 = partial amount to subtract)
+{
+PUSH v0, v1, t0, t1
+LAB t0, 8010F520 %current sp as int
+SLT t1, t0, v0 %if current sp is smaller than amount to subtract, set t1 = 01
+BEQ t1, r0, .subtractint
+NOP
+%execution only gets here if int amount to subtract is greater than current sp
+%if so, clear sp completely
+.clear
+SAH r0, 8010F520 %current sp
+BEQ r0, r0, .end
+NOP
+.afterint
+LAB t2, 8010F521
+SLL t2, t2, 18 %make t2 positive if negative
+SRL t2, t2, 18
+SLT t1, t2, v1 %if current sp partial is smaller than amount to subtract, t1 = 01
+BEQ t1, r0, .subtractpartial
+NOP
+ADDIU t0, t0, FFFF
+LIO t1, FFFFFFFF
+BEQ t0, t1, .setpartialto0
+NOP
+%
+SAB t0, 8010F520 %current sp
+SUBU v1, t2, v1
+SAB v1, 8010F521 %current partial sp
+BEQ r0, r0, .end
+NOP
+.subtractint
+SUB t0, t0, v0
+SAB t0, 8010F520 %current sp
+BEQ r0, r0, .afterint
+NOP
+.setpartialto0
+SAB r0, 8010F521 %current partial sp
+BEQ r0, r0, .end
+NOP
+.subtractpartial
+SUB t1, t2, v1
+SAB t1, 8010F521 %current partial sp
+BEQ r0, r0, .end
+NOP
+.end
+%ORI v0, r0, 0001
+%SAB v0, 8010EFAF %if 01, star appears
+POP v0, v1, t0, t1
+JR ra
+NOP
+}
+
+
+#export $SPSubtractMainFunction
+#export $SPSubtractionFunction

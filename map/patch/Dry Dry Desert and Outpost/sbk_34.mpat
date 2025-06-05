@@ -17,3 +17,58 @@
 {
 	[40]  Wait 50`
 }
+
+
+
+
+@ $Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
+   30:  	Call  DisablePulseStone ( .False )
+   40:  EndIf
+   48:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   68:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   84:  Call  SetCamEnabled ( .Cam:Default .True )
+   98:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+	Call     MakeNpcs   ( 00000000 $NpcGroupList_80241D90 )
+	Call     $Function_80240000 ( )
+	Call     SetMusicTrack    	( 00000000 00000017 00000000 00000008 )
+	Call  	 MakeEntity    ( .Entity:HealingBlock ~Vec3d:HeartBlock ~Angle:HeartBlock 80000000 ) %0, 60,-90 : 270.0000
+	Call	 MakeEntity       	( .Entity:SavePoint ~Vec3d:NewSave ~Angle:NewSave 80000000 )
+	Exec	 $SetInitialPosition
+	Exec	 $Script_80242768 
+	Return
+	End
+}
+	
+@ $TreeDropList_Tree1 %renamed from $TreeDropList_80242724 as of SR3
+{
+00000001 
+.Item:Coin ~Vec3d:Tree80242724_Drop0 0000000F *GameFlag[0347] 00000000 
+}
+
+% required to spawn the player at the save point (if applicable)
+#new:Script $SetInitialPosition
+{
+	Call     GetLoadType	( *Var[1] )
+	If       *Var[1]  ==  00000001
+		Exec     80285CB0
+		Exec     $Script_80240BD0
+		Return
+	EndIf
+	Set  	*Var[0] $Script_80240BD0 
+	Exec     80285960
+	Return
+	End
+}
+	
+#new:Script $DisplaySignText
+{
+    0:  Call     DisablePlayerInput	( .True )
+   10:  Call     ShowMessageAtScreenPos     	( 001D0183 000000A0 00000028 )
+   28:  Call     DisablePlayerInput	( .False )
+   38:  Return
+   40:  End
+}

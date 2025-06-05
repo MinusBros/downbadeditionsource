@@ -17,3 +17,70 @@
 {
 	[40]  Wait 50`
 }
+
+
+
+@ $Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
+   30:  	Call  DisablePulseStone ( .False )
+   40:  EndIf
+   48:  Call     SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+   68:  Call     SetCamBGColor 	( .Cam:Default 00000000 00000000 00000000 )
+   84:  Call     SetCamEnabled 	( .Cam:Default .True )
+   98:  Call     SetCamLeadPlayer 	( .Cam:Default .False )
+		Exec     $Script_SandFlow
+   AC:  ExecWait $Script_MakeEntities 
+   B8:  Call     $Function_80240000 ( )
+   C4:  Call     SetMusicTrack 	( 00000000 .Song:DryDryDesert 00000000 00000008 )
+   E0:  Set      *Var[0] $Script_80240230 
+   F0:  Exec     EnterWalk 
+   FC:  Return
+  104:  End
+}
+
+#new:Script $Script_SandFlow
+{
+	Call     EnableTexPanning 	( ~Model:SandFlowA .True )
+	Call     EnableTexPanning 	( ~Model:SandFlowB .True )
+	Set      *Var[0] 00000000 
+	Loop     
+		Add      *Var[0] 100`  
+		Call     802C9364 ( 00000001 00000000 00000000 *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+
+@ $Script_MakeEntities
+{
+    0:  Call     MakeEntity       	( .Entity:MultiCoinBrick ~Vec3d:Entity802403C0 ~Angle:Entity802403C0 80000000 )
+   24:  Call     AssignBlockFlag 	( *GF_SBK52_MultiCoinBrick )
+   34:  Call     MakeEntity       	( .Entity:BrickBlock ~Vec3d:Entity802403F4 ~Angle:Entity802403F4 80000000 )
+   58:  Call     MakeEntity       	( .Entity:BrickBlock ~Vec3d:Entity80240418 ~Angle:Entity80240418 80000000 )
+		Call     MakeEntity			( .Entity:Signpost ~Vec3d:Sign ~Angle:Sign 80000000 )
+		Call     AssignScript		( $DisplaySignText )
+   7C:  Return
+   84:  End
+}
+
+#new:Script $DisplaySignText
+{
+	Call     DisablePlayerInput	( .True )
+	Call     ShowMessageAtScreenPos     	( $SignText 000000A0 00000028 )
+	Call     DisablePlayerInput	( .False )
+	Return
+	End
+}
+
+#string $SignText
+{
+[DelayOff][Style Sign]
+Wayward Wanderer:[BR]
+Twisters command the winds that[BR]
+drive the dunes. They know ways[BR]
+through the desert.[DelayOn][Wait][End]
+}

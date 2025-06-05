@@ -1,3 +1,5 @@
+#define .NpcID:GoombaBros_00        00
+#define .NpcID:GoombaBros_01        01
 #define .NpcID:GoombaKing_02        02
 
 
@@ -230,15 +232,137 @@
 
 @	$Script_Idle_80244390
 {
-  [308]  Wait  12`
-  [314]  Call  StartBossBattle   ( .Song:GoombaKingTheme )
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_DefeatedGoombaKing % FFFFFF90
+   18:  		If  *GF_KMR11_GoombaBrosFledToCastle  ==  .True
+   28:  			Call  GetNpcPos ( .NpcID:GoombaKing_02 *Var0 *Var1 *Var2 )
+   44:  			Call  AwaitPlayerApproach   ( *Var0 *Var2 0000012C )
+   5C:  			Call  DisablePlayerInput    ( .True )
+   6C:  			Call  SetPlayerSpeed        ( *Fixed[5.0] )
+   7C:  			Call  PlayerMoveTo  (  -564`  -64`  0` )
+   94:  		Else
+   9C:  			Label  0
+   A8:  			Call  GetSelfVar    ( 00000000 *Var0 )
+   BC:  			If  *Var0  ==  00000000
+   CC:  				Wait  1`
+   D8:  				Goto  0
+   E4:  			EndIf
+   EC:  		EndIf
+   F4:  	Case  >=  .Story:Ch0_DefeatedGoombaKing % FFFFFF90
+  100:  		Return
+  108:  EndSwitch
+  110:  Call  SetNpcJumpscale   ( .NpcID:GoombaBros_01 *Fixed[0.8] )
+  124:  Call  SetNpcJumpscale   ( .NpcID:GoombaBros_00 *Fixed[0.8] )
+  138:  Call  SetNpcJumpscale   ( .NpcID:GoombaKing_02 *Fixed[1.2] )
+  14C:  Thread
+  154:  	Call  GetNpcPos ( .NpcID:GoombaBros_01 *Var0 *Var1 *Var2 )
+  170:  	Call  GetAngleToPlayer  ( .NpcID:GoombaBros_01 *Var3 )
+  184:  	Call  AddVectorPolar    ( *Var0 *Var2 *Fixed[100.0] *Var3 )
+  1A0:  	Call  PlaySoundAtNpc    ( .NpcID:GoombaBros_01 0000010F 00000000 )
+  1B8:  	Call  NpcJump0  ( .NpcID:GoombaBros_01 *Var0  0` *Var2  30` )
+  1D8:  EndThread
+  1E0:  Thread
+  1E8:  	Call  GetNpcPos ( .NpcID:GoombaBros_00 *Var0 *Var1 *Var2 )
+  204:  	Call  GetAngleToPlayer  ( .NpcID:GoombaBros_00 *Var3 )
+  218:  	Call  AddVectorPolar    ( *Var0 *Var2 *Fixed[100.0] *Var3 )
+  234:  	Call  PlaySoundAtNpc    ( .NpcID:GoombaBros_00 0000010F 00000000 )
+  24C:  	Call  NpcJump0  ( .NpcID:GoombaBros_00 *Var0  0` *Var2  30` )
+  26C:  EndThread
+  274:  Thread
+  27C:  	Call  GetNpcPos ( .NpcID:GoombaKing_02 *Var0 *Var1 *Var2 )
+  298:  	Call  GetAngleToPlayer  ( .NpcID:GoombaKing_02 *Var3 )
+  2AC:  	Call  AddVectorPolar    ( *Var0 *Var2 *Fixed[100.0] *Var3 )
+  2C8:  	Call  PlaySoundAtNpc    ( .NpcID:GoombaKing_02 000003E7 00000000 )
+  2E0:  	Call  NpcJump0  ( .NpcID:GoombaKing_02 *Var0  0` *Var2  30` )
+  300:  EndThread
+  308:  Wait  10`
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0
+  314:  Call  StartBossBattle   ( .Song:GoombaKingTheme )
+  324:  Return
+  32C:  End
+}
+
+
+@	$Script_802446C4
+{
+    0:  Call  SetEncounterStatusFlags   ( 00000002 .True )
+   14:  Call  $Function_8024023C ( )
+   20:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   38:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   54:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   70:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   84:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-8.0] )
+   9C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   B4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+   C8:  Call  $Function_80240344        ( 00000019 )
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
+   D8:  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 00630003 00630001 00000000 000B00D1 ) % Wh...wh...what!? How could I lose?
+   F8:  Call  SetNpcSpeed   ( .NpcID:GoombaBros_00 *Fixed[9.0] )
+  10C:  Call  SetNpcSpeed   ( .NpcID:GoombaBros_01 *Fixed[9.0] )
+  120:  Call  SetNpcSpeed   ( .NpcID:GoombaKing_02 *Fixed[9.0] )
+  134:  Call  SetNpcAnimation   ( .NpcID:GoombaBros_00 00620106 )
+  148:  Call  SetNpcAnimation   ( .NpcID:GoombaBros_01 00620006 )
+  15C:  Call  SetNpcAnimation   ( .NpcID:GoombaKing_02 00630004 )
+  170:  Thread
+  178:  	Call  NpcMoveTo ( .NpcID:GoombaKing_02  -358`  -107`  0` )
+  194:  EndThread
+  19C:  Thread
+  1A4:  	Wait  20`
+  1B0:  	Call  NpcMoveTo ( .NpcID:GoombaBros_00  -396`  -121`  0` )
+  1CC:  EndThread
+  1D4:  Thread
+  1DC:  	Wait  20`
+  1E8:  	Call  NpcMoveTo ( .NpcID:GoombaBros_01  -396`  -89`  0` )
+  204:  EndThread
+  20C:  Wait  1`
+  218:  Call  PlaySoundAtCollider   ( ~Collider:tt .Sound:MetalDoorOpen 00000000 )
+  230:  Call  MakeLerp      ( 00000000 0000005A 00000014 .Easing:CosInOut )
+  24C:  Label  0
+  258:  Call  UpdateLerp ( )
+  264:  Call  RotateModel   ( ~Model:o416 *Var0 00000000 FFFFFFFF 00000000 )
+  284:  Call  RotateModel   ( ~Model:o415 *Var0 00000000 00000001 00000000 )
+  2A4:  Wait  1`
+  2B0:  If  *Var1  ==  00000001
+  2C0:  	Goto  0
+  2CC:  EndIf
+  2D4:  Wait  3`
+  2E0:  Call  MakeLerp      ( 0000005A 00000000 00000014 .Easing:CosInOut )
+  2FC:  Label  1
+  308:  Call  UpdateLerp ( )
+  314:  Call  RotateModel   ( ~Model:o416 *Var0 00000000 FFFFFFFF 00000000 )
+  334:  Call  RotateModel   ( ~Model:o415 *Var0 00000000 00000001 00000000 )
+  354:  Wait  1`
+  360:  If  *Var1  ==  00000001
+  370:  	Goto  1
+  37C:  EndIf
+  384:  Call  PlaySoundAtCollider   ( ~Collider:tt .Sound:MetalDoorClose 00000000 )
+  39C:  Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[2.0] )
+  3B8:  Set   *GB_StoryProgress  .Story:Ch0_DefeatedGoombaKing
+  3C8:  Exec  $Script_802411C0
+  3D4:  Call  AdjustCam ( .Cam:Default *Fixed[4.0]  0` *Fixed[250.0] *Fixed[15.0] *Fixed[-7.5] )
+  3F8:  Wait  4`
+  404:  Call  DisablePartnerAI  ( 00000000 )
+  414:  Call  SpeakToPlayer     ( .Npc:Partner 00010008 00010001 00000000 000B00D2 ) % Yeah! I knew we could do it! Cooool!! Victory!!
+  434:  Call  EnablePartnerAI ( )
+  440:  Wait  5`
+  44C:  Call  DisablePlayerInput    ( .True )
+  45C:  Thread
+  464:  	Wait  40`
+  470:  	Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  484:  	Call  DisablePlayerInput    ( .False )
+  494:  EndThread
+  49C:  Call  SetNpcPos ( .NpcID:GoombaBros_00  0`  -1000`  0` )
+  4B8:  Call  SetNpcPos ( .NpcID:GoombaBros_01  0`  -1000`  0` )
+  4D4:  Return
+  4DC:  End
 }
 
 
 
 @	$Script_802460C0
 {
-    0:  Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000000 00000008 )
    1C:  Call  SetNpcVar     ( 00000004 00000000 00000001 )
    34:  Call  SetNpcPos     ( 00000004  100`  182`  -353` )
    50:  Call  UseSettingsFrom   ( .Cam:Default  100`  0`  -220` )
@@ -249,19 +373,21 @@
    CC:  Call  SetCamPitch   ( .Cam:Default  8`  -5` )
    E4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
    F8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
-  110:  Wait  60`
+		Wait  30`
+		Call  SetMusicTrack ( 00000000 .Song:GameOpening 00000000 00000008 )
+  110:  Wait  10`
   11C:  Call  UseSettingsFrom   ( .Cam:Default  100`  0`  -220` )
   138:  Call  SetPanTarget  ( .Cam:Default  100`  190`  -353` )
   154:  Call  SetCamDistance    ( .Cam:Default  250` )
   168:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
   17C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
-  194:  Wait  30`
+  194:  Wait  20`
   1A0:  Call  UseSettingsFrom   ( .Cam:Default  100`  0`  -220` )
   1BC:  Call  SetPanTarget  ( .Cam:Default  100`  190`  -353` )
   1D8:  Call  SetCamDistance    ( .Cam:Default  1000` )
   1EC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.65] )
   200:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
-  218:  Wait  30`
+  218:  Wait  20`
   224:  Thread
   22C:  	Call  GetNpcPos ( 00000004 *Var7 *Var8 *Var9 )
   248:  	Call  LoadPath  ( 00000050 $VectorList_80246090 00000004 .Easing:Linear )
@@ -282,9 +408,9 @@
   32C:  		Wait  4`
   338:  	EndLoop
   340:  EndThread
-  348:  Wait  110`
+  348:  Wait  100`
     0:  Call  $Function_80240210 ( )
-    C:  Wait  15`
+    C:  Wait  12`
    18:  Thread
    20:  	Call  MakeLerp  ( 00000000 000000FF 00000064 .Easing:CubicOut )
    3C:  	Loop
@@ -315,7 +441,7 @@
   178:  		BreakLoop
   180:  	EndIf
   188:  EndLoop
-  190:  Wait  15`	
+  190:  Wait  10`	
   354:  ExecWait  $Script_ExitWalk_80241C24
   360:  Return
   368:  End

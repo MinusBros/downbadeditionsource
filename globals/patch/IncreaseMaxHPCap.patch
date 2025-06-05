@@ -117,6 +117,45 @@ NOP
 LBU		V0, 1B8 (S3)
 }%/
 
+
+
+% Unknown HP reading
+%
+% Add support for mario and partner HP
+@Hook 180444 % 80251B64
+{
+    PUSH    RA, A0, A1, A2, A3, V1
+    % S3 = targetActor*
+    LHU     A0, 192 (S3) % load targetActorID
+    BNE     A0, R0, .CheckPartner
+    NOP
+    % get Mario HP
+    LIO     A0, 8010F290 % PlayerData
+    BEQ     R0, R0, .End
+    LBU     V0, 2 (A0) % get player hp
+    .CheckPartner
+    ORI     A1, R0, 100 % .Actor:Partner
+    BNE     A0, A1, .GetEnemyHP
+    NOP
+    % get partner HP
+    %JAL     $GetPartnerHP
+    NOP
+    BEQ     R0, R0, .End
+    NOP
+    .GetEnemyHP
+    LBU	    V0, 01B8 (S3)
+    .End
+    POP     RA, A0, A1, A2, A3, V1
+    % restore vanilla code
+    BGTZ	V0, .80251B8C
+    ADDIU	V0, R0, 0019
+    J       80251B70
+    NOP
+    .80251B8C
+    J       80251B8C
+    NOP
+}
+
 @Function 1A0B7C % [8027229C]
 {
 LBU		S0, 1B8 (S3)

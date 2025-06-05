@@ -52,6 +52,197 @@
 	[Level]         12`b
 }
 
+
+%Have a random chance to do a different hurt animation.
+
+@	$Script_HandleEvent_8021DF88
+{
+    0:  UseArray  $End[0]
+    C:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   20:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   34:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   48:  Switch  *Var0
+   54:  	Case  ==  .Event:HitCombo % 9
+   60:  		Exec  $Script_8021D820 *Array[0]
+   70:  		SetConst  *Var0  00000001
+				SetConst  *Var1  00320015
+   90:  		ExecWait  DoNormalHit
+   9C:  		Loop
+   A8:  			DoesScriptExist  *Array[0] *Var0
+   B8:  			If  *Var0  ==  00000000
+   C8:  				BreakLoop
+   D0:  			EndIf
+   D8:  			Wait  1`
+   E4:  		EndLoop
+   EC:  	CaseOR  ==  .Event:Hit % A
+   F8:  	CaseOR  ==  .Event:SpinSmashLaunchHit % 11
+  104:  		Exec  $Script_8021D820 *Array[0]
+  114:  		SetConst  *Var0  00000001
+			    SetConst  *Var1  00320015
+  134:  		ExecWait  DoNormalHit
+  140:  		Loop
+  14C:  			DoesScriptExist  *Array[0] *Var0
+  15C:  			If  *Var0  ==  00000000
+  16C:  				BreakLoop
+  174:  			EndIf
+  17C:  			Wait  1`
+  188:  		EndLoop
+  190:  	EndCaseGroup
+  198:  	Case  ==  .Event:BurnHit % E
+  1A4:  		Exec  $Script_8021D820 *Array[0]
+  1B4:  		SetConst  *Var0  00000001
+  1C4:  		SetConst  *Var1  0032000A
+  1D4:  		SetConst  *Var2  0032000B
+  1E4:  		ExecWait  DoBurnHit
+  1F0:  		Loop
+  1FC:  			DoesScriptExist  *Array[0] *Var0
+  20C:  			If  *Var0  ==  00000000
+  21C:  				BreakLoop
+  224:  			EndIf
+  22C:  			Wait  1`
+  238:  		EndLoop
+  240:  	Case  ==  .Event:BurnDeath % 24
+  24C:  		Exec  $Script_8021D820 *Array[0]
+  25C:  		SetConst  *Var0  00000001
+  26C:  		SetConst  *Var1  0032000A
+  27C:  		SetConst  *Var2  0032000B
+  28C:  		ExecWait  DoBurnHit
+  298:  		SetConst  *Var0  00000001
+  2A8:  		SetConst  *Var1  0032000B
+  2B8:  		ExecWait  DoDeath
+  2C4:  		Loop
+  2D0:  			DoesScriptExist  *Array[0] *Var0
+  2E0:  			If  *Var0  ==  00000000
+  2F0:  				BreakLoop
+  2F8:  			EndIf
+  300:  			Wait  1`
+  30C:  		EndLoop
+  314:  		Return
+  31C:  	Case  ==  .Event:SpinSmashHit % B
+  328:  		Exec  $Script_8021D820 *Array[0]
+  338:  		SetConst  *Var0  00000001
+				SetConst  *Var1  00320015
+  358:  		ExecWait  DoSpinSmashHit
+  364:  		Loop
+  370:  			DoesScriptExist  *Array[0] *Var0
+  380:  			If  *Var0  ==  00000000
+  390:  				BreakLoop
+  398:  			EndIf
+  3A0:  			Wait  1`
+  3AC:  		EndLoop
+  3B4:  	Case  ==  .Event:SpinSmashDeath % 21
+  3C0:  		Exec  $Script_8021D820 *Array[0]
+  3D0:  		SetConst  *Var0  00000001
+  3E0:  		SetConst  *Var1  00320009
+  3F0:  		ExecWait  DoSpinSmashHit
+  3FC:  		SetConst  *Var0  00000001
+  40C:  		SetConst  *Var1  00320009
+  41C:  		ExecWait  DoDeath
+  428:  		Loop
+  434:  			DoesScriptExist  *Array[0] *Var0
+  444:  			If  *Var0  ==  00000000
+  454:  				BreakLoop
+  45C:  			EndIf
+  464:  			Wait  1`
+  470:  		EndLoop
+  478:  		Return
+  480:  	Case  ==  .Event:ShockHit % 2F
+  48C:  		SetConst  *Var0  00000001
+  49C:  		SetConst  *Var1  00320015
+  4AC:  		ExecWait  DoShockHit
+  4B8:  		SetConst  *Var0  00000001
+  4C8:  		SetConst  *Var1  00320015
+  4D8:  		ExecWait  DoJumpBack
+  4E4:  		SetConst  *Var0  00000001
+  4F4:  		SetConst  *Var1  00320007
+  504:  		ExecWait  DoReturnHome
+  510:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.6] )
+  524:  		Call  JumpToGoal    ( .Actor:Self  5` .False .True .False )
+  544:  	Case  ==  .Event:ShockDeath % 26
+  550:  		SetConst  *Var0  00000001
+  560:  		SetConst  *Var1  00320009
+  570:  		ExecWait  DoShockHit
+  57C:  		SetConst  *Var0  00000001
+  58C:  		SetConst  *Var1  00320009
+  59C:  		ExecWait  DoDeath
+  5A8:  		Return
+  5B0:  	CaseOR  ==  00000017 % 17
+  5BC:  	CaseOR  ==  .Event:Immune % 19
+  5C8:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  5D4:  		Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+  5EC:  		Switch  *Var0
+  5F8:  			Case  ==  00000000
+  604:  				SetConst  *Var1  00320001
+  614:  			Case  ==  00000001
+  620:  				SetConst  *Var1  00320002
+  630:  		EndSwitch
+  638:  		SetConst  *Var0  00000001
+  648:  		ExecWait  DoImmune
+  654:  	EndCaseGroup
+  65C:  	CaseOR  ==  .Event:Death % 20
+  668:  	CaseOR  ==  00000025 % 25
+  674:  		Exec  $Script_8021D820 *Array[0]
+  684:  		SetConst  *Var0  00000001
+  694:  		SetConst  *Var1  00320009
+  6A4:  		ExecWait  DoNormalHit
+  6B0:  		Wait  10`
+  6BC:  		SetConst  *Var0  00000001
+  6CC:  		SetConst  *Var1  00320009
+  6DC:  		ExecWait  DoDeath
+  6E8:  		Loop
+  6F4:  			DoesScriptExist  *Array[0] *Var0
+  704:  			If  *Var0  ==  00000000
+  714:  				BreakLoop
+  71C:  			EndIf
+  724:  			Wait  1`
+  730:  		EndLoop
+  738:  		Return
+  740:  	EndCaseGroup
+  748:  	Case  ==  .Event:RecoverStatus % 31
+  754:  		SetConst  *Var0  00000001
+  764:  		SetConst  *Var1  00320001
+  774:  		ExecWait  DoRecover
+  780:  	Case  ==  .Event:ScareAway % 39
+  78C:  		Exec  $Script_8021D820 *Array[0]
+  79C:  		SetConst  *Var0  00000001
+  7AC:  		SetConst  *Var1  00320007
+  7BC:  		SetConst  *Var2  00320009
+  7CC:  		ExecWait  DoScareAway
+  7D8:  		Loop
+  7E4:  			DoesScriptExist  *Array[0] *Var0
+  7F4:  			If  *Var0  ==  00000000
+  804:  				BreakLoop
+  80C:  			EndIf
+  814:  			Wait  1`
+  820:  		EndLoop
+  828:  		Return
+  830:  	Case  ==  .Event:BeginAirLift % 3A
+  83C:  		Exec  $Script_8021D820 *Array[0]
+  84C:  		SetConst  *Var0  00000001
+  85C:  		SetConst  *Var1  00320009
+  86C:  		ExecWait  DoAirLift
+  878:  		Loop
+  884:  			DoesScriptExist  *Array[0] *Var0
+  894:  			If  *Var0  ==  00000000
+  8A4:  				BreakLoop
+  8AC:  			EndIf
+  8B4:  			Wait  1`
+  8C0:  		EndLoop
+  8C8:  	Case  ==  .Event:BlowAway % 16
+  8D4:  		SetConst  *Var0  00000001
+  8E4:  		SetConst  *Var1  00320015
+  8F4:  		SetConst  *Var2  00040000
+  904:  		ExecWait  DoBlowAway
+  910:  		Return
+  918:  	Default
+  920:  EndSwitch
+  928:  Call  SetAnimation      ( .Actor:Self 00000001 00320001 )
+  940:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  954:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  968:  Return
+  970:  End
+}
+
 @	$Script_TakeTurn_8021E900
 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
@@ -346,6 +537,37 @@
 	$Flubba 00000003 00000007 00000000 00000000 00000000 00000000
 }
 
+
+#new:Formation $Formation_11
+{
+	$Flubba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Flubba 00000001 00000009 00000000 00000000 00000000 00000000
+	$Pokey 00000002 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_12
+{
+	$Flubba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Flubba 00000001 00000009 00000000 00000000 00000000 00000000
+	$BanditA 00000002 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_13
+{
+	$Flubba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Pokey 00000001 00000009 00000000 00000000 00000000 00000000
+	$BanditA 00000002 00000008 00000000 00000000 00000000 00000000
+	$BanditA 00000003 00000007 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_14
+{
+	$Flubba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Pokey 00000001 00000009 00000000 00000000 00000000 00000000
+	$BanditA 00000002 00000008 00000000 00000000 00000000 00000000
+	$Pokey 00000003 00000007 00000000 00000000 00000000 00000000
+}
+
 @	$FormationTable
 {
 	$SJIS_80220148 00000003 $Formation_00 $Stage_8021F90C 00000000
@@ -365,5 +587,9 @@
 	$SJIS_80220060 00000004 $Formation_0E $Stage_8021F90C 00000000
 	$SJIS_8022004C 00000004 $Formation_0F $Stage_8021F90C 00000000
 	$SJIS_80220030 00000003 $Formation_10 $Stage_8021F90C 00000000
+	00000000 00000003 $Formation_11 $Stage_8021F90C 00000000
+	00000000 00000003 $Formation_12 $Stage_8021F90C 00000000
+	00000000 00000004 $Formation_13 $Stage_8021F90C 00000000
+	00000000 00000004 $Formation_14 $Stage_8021F90C 00000000
 	00000000 00000000 00000000 00000000 00000000
 }

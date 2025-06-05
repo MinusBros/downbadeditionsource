@@ -39,6 +39,493 @@
   [BE0]  	Wait  2`
 }
 
+
+
+#new:Function $Function_CheckChill %chill out fails against targets with certain flags
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S2, 18 (SP)
+    8:  COPY		S2, A0
+    C:  SW			RA, 1C (SP)
+   10:  SW			S1, 14 (SP)
+   14:  SW			S0, 10 (SP)
+   18:  JAL			~Func:get_actor		%get mario
+   1C:  LW			A0, 148 (S2)
+   20:  COPY		S0, V0
+   24:  JAL			~Func:get_actor		%get target
+   28:  LH			A0, 428 (S0)
+   2C:  COPY		S1, V0
+   30:  LB			A1, 426 (S0)
+   34:  JAL			~Func:get_actor_part	%get part of target
+   38:  COPY		A0, S1
+   3C:  SW			R0, 84 (S2)
+		%Ensure that chill out is not already enabled
+		LB			T0, 224 (S1)	%duration
+		SLTI		T0, T0, 1
+		BEQ			T0, R0, .oA0
+		NOP
+   40:  LW			S1, 0 (S1)		%Actor flags
+   44:  COPY		V1, V0			%Part pointer
+   48:  ANDI		V0, S1, 4000 	%check flag 4000 (target only)
+   4C:  BNE			V0, R0, .oA0
+   50:  ADDIU		V0, R0, 2
+   54:  LUI			V0, 40			%check flag 400000 (not targettable)
+   58:  AND			V0, S1, V0
+   5C:  BNE			V0, R0, .oA0
+   60:  ADDIU		V0, R0, 2
+   64:  ANDI		V0, S1, 2000	%check flag 2000 (???)
+   68:  BNE			V0, R0, .oA0
+   6C:  ADDIU		V0, R0, 2
+   70:  LW			V1, 7C (V1)		%Part event flags
+   74:  LUI			V0, 4			%check flag 40000 (normal star rod)
+   78:  AND			V0, V1, V0
+   7C:  BNE			V0, R0, .oA0
+   80:  ADDIU		V0, R0, 2
+   84:  LUI			V0, 8			%check flag 80000 (final star rod)
+   88:  AND			V0, V1, V0
+   8C:  BNE			V0, R0, .oA0
+   90:  ADDIU		V0, R0, 2
+   94:  ADDIU		V0, R0, 1
+   98:  SW			V0, 84 (S2)		%Store 1 into Var0 (used by checker functions later)
+   9C:  ADDIU		V0, R0, 2
+        .oA0
+		ADDIU		V0, R0, 2
+   A0:  LW			RA, 1C (SP)
+   A4:  LW			S2, 18 (SP)
+   A8:  LW			S1, 14 (SP)
+   AC:  LW			S0, 10 (SP)
+   B0:  JR			RA
+   B4:  ADDIU		SP, SP, 20
+}
+
+#new:Function $Function_ChillTarget
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 1C (SP)
+    8:  SW			S0, 18 (SP)
+    C:  JAL			~Func:get_actor
+   10:  LW			A0, 148 (A0)
+   14:  COPY		S0, V0
+   18:  JAL			~Func:get_actor
+   1C:  LH			A0, 428 (S0)
+   20:  LB			A1, 426 (S0)
+   24:  COPY		S0, V0
+   28:  JAL			~Func:get_actor_part
+   2C:  COPY		A0, S0
+   30:  LW			V1, 0 (S0)
+   34:  COPY		A0, V0
+   38:  ANDI		V0, V1, 4000 %star rod flag
+   3C:  BNE			V0, R0, .o1E4
+   40:  ADDIU		V0, R0, 2
+   44:  LUI			V0, 40
+   48:  AND			V0, V1, V0
+   4C:  BEQ			V0, R0, .o5C
+   50:  ANDI		V0, V1, 2000
+   54:  BEQ			R0, R0, .o1E4
+   58:  ADDIU		V0, R0, 2
+        .o5C
+   5C:  BNE			V0, R0, .o1E4
+   60:  ADDIU		V0, R0, 2
+   64:  LW			V1, 7C (A0)
+   68:  LUI			V0, 4
+   6C:  AND			V0, V1, V0
+   70:  BNE			V0, R0, .o1E4
+   74:  ADDIU		V0, R0, 2
+   78:  LUI			V0, 8
+   7C:  AND			V0, V1, V0
+   80:  BNE			V0, R0, .o1E4
+   84:  ADDIU		V0, R0, 2
+   88:  COPY		A0, S0
+   8C:  CLEAR		A1
+   90:  ADDIU		A2, R0, A
+   94:  ADDIU		V0, R0, 1		%duration?
+   98:  SB			V0, 224 (S0)
+   9C:  ADDIU		V0, R0, 1		%attack reduction
+   %A0:  JAL			802788F8						this event is already called, so don't do this!
+   A4:  SB			V0, 223 (S0)
+   A8:  LH			V0, 150 (S0)
+   AC:  LWC1		F0, 144 (S0)
+   B0:  LW			V1, 0 (S0)
+   B4:  MTC1		V0, F2
+   B8:  NOP
+   BC:  CVT.S.W		F2, F2
+   C0:  LBU			V0, 190 (S0)
+   C4:  ADD.S		F0, F0, F2
+   C8:  SRL			V0, V0, 1
+   CC:  MTC1		V0, F2
+   D0:  NOP
+   D4:  CVT.S.W		F2, F2
+   D8:  ANDI		V0, V1, 800
+   DC:  BEQ			V0, R0, .o114
+   E0:  ADD.S		F4, F0, F2
+   E4:  LH			V0, 152 (S0)
+   E8:  LWC1		F0, 148 (S0)
+   EC:  MTC1		V0, F2
+   F0:  NOP
+   F4:  CVT.S.W		F2, F2
+   F8:  LBU			V0, 191 (S0)
+   FC:  ADD.S		F0, F0, F2
+  100:  MTC1		V0, F2
+  104:  NOP
+  108:  CVT.S.W		F2, F2
+  10C:  BEQ			R0, R0, .o180
+  110:  SUB.S		F0, F0, F2
+        .o114
+  114:  ANDI		V0, V1, 8000
+  118:  BNE			V0, R0, .o150
+  11C:  NOP
+  120:  LH			V0, 152 (S0)
+  124:  LWC1		F0, 148 (S0)
+  128:  MTC1		V0, F2
+  12C:  NOP
+  130:  CVT.S.W		F2, F2
+  134:  LBU			V0, 191 (S0)
+  138:  ADD.S		F0, F0, F2
+  13C:  MTC1		V0, F2
+  140:  NOP
+  144:  CVT.S.W		F2, F2
+  148:  BEQ			R0, R0, .o180
+  14C:  ADD.S		F0, F2, F0
+        .o150
+  150:  LH			V0, 152 (S0)
+  154:  LWC1		F2, 148 (S0)
+  158:  MTC1		V0, F0
+  15C:  NOP
+  160:  CVT.S.W		F0, F0
+  164:  LBU			V0, 191 (S0)
+  168:  ADD.S		F2, F2, F0
+  16C:  SLL			V0, V0, 1
+  170:  MTC1		V0, F0
+  174:  NOP
+  178:  CVT.S.W		F0, F0
+  17C:  ADD.S		F0, F2, F0
+        .o180
+  180:  LH			V0, 154 (S0)
+  184:  MFC1		A2, F0
+  188:  LWC1		F0, 14C (S0)
+  18C:  MTC1		V0, F2
+  190:  NOP
+  194:  CVT.S.W		F2, F2
+  198:  ADD.S		F0, F0, F2
+  19C:  LIF			F2, 5.0
+  1A4:  ADDIU		A0, R0, 3		%damage icon (5 -> 3)
+  1A8:  ADD.S		F0, F0, F2
+  1AC:  MFC1		A1, F4
+  1B0:  LIF			F4, 1.0
+  1B8:  MFC1		A3, F0
+  1BC:  ADDIU		V0, R0, 3C
+  1C0:  SW			V0, 14 (SP)
+  1C4:  JAL			800718D0
+  1C8:  SWC1		F4, 10 (SP)
+  1CC:  JAL			~Func:sfx_play_sound
+  1D0:  ADDIU		A0, R0, 2106
+  1D4:  ADDIU		V0, R0, 2
+  1D8:  ADDIU		V1, R0, 1
+  1DC:  SAW			V1, $End[0]
+        .o1E4
+  1E4:  LW			RA, 1C (SP)
+  1E8:  LW			S0, 18 (SP)
+  1EC:  JR			RA
+  1F0:  ADDIU		SP, SP, 20
+}
+
+
+%more blue than Frigid Stomp
+
+%uses 3 vars for positions
+#new:Function $Function_ChillWaveEffect
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 24 (SP)
+   10:  SW        S2, 20 (SP)
+   14:  SW        S0, 18 (SP)
+   18:  LW        S0, C (S1)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  LW        A1, 0 (S0)
+   2C:  ADDIU     S0, S0, 4
+   30:  COPY      A0, S1
+   34:  JAL       ~Func:get_variable
+   38:  COPY      S2, V0
+   3C:  COPY      A0, S1
+   40:  LW        A1, 0 (S0)
+   44:  JAL       ~Func:get_variable
+   48:  COPY      S0, V0
+   4C:  LW        V1, AC (S1)
+   50:  BNE       V1, R0, .o90
+   54:  CLEAR     A0
+   58:  MTC1      S2, F0
+   5C:  NOP
+   60:  CVT.S.W   F0, F0
+   64:  MFC1      A1, F0
+   68:  MTC1      S0, F0
+   6C:  NOP
+   70:  CVT.S.W   F0, F0
+   74:  MFC1      A2, F0
+   78:  MTC1      V0, F0
+   7C:  NOP
+   80:  CVT.S.W   F0, F0
+   84:  MFC1      A3, F0
+   88:  BEQ       R0, R0, .oC0
+   8C:  LI        A0, 1
+        .o90
+   90:  MTC1      S2, F0
+   94:  NOP
+   98:  CVT.S.W   F0, F0
+   9C:  MFC1      A1, F0
+   A0:  MTC1      S0, F0
+   A4:  NOP
+   A8:  CVT.S.W   F0, F0
+   AC:  MFC1      A2, F0
+   B0:  MTC1      V0, F0
+   B4:  NOP
+   B8:  CVT.S.W   F0, F0
+   BC:  MFC1      A3, F0
+        .oC0
+   C0:  JAL       80070B50
+   C4:  SW        R0, 10 (SP)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, 00			%R
+		SB			A1, 50 (V1)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, 60			%G
+		SB			A1, 51 (V1)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, FF			%B
+		SB			A1, 52 (V1)
+		LW			A0, C (V0)
+		ADDIU		V1, R0, D0			%R 2
+		SB			V1, 53 (A0)
+		LW			A0, C (V0)
+		ADDIU		V1, R0, DC			%G 2
+		SB			V1, 54 (A0)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, FF			%B 2
+		SB			A1, 55 (V1)		
+   C8:  LW        RA, 24 (SP)
+   CC:  LW        S2, 20 (SP)
+   D0:  LW        S1, 1C (SP)
+   D4:  LW        S0, 18 (SP)
+   D8:  LI        V0, 2
+   DC:  JR        RA
+   E0:  ADDIU     SP, SP, 28
+}
+
+
+@ $Script_80239DA4
+{
+    0:  Call  LoadActionCommand ( .ActionCommand:Smash )
+   10:  Call  802A9000 ( )
+   1C:  ExecWait  $Script_80239BF0
+   28:  ExecWait  $Script_80239CBC
+   34:  Loop  0000001E
+   40:  	Wait  1`
+   4C:  	Call  CheckButtonDown   ( ~Flags:Buttons:40000 *Var0 )
+   60:  	If  *Var0  !=  .False
+   70:  		BreakLoop
+   78:  	EndIf
+   80:  EndLoop
+   88:  Call  802A9258  ( 00000000 00000039 00000003 )
+   A0:  Call  SetActionResult   ( 00000000 )
+   B0:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000F0004 )
+   C8:  Call  UseBattleCamPreset    ( 0000003B )
+   D8:  Set   *Var0  0000001E
+   E8:  Loop  0000003C
+   F4:  	Wait  1`
+  100:  	Sub   *Var0  00000001
+  110:  	If  *Var0  ==  00000000
+  120:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0008 )
+  138:  	EndIf
+  140:  	Call  CheckButtonDown   ( ~Flags:Buttons:40000 *Var0 )
+  154:  	If  *Var0  ==  .False
+  164:  		BreakLoop
+  16C:  	EndIf
+  174:  EndLoop
+  17C:  Thread
+  184:  	Call  GetActionCommandResult    ( *Var0 )
+  194:  	Call  UseBattleCamPreset        ( 00000034 )
+  1A4:  	Call  MoveBattleCamOver ( 00000014 )
+  1B4:  EndThread
+  1BC:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0005 )
+  1D4:  Thread
+  1DC:  	Call  SetActorRotationOffset    ( .Actor:Partner 00000000 0000000C 00000000 )
+  1F8:  	Set   *Var0  00000000
+  208:  	Loop  0000000A
+  214:  		Add   *Var0  00000024
+  224:  		Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var0 )
+  240:  		Wait  1`
+  24C:  	EndLoop
+  254:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000014 )
+  270:  EndThread
+  278:  Thread
+  280:  	Call  GetActionCommandResult    ( *Var0 )
+  290:  	If  *Var0  >  00000000
+  2A0:  		Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+  2B8:  		Switch  *Var2
+  2C4:  			Case  ==  000000A7
+  2D0:  				Wait  6`
+  2DC:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.1] *Fixed[1.1] *Fixed[1.0] )
+  2F8:  				Wait  1`
+  304:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.1] *Fixed[1.1] *Fixed[1.0] )
+  320:  				Wait  1`
+  32C:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+  348:  				Wait  1`
+  354:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+  370:  				Wait  1`
+  37C:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.3] *Fixed[1.3] *Fixed[1.0] )
+  398:  			Case  ==  000000A8
+  3A4:  				Wait  6`
+  3B0:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.15] *Fixed[1.15] *Fixed[1.0] )
+  3CC:  				Wait  1`
+  3D8:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+  3F4:  				Wait  1`
+  400:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.35] *Fixed[1.35] *Fixed[1.0] )
+  41C:  				Wait  1`
+  428:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.4] *Fixed[1.4] *Fixed[1.0] )
+  444:  				Wait  1`
+  450:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.55] *Fixed[1.55] *Fixed[1.0] )
+  46C:  			Case  ==  000000A9
+  478:  				Wait  6`
+  484:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+  4A0:  				Wait  1`
+  4AC:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.3] *Fixed[1.3] *Fixed[1.0] )
+  4C8:  				Wait  1`
+  4D4:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.5] *Fixed[1.5] *Fixed[1.0] )
+  4F0:  				Wait  1`
+  4FC:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.6] *Fixed[1.6] *Fixed[1.0] )
+  518:  				Wait  1`
+  524:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.8] *Fixed[1.8] *Fixed[1.0] )
+  540:  		EndSwitch
+  548:  	Else
+  550:  		Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+  568:  		Switch  *Var2
+  574:  			Case  ==  000000A7
+  580:  				Wait  6`
+  58C:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  5A8:  				Wait  1`
+  5B4:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  5D0:  				Wait  1`
+  5DC:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  5F8:  				Wait  1`
+  604:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  620:  				Wait  1`
+  62C:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  648:  			Case  ==  000000A8
+  654:  				Wait  6`
+  660:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.05] *Fixed[1.05] *Fixed[1.0] )
+  67C:  				Wait  1`
+  688:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.1] *Fixed[1.1] *Fixed[1.0] )
+  6A4:  				Wait  1`
+  6B0:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.15] *Fixed[1.15] *Fixed[1.0] )
+  6CC:  				Wait  1`
+  6D8:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+  6F4:  				Wait  1`
+  700:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.25] *Fixed[1.25] *Fixed[1.0] )
+  71C:  			Case  ==  000000A9
+  728:  				Wait  6`
+  734:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.1] *Fixed[1.1] *Fixed[1.0] )
+  750:  				Wait  1`
+  75C:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+  778:  				Wait  1`
+  784:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.3] *Fixed[1.3] *Fixed[1.0] )
+  7A0:  				Wait  1`
+  7AC:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.4] *Fixed[1.4] *Fixed[1.0] )
+  7C8:  				Wait  1`
+  7D4:  				Call  SetActorScale ( .Actor:Partner *Fixed[1.5] *Fixed[1.5] *Fixed[1.0] )
+  7F0:  		EndSwitch
+  7F8:  	EndIf
+  800:  EndThread
+  808:  Call  PlaySoundAtActor  ( .Actor:Partner 00002034 )
+  81C:  Call  SetGoalToTarget   ( .Actor:Partner )
+  82C:  Call  GetActionCommandResult    ( *Var0 )
+  83C:  If  *Var0  >  00000000
+  84C:  	Thread
+  854:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0005 )
+  86C:  		Wait  6`
+  878:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0006 )
+  890:  	EndThread
+  898:  	Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.5] )
+  8AC:  	Call  JumpToGoal    ( .Actor:Partner 00000014 .False .True .False )
+  8CC:  Else
+  8D4:  	Thread
+  8DC:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0005 )
+  8F4:  		Wait  10`
+  900:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0006 )
+  918:  	EndThread
+  920:  	Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[0.9] )
+  934:  	Call  JumpToGoal    ( .Actor:Partner 00000014 .False .True .False )
+  954:  EndIf
+  95C:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000F0007 )
+  974:  Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000000 )
+  990:  Call  SetActorRotationOffset    ( .Actor:Partner 00000000 00000000 00000000 )
+  9AC:  Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+  9C4:  Switch  *Var2
+  9D0:  	Case  ==  000000A7
+  9DC:  		Set   *VarE  00000001
+  9EC:  		Set   *VarF  00000003
+  9FC:  	Case  ==  000000A8
+  A08:  		Set   *VarE  00000002
+  A18:  		Set   *VarF  00000004
+  A28:  	Case  ==  000000A9
+  A34:  		Set   *VarE  00000003
+  A44:  		Set   *VarF  00000005
+  A54:  EndSwitch
+  A5C:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000 00000001 00000010 )
+  A80:  If  *Var0  ==  .HitResult:Miss % 6
+  A90:  	Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  AAC:  	Call  LandJump      ( .Actor:Partner )
+  ABC:  	Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+  AD8:  	Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  AF4:  	Call  AddGoalPos    ( .Actor:Partner 0000000F 00000000 00000000 )
+  B10:  	Call  JumpToGoal    ( .Actor:Partner 00000014 .False .True .False )
+  B30:  	Call  AddGoalPos    ( .Actor:Partner 0000000A 00000000 00000000 )
+  B4C:  	Call  JumpToGoal    ( .Actor:Partner 0000000A .False .True .False )
+  B6C:  	Wait  5`
+  B78:  	Call  SetGoalToHome ( .Actor:Partner )
+  B88:  	Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+  B9C:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000F0003 )
+  BB4:  	Call  RunToGoal     ( .Actor:Partner 00000000 )
+  BC8:  	Return
+  BD0:  EndIf
+  BD8:  Thread
+  BE0:  	Wait  2`
+  BEC:  	Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  C08:  EndThread
+  C10:  Call  GetActionCommandResult    ( *Var0 )
+  C20:  Switch  *Var0
+  C2C:  	Case  >  00000000
+  C38:  		Call  PartnerDamageEnemy    ( *VarC ~Flags:DamageType:Jump 00000004 00000000 *VarF 00000070 )
+  C5C:  	Default
+  C64:  		Call  PartnerDamageEnemy    ( *VarC ~Flags:DamageType:Jump 00000004 00000000 *VarE 00000030 )
+  C88:  EndSwitch
+		If *VarF > 3`
+			Call     $Function_CheckChill ( ) %0 = immune to chill out
+			If  *Var[0]  ==  00000001 
+				Call  GetActorPos       ( .Actor:Partner *Var0 *Var1 *Var2 )
+				Call  $Function_ChillWaveEffect    ( *Var0 *Var1 *Var2 )
+				Call     $Function_ChillTarget ( )
+			EndIf  
+		EndIf
+  C90:  Switch  *VarC
+  C9C:  	CaseOR  ==  .HitResult:Hit % 0
+  CA8:  	CaseOR  ==  00000002 % 2
+  CB4:  		Call  UseBattleCamPreset    ( 00000033 )
+  CC4:  		ExecWait  $Script_80239938
+  CD0:  	EndCaseGroup
+  CD8:  	CaseOR  ==  00000001 % 1
+  CE4:  	CaseOR  ==  00000003 % 3
+  CF0:  		Call  UseBattleCamPreset    ( 00000003 )
+  D00:  		Call  MoveBattleCamOver     ( 00000008 )
+  D10:  		ExecWait  $Script_80239714
+  D1C:  	EndCaseGroup
+  D24:  EndSwitch
+  D2C:  Return
+  D34:  End
+}
+
 %Water Block
 @	$Script_8023B194
 {

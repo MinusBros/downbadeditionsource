@@ -431,8 +431,6 @@
 }
 
 
-%On Turn 9, Huff N. Puff's theme will update with new instruments.
-
 @	$Script_TakeTurn_8021D2B8
 {
     0:  Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
@@ -487,9 +485,7 @@
   2F4:  Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
   30C:  Switch  *Var0
   318:  	Case  ==  00000000
-				If  *GB_EnemyDefense  < 00000001
-					Set *GB_EnemyDefense  00000000
-				EndIf
+				Set *GB_EnemyDefense  00000000 %Used to determine if he should buff defense when eating Tuff Puffs.
 				ExecWait $Script_BodySlam
   324:  		ExecWait  $Script_HealOrSlam
   330:  		Call  SetActorVar   ( .Actor:Self 00000001 00000001 )
@@ -521,7 +517,6 @@
   474:  		ExecWait  $Script_ChargeLargeThunder
   480:  		Call  SetActorVar   ( .Actor:Self 00000001 00000008 )
   498:  	Case  ==  00000008
-%				Call  SetMusicTrack ( 00000000 .Song:RadioGoldenOldies 00000000 00000008 )
   4A4:  		ExecWait  $Script_LargeThunderstorm
   4B0:  		Call  SetActorVar   ( .Actor:Self 00000001 00000009 )
   4C8:  	Case  ==  00000009
@@ -548,11 +543,10 @@
 {
    [A8]  Wait  20`
  [4740]  		Wait  90`
- [5038]  Set   *VarA  00000009
+ [5038]  Set   *VarA  0000000F
 }
 
-%Huff N. Puff will increase his defense by 1 indefinitely
-%as long as he's above a certain amount of HP.
+%Huff N. Puff will increase his defense by 1 twice every 12 turns.
 
 @	$Script_HealOrSlam
 {
@@ -753,6 +747,7 @@
 }
 
 
+%Attack twice woo.
 
 @	$Script_BodySlam
 {
@@ -838,7 +833,7 @@
   650:  Call  80269EAC      ( 00000018 )
   660:  Wait  1`
   66C:  Call  SetGoalToTarget       ( .Actor:Self )
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000005 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000007 00000020 )
   58C:  Call  SetAnimation  ( .Actor:Self 00000001 007C000B )
   5A4:  Call  SetAnimation  ( .Actor:Self 00000002 007C000C )
   5BC:  Call  SetAnimation  ( .Actor:Self 00000003 007C000D )
@@ -850,7 +845,7 @@
   650:  Call  80269EAC      ( 00000018 )
   660:  Wait  3`
   66C:  Call  SetGoalToTarget       ( .Actor:Self )
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000008 00000000 00000007 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000008 00000000 00000008 00000020 )
   7D8:  Switch  *Var0
   7E4:  	CaseOR  ==  .HitResult:Hit % 0
   7F0:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -900,12 +895,12 @@
   [D90]  		Loop  00000010
  [1230]  		Loop  00000009
  [1380]  	Wait  20`
- [13FC]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000004 00000020 )
- [1430]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000003 00000020 )
- [1464]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000003 00000020 )
- [1498]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000002 00000020 )
- [14CC]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000002 00000020 )
- [14FC]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000001 00000020 )
+ [13FC]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 0000000E 00000020 )
+ [1430]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 0000000C 00000020 )
+ [1464]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 0000000A 00000020 )
+ [1498]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000008 00000020 )
+ [14CC]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000006 00000020 )
+ [14FC]  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense 00000000 00000000 00000004 00000020 )
  [1598]  		Wait  12`
 }
 
@@ -927,7 +922,7 @@
   [2A4]  	Wait  12`
   [3E0]  Wait  3`
   [518]  Wait  4`
-  [658]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 00000008 00000020 )
+  [658]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 0000000E 00000020 )
   [710]  		Wait  4`
 }
 
@@ -941,7 +936,7 @@
   [A24]  		Wait  10`
   [E04]  Wait  1`
   [E10]  Wait  1`
-  [E40]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Electric 00000000 00000000 00000009 00000020 )
+  [E40]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Electric 00000000 00000000 00000010 00000020 )
   [E9C]  		Wait  8`
 }
 
@@ -961,8 +956,8 @@
   [500]  		Wait  1`
   [598]  		Wait  5`
   [630]  		Wait  5`
- [49C0]  			Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:IgnoreDefense|NoContact 00000000 00000000 00000002 00000040 )
- [4BB8]  			Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:Unblockable|IgnoreDefense|NoContact 00000000 00000000 00000002 00000040 )
+ [49C0]  			Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:IgnoreDefense|NoContact 00000000 00000000 00000004 00000040 )
+ [4BB8]  			Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:Unblockable|IgnoreDefense|NoContact 00000000 00000000 00000004 00000040 )
  [6030]  			Wait  1`
  [620C]  			Wait  1`
  [63E8]  			Wait  1`

@@ -811,11 +811,15 @@
 	.Status:End
 }
 
-%Make Chomp immune to quake so it can't be cheesed.
+%Make Chomp immune to quake and jump so it can't be cheesed.
+%Weaker to Hammer and Hammer Throw. High defense to everything else.
 #new:DefenseTable $DefenseTable_80218C5C
 {
 	.Element:Normal 00000005
-	.Element:Shock  00000005
+	.Element:Hammer 00000004
+	.Element:Throw  00000003
+	.Element:Jump   00000063
+	.Element:Shock  00000063
 	.Element:Fire   00000063
 	.Element:Ice    00000063
 	.Element:Magic  00000063
@@ -830,12 +834,12 @@
 	.Status:Sleep       0`
 	.Status:Poison      0`
 	.Status:Frozen      0`
-	.Status:Dizzy      50`
+	.Status:Dizzy      40`
 	.Status:Fear        0`
 	.Status:Static      0`
 	.Status:Paralyze    0`
 	.Status:Shrink     50`
-	.Status:Stop       50`
+	.Status:Stop       40`
 	.Status:DefaultTurnMod    0`
 	.Status:SleepTurnMod     -1`
 	.Status:PoisonTurnMod     0`
@@ -1230,7 +1234,7 @@
   144:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[1.0] )
   160:  EndThread
   168:  Wait  2`
-  174:  Call  EnemyDamageTarget     ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 00000000 00000000 00000001 00000020 )
+  174:  Call  EnemyDamageTarget     ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 00000000 00000000 00000008 00000020 )
   19C:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[0.1] )
   1B0:  Call  SetActorSpeed ( .Actor:Self *Fixed[6.0] )
   1C4:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
@@ -1294,7 +1298,11 @@
 #new:Script $Script_TakeTurn_Chomp
 {
 		ExecWait $Script_ChompAttack
-		ExecWait $Script_ChompAttack
+		Thread
+			ExecWait $Script_ChompAttack
+			Wait  200`
+			Call  YieldTurn ( )
+		EndThread
   C48:  Return
   C50:  End
 }
@@ -1322,7 +1330,7 @@
   174:  	EndIf
   17C:  EndThread
   184:  Call  SetAnimation      ( .Actor:Self 00000001 00690005 )
-  19C:  Wait  4`
+  19C:  Wait  1`
   1A8:  Call  PlaySoundAtActor  ( .Actor:Self 0000010F )
   1BC:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
   1E0:  Switch  *Var0
@@ -1417,7 +1425,6 @@
   85C:  		Call  SetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
   878:  		Call  JumpToGoal        ( .Actor:Self  10` .False .True .False )
   898:  		Call  PlaySoundAtActor  ( .Actor:Self 00002062 )
-  BA0:  		Call  YieldTurn ( )
   8AC:  		Thread
   8B4:  			Call  GetStatusFlags    ( .Actor:Self *Var0 )
   8C8:  			If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
@@ -1610,7 +1617,7 @@
 
 #new:DefenseTable $DefenseTable_8021BA1C
 {
-	.Element:Normal 00000000
+	.Element:Normal 00000001
 	.Element:End
 }
 
@@ -1682,7 +1689,7 @@
 
 #new:Script $Script_Init_8021BC1C
 {
-    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021CCD4 )
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_Tutankoopa )
    14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021BE28 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021BFD0 )
    3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8021F9C4 )
@@ -1938,7 +1945,7 @@
   358:  End
 }
 
-#new:Script $Script_TakeTurn_8021CCD4
+#new:Script $Script_TakeTurn_Tutankoopa
 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
@@ -1949,12 +1956,12 @@
    70:  	If  *Var0  ==  .False
    80:  		Call  GetActorVar   ( .Actor:Self 0000000C *Var0 )
    98:  		If  *Var0  ==  00000000
-   A8:  			ExecWait  $Script_8021E9C8
+   A8:  			ExecWait  $Script_SummonChomp
    B4:  			Call  EnableIdleScript  ( .Actor:Self 00000001 )
    C8:  			Call  UseIdleAnimation  ( .Actor:Self .True )
    DC:  			Return
    E4:  		Else
-   EC:  			Sub   *Var0  00000001
+   EC:  			Set   *Var0  00000000
    FC:  			Call  SetActorVar   ( .Actor:Self 0000000C *Var0 )
   114:  		EndIf
   11C:  	EndIf
@@ -1967,21 +1974,21 @@
   18C:  		Case  ==  00000000
   198:  			Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
   1B0:  			If  *Var0  ==  00000000
-  1C0:  				ExecWait  $Script_8021D81C
+  1C0:  				ExecWait  $Script_DoHieroglyph
   1CC:  				Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
   1E4:  			Else
   1EC:  				Call  GetStatusFlags    ( .Actor:Self *Var0 )
   200:  				If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
-  210:  					ExecWait  $Script_8021D04C
+  210:  					ExecWait  $Script_BuzzyBeetleShells
   21C:  					Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
   234:  				Else
-  23C:  					ExecWait  $Script_8021D81C
+  23C:  					ExecWait  $Script_DoHieroglyph
   248:  					Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
   260:  				EndIf
   268:  			EndIf
   270:  		Default
   278:  			Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
-  290:  			ExecWait  $Script_8021D81C
+  290:  			ExecWait  $Script_DoHieroglyph
   29C:  	EndSwitch
   2A4:  	Call  EnableIdleScript  ( .Actor:Self 00000001 )
   2B8:  	Call  UseIdleAnimation  ( .Actor:Self .True )
@@ -1989,8 +1996,8 @@
   2D4:  Else
   2DC:  	Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
   2F4:  	Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
-  30C:  	ExecWait  $Script_8021F80C
-  318:  	ExecWait  $Script_8021F5E8
+  30C:  	ExecWait  $Script_HitSelf
+  318:  	ExecWait  $Script_Hieroglyh2
   324:  	Goto  0
   330:  EndIf
   338:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
@@ -2000,7 +2007,7 @@
   370:  End
 }
 
-#new:Script $Script_8021D04C
+#new:Script $Script_BuzzyBeetleShells
 {
     0:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    14:  Call  GetActorVar       ( .Actor:Self 00000002 *Var0 )
@@ -2076,7 +2083,7 @@
   590:  Call  SetPartJumpGravity    ( .Actor:Self *Var9 *Fixed[0.2] )
   5A8:  Call  FlyPartTo ( .Actor:Self *Var9 *Var0 *Var1 *Var2  0`  30` .Easing:Linear )
   5D4:  Wait  1`
-  5E0:  Call  EnemyDamageTarget ( .Actor:Self *Var8 ~Flags:DamageType:NoContact 00000000 00000000 0000007 00000020 )
+  5E0:  Call  EnemyDamageTarget ( .Actor:Self *Var8 ~Flags:DamageType:NoContact 00000000 00000000 0000009 00000020 )
   608:  Call  UseBattleCamPreset    ( 00000002 )
   618:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
   634:  Sub   *Var0  00000037
@@ -2137,7 +2144,7 @@
   590:  Call  SetPartJumpGravity    ( .Actor:Self *Var9 *Fixed[0.2] )
   5A8:  Call  FlyPartTo ( .Actor:Self *Var9 *Var0 *Var1 *Var2  0`  30` .Easing:Linear )
   5D4:  Wait  1`
-  5E0:  Call  EnemyDamageTarget ( .Actor:Self *Var8 ~Flags:DamageType:NoContact 00000000 00000000 00000008 00000020 )
+  5E0:  Call  EnemyDamageTarget ( .Actor:Self *Var8 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
   608:  Call  UseBattleCamPreset    ( 00000002 )
   618:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
   634:  Sub   *Var0  00000037
@@ -2198,7 +2205,7 @@
   590:  Call  SetPartJumpGravity    ( .Actor:Self *Var9 *Fixed[0.2] )
   5A8:  Call  FlyPartTo ( .Actor:Self *Var9 *Var0 *Var1 *Var2  0`  30` .Easing:Linear )
   5D4:  Wait  2`
-  5E0:  Call  EnemyDamageTarget ( .Actor:Self *Var8 ~Flags:DamageType:NoContact 00000000 00000000 00000009 00000020 )
+  5E0:  Call  EnemyDamageTarget ( .Actor:Self *Var8 ~Flags:DamageType:NoContact 00000000 00000000 0000000B 00000020 )
   608:  Call  UseBattleCamPreset    ( 00000002 )
   618:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
   634:  Sub   *Var0  00000037
@@ -2224,7 +2231,7 @@
   7C8:  End
 }
 
-#new:Script $Script_8021D81C
+#new:Script $Script_DoHieroglyph
 {
     0:  Call  UseBattleCamPreset    ( 0000000F )
    10:  Call  SetBattleCamZoom  (  350` )
@@ -2277,65 +2284,67 @@
   474:  Switch  *Var0
   480:  	Case  ==  00000000
   48C:  		Call  SetActorVar   ( .Actor:Self 00000006 00000001 )
-  4A4:  		ExecWait  $Script_8021E008
+  4A4:  		ExecWait  $Script_DropRocks
   4B0:  	Case  ==  00000001
   4BC:  		Call  GetActorHP    ( .Actor:Self *Var0 )
   4D0:  		Call  SetActorVar   ( .Actor:Self 00000006 00000002 )
   4E8:  		If  *Var0  >  00000002
-  4F8:  			ExecWait  $Script_8021E008
+  4F8:  			ExecWait  $Script_DropRocks
   504:  		Else
-  50C:  			ExecWait  $Script_8021E008
+  50C:  			ExecWait  $Script_DropRocks
   518:  		EndIf
   520:  	Default
   528:  		Call  RandInt   ( 00000002 *Var0 )
   53C:  		If  *Var0  ==  00000000
   54C:  			Call  GetActorHP    ( .Actor:Self *Var0 )
   560:  			If  *Var0  >  00000002
-  570:  				ExecWait  $Script_8021E008
+  570:  				ExecWait  $Script_DropRocks
   57C:  			Else 
-  584:  				ExecWait  $Script_8021E008
+  584:  				ExecWait  $Script_DropRocks
   590:  			EndIf
   598:  		Else
-  5A0:  			ExecWait  $Script_8021E008
+  5A0:  			ExecWait  $Script_DropRocks
   5AC:  		EndIf
   5B4:  EndSwitch
   5BC:  Return
   5C4:  End
 }
 
-#new:Script $Script_8021DDE8
-{
-    0:  Call  SetTargetActor    ( .Actor:Self .Actor:Enemy0 )
-   14:  Call  SetGoalToTarget   ( .Actor:Self )
-   24:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
-   40:  Set   *Var3  000000AA
-   50:  Call  SetPartPos        ( .Actor:Self 00000008 *Var0 *Var3 *Var2 )
-   70:  Call  SetPartFlagBits   ( .Actor:Self 00000008 00000001 .False )
-   8C:  Call  SetAnimation      ( .Actor:Self 00000008 00680616 )
-   A4:  Call  PlaySound ( 000020EB )
-   B4:  Call  SetPartMoveSpeed  ( .Actor:Self 00000008 *Fixed[10.0] )
-   CC:  Call  SetPartJumpGravity    ( .Actor:Self 00000008 *Fixed[0.3] )
-   E4:  Call  FallPartTo        ( .Actor:Self 00000008 *Var0 *Var1 *Var2  20` )
-  108:  Thread
-  110:  	Loop  00000014
-  11C:  		Call  SetPartFlagBits   ( .Actor:Self 00000008 00000001 .False )
-  138:  		Wait  1`
-  144:  		Call  SetPartFlagBits   ( .Actor:Self 00000008 00000001 .True )
-  160:  		Wait  1`
-  16C:  	EndLoop
-  174:  EndThread
-  17C:  Call  GetStatusFlags    ( .Actor:Player *Var0 )
-  190:  If  *Var0  !&  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
-  1A0:  	Call  SetAnimation  ( .Actor:Player 00000000 00010032 )
-  1B8:  EndIf
-  1C0:  Call  SetActorVar       ( .Actor:Self 0000000D 00000001 )
-  1D8:  Call  SetGoalToTarget   ( .Actor:Self )
-  1E8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000000 00000020 )
-  210:  Return
-  218:  End
-}
 
-#new:Script $Script_8021E008
+#new:Script $Script_HieroglyphAttack
+{
+    0:  Call  UseBattleCamPreset    ( 0000000F )
+   10:  Call  SetBattleCamZoom  (  350` )
+   20:  Call  SetBattleCamOffsetZ   (  0` )
+   30:  Call  BattleCamTargetActor  ( .Actor:Self )
+   40:  Call  MoveBattleCamOver (  40` )
+   50:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+   64:  Call  SetGoalToTarget   ( .Actor:Self )
+  120:  Call  PlaySoundAtActor  ( .Actor:Self 000020E1 )
+  134:  Call  SetAnimation      ( .Actor:Self 00000001 00680603 )
+  14C:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  168:  Add   *Var1  00000014
+  178:  Call  PlayEffect        ( ~FX:Hieroglyphics *Var0 *Var1 *Var2 *Fixed[1.0] 0000002D 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  1BC:  Wait  30`
+  1C8:  Call  UseBattleCamPreset    ( 00000002 )
+  1D8:  Call  MoveBattleCamOver (  70` )
+  260:  Call  StartRumble   ( 00000001 )
+  270:  Call  ShakeCam      ( .Cam:Battle 00000000  2` *Fixed[0.5] )
+		Call  PlaySound ( 00000056 )
+		Wait  90`
+		Call  StopSound ( 00000056 )
+		Call  PlaySoundAtActor  ( .Actor:Self 000020E1 )
+		Call  PlayEffect        ( ~FX:ChompDrop FFFFFF90 0000003C 00000000 *Fixed[0.2] 00000000 *Fixed[1.4] 000000FF *Fixed[0.1] 00000096 00000000 00000000 00000000 )
+		Wait  30`
+  1D8:  Call  SetGoalToTarget   ( .Actor:Self )
+  1E8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
+		Wait  10`
+		Return
+		End
+}
+		
+
+#new:Script $Script_DropRocks
 {
     0:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    14:  Call  EnemyTestTarget   ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000001 00000010 )
@@ -2398,7 +2407,7 @@
   450:  				Call  SetAnimation      ( .Actor:Self 00000006 00680617 )
   468:  				Call  SetTargetActor    ( .Actor:Self .Actor:Player )
   47C:  				Call  SetGoalToTarget   ( .Actor:Self )
-  48C:  				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000008 00000020 )
+  48C:  				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
   4B4:  				Wait  10`
   4C0:  				Call  SetPartFlagBits   ( .Actor:Self 00000007 00000001 .True )
   4DC:  				Call  8026BF48  ( 00000000 )
@@ -2438,7 +2447,7 @@
   700:  	Call  FallPartTo        ( .Actor:Self 00000007 *Var4 *Var5 *Var6  20` )
   724:  	Call  SetAnimation      ( .Actor:Self 00000006 00680617 )
   73C:  	Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-  750:  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000020 )
+  750:  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
   778:  	Wait  10`
   784:  	Call  SetPartFlagBits   ( .Actor:Self 00000007 00000001 .True )
   7A0:  	Call  8026BF48  ( 00000000 )
@@ -2459,7 +2468,7 @@
   8E0:  Call  SetAnimation      ( .Actor:Self 00000006 00680617 )
   8F8:  Wait  2`
   904:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-  918:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000020 )
+  918:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
   940:  Wait  8`
   94C:  Call  SetPartFlagBits   ( .Actor:Self 00000006 00000001 .True )
   968:  If  *Var0  ==  0000000A % A
@@ -2479,25 +2488,12 @@
 	$Chomp $Vector3D_8021E9A0 00000064 00000000 00000000 00000000 00000000
 }
 
-#new:Script $Script_8021E9C8
+#new:Script $Script_SummonChomp
 {
     0:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
    14:  Call  GetActorVar       ( .Actor:Self 00000003 *Var0 )
   134:  Call  SetAnimation  ( .Actor:Self 00000001 00680601 )
   14C:  Call  GetActorVar   ( .Actor:Self 00000008 *Var0 )
-  164:  If  *Var0  ==  00000000
-  174:  	Call  UseBattleCamPreset    ( 0000000D )
-  184:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
-  19C:  	Call  SetBattleCamZoom      (  225` )
-  1AC:  	Call  SetBattleCamOffsetZ   (  -30` )
-  1BC:  	Call  MoveBattleCamOver     (  40` )
-  1CC:  Else
-  1D4:  	Call  UseBattleCamPreset    ( 0000000D )
-  1E4:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
-  1FC:  	Call  SetBattleCamZoom      (  200` )
-  20C:  	Call  SetBattleCamOffsetZ   (  35` )
-  21C:  	Call  MoveBattleCamOver     (  40` )
-  22C:  EndIf
   234:  Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
   24C:  Thread
   254:  	Label  0
@@ -2617,7 +2613,7 @@
   A10:  Call  PlaySound ( 0000026C )
   A20:  Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[0.5] )
   A3C:  Call  SetActorVar   ( .Actor:Self 00000003 00000001 )
-  A35:  ExecWait  $Script_8021D81C
+  A35:  ExecWait  $Script_DoHieroglyph
   A54:  Return
   A5C:  End
 }
@@ -2653,7 +2649,7 @@
   1B4:  End
 }
 
-#new:Script $Script_8021F5E8
+#new:Script $Script_Hieroglyh2
 {
     0:  Call  SetActorVar       ( .Actor:Self 00000007 00000000 )
    18:  Call  UseBattleCamPreset    ( 0000000D )
@@ -2663,7 +2659,7 @@
    64:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
    80:  Add   *Var1  00000014
    90:  Call  PlayEffect        ( ~FX:Hieroglyphics *Var0 *Var1 *Var2 *Fixed[1.0] 0000002D 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-   D4:  Wait  40`
+   D4:  Wait  35`
    E0:  Call  UseBattleCamPreset    ( 00000002 )
    F0:  Call  MoveBattleCamOver (  60` )
   100:  Call  PlaySoundAtActor  ( .Actor:Self 000020E6 )
@@ -2684,7 +2680,7 @@
   21C:  End
 }
 
-#new:Script $Script_8021F80C
+#new:Script $Script_HitSelf
 {
     0:  Call  SetAnimation  ( .Actor:Self 00000001 00680608 )
    18:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )

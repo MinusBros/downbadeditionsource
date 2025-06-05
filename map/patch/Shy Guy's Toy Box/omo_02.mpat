@@ -1,5 +1,367 @@
+#define .NpcID:ShyGuy_00            00
+#define .NpcID:ShyGuy_01            01
+#define .NpcID:ShyGuy_02            02
+#define .NpcID:ShyGuy_03            03
+#define .NpcID:ShyGuy_04            04
+#define .NpcID:ShyGuy_05            05
+#define .NpcID:ShyGuy_06            06
+#define .NpcID:ShyGuy_07            07
+#define .NpcID:ShyGuy_08            08
+#define .NpcID:ShyGuy_09            09
+#define .NpcID:ShyGuy_10            0A
+#define .NpcID:SpyGuy_50            32
+#define .NpcID:SpyGuy_51            33
+#define .NpcID:SpyGuy_52            34
+
 @	$Script_MakeEntities
 {
     [0]  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242FE0 .Item:EggMissile 80000000 )
    [38]  Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity80243018 .Item:StarPoint 80000000 )
 }
+
+@	$Script_80242C10
+{
+    0:  Call  SetMusicTrack ( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
+   2C:  	Thread
+   34:  		Wait  30`
+   40:  		Call  802D5FA4  ( 00000007 )
+   50:  	EndThread
+   1C:  Return
+   24:  End
+}
+
+
+
+
+@	$Script_Idle_80244E8C
+{
+    0:  If  *GF_OMO02_ShyGuyFledBehindWall  ==  .False
+   10:  	Call  DisablePlayerInput    ( .True )
+   20:  	Wait  20`
+   2C:  	Call  SetNpcJumpscale   ( .Npc:Self *Fixed[1.0] )
+   40:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+   5C:  	Call  NpcJump0      ( .Npc:Self *Var0 *Var1 *Var2  15` )
+   7C:  	Call  UseSettingsFrom   ( .Cam:Default  -570`  0`  0` )
+   98:  	Call  SetPanTarget  ( .Cam:Default  -570`  0`  0` )
+   B4:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+   C8:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E0:  	Exec  $Script_80244E44 *VarA
+   F0:  	Call  SetNpcAnimation   ( .Npc:Self 003B0003 )
+  104:  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[9.0] )
+  118:  	Call  NpcMoveTo     ( .Npc:Self  -575`  0`  0` )
+  134:  	Kill  *VarA
+  140:  	Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
+  158:  	Call  NpcJump0      ( .Npc:Self  -460`  0`  -20`  40` )
+  178:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  190:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1A4:  	Exec  $Script_80244D64 *MapVar[A]
+  1B4:  	Set   *GF_OMO02_ShyGuyFledBehindWall  .True
+  1C4:  	Call  DisablePlayerInput    ( .False )
+  1D4:  Else
+  1DC:  	Exec  $Script_80244D64 *MapVar[A]
+  1EC:  	Call  SetNpcPos     ( .Npc:Self  -575`  0`  -20` )
+  208:  	Label  A
+  214:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  22C:  	If  *Var0  <  FFFFFD08
+  23C:  		Wait  1`
+  248:  		Goto  A
+  254:  	EndIf
+  25C:  	Wait  15`
+  268:  	Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
+  280:  	Call  NpcJump0  ( .Npc:Self  -460`  0`  -20`  40` )
+  2A0:  EndIf
+  2A8:  Return
+  2B0:  End
+}
+
+
+@	$Script_802435F0
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  EnableGroup   ( ~Model:hibi .False )
+   24:  Thread
+   2C:  	Call  $Function_8024043C ( )
+   38:  	Loop  0000000A
+   44:  		UseIntBuffer  $IntTable_80243580
+   50:  		Loop  0000000C
+   5C:  			Get1Int  *Var0
+   68:  			Call  EnableModel   ( *Var0 .True )
+   7C:  		EndLoop
+   84:  		Wait  2`
+   90:  		UseIntBuffer  $IntTable_80243580
+   9C:  		Loop  0000000C
+   A8:  			Get1Int  *Var0
+   B4:  			Call  EnableModel   ( *Var0 .False )
+   C8:  		EndLoop
+   D0:  		Wait  2`
+   DC:  	EndLoop
+   E4:  	UseIntBuffer  $IntTable_802435B0
+   F0:  	Loop  0000000C
+   FC:  		Get1Int  *Var0
+  108:  		Call  ModifyColliderFlags   ( 00000000 *Var0 7FFFFE00 )
+  120:  	EndLoop
+  128:  EndThread
+  130:  Thread
+  138:  	Wait  30`
+  144:  	Kill  *MapVar[A]
+  150:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  168:  	Wait  1`
+  174:  	Call  UseSettingsFrom   ( .Cam:Default  -380`  0`  0` )
+  190:  	Call  SetPanTarget  ( .Cam:Default  -380`  0`  0` )
+  1AC:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  1C0:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1D8:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1EC:  EndThread
+  1F4:  Thread
+  1FC:  	Call  MakeLerp  ( 00000000 FFFFFFF6 00000014 .Easing:CubicIn )
+  218:  	Loop
+  224:  		Call  UpdateLerp ( )
+  230:  		Call  RotateModel   ( ~Model:t1 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  250:  		Call  UpdateColliderTransform   ( ~Collider:t1 )
+  260:  		Wait  1`
+  26C:  		If  *Var1  ==  00000000
+  27C:  			BreakLoop
+  284:  		EndIf
+  28C:  	EndLoop
+  294:  	Call  MakeLerp  ( FFFFFFF6 00000007 00000028 .Easing:CubicIn )
+  2B0:  	Loop
+  2BC:  		Call  UpdateLerp ( )
+  2C8:  		Call  RotateModel   ( ~Model:t1 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  2E8:  		Call  UpdateColliderTransform   ( ~Collider:t1 )
+  2F8:  		Wait  1`
+  304:  		If  *Var1  ==  00000000
+  314:  			BreakLoop
+  31C:  		EndIf
+  324:  	EndLoop
+  32C:  	Call  MakeLerp  ( 00000007 FFFFFFA6 0000001E .Easing:CubicIn )
+  348:  	Loop
+  354:  		Call  UpdateLerp ( )
+  360:  		Call  RotateModel   ( ~Model:t1 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  380:  		Call  UpdateColliderTransform   ( ~Collider:t1 )
+  390:  		Wait  1`
+  39C:  		If  *Var1  ==  00000000
+  3AC:  			BreakLoop
+  3B4:  		EndIf
+  3BC:  	EndLoop
+  3C4:  	Call  PlaySoundAtModel  ( ~Model:t1 000001F4 00000000 )
+  3DC:  	Call  GetModelCenter    ( ~Model:t1 )
+  3EC:  	Call  PlayEffect        ( ~FX:Steam:LargeOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  430:  	Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[1.0] )
+  44C:  EndThread
+  454:  Thread
+  45C:  	Wait  5`
+  468:  	Call  MakeLerp  ( 00000000 FFFFFFF6 00000014 .Easing:CubicIn )
+  484:  	Loop
+  490:  		Call  UpdateLerp ( )
+  49C:  		Call  RotateModel   ( ~Model:t2_1 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  4BC:  		Call  UpdateColliderTransform   ( ~Collider:t2_1 )
+  4CC:  		Wait  1`
+  4D8:  		If  *Var1  ==  00000000
+  4E8:  			BreakLoop
+  4F0:  		EndIf
+  4F8:  	EndLoop
+  500:  	Call  MakeLerp  ( FFFFFFF6 00000007 00000028 .Easing:CubicIn )
+  51C:  	Loop
+  528:  		Call  UpdateLerp ( )
+  534:  		Call  RotateModel   ( ~Model:t2_1 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  554:  		Call  UpdateColliderTransform   ( ~Collider:t2_1 )
+  564:  		Wait  1`
+  570:  		If  *Var1  ==  00000000
+  580:  			BreakLoop
+  588:  		EndIf
+  590:  	EndLoop
+  598:  	Call  MakeLerp  ( 00000007 FFFFFFA6 0000001E .Easing:CubicIn )
+  5B4:  	Loop
+  5C0:  		Call  UpdateLerp ( )
+  5CC:  		Call  RotateModel   ( ~Model:t2_1 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  5EC:  		Call  UpdateColliderTransform   ( ~Collider:t2_1 )
+  5FC:  		Wait  1`
+  608:  		If  *Var1  ==  00000000
+  618:  			BreakLoop
+  620:  		EndIf
+  628:  	EndLoop
+  630:  	Call  PlaySoundAtModel  ( ~Model:t2_1 000001F4 00000000 )
+  648:  	Call  GetModelCenter    ( ~Model:t2_1 )
+  658:  	Call  PlayEffect        ( ~FX:Steam:LargeOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  69C:  	Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[1.0] )
+  6B8:  EndThread
+  6C0:  Set   *Var0  00000001
+  6D0:  Loop  0000000A
+  6DC:  	Thread
+  6E4:  		Wait  10`
+  6F0:  		Call  SetNpcJumpscale   ( *Var0 *Fixed[1.5] )
+  704:  		Call  GetNpcPos ( *Var0 *Var1 *Var2 *Var3 )
+  720:  		If  *Var2  ==  00000000
+  730:  			Call  NpcJump0  ( *Var0 *Var1  0` *Var3  20` )
+  750:  		EndIf
+  758:  	EndThread
+  760:  	Add   *Var0  00000001
+  770:  EndLoop
+  778:  Call  MakeLerp  ( 00000000 FFFFFFF6 00000014 .Easing:CubicIn )
+  794:  Loop
+  7A0:  	Call  UpdateLerp ( )
+  7AC:  	Call  RotateModel   ( ~Model:t3_2 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  7CC:  	Call  UpdateColliderTransform   ( ~Collider:t3_2 )
+  7DC:  	Wait  1`
+  7E8:  	If  *Var1  ==  00000000
+  7F8:  		BreakLoop
+  800:  	EndIf
+  808:  EndLoop
+  810:  Call  MakeLerp  ( FFFFFFF6 00000007 00000028 .Easing:CubicIn )
+  82C:  Loop
+  838:  	Call  UpdateLerp ( )
+  844:  	Call  RotateModel   ( ~Model:t3_2 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  864:  	Call  UpdateColliderTransform   ( ~Collider:t3_2 )
+  874:  	Wait  1`
+  880:  	If  *Var1  ==  00000000
+  890:  		BreakLoop
+  898:  	EndIf
+  8A0:  EndLoop
+  8A8:  Call  MakeLerp  ( 00000007 FFFFFFA6 0000001E .Easing:CubicIn )
+  8C4:  Loop
+  8D0:  	Call  UpdateLerp ( )
+  8DC:  	Call  RotateModel   ( ~Model:t3_2 *Var0 *Fixed[0.5185547] 00000000 *Fixed[1.9316406] )
+  8FC:  	Call  UpdateColliderTransform   ( ~Collider:t3_2 )
+  90C:  	Wait  1`
+  918:  	If  *Var1  ==  00000000
+  928:  		BreakLoop
+  930:  	EndIf
+  938:  EndLoop
+  940:  Call  PlaySoundAtModel  ( ~Model:t3_2 000001F4 00000000 )
+		Call  PlaySoundAtModel  ( ~Model:t3_2 00002018 00000000 )
+  958:  Call  GetModelCenter    ( ~Model:t3_2 )
+  968:  Call  PlayEffect        ( ~FX:Steam:LargeOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Set   *Var0  -397`
+		Set   *Var1  10`
+		Set   *Var2  37`
+		Call  PlayEffect    ( ~FX:Explosion3 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call  PlayEffect        ( ~FX:Firework:White *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  9AC:  Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[1.0] )
+  9C8:  Thread
+  9D0:  	Wait  35`
+  9DC:  	Call  PlaySound ( 8000004D )
+  9EC:  EndThread
+  9F4:  Set   *Var0  00000001
+  A04:  Set   *Var5  00000001
+  A14:  Loop  0000000A
+  A20:  	Thread
+  A28:  		Call  SetNpcJumpscale   ( *Var0 *Fixed[1.5] )
+  A3C:  		Call  GetNpcPos ( *Var0 *Var1 *Var2 *Var3 )
+  A58:  		Call  RandInt   ( 0000000A *Var4 )
+  A6C:  		Add   *Var4  0000000A
+  A7C:  		If  *Var2  ==  00000000
+  A8C:  			Call  NpcJump0  ( *Var0 *Var1  0` *Var3 *Var4 )
+  AAC:  		EndIf
+  AB4:  		Call  SetNpcVar ( *Var0 00000000 0000000B )
+  ACC:  		Wait  *Var5
+  AD8:  		Call  SetNpcVar ( *Var0 00000000 00000014 )
+  AF0:  	EndThread
+  AF8:  	Add   *Var0  00000001
+  B08:  	Add   *Var5  0000000C
+  B18:  EndLoop
+  B20:  Wait  60`
+  B2C:  Call  UseSettingsFrom   ( .Cam:Default  -125`  0`  0` )
+  B48:  Call  SetPanTarget  ( .Cam:Default  -125`  0`  0` )
+  B64:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  B78:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  B90:  Wait  165`
+  B9C:  Call  PlaySound     ( 0000076D )
+  BAC:  Call  802D62E4      ( 0000036D )
+  BBC:  Call  SetNpcAnimation   ( .NpcID:ShyGuy_00 003B0004 )
+  BD0:  Call  SetNpcPos     ( .NpcID:ShyGuy_00  -285`  0`  35` )
+  BEC:  Call  SetNpcSpeed   ( .NpcID:ShyGuy_00 *Fixed[8.0] )
+  C00:  Call  NpcMoveTo     ( .NpcID:ShyGuy_00  -135`  23`  0` )
+  C1C:  Call  NpcMoveTo     ( .NpcID:ShyGuy_00  -110`  -13`  0` )
+  C38:  Call  SetNpcJumpscale   ( .NpcID:ShyGuy_00 *Fixed[1.0] )
+  C4C:  Call  802CDE68      ( 00000000 0000000A )
+  C60:  Thread
+  C68:  	Set   *Var0  00000000
+  C78:  	Loop  0000000A
+  C84:  		Add   *Var0  FFFFFFF7
+  C94:  		Call  SetNpcRotation    ( .NpcID:ShyGuy_00 00000000 00000000 *Var0 )
+  CB0:  		Wait  1`
+  CBC:  	EndLoop
+  CC4:  EndThread
+  CCC:  Thread
+  CD4:  	Wait  10`
+  CE0:  	Call  SetNpcRotation    ( .NpcID:ShyGuy_00 00000000 00000000 00000000 )
+  CFC:  	Call  SetNpcAnimation   ( .NpcID:ShyGuy_00 003B0010 )
+  D10:  EndThread
+  D18:  Call  NpcJump0  ( .NpcID:ShyGuy_00  -45`  0`  -8`  10` )
+  D38:  Call  PlaySoundAtNpc    ( .NpcID:ShyGuy_00 .Sound:MissJump 00000000 )
+  D50:  Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[1.0] )
+  D6C:  Wait  50`
+  D78:  Loop  00000002
+  D84:  	Call  PlaySoundAtNpc    ( *Var9 000003E4 00000000 )
+  D9C:  	Wait  7`
+  DA8:  EndLoop
+  DB0:  Call  802CDE68      ( 00000000 00000000 )
+  DC4:  Call  SetNpcAnimation   ( .NpcID:ShyGuy_00 003B0001 )
+  DD8:  Call  NpcJump0      ( .NpcID:ShyGuy_00  -50`  0`  -8`  10` )
+  DF8:  Call  InterpNpcYaw  ( .NpcID:ShyGuy_00  270`  0` )
+  E10:  Wait  20`
+  E1C:  Call  PlaySoundAtNpc    ( .NpcID:ShyGuy_00 000003A2 00000000 )
+  E34:  Call  SetNpcAnimation   ( .NpcID:ShyGuy_00 003B0004 )
+  E48:  Call  SetNpcSpeed   ( .NpcID:ShyGuy_00 *Fixed[6.0] )
+  E5C:  Call  NpcMoveTo     ( .NpcID:ShyGuy_00  100`  50`  0` )
+  E78:  Call  RemoveNpc     ( .NpcID:ShyGuy_00 )
+  E88:  Wait  30`
+  E94:  Call  StopSound     ( 000003A2 )
+  EA4:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  EBC:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  ED8:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  EF4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  F08:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  F1C:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  F34:  Set   *GF_OMO02_BombedWall  .True
+  F44:  Call  DisablePlayerInput    ( .False )
+  F54:  Unbind
+  F5C:  Return
+  F64:  End
+}
+
+
+
+@	$Script_ExitWalk_80242C40
+{
+   [40]  Wait  60`
+}
+
+@ $Script_ExitWalk_80242C9C
+{
+   [40]  Wait  60`
+}
+
+@	$AISettings_802449E8
+{
+    2.5 % move speed
+    60` % move time
+    15` % wait time
+   100.0 % alert radius
+   50.0
+    3`
+    5.8 % chase speed
+    8`
+    1`
+  180.0 % chase radius
+   60.0
+    1`
+}
+
+
+@	$AISettings_80244AC0
+{
+    16.0 % move speed
+    0` % move time
+    0` % wait time
+    4.0 % alert radius
+    0.5
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    0`
+}
+

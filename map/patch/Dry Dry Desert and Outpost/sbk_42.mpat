@@ -33,3 +33,60 @@
   100.0
     1`
 }
+
+
+
+
+#import SetTexturePanner.mpat
+
+@ $Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
+   30:  	Call  DisablePulseStone ( .False )
+   40:  EndIf
+   48:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   68:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   84:  Call  SetCamEnabled ( .Cam:Default .True )
+   98:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   AC:  Call  MakeNpcs      ( .False $NpcGroupList_80240C10 )
+   C0:  Call     $Function_80240000 ( )
+   CC:  Call     SetMusicTrack    	( 00000000 00000017 00000000 00000008 )
+   E8:  Set      *Var[0] $Script_80240330 
+   F8:  Exec     EnterWalk
+		Exec     $ScrollSand
+  104:  Return
+  10C:  End
+}
+
+#new:Script $ScrollSand
+{
+	SetGroup 00000000 
+	% may also use 802C9208, perhaps this does scaling or rotation instead  -- see mac_00 model 000000D6
+	Call     SetTexPanner	( ~Model:FallingSand 00000001 )
+	Thread
+	   Set      *Var[0] 00000001 
+	   Set      *Var[1] 0		% main texture speed U
+	   Set      *Var[2] 128`	% main texture speed V
+	   Set      *Var[3] 0		% aux texture speed U
+	   Set      *Var[4] 0		% aux texture speed U
+	   Set      *Var[5] 00000000 
+	   Set      *Var[6] 00000001 
+	   Set      *Var[7] 00000000 
+	   Set      *Var[8] 00000000 
+	   Set      *Var[9] 00000000 
+	   Set      *Var[A] 00000000 
+	   Set      *Var[B] 00000000 
+	   Set      *Var[C] 00000000 
+	   Exec     $Script_SetTexturePanner 
+	EndThread
+	Return
+	End
+}
+
+% Force recalculation of entrances -- since we Set d one of them.
+@ $EntryList
+{
+~Vec4f:Entry0 ~Vec4f:Entry1 ~Vec4f:Entry2 ~Vec4f:Entry3
+}

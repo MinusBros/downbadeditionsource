@@ -49,3 +49,67 @@
     0.0
     1`
 }
+
+
+
+
+@ $Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
+   30:  	Call  DisablePulseStone ( .False )
+   40:  EndIf
+   48:  Call     SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+   68:  Call     SetCamBGColor 	( .Cam:Default 00000000 00000000 00000000 )
+   84:  Call     SetCamEnabled 	( .Cam:Default .True )
+   98:  Call     SetCamLeadPlayer 	( .Cam:Default .False )
+   		Exec     $Script_SandFlow
+		If  *GF_SBK32_SmashableBlock  ==  .False 
+			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:ShortcutBlock 80000000 )
+			Call     AssignScript 	( $Script_SmashBlock )
+		EndIf
+   AC:  Call     MakeNpcs    	( 00000000 $NpcGroupList_80240F18 )
+   C0:  Call     $Function_80240000 ( )
+   CC:  Call     SetMusicTrack 	( 00000000 .Song:DryDryDesert 00000000 00000008 )
+   E8:  Exec     $Script_EnterWalk_802403E0 
+   F4:  Wait     00000001 
+  100:  Return
+  108:  End
+}
+  
+#new:Script $Script_SmashBlock
+{
+	Set  *GF_SBK32_SmashableBlock  .True 
+	Return
+	End
+}
+
+#new:Script $Script_SandFlow
+{
+	Call     EnableTexPanning 	( ~Model:SandFlowA .True )
+	Call     EnableTexPanning 	( ~Model:SandFlowB .True )
+	Call     EnableTexPanning 	( ~Model:SandFlowC .True )
+	Set      *Var[0] 00000000 
+	Loop     
+		Add      *Var[0] 100`  
+		Call     802C9364 ( 00000001 00000000 00000000 *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+
+@ $NpcGroupList_80240F18
+{
+	00000001 $NpcGroup_80240948 0A1E0001
+	00000001 $NpcGroup_80240B38 0A230001
+	00000001 $NpcGroup_80240D28 0A0B0001
+	00000000 00000000 00000000
+}
+
+% Force recalculation of entrances -- since we moved the Tweester exit point.
+@ $EntryList
+{
+~Vec4f:Entry0 ~Vec4f:Entry1 ~Vec4f:Entry2 ~Vec4f:Entry3 ~Vec4f:Entry4
+}

@@ -301,6 +301,31 @@ NOP
 
 
 
+%Uses the ability check
+#export:Function $Function_CheckAbility %arg 1 = badge, arg 2 = output (1 if you have badge, 0 if not)
+{
+	PUSH	  RA, S1, S2, S3
+	COPY	  S2, A0
+	LW        V0, C (S2)
+	COPY	  S1, V0
+	JAL       ~Func:get_variable
+	LW        A1, 0 (S1)	
+	JAL       ~Func:is_ability_active %gets if you have a badge equipped, it can detect copies of badges like deep focus
+	COPY	  A0, V0
+	%ADDIU     A0, R0, 30 %ability 0x30 = deep focus
+	COPY	  A0, V0
+	LW        V0, C (S2)
+	COPY	  A2, A0
+	COPY	  A0, S2
+	JAL       ~Func:set_variable
+	LW        A1, 4 (S1) %get the next var
+	POP 	  RA, S1, S2, S3
+	JR		  RA
+	ORI 	  V0, R0, 2
+}
+
+
+
 %Get battle data value
 %	Returns value of (second arg) + battle data into (first arg)
 #export:Function $Function_GetBattleDataByte %( out, offset ) 
@@ -1179,48 +1204,50 @@ ADDIU	V0, R0, 2
 
 
 
-%Change backgrounds in Kinoko Town based on story progression.
-%Code by Rain.
 
-#define .STORY_CH7_STAR_SPRIT_DEPARTED 89`
 
-#new:ASCII $MapBg {"nok_bg"}
-#new:ASCII $MapBg2 {"obk_bg"}
 
-#new:Data $NewMapBgList {$MapBg $MapBg2}
 
-#new:ASCII $StrFormat {"%s"}
 
-%if story less than STORY_CH7_STAR_SPRIT_DEPARTED, return 0 ("nok_bg") else, return 1 ("obk_bg")
-#new:Function $GetBackgroundIndexToLoad {
-    LABU t0, 800DBD70 %story progress
-    SLTI v0, t0, .STORY_CH7_STAR_SPRIT_DEPARTED
-    JR RA
-    XORI v0, v0, 1
+
+
+#export:Function $Function_SetLevel %pass in enemy pointer
+{
+	PUSH	RA, S0, S1, S2
+	DADDU	S1, A0, R0
+	LW		S0, C (S1)
+	LW		A1, 0 (S0)
+	JAL		~Func:get_variable
+	ADDIU	S0, S0, 4
+	DADDU	A0, S1, R0
+	LW		A1, 0 (S0)
+	JAL		~Func:get_variable
+	DADDU	S2, V0, R0
+	SB		V0, 6 (S2)
+	POP		RA, S0, S1, S2
+	JR		RA
+	ADDIU V0, R0, 2
 }
 
-#export:Function $SetDynamicMapBackground {
-    ADDIU sp, sp, -18
-    SW ra, 0014 (sp)
-
-    JAL $GetBackgroundIndexToLoad
-    NOP
-
-    LI t0, $NewMapBgList
-    SLL t1, v0, 2 %multiply by sizeof(ptr)
-    ADDU t0, t0, t1
-
-    LW a2, 0000 (t0) %load ptr to background string
-
-    LI a0, 800D9668 %wMapBgName
-    LI a1, $StrFormat %how to format the string
-    JAL ~Func:sprintf
-    NOP
-
-    LW ra, 0014 (sp)
-    JR RA
-    ADDIU sp, sp, 18
+#export:Function $Function_SetEscape %sets the "can you run away?" flag (zero = no, non-zero = yes)
+{
+PUSH	RA
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument
+SLTI	V0, V0, 1 %force it to be a boolean value, (but this inverts it too!)
+LUI		A1, 800E %1st half of battle data address (actually 800D)
+LB		A2, C077 (A1) %get the flags
+BEQ		V0, R0, .false 
+ORI		A2, A2, 20  %20 flag
+ANDI	A2, A2, FFDF %everything but the 20 flag (signed value?)
+.false
+SB		A2, C077 (A1) %set the flags
+POP		RA
+JR RA
+ORI V0, R0, 2
 }
+
+
 
 
 
@@ -1237,3 +1264,5 @@ ADDIU	V0, R0, 2
 #export $WriteAddressFloat
 #export $WriteBitFlag
 #export $ReadBitFlag
+#export $Function_SetLevel
+#export $Function_SetEscape

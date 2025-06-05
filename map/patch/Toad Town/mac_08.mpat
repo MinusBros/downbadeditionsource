@@ -1,0 +1,107 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[Background] 80200000
+[EntryList] $EntryList
+[EntryCount] 2
+[MapTattle]   $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+% UPDATE THIS
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This is a back area of Toad Town,[BR]
+behind the Dojo.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+-480.0 	0.0 	-3.0 	90.0	
+-318.0 	35.0 	31.0 	180.0	
+}
+
+#import EnterViaPipe.mpat
+#import ExitViaPipe.mpat
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation  .Location:ToadTown
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Switch  *GB_StoryProgress 
+  	Case  FFFFFFF3  to  00000005 
+		Call     SetMusicTrack 	( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+	Default
+		Call     SetMusicTrack 	( 00000000 .Song:ToadTown 00000000 00000008 )
+EndSwitch
+Call     GetEntryID  	( *Var[0] )
+If (*Var[0] == 0) %the entrance scripts create the exits slightly differently, so we have to account for that
+	Set		*Var[0] $Script_MakeExits 
+	Exec	EnterWalk %the script executes the script in *Var[0]
+Else
+	Set		*Var[A] $Script_MakeExits 
+	Exec $Script_EnterVerticalPipe %the script executes the script in *Var[A]
+EndIf
+Return
+End
+}
+
+#new:Script $Script_Entry0
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "mac_00"   00000008 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Entry1
+{
+	0:  Call     GotoMap     	( "tik_26" 00000000 ) %debug, set map and entrance to the correct place once tik map is made
+   14:  Wait     00000064 
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_ExitViaPipe %$Script_802445CC
+{
+	0:  SetGroup 0000001B 
+	/%
+    C:  Set  *Var[A]  *Var[0] 
+   1C:  Set  *Var[B]  *Var[1] 
+   2C:  Set  *Var[C]  *Var[2] 
+	Set  *Var[0]  00000001 %entry id
+	Set  *Var[1]  00000006 %pipe collider id (not sure if the shorthand would work here)
+	Set  *Var[2]  $Script_Entry1 
+   %/ 
+		Set *Var[A] 00000001 %entry id
+		Set *Var[B] 0000000D	 %collider id
+		Set *Var[C]	$Script_Entry1 %script
+   3C:  ExecWait $Script_VerticalPipe 
+   48:  Return
+   50:  End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     ($Script_Entry0 .Trigger:FloorTouch 00000006 00000001 00000000 ) %Collider:deiliw is id 7 (6)
+	If (*GB_StoryProgress < 60) %no escape in epilogue
+		Bind     ($Script_ExitViaPipe .Trigger:FloorAbove 0000000D 00000002 00000000 ) %Collider:deilim is id D (C)
+	EndIf
+	Return
+    End
+}

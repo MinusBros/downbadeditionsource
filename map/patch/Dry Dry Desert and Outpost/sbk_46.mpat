@@ -44,3 +44,56 @@
     0.0
     1`
 }
+
+#import TexturePanner.mpat TexturePanner
+
+% Force recalculation of entrances -- since we moved one of them.
+@ $EntryList
+{
+~Vec4f:Entry0 
+~Vec4f:Entry1 
+~Vec4f:Entry2 
+~Vec4f:Entry3
+}
+
+
+
+@ $Script_Main_EnterWalk
+{
+	0:  Set  *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call     SetSpriteShading 	( FFFFFFFF )
+   20:  If  *GB_StoryProgress  ==  FFFFFFC1 
+   30:  	Call     DisablePulseStone 	( .False )
+   40:  EndIf
+   48:  Call     SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+   68:  Call     SetCamBGColor 	( .Cam:Default 00000000 00000000 00000000 )
+   84:  Call     SetCamEnabled 	( .Cam:Default .True )
+   98:  Call     SetCamLeadPlayer 	( .Cam:Default .False )
+   AC:  Call     MakeNpcs    	( 00000000 $NpcGroupList_80241088 )
+   C0:  ExecWait $Script_MakeEntities 
+   CC:  Call     $Function_80240000 ( )
+   D8:  Call     SetMusicTrack 	( 00000000 .Song:DryDryDesert 00000000 00000008 )
+   F4:  Set  *Var[0]  $Script_80240534 
+  104:  Exec     EnterWalk 
+  110:  Exec     $Script_80241AE0 
+		Thread
+			Set  *Var[0] 01   % panner id
+			Set  *Var[1] 0`   % x scroll
+			Set  *Var[2] 400` % y scroll
+			Set  *Var[3] 0`   % x scroll (aux)
+			Set  *Var[4] 0`   % y scroll (aux)
+			Set  *Var[5] .True
+			Set  *Var[6] .True
+			Set  *Var[7] .True
+			Set  *Var[8] .True
+			Set  *Var[9] .False
+			Set  *Var[A] .False
+			Set  *Var[B] .False
+			Set  *Var[C] .False
+			Exec $TexturePanner:Script
+		EndThread
+		Call SetTexPanner     ( ~Model:texpanfloor 01 )
+		Call EnableTexPanning ( ~Model:texpanfloor .True )
+  11C:  Return
+  124:  End
+}

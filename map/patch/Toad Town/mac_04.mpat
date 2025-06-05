@@ -52,11 +52,65 @@
    40:  End
 }
 
+
+@	$Script_802420C0
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  If  *Var0  !=  ~Entry:Entry4
+   20:  	Switch  *GB_StoryProgress
+   2C:  		Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   3C:  			Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+					Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   58:  		Default
+   60:  			Exec  $Script_8024F4E8
+   6C:  	EndSwitch
+   74:  	Thread
+   7C:  		Wait  60`
+   88:  		Call  StopSound ( 80000017 )
+   98:  	EndThread
+   A0:  EndIf
+   A8:  Return
+   B0:  End
+}
+
+
+
+%Add Silver Credit in the Warehouse.
+%The secret TTYD pipe behind the shop is now replaced with a Star Piece panel.
+
 @	$Script_MakeEntities
 {
-  [128]  Call  MakeItemEntity    ( 0002007B ~Vec3d:Item8024F3E8 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC04_Item_SnowmanDoll )
-  [14C]  Call  MakeItemEntity    ( 000200B9 ~Vec3d:Item8024F40C .ItemSpawnMode:Fixed_NeverVanish *GF_MAC04_Item_VoltShroom )
-  [170]  Call  MakeItemEntity    ( 00020097 ~Vec3d:Item8024F430 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC04_Item_DizzyDial )
+    0:  If  *GB_StoryProgress  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   10:  	Call  MakeEntity        ( .Entity:Padlock ~Vec4d:Entity8024F2D0 80000000 )
+   34:  	Call  AssignScript      ( $Script_8024EFF4 )
+   44:  	Set   *MapVar[0]  *Var0
+   54:  	Call  SetEntityCullMode ( 00000003 )
+   64:  	BindLock  $Script_8024F018 .Trigger:WallPressA 00004000 $ItemList_8024F010 00000000 00000001
+   84:  EndIf
+   8C:  Call  MakeItemEntity    ( 00020021 ~Vec3d:Item8024F34C 00000000 *GF_MAC04_Item_ToyTrain )
+   B0:  Thread
+   B8:  	If  *GB_StoryProgress  <  .Story:Ch4_GotToyTrain % FFFFFFFA
+   C8:  		Loop
+   D4:  			If  *GF_MAC04_Item_ToyTrain  !=  .False
+   E4:  				Set   *GB_StoryProgress  .Story:Ch4_GotToyTrain
+   F4:  				BreakLoop
+   FC:  			EndIf
+  104:  			Wait  1`
+  110:  		EndLoop
+  118:  	EndIf
+  120:  EndThread
+  128:  Call  MakeItemEntity    ( 0002007B ~Vec3d:Item8024F3E8 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC04_Item_SnowmanDoll ) %Silver Credit
+  14C:  Call  MakeItemEntity    ( 000200AF ~Vec3d:Item8024F40C .ItemSpawnMode:Fixed_NeverVanish *GF_MAC04_Item_VoltShroom ) %Iced Potato (Used to be Hot Shroom pre 0.9.3)
+  170:  Call  MakeItemEntity    ( 00020097 ~Vec3d:Item8024F430 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC04_Item_DizzyDial ) %Repel Gel
+  194:  Call  MakeEntity        ( .Entity:ScriptSpring ~Vec4d:Entity8024F454 80000000 )
+  1B8:  Call  AssignScript      ( $Script_8024EFAC )
+  1C8:  Call  SetEntityCullMode ( 00000002 )
+  1D8:  Bind  $Script_8024F278 .Trigger:WallPressA ~Collider:sign 00000001 00000000
+    0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:NewPanel ~Model:FloorBehindShop 80000000 )
+   28:  Call  AssignPanelFlag   ( *GF_MAC04_HiddenPanel )
+  1F4:  Return
+  1FC:  End
 }
 
 
@@ -97,15 +151,18 @@
 %Almost forgot about this code from TTYD64.
 %I don't want people to mess up their stats.
 
+%Max HP and FP is now 75. (Since there's four HP and FP Pluses)
+%Max BP is 69. (The most before it goes off the page)
+
 %===========
 % Chet Rippo
 %===========
 
 @ $Script_Interact_80249184
 {
-[274]  		If  *Var3  >  85` % was 40` % HP
-[2B8]  		If  *Var4  >  85` % was 40` % FP
-[2FC]  		If  *Var5  >  93` % was 24` % BP
+[274]  		If  *Var3  >  65` % was 40` % HP
+[2B8]  		If  *Var4  >  65` % was 40` % FP
+[2FC]  		If  *Var5  >  63` % was 24` % BP
 }
 
 @ $Function_80241A64

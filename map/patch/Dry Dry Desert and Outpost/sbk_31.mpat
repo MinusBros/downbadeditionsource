@@ -34,3 +34,105 @@
   100.0
     1`
 }
+
+
+
+
+@ $Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
+   30:  	Call  DisablePulseStone ( .False )
+   40:  EndIf
+   48:  Call     SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+   68:  Call     SetCamBGColor 	( .Cam:Default 00000000 00000000 00000000 )
+   84:  Call     SetCamEnabled 	( .Cam:Default .True )
+   98:  Call     SetCamLeadPlayer 	( .Cam:Default .False )
+		Exec     $Script_SandFlow
+   AC:  Call     MakeNpcs    	( 00000000 $NpcGroupList )
+   C0:  Call     $Function_80240000 ( )
+   CC:  Call     SetMusicTrack 	( 00000000 .Song:DryDryDesert 00000000 00000008 )
+   E8:  Set      *Var[0] $Script_80240330 
+   F8:  Exec     EnterWalk 
+  104:  Return
+  10C:  End
+}
+  
+#new:Script $Script_SandFlow
+{
+	Call     EnableTexPanning 	( ~Model:SandFlowA .True )
+	Call     EnableTexPanning 	( ~Model:SandFlowB .True )
+	Set      *Var[0] 00000000 
+	Loop     
+		Add      *Var[0] 100`  
+		Call     802C9364 ( 00000001 00000000 00000000 *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_Traveler 00000000 
+00000000 00000000 00000000 
+}
+  
+#new:NpcGroup $NpcGroup_Traveler
+{
+00000000 $NpcSettings_Traveler ~Vec3f:NPC_Traveler
+00002D01 $Script_Init_Traveler 00000000 00000000 0000005A 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~NoMovement
+00930301 00930302 00930303 00930303 00930301 00930301 00930300 00930300 
+00930301 00930301 00930301 00930301 00930301 00930301 00930301 00930301 
+00000000 00000000 00000000 $WandererTattle 
+}
+
+#new:NpcSettings $NpcSettings_Traveler
+{
+00000000 001A0017 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Init_Traveler
+{
+	Call     BindNpcInteract 	( FFFFFFFF $Script_Talk_Traveler )
+	Return
+	End
+}
+	
+#new:Script $Script_Talk_Traveler
+{
+	Call     AdjustCam 	( .Cam:Default *Fixed[4.0] 00000000 *Fixed[250.0] *Fixed[15.0] *Fixed[-6.0] )
+	Call     SpeakToPlayer 	( FFFFFFFF 00930304 00930301 00000000 $WandererMessage )
+	Call     ResetCam    	( .Cam:Default 00000004 )
+	Return
+	End
+}
+	
+#string $WandererTattle
+{
+[Style Right]
+Check this guy out.[BR]
+Getting lost in a desert.[BR]
+[Pause 10][PrintRising]Pfffft! Imagine![BR]
+[Wait][Next]
+[/fx]I never get lost.[BR]
+I'm a legend.[BR]
+[Wait][End]
+}
+	
+#string $WandererMessage
+{
+[Style Right]
+I came through the desert[BR]
+like a week ago and it was[BR]
+completely flat.[BR]
+[Pause 10][PrintRising]Now look what's happened![BR]
+[Wait][Next]
+[/fx]Whoever ruined this desert...[BR]
+[Pause 5]I'm calling the environmentalist.[BR]
+[Wait][End]
+}

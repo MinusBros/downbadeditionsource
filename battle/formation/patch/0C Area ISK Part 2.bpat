@@ -467,6 +467,8 @@
 
 
 %Summon Chomp
+%If Tutankoopa is low on HP and he is summoning a Chomp,
+%he'll retaliate by increasing his attack power.
 
 @	$Script_8021E9C8
 {
@@ -479,6 +481,7 @@
    6C:  	Wait  10`
    78:  	Call  SetAnimation  ( .Actor:Self 00000001 00680003 )
    90:  	Call  ActorSpeak    ( 000D00E6 .Actor:Self 00000001 00680003 00680003 ) % Bleah heh heh heh... Come, Chomp! Come! Bite this  ...
+			Set *GB_EnemyDefense  00000000
    B0:  Else
    B8:  	Call  UseBattleCamPreset    ( 0000000D )
    C8:  	Call  BattleCamTargetActor  ( .Actor:Self )
@@ -622,6 +625,32 @@
   A20:  Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[0.5] )
   A3C:  Call  SetActorVar   ( .Actor:Self 00000003 00000001 )
   A35:  ExecWait  $Script_8021D81C
+				Call  GetActorHP    ( .Actor:Self *Var0 )
+				If  *Var0  <=  00000013 
+					If  *GB_EnemyDefense  == 00000000
+						Set *GB_EnemyDefense  00000001
+			   3C:  	Call  UseBattleCamPreset    ( 0000000D )
+			   4C:  	Call  BattleCamTargetActor  ( .Actor:Self )
+			   5C:  	Call  MoveBattleCamOver     (  20` )
+			   6C:  	Wait  10`
+			   78:  	Call  SetAnimation  ( .Actor:Self 00000001 00680003 )
+			   90:  	Call  ActorSpeak    ( 000D00FD .Actor:Self 00000001 00680003 00680003 )
+						Set        *Var[8]  *Var[0] 
+						Call    SetTargetActor    ( .Actor:Self .Actor:Player )
+						Call    UseBattleCamPreset    ( 0000000E )
+						Call    BattleCamTargetActor    ( .Actor:Self )
+						Call    MoveBattleCamOver        ( 0000000F )
+						Wait    0000000F 
+						Call    GetActorPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+						Call    GetStatusFlags    ( .Actor:Self *Var[A] )
+						Thread
+							Call    8026BF48    ( 00000001 )
+							Call    BoostAttack     ( .Actor:Self 00000001 )
+							Call    8026BF48    ( 00000000 )
+						EndThread
+							Wait 5`
+					EndIf
+				EndIf
   A54:  Return
   A5C:  End
 }

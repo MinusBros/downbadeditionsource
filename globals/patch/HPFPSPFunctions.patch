@@ -1,0 +1,207 @@
+%Copied from Dark Star Edition.
+%By Shadeblade.
+
+
+% #new:Function $Function_SubtractFP %takes one argument (fp to subtract). Does not underflow*
+% PUSH	A0, A1, A2, T0, T1, RA
+% JAL		{Func:GetVariable}
+% LW		A1, 0 (S0) %get argument
+% LIO		A2, 8010F295 %load current fp address
+% LB		T0, 0 (A2) %load fp
+% SUB		T1, T0, V0 %subtract
+% BLTZ	T1, .end %check if fp < 0
+% SB		R0, 0 (A2) %fp is out of bounds, set to 0
+% SB		T1, 0 (A2) %fp is within bounds, set to normal value
+% .end
+% POP		A0, A1, A2, T0, T1, RA
+% JR		RA
+% NOP
+
+%mostly copied from food script, but now checks for hp < 1/fp < 0
+%use negative numbers for hp/fp reduction
+#export:Function $Function_HPHeal
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  LW        V0, C (A0)
+   10:  JAL       ~Func:get_variable
+   14:  LW        A1, 0 (V0)
+   18:  LIA       V1, 8010F290
+   20:  LB        A0, 2 (V1)
+   24:  LB        A1, 3 (V1)
+   28:  ADDU      A0, A0, V0
+   2C:  SLT       V0, A1, A0
+   30:  BEQ       V0, R0, .belowlimit
+   34:  DADDU     S0, V1, R0
+   38:  DADDU     A0, A1, R0
+        .belowlimit
+		BGT		  A0, R0, .end %value is ok
+   3C:  SB        A0, 2 (S0)
+		ORI		  A0, R0, 1
+		SB		  A0, 2 (S0)
+		.end
+   40:  LW        RA, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  ADDIU     V0, R0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+#export:Function $Function_FPHeal
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  LW        V0, C (A0)
+   10:  JAL       ~Func:get_variable
+   14:  LW        A1, 0 (V0)
+   18:  LIA       V1, 8010F290
+   20:  LB        A0, 5 (V1)
+   24:  LB        A1, 6 (V1)
+   28:  ADDU      A0, A0, V0
+   2C:  SLT       V0, A1, A0
+   30:  BEQ       V0, R0, .belowlimit
+   34:  DADDU     S0, V1, R0
+   38:  DADDU     A0, A1, R0
+        .belowlimit
+		BGE		  A0, R0, .end %value is ok
+   3C:  SB        A0, 5 (S0)
+		SB		  R0, 5 (S0)
+		.end
+   40:  LW        RA, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  ADDIU     V0, R0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+#export:Function $Function_SubtractMaxHP %takes one argument (m hp to subtract). Cannot go below 1. Note that this affects the "visible" value, which is reset upon unpausing
+{
+%watch for stuff that reverts this back to normal
+PUSH	A0, A1, A2, T0, T1, RA
+JAL       ~Func:get_variable
+LW		A1, 0 (S0) %get argument
+LIO		A2, 8010F293 %load max hp address
+LB		T0, 0 (A2) %load max hp
+SUB		T1, T0, V0 %subtract
+SUBI	T1, T1, 1 
+BLTZ	T1, .hpok %check if hp < 1
+ADD		T1, R0, R0
+SUB		T1, T0, V0 %subtract
+SUBI	T1, T1, 1 
+.hpok
+ADDI	T1, T1, 1
+SB		T1, 0 (A2) %store hp
+%Force normal hp to be within bounds
+LIO		A2, 8010F292 %load max hp address
+%LB		T0, 1 (A2)
+LB		T1, 0 (A2)
+BLT		T1, T0 .chpok
+NOP
+SB		T0, 1 (A2)
+.chpok
+POP		A0, A1, A2, T0, T1, RA
+JR		RA
+ORI 	V0, R0, 2
+}
+
+#export:Function $Function_AddSP %takes one argument (sp to add). Cannot go above max sp. Pass in a negative number to decrease SP
+{
+PUSH	A0, A1, A2, T0, T1, RA	%SP is stored as a 2 byte val with the first byte equal to bars full and second byte is partial bars (0-FF)
+JAL       ~Func:get_variable		%may crash if you go above 7 (Max SE above 7 is fine, but current SE at or above 8.0 will crash due to nonexistent sprites)
+LW		A1, 0 (S0) %get argument
+LUI		A2, 8011 %load sp address
+LH		T0, F520 (A2) %load sp
+ADD		T0, T0, V0 %addition
+BLTZ	T0, .set0
+NOP
+LB		T1, F51E (A2) %max sp
+SLL		T1, T1, 8
+BLT		T0, T1 .return
+NOP
+ADD		T0, T1, R0
+%SH		T1, F520 (A2)
+BEQ		R0, R0, .return
+NOP
+.set0
+ADD		T0, R0, R0
+%SH		R0, F520 (A2) %Negative SE does NOT crash, but it's a bit unintuitive since there's no way to tell how much negative SE you have
+.return
+SH		T0, F520 (A2)
+POP		A0, A1, A2, T0, T1, RA
+JR		RA
+ORI 	V0, R0, 2
+}
+
+%what happens outside of normal bounds?
+%7.0 to 7.9
+%weird stars start appearing after the 7th star, instead of the bar
+%At 8.0 or above, game crash due to nonexistent/broken graphics
+
+%Below 0.0
+%The SE bar is completely empty. However, it still increases when you do things like focusing
+
+
+%% borrowed from rain
+% @Hook 82758
+% JAL $StoneFunction
+% NOP
+% .end
+% LIO     RA, 800E974C %set the RA to this value because at this point in code, it's always this
+% J        800E92B0
+% NOP
+
+% #new:Function $StoneFunction
+% PUSH V1, A0, A1, A2, A3, RA, T0, T1
+% LIO		V0, 8010F2A6
+% LB		A0, 0 (V0) %this is where the flag is
+% BEQ		A0, R0, .end %no, so jump to end
+% NOP
+% LIO		V0, 8010F29C
+% LH		A0, 0 (V0)
+% ADDI	A0, A0, A %+10 coins per call
+% SLTI	V1, A0, 03E8 %if less than 1000
+% BNE		V1, R0, .coinsok %jump to end (its within limits)
+% NOP
+% ADDI	A0, R0, 03E7 %otherwise set to 999
+% .coinsok
+% SH		A0, 0 (V0)
+% LIO		V0, 8010F293 %time to check health
+% LB		A0, 0 (V0)
+% SUBI	A0, A0, 5
+% BEQ		A0, R0, .end %all good, max health = 5
+% NOP
+% LB		A0, FFFF (R0)	%uh oh, its not 5, so crash game (load an invalid address) press f to pay respects
+% To do: Replace this with death warp
+% as it turns out, making a death warp is really complicated
+% as of now it just resets the health to where its supposed to be
+% LIO		V0, 8010F290
+% LIO		A0, 5
+% SB		A0, 3 (V0)
+% .end
+% POP V1, A0, A1, A2, A3, RA, T0, T1
+% JR RA
+% NOP
+
+%this is where health gets set from the pause menu
+%Unfortunately, the hook mysteriously disappeared
+% @Hook 1617C %800E789C    At this point, S0 is 8010F290, which is useful for hp setting
+% PUSH	T0
+% LB		T0, 16 (S0)
+% BEQ		T0, R0 .end
+% NOP
+% ADDIU	V1, R0, 5
+% .end
+% POP		T0
+% SB		V1, 3 (S0) %hooked over
+% SLL		V1, V1, 24 %hooked over
+% J 800E78A4
+% NOP
+
+
+#export $Function_SubtractMaxHP
+
+#export $Function_HPHeal
+#export $Function_FPHeal
+#export $Function_AddSP

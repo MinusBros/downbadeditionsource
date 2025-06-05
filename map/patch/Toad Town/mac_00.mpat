@@ -4,6 +4,24 @@
 
 
 
+@ $EntryList
+{
+~Vec4f:Entry0 % -387.0    0.0 -460.0  125.0
+~Vec4f:Entry1 %  600.0    0.0    0.0  270.0
+~Vec4f:Entry2 % -435.0  147.0 -441.0  125.0
+~Vec4f:Entry3 %    0.0   50.0  300.0  180.0
+~Vec4f:Entry4 % -100.0   30.0 -370.0  180.0
+~Vec4f:Entry5 % -100.0   30.0 -370.0  135.0
+~Vec4f:Entry6 % -100.0   30.0 -370.0  135.0
+~Vec4f:Entry7 % -100.0   30.0 -370.0  135.0
+~Vec4f:Entry8 %underneath the dojo stairs
+}
+
+
+@ $Header
+{
+[EntryCount]  00000009 
+}
 
 
 @	$Script_Init_80249684
@@ -20,6 +38,56 @@
    60:  Exec  $Script_802492DC
    6C:  Return
    74:  End
+}
+
+
+
+
+@ $Script_80244CD4
+{
+	0:  Bind  $Script_ExitWalk_80244B68 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   1C:  Bind  $Script_80244C7C .Trigger:FloorAbove ~Collider:deilim 00000001 00000000
+   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
+			%spawn indestructible block
+			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 ) %this is a stone block to prevent access to the endgame zone too early. Might change to metal block later
+				%also theres a 3 koopatrol encounter on the other side		<--	no
+			Call     AssignScript 	( $Script_SmashBlockInfinite )
+   48:  	Return
+   50:  EndIf
+   58:  Bind  $Script_ExitWalk_80244B0C .Trigger:FloorAbove ~Collider:deilinw 00000001 00000000
+   74:  Bind  $Script_80244C24 .Trigger:FloorTouch ~Collider:deilit 00000001 00000000
+		Bind     $Script_Entry8  .Trigger:FloorAbove ~Collider:loadingzone 00000001 00000000
+   90:  Return
+   98:  End
+}
+
+
+
+
+#new:Script $Script_SmashBlock
+{
+	Set  *GF_MAC00_MetalBlock  .True
+	Return
+	End
+}
+	
+#new:Script $Script_SmashBlockInfinite
+{
+	Call     MakeEntity  	( .Entity:Hammer3Block ~Vec4d:MetalBlock 80000000 ) %stone block evolved into metal block
+	Call     AssignScript 	( $Script_SmashBlockInfinite )	
+	Return
+	End
+}
+
+#new:Script $Script_Entry8
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 8 ) % opposite of entry8?
+	Exec     ExitWalk 
+	Call     GotoMap     	( "mac_08" 0 )
+	Wait     00000064 
+	Return
+	End
 }
 
 
@@ -118,6 +186,10 @@
   3E8:  Exec  $Script_EnterWalk_80244D74
   3F4:  Wait  1`
   400:  Call  $Function_80240624 ( )
+		If  *GF_MAC00_MetalBlock  ==  .False 
+			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 )
+			Call     AssignScript 	( $Script_SmashBlock )
+		EndIf	
   40C:  Return
   414:  End
 }

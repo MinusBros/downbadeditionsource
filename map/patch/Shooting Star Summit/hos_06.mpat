@@ -22,7 +22,6 @@
    40:  		Call  SetGroupEnabled   ( ~Model:g51 00000001 )
 				If *ShopState == 00000000
 					Set *ShopState 00000001
-					Call  802D5FA4  ( 00000004 )
 				EndIf
    54:  	Case  ==  00000001
    60:  		Call  SetGroupEnabled   ( ~Model:g1 00000000 )
@@ -45,13 +44,47 @@
 }
 
 
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShootingStarSummit
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Set   *AreaFlag[0B6]  .False
+   94:  Call  MakeNpcs  ( .False $NpcGroupList_80244048 )
+   A8:  ExecWait  $Script_MakeEntities
+   B4:  Exec  $Script_8024621C
+   C0:  Exec  $Script_8024271C
+   CC:  Set   *Var0  $Script_80242814
+   DC:  Exec  EnterWalk
+   E8:  Wait  1`
+   F4:  Call  SetMusicTrack     ( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
+  110:  Exec  $Script_802444B8
+  11C:  Exec  $Script_80242840
+  128:  Bind  $Script_80245878 .Trigger:WallPressA ~Collider:o224 00000001 00000000
+		Thread
+			Label 1
+			If *ShopState == 00000001
+				Call  802D5FA4  ( 00000004 )
+				Wait  1`
+				Goto  1
+			EndIf
+			Wait  2`
+			Goto  1
+		EndThread
+  144:  Return
+  14C:  End
+}
+
+
 %Badge shop increase ported from Master Quest and Dark Star Edition.
  
-#define .BadgeCount 18`
+#define .BadgeCount 17`
 
 @ $MerlowBadgeInventory
 {
-	.Item:SpeedySpin       1`    0024008B
 	.Item:AttackFXA        1`    0024008D % Changes the sound effects when Mario's attacking.
 	.Item:PayOff           1`    00240096 % The more damage Mario takes, the more coins he rec ...
 	.Item:ChillOut         2`    00240098 % Keeps you from being hit by a First Strike.
@@ -72,7 +105,7 @@
 }
 
 
-%Raised badge cap from 15 to 18 to not "tap him out" early.
+%Raised badge cap from 15 to 17 to not "tap him out" early.
 %After buying from Merlow the first time, he'll give you a
 %free Speedy Spin as thanks.
 @	$Script_Interact_802436A0
@@ -150,7 +183,7 @@
 			ExecWait  $Script_80242C0C
 			Call  AddBadge  ( .Item:SpeedySpin *Var0 )
 		EndIf 
-  43C:  If  *MerlowSaleCount  >=  00000012
+  43C:  If  *MerlowSaleCount  >=  00000011
   44C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
   46C:  	Return
   474:  EndIf

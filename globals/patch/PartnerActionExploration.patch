@@ -1,0 +1,343 @@
+%Alright I did all this long before partner actions were dumped
+%Oh how things have changed
+
+
+%partner script locations
+%How to find:
+%	go to a map with minimal scripts passively loaded (no npcs?)
+%	breakpoint at the start script address (802C33E0)
+%	use partners (or try to)
+
+%if you watch the # of scripts loaded, you'll see it go to 0 for a split second when using partners, suggesting some weird script shenanigans
+
+
+/%
+#new:Function $PartnerSwap
+ADDIU     SP, SP, FFE8
+SW        RA, 10 (SP)
+LW        V0, C (A0)
+JAL       {Func:GetVariable}
+LW        A1, 0 (V0)
+JAL       800EB168
+DADDU     A0, V0, R0
+LW        RA, 10 (SP)
+ADDIU     V0, R0, 2
+JR        RA
+ADDIU     SP, SP, 18
+%/
+%... or just call 800EB168 with A0 equal to partner ID
+%note that swapping to value 0 does work as intended
+%swapping to anything higher than B results in a memory exception
+
+
+%script opcodes:
+%consist of 2+ words
+%first is the opcode, then number of arguments, then the actual arguments
+%every script ends with the end command, represented with "00000001 00000000"
+
+%Common opcodes:
+%1 = end script (Everything after this is not part of the current script)
+%2 = return		(often right before the end)
+%A = if (A == B)
+%13 = endif
+%43 = call function
+%44 = exec(1)
+%45 = exec(2)
+%46 = execwait
+
+
+%Partner AI (enable/disable) byte: 8010EBB1
+%if byte is not 0, partner AI is disabled, attempting to use partner might break stuff but usually it causes that byte to be set back to 0
+
+%to do: find scripts of unused partners (goompa, goombaria, twink)
+
+%No matter what partner you swap to, there is a call to a function that has calls to 800EECC4 and 800EECE8
+%one call to 800EECC4 and many to 800EECE8
+
+%put partner away: 802BE8D4
+%has calls to 800EE994 (once) and 800EE9B8 (many times)
+
+%put partner away
+%these seem to be identical just with different function addresses
+%...except for watt
+%goombario: 802BDE60
+%kooper: 802BEB9C
+%bombette: 802BE8D8
+%parakarry: 802BEAE8
+%bow: 802BE038
+%watt: 802BE2B4
+%sushie: 802BFE18
+%lakilester: 802BFEB8
+
+%take partner out
+%As far as I know, these scripts are identical just with a function address that moves around
+%goombario: 802BDD6C
+%kooper: 802BEB44
+%bombette: 802BE880
+%parakarry: 802BEA90
+%bow: 802BDFE0
+%watt: 802BE258
+%sushie: 802BFDDC
+%lakilester: 802BFE60
+
+%It looks like the AI scripts and ability scripts are 99% asm except for goombario
+
+%goombario:	802BDDA8
+
+%raw contents:
+/% 
+00000043 00000001 802BD5D8 
+0000000A 00000002 FE363C80 FFFFFFFF 
+	00000002 00000000 
+00000013 00000000 
+0000000A 00000002 FE363C80 00000000 
+	00000043 00000001 802BDB30 
+	00000002 00000000
+00000013 00000000 
+0000000A 00000002 FE363C81 00000000 
+	00000043 00000006 802D02B0 FFFFFFFC 00010008 00010001 00000000 FE363C80 
+00000013 00000000
+00000008 00000001 00000001 
+00000043 00000001 802BDB30 
+00000002 00000000
+00000001 00000000
+
+Translated contents (I hope I did this right)
+
+Call 802BD5D8 ( )
+If *Var[0] == FFFFFFFF 
+	Return
+EndIf
+If *Var[0] == 00000000
+	Call 802BDB30 ( )
+	Return
+EndIf
+If *Var[1] == 00000000
+	Call SayMessage0 ( .Npc:Partner 00010008 00010001 00000000 *Var[0] )
+EndIf
+Wait	1
+Call 802BDB30 ( )
+Return
+End
+%/
+%ROM values (802BD5D8): 317528
+%(802BDB30):			317A50
+
+%goombario AI: 802BDD8C
+
+%raw contents of AI script
+/%
+00000043 00000001 802BD1D0 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM (of function):  3170F0
+
+%kooper: 802BEB80
+/%
+00000043 00000001 802BD638 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 31B658
+
+%kooper AI: 802BEB64
+/%
+00000043 00000001 802BD260 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 31B280
+
+%bombette: 802BE8BC
+/%
+00000043 00000001 802BD758 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 3184A8
+
+%bombette AI: 802BE8A0
+/%
+00000043 00000001 802BD338 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 318088
+
+%parakarry: 802BEACC
+/%
+00000043 00000001 802BD660 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 319BD0
+
+%some ram addresses used:
+%jump table starting at 802BEB18
+%ascent value (higher values mean you go higher): 802BEB98 (normal value is about 1.9)
+%												  value is read from ROM upon map changes
+%802BEB9C: ???? (value is like -1 billion or something)
+%802BEBA0: horizontal acceleration value? (value is around 1.44)
+%		(high values do not mean higher speed)
+%		(0 does not result in parakarry not moving)
+%		(negative values "work", but they can cause infinite backwards acceleration)
+%	(this is possibly a double along with the value above)
+%802BEBA4 + 8: double value: 0.1
+%	horizontal acceleration? (though there is a hardcoded max speed of +2.0)
+%	there is no cap for negative speed though
+%802BEBAC + 0: double value: 0.05
+%	not read?
+%802BEBC4: timer for ascending (and other stuff?)
+%			set to 3 and used for delay between input and actual move start
+%			set to 14 and used for ascending time
+%			not used for the horizontal part
+%			set to 5 and used for releasing mario (not used if c-down is used to drop mario early)
+
+%the move seems to stop based on distance
+%since backwards acceleration goes on forever
+
+%parakarry AI: 802BEAB0
+/%
+00000043 00000001 802BD180 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 3196F0
+
+%bow: 802BE01C
+/%
+00000043 00000001 802BD694 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 323FE4
+
+%bow AI: 802BE000
+/%
+00000043 00000001 802BD168 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 323AB8
+
+%watt: 802BE298
+/%
+00000043 00000001 802BD754 		<-- executed each frame while using watt
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 31D2C4
+
+%stop using watt: 802BE298 (same script? but it is executed again for some reason)
+%see above
+
+%watt AI: 802BE27C
+/%
+00000043 00000001 802BD2B4 		
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 31CE24
+
+%sushie: 802BFDC0
+/%
+00000043 00000001 802BE3A4 		<-- executed each frame while in water
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 31F114
+
+%sushie AI: 802BFDFC
+/%
+00000043 00000001 802BF5A0 		<-- not executed while in water
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 320310
+
+%lakilester: 802BFE9C
+/%
+00000043 00000001 802BE724 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 322274
+
+%lakilester AI: 802BFE80
+/%
+00000043 00000001 802BD2D4 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 320E24
+
+
+
+%unused partners n stuff
+
+%goompa "ability": 802BD5AC / 324EBC
+/%
+00000043 00000001 802BD524
+00000002 00000000
+00000001 00000000
+%/
+%ROM: 0324E34
+
+%function: 802BD524
+%It's a useless function
+%JR		RA
+%ADDIU	V0, R0, 2
+
+%goompa AI: 802BD590 / 324EA0
+/%
+00000043 00000001 802BD14C
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 323AB8
+
+%goombaria "ability": 802BD228 / 325038
+/%
+00000043 00000001 802BD1AC 
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 0324FBC
+
+%function: 802BD1AC
+%It's a useless function
+%JR		RA
+%ADDIU	V0, R0, 2
+
+%goombaria AI: 802BD20C / 32501C
+/%
+00000043 00000001 802BD14C
+00000002 00000000
+00000001 00000000
+%/
+%ROM: 324F5C
+%the RAM address is the same as goompa's, but that doesn't mean the two functions are the same
+
+%twink "ability": 802BD228 / 325198
+/%
+00000043 00000001 802BD1A8
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 325118
+
+%function: 802BD1A8
+%It's a useless function
+%JR		RA
+%ADDIU	V0, R0, 2
+
+%twink AI: 802BD20C / 32517C
+/%
+00000043 00000001 802BD148
+00000002 00000000 
+00000001 00000000
+%/
+%ROM: 3250B8
+
+%used when putting partner away?: 802BD52C

@@ -1,0 +1,699 @@
+
+
+%Autoblock stuff
+%call this in script
+#export:Function $EnableAutoBlock
+{
+LAB 	V0, $BattlePerks[2]
+ADDIU 	V0, V0, 1
+SAB 	V0, $BattlePerks[2]
+JR RA
+ADDIU	V0, R0, 2
+}
+
+
+%0 = reduction amount (So this is subtracted from cost)
+%1 = Turns left (when == 0, resets reduction to 0 as well)
+
+%Reuse data for item boosting
+%[2] = Boost amount (1 = half, 2 = 100%)
+%[3] = Flag
+
+#export:Data $ItemCostReductionData
+{
+	00000000
+}
+
+%0 = amount
+#export:Data $EternalCostIncreases
+{
+	00000000
+}
+
+%0 = Number of turns
+%1 = Uses
+#export:Data $MiracleJellyData
+{
+	00000000
+}
+
+%0 = atk
+%1 = def
+%2 = sav
+#export:Data $TurnCountList
+{
+	00000000
+}
+
+#export:Data $AntiHustleToken
+{
+	00000000
+}
+
+
+
+%80745072		= player
+%
+
+/%
+%Triggers before Mario's turn
+@Hook 170E04 %80242524
+{
+PUSH	 RA, A0, A1, A2, A3, T0, T1, S5		%probably unnecessary but who cares
+LIO 	 A0, $FirstTimeText %script
+ADDIU    A1, R0, 000A %priority
+DADDU    A2, R0, R0 %????
+DADDU	 A3, R0, R0 %group id?
+JAL 	 802C33E0 %Start Script
+NOP
+%Reset autoblock value
+%Reset BEFORE turn so that it stays in effect until next turn
+%Check AutoBlock
+JAL     $IsBadgeEquipped
+ORI		A0, R0, FC %formerly payoff
+%
+ORI		V0, R0, 1
+BNE		A0, R0, .yes
+NOP
+%ORI	V0, R0, 0
+LAB 	V0, $BattlePerks[2]
+BLE		V0, R0, .postautoblock
+NOP
+ADDI	V0, V0, FFFF
+SAB 	V0, $BattlePerks[2]
+BEQ		R0, R0, .postautoblock
+NOP
+.yes
+SAB 	V0, $BattlePerks[2]
+.postautoblock
+%Reset stellar nova boolean
+SAB		R0, $StellarNovaBoolean
+%Reset Flower Power value (Failsafe 1)
+SAB		R0, $FlowerPowerBool
+%Now check Mario's chill / defdown values
+%I could probably make this less convoluted but it works so I won't fix it
+LAW		A0, 800DC148	%Get mario pointer
+LB		S5, 224 (A0) %chillout duration
+BNE		S5, R0, .chill
+NOP
+SB		R0, 223 (A0) %chillout strength
+SB		R0, 224 (A0) %chillout duration
+BEQ		R0, R0, .endchill
+NOP
+.chill
+ADDI	S5, S5, FFFF
+BNE		S5, R0, .endchill
+SB		S5, 224 (A0) %chillout duration
+SB		R0, 223 (A0) %chillout strength
+SB		R0, 224 (A0) %chillout duration
+%only gets here if it ticks from 1 to 0
+JAL		$Function_LoseAttackEffect
+NOP
+.endchill
+LB		S5, 226 (A0) %defdown duration
+BNE		S5, R0, .defdown
+NOP
+SB		R0, 225 (A0) %defdown strength
+SB		R0, 226 (A0) %defdown duration
+BEQ		R0, R0, .enddefdown
+NOP
+.defdown
+ADDI	S5, S5, FFFF
+BNE		S5, R0, .enddefdown
+SB		S5, 226 (A0) %defdown duration
+SB		R0, 225 (A0) %defdown strength
+SB		R0, 226 (A0) %defdown duration
+%only gets here if it ticks from 1 to 0
+JAL		$Function_LoseDefenseEffect
+NOP
+.enddefdown
+LI		A0, $ItemCostReductionData
+LB		S5, 1 (A0)		%turncount
+BNE		S5, R0, .saver
+NOP
+SB		R0, 0 (A0)		%str
+SB		R0, 1 (A0)		%count
+BEQ		R0, R0, .endsaver
+NOP
+.saver
+ADDI	S5, S5, FFFF
+BNE		S5, R0, .endsaver
+SB		S5, 1 (A0)		%count
+SB		R0, 0 (A0)		%str
+SB		R0, 1 (A0)		%count
+%only gets here if it ticks from 1 to 0
+JAL		$Function_LoseSaverEffect
+NOP
+.endsaver
+LI		A0, $MiracleJellyData
+LB		S5, 0 (A0)		%turncount
+SLTI	T0, S5, 1
+BNE		T0, R0, .endmiracle
+SB		R0, 0 (A0)		%count
+.miracle
+ADDI	S5, S5, FFFF
+BNE		S5, R0, .endmiracle
+SB		S5, 0 (A0)		%count
+.endmiracle
+SAW		R0, $AntiHustleToken				%Reset this
+POP		RA, A0, A1, A2, A3, T0, T1, S5
+LUI S0, 800E
+J		8024252C
+ADDIU	S0, S0, C070
+}
+%/
+
+#new:Function $Function_LoseAttackEffect 
+{
+	%the code to calculate these positions in the real function is quite complicated, hopefully just adding the positions won't be too off
+	PUSH 	  RA, A0, S5
+	LAW		  A0, 800DC148
+	COPY	  S5, A0
+	%Wrong, have to load literal not use LWC1 (otherwise it tries to treat stuff like C2BE0000 as something like -1 billion)
+	%LWC1      F0, 144 (S5)  
+	%LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+	%CVT.S.W   F0, F0
+	%MFC1      A1, F0
+	LW		  A1, 144 (S5)
+	%LWC1      F0, 148 (S5)  
+	%LWC1      F0, 9C (V0)
+	%CVT.S.W   F0, F0
+	%MFC1      A2, F0
+	LW		  A2, 148 (S5)
+	MTC1	  A2, F0
+	LIF		  F2, 25.0
+	ADD.S	  F0, F0, F2
+	MFC1      A2, F0
+	%LWC1      F0, 14C (S5)  
+	%LWC1      F0, A0 (V0)
+	%CVT.S.W   F0, F0
+	%MFC1      A3, F0
+	LW		  A3, 14C (S5)
+	JAL       80070AF0
+	ADDIU     A0, R0, 2   
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 70  
+	SB        V1, 38 (A0)						%color byte 1?
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 00
+	SB        V1, 39 (A0)						%color byte 2?
+	LW        V1, C (V0)
+	ADDIU     A0, R0, 00
+	SB        A0, 3A (V1)						%color byte 3?
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 8F
+	SB        V1, 3B (A0)						%color byte 4? (unused?)
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 54  
+	SB        V1, 3C (A0)						%color byte 5?
+	LW        V1, C (V0)
+	SB        R0, 3D (V1)						%color byte 6?
+	POP 	  RA, A0, S5
+	JR		RA
+	NOP
+}
+
+#new:Function $Function_LoseDefenseEffect 
+{
+	%the code to calculate these positions in the real function is quite complicated, hopefully just adding the positions won't be too off
+	PUSH 	  RA, A0, S5
+	LAW		  A0, 800DC148
+	COPY	  S5, A0
+	%Wrong, have to load literal not use LWC1 (otherwise it tries to treat stuff like C2BE0000 as something like -1 billion)
+	%LWC1      F0, 144 (S5)  
+	%LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+	%CVT.S.W   F0, F0
+	%MFC1      A1, F0
+	LW		  A1, 144 (S5)
+	%LWC1      F0, 148 (S5)  
+	%LWC1      F0, 9C (V0)
+	%CVT.S.W   F0, F0
+	%MFC1      A2, F0
+	LW		  A2, 148 (S5)
+	MTC1	  A2, F0
+	LIF		  F2, 20.0
+	ADD.S	  F0, F0, F2
+	MFC1      A2, F0
+	%LWC1      F0, 14C (S5)  
+	%LWC1      F0, A0 (V0)
+	%CVT.S.W   F0, F0
+	%MFC1      A3, F0
+	LW		  A3, 14C (S5)
+	JAL       80070AF0
+	ADDIU     A0, R0, 2   
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 00  
+	SB        V1, 38 (A0)						%color byte 1?
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 00
+	SB        V1, 39 (A0)						%color byte 2?
+	LW        V1, C (V0)
+	ADDIU     A0, R0, 70
+	SB        A0, 3A (V1)						%color byte 3?
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 8F
+	SB        V1, 3B (A0)						%color byte 4? (unused?)
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 54  
+	SB        V1, 3C (A0)						%color byte 5?
+	LW        V1, C (V0)
+	SB        R0, 3D (V1)						%color byte 6?
+	POP 	  RA, A0, S5
+	JR		RA
+	NOP
+}
+
+#new:Function $Function_LoseSaverEffect 
+{
+	%the code to calculate these positions in the real function is quite complicated, hopefully just adding the positions won't be too off
+	PUSH 	  RA, A0, S5
+	LAW		  A0, 800DC148
+	COPY	  S5, A0
+	%Wrong, have to load literal not use LWC1 (otherwise it tries to treat stuff like C2BE0000 as something like -1 billion)
+	%LWC1      F0, 144 (S5)  
+	%LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+	%CVT.S.W   F0, F0
+	%MFC1      A1, F0
+	LW		  A1, 144 (S5)
+	%LWC1      F0, 148 (S5)  
+	%LWC1      F0, 9C (V0)
+	%CVT.S.W   F0, F0
+	%MFC1      A2, F0
+	LW		  A2, 148 (S5)
+	MTC1	  A2, F0
+	LIF		  F2, 20.0
+	ADD.S	  F0, F0, F2
+	MFC1      A2, F0
+	%LWC1      F0, 14C (S5)  
+	%LWC1      F0, A0 (V0)
+	%CVT.S.W   F0, F0
+	%MFC1      A3, F0
+	LW		  A3, 14C (S5)
+	JAL       80070AF0
+	ADDIU     A0, R0, 2   
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 70  
+	SB        V1, 38 (A0)						%color byte 1?
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 70
+	SB        V1, 39 (A0)						%color byte 2?
+	LW        V1, C (V0)
+	ADDIU     A0, R0, 00
+	SB        A0, 3A (V1)						%color byte 3?
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 8F
+	SB        V1, 3B (A0)						%color byte 4? (unused?)
+	LW        A0, C (V0)
+	ADDIU     V1, R0, 54  
+	SB        V1, 3C (A0)						%color byte 5?
+	LW        V1, C (V0)
+	SB        R0, 3D (V1)						%color byte 6?
+	POP 	  RA, A0, S5
+	JR		RA
+	NOP
+}
+
+
+%Triggers after Mario+Partner turns
+@Hook 1720D0
+{
+PUSH	 RA, A0, A1, A2, A3, T0, T1		%might need to push and pop some stuff so the script doesn't break everything
+LIO 	 A0, $TurnScript %script
+ADDIU    A1, R0, 000A %priority
+DADDU    A2, R0, R0 %????
+DADDU	 A3, R0, R0 %group id?
+JAL 	 802C33E0 %Start Script
+NOP
+POP		RA, A0, A1, A2, A3, T0, T1
+ADDIU	S3, R0, D
+J		802437F8
+DADDU	S2, S6, R0
+}
+
+%Pre-battle hook
+@Hook ED94 %80033994 (Does not follow the 800D1720 offset rule)
+{
+PUSH	RA, A0
+LIO		A0, 800DBD70 %idk how to use setgamebyte
+SB		R0, 6 (A0) %pebble power does not carry over
+SB		R0, 7 (A0) %clear out super shroom cake effect to prevent it from going between battles
+SB		R0, 8 (A0) %clear out super shroom cake effect to prevent it from going between battles
+SB		R0, A (A0)
+SB		R0, B (A0)
+SAB		R0, $ActorAuraType
+%SAB		R0, $LastChanceBool
+POP		RA, A0
+LW		V1, 0 (S0) %hooked over
+J		8003399C
+ADDIU	V0, R0, 1 %hooked over
+}
+
+#new:Data $FrameTimer
+{
+	00000000
+}
+
+#export:Function $LoseHealthOverTime
+{
+	PUSH	S0, S1, S2, S3, F26, F20, F22, RA
+	LI		S0, 800DBD70
+	ADDI	S0, S0, ~Index:*EnviroEffectsAux
+	LB		S0, 0 (S0)
+	LI		S1, 7
+	BNE		S0, S1, .end
+	NOP
+	LI		S2, $FrameTimer
+	LW		S1, 0 (S2)
+	ADDI	S1, S1, 1
+	LI		S0, 90`
+	DIV		S1, S0
+	MFHI	S0
+	NOP
+	NOP
+	SW		S1, 0 (S2)
+	BNE		S0, R0, .end
+	NOP
+	%how much to take away?
+	%Remove 10% of max HP or 1 hp
+	LAB		S3, 8010F293
+	LI		S2, 6`
+	DIV		S3, S2
+	MFLO	S0
+	NOP
+	NOP	
+	BNE		S0, R0, .calculationdone
+	NOP
+	LI		S0, 1`
+	.calculationdone
+	%
+	LI		S3, 8010F292
+	LB		S1, 0 (S3)
+	BEQ		S1, R0 .end
+	NOP
+	LB		S1, 0 (S3)
+	SUB		S1, S1, S0
+	BGT		S1, R0, .ok
+	NOP
+	LI		S1, 0`
+	.ok
+	SB		S1, 0 (S3)	
+	ADDI	SP, SP -20
+	LAW		S1, 800DC148
+	%Cool effects
+	%the code to calculate these positions in the real function is quite complicated, hopefully just adding the positions won't be too off
+	LWC1    F26, 144 (S1)  
+	LWC1    F20, 148 (S1)  
+	LWC1    F22, 14C (S1)  
+	%
+	MFC1    A1, F26
+	MFC1    A2, F20
+	MFC1    A3, F22
+	CLEAR   A0
+	SUB		S0, R0, S0				%Invert S0
+	JAL     80071090
+	SW      S0, 10 (SP)				%the number	
+	ADDI	SP, SP 20
+	.end
+	POP		S0, S1, S2, S3, F26, F20, F22, RA
+	JR		RA
+	NOP
+}
+
+%Determine current area ID (*id on global map?)
+#export:Function $GetAreaVar
+{
+PUSH	RA, A1, A2
+LIO		A1, 800740AB
+LB		A2, 0 (A1)
+JAL		~Func:set_variable
+LW		A1, 0 (S0) %get argument
+NOP
+POP		RA, A1, A2
+JR		RA
+ADDIU	V0, R0, 2
+}
+
+
+#new:Function $Function_ApplyHustle
+{
+	ADDI	V0, R0, 2
+	SAB		V0, 800DC0FB
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+#export:Script:Battle $CustomItemEffects
+{
+/%
+If *GB_FileCodeMode == 13`
+	Call $Function_ApplyHustle ( )
+EndIf
+If *GB_FileCodeMode == 14`
+	Call	 $Function_SetArbitraryByte ( 00000002 $ItemCostReductionData[2] )
+	Call	 $Function_SetArbitraryByte ( 00000000 $ItemCostReductionData[3] )	
+EndIf
+%/
+%Call $Function_AddCoinTurns ( )
+If (*DelayedHealTurns > 0) %DelayedHealTurns
+	Set *Var[E] *DelayedHealAmount
+	Sub	*DelayedHealTurns 1
+	If *DelayedHealTurns < 1`		%If it ticks from 1 to 0
+		Call	GetActorPos ( .Actor:Player *Var5 *Var6 *Var7 )
+		Add *Var6 15`
+		Add *Var5 5`
+		Call $Function_DebuffEffectDarkGreen ( )
+	EndIf
+	Call	$Function_HPHeal ( *Var[E] )
+	Call	$Function_FPHeal ( *Var[E] )
+	Call	GetActorPos ( .Actor:Player *Var[0] *Var[1] *Var[2] )
+	Add	*Var[1] 23
+	If *VarE > 0
+		Call	PlayEffect ( 00000040 00000000 *Var[0] *Var[1] *Var[2] *Var[E] 00000000 00000000 00000000 00000000 00000000 00000000 )
+	EndIf
+	Add	*Var[0] 18
+	Add	*Var[1] 2
+	If *VarE > 0
+		Call	PlayEffect ( 00000040 00000001 *Var[0] *Var[1] *Var[2] *Var[E] 00000000 00000000 00000000 00000000 00000000 00000000 )
+	EndIf
+Else
+	Set *DelayedHealAmount 0 %reset heal amount to 0
+EndIf
+Return
+End
+}
+
+#new:Function $Function_DecrementAttack
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	LB		A1, 221 (A0)
+	ADDI	A1, A1, FFFF
+	SB		A1, 221 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_DecrementDefense
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	LB		A1, 222 (A0)
+	ADDI	A1, A1, FFFF
+	SB		A1, 222 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+%copied this from the boost functions
+#new:Function $Function_DownwardArrow
+{
+		PUSH	  RA, S0, S1, S2
+		ADDI	  SP, SP, -28
+		%Normal formula: subtype is power - 1
+		COPY      V0, A0
+		ORI		  A0, R0, 3
+    C:  LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+   10:  CVT.S.W   F0, F0
+   14:  MFC1      A1, F0
+   18:  LWC1      F0, 9C (V0)
+   1C:  CVT.S.W   F0, F0
+   20:  MFC1      A2, F0
+   24:  LWC1      F0, A0 (V0)
+   28:  CVT.S.W   F0, F0
+   2C:  MFC1      A3, F0
+  3B8:  LIF       F0, 1.0
+  3C0:  LI        V0, 3C
+  3C4:  SW        V0, 14 (SP)
+  3C8:  JAL       800718D0
+  3CC:  SWC1      F0, 10 (SP)
+		ADDI	  SP, SP, 28
+		ORI		  V0, R0, 2
+		JPOP		  RA, S0, S1, S2
+}
+
+%set var5, var6, var7 to correct position
+%FF, 96, 00
+%secondary = 8F, 00, 00?
+#new:Function $Function_DebuffEffectOrange
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        RA, 10 (SP)
+    C:  LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+   10:  CVT.S.W   F0, F0
+   14:  MFC1      A1, F0
+   18:  LWC1      F0, 9C (V0)
+   1C:  CVT.S.W   F0, F0
+   20:  MFC1      A2, F0
+   24:  LWC1      F0, A0 (V0)
+   28:  CVT.S.W   F0, F0
+   2C:  MFC1      A3, F0
+   30:  JAL       80070AF0
+   34:  ADDIU     A0, R0, 2   
+   38:  LW        A0, C (V0)
+		ADDIU     V1, R0, FF  
+   40:  SB        V1, 38 (A0)						%color byte 1?
+   44:  LW        A0, C (V0)
+		ADDIU     V1, R0, 96
+   4C:  SB        V1, 39 (A0)						%color byte 2?
+   50:  LW        V1, C (V0)
+		ADDIU     A0, R0, 00
+   54:  SB        A0, 3A (V1)						%color byte 3?
+   58:  LW        A0, C (V0)
+		ADDIU     V1, R0, FF
+   60:  SB        V1, 3B (A0)						%color byte 4? (unused?)
+   64:  LW        A0, C (V0)
+		%ADDIU     V1, R0, 96  
+   6C:  SB        V1, 3C (A0)						%color byte 5?
+   70:  LW        V1, C (V0)
+   74:  SB        R0, 3D (V1)						%color byte 6?
+   78:  LW        RA, 10 (SP)
+   7C:  ADDIU     V0, R0, 2   						%return 2
+   80:  JR        RA
+   84:  ADDIU     SP, SP, 18
+}
+
+%set var5, var6, var7 to correct position
+%03, 9D, FF
+#new:Function $Function_DebuffEffectBlue
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        RA, 10 (SP)
+    C:  LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+   10:  CVT.S.W   F0, F0
+   14:  MFC1      A1, F0
+   18:  LWC1      F0, 9C (V0)
+   1C:  CVT.S.W   F0, F0
+   20:  MFC1      A2, F0
+   24:  LWC1      F0, A0 (V0)
+   28:  CVT.S.W   F0, F0
+   2C:  MFC1      A3, F0
+   30:  JAL       80070AF0
+   34:  ADDIU     A0, R0, 2   
+   38:  LW        A0, C (V0)
+		ADDIU     V1, R0, 03 
+   40:  SB        V1, 38 (A0)						%color byte 1?
+   44:  LW        A0, C (V0)
+		ADDIU     V1, R0, 9D
+   4C:  SB        V1, 39 (A0)						%color byte 2?
+   50:  LW        V1, C (V0)
+		ADDIU     A0, R0, FF
+   54:  SB        A0, 3A (V1)						%color byte 3?
+   58:  LW        A0, C (V0)
+		ADDIU     V1, R0, 03
+   60:  SB        V1, 3B (A0)						%color byte 4? (unused?)
+   64:  LW        A0, C (V0)
+		ADDIU     V1, R0, 9D 
+   6C:  SB        V1, 3C (A0)						%color byte 5?
+   70:  LW        V1, C (V0)
+		ADDIU     V0, R0, FF 
+   74:  SB        V0, 3D (V1)						%color byte 6?
+   78:  LW        RA, 10 (SP)
+   7C:  ADDIU     V0, R0, 2   						%return 2
+   80:  JR        RA
+   84:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_DebuffEffectDarkGreen
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        RA, 10 (SP)
+    C:  LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+   10:  CVT.S.W   F0, F0
+   14:  MFC1      A1, F0
+   18:  LWC1      F0, 9C (V0)
+   1C:  CVT.S.W   F0, F0
+   20:  MFC1      A2, F0
+   24:  LWC1      F0, A0 (V0)
+   28:  CVT.S.W   F0, F0
+   2C:  MFC1      A3, F0
+   30:  JAL       80070AF0
+   34:  ADDIU     A0, R0, 2   
+   38:  LW        A0, C (V0)
+		ADDIU     V1, R0, 00  
+   40:  SB        V1, 38 (A0)						%color byte 1?
+   44:  LW        A0, C (V0)
+		ADDIU     V1, R0, 70
+   4C:  SB        V1, 39 (A0)						%color byte 2?
+   50:  LW        V1, C (V0)
+		ADDIU     A0, R0, 00
+   54:  SB        A0, 3A (V1)						%color byte 3?
+   58:  LW        A0, C (V0)
+		ADDIU     V1, R0, 8F
+   60:  SB        V1, 3B (A0)						%color byte 4? (unused?)
+   64:  LW        A0, C (V0)
+		%ADDIU     V1, R0, 54  
+   6C:  SB        V1, 3C (A0)						%color byte 5?
+   70:  LW        V1, C (V0)
+   74:  SB        R0, 3D (V1)						%color byte 6?
+   78:  LW        RA, 10 (SP)
+   7C:  ADDIU     V0, R0, 2   						%return 2
+   80:  JR        RA
+   84:  ADDIU     SP, SP, 18
+}
+
+
+#export:Script:Battle $TurnScript
+{
+ExecWait $CustomItemEffects
+Return
+End
+}
+	
+%#export	$TurnScript
+%#export	$CustomItemEffects
+%#export	$EnviroScript
+%#export $FirstTimeText
+
+%#export $EnableAutoBlock
+
+
+
+%Thanks quackles
+ %Note that this actually handles clearing the cache and storing it to the hustle tracker. Caching is handled in Hustle Drink's patch.
+  
+@Hook 175328 %80246450 + 5F8
+{
+    %A1 has flag clear mask
+    %V1 has battle struct
+    %V0 has battle flags
+    %A0 is about to be overwritten
+    LUI    A0, 400
+    AND    A0, V0, A0 %A0 will be nonzero if hustle flag is set
+    BEQL A0, R0, .clearCache
+        NOP
+    LAB A0, $BattlePerks[1]    
+    SB    A0, 8B (V1) %store result from cache into hustle byte
+    .clearCache 
+    SAB R0, $BattlePerks[1]    
+    %now put back original code from hook, and return
+    ADDIU        A0, R0, 8
+    J            80246A50 %80246450 + 600
+    AND            V0, V0, A1 %this clears hustle flag, so uncached value will be stored for next turn
+}  

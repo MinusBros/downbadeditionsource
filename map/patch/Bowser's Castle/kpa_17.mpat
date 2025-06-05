@@ -70,3 +70,32 @@
   37C:  Return
   384:  End
 }
+
+%Make Toad Minister just that much more interesting.
+%Rewrite it so that his dialogue can't be skipped,
+%even if you bombed the wall.
+
+@	$Script_Interact_80240C30
+{
+   18:  Switch  *AreaByte[4]
+   24: 		 Case  ==  00000000
+   30:  		Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130012 ) % Help 1
+   6C:  		Call  SpeakToPlayer ( .Npc:Self 00890006 00890006 00000000 00130013 ) % Help 2
+   30:  		Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130012 ) % Help 3
+   50:  		Set   *AreaByte[4]  00000001
+   60:  	Case  ==  00000001
+				Switch  *GF_KPA17_BombedWall
+					Case  ==  00000000
+   EC:  				Call  SpeakToPlayer ( .Npc:Self 00890004 00890001 00000000 00130015 ) % Mario... Please save Princess Peach! We're all rel ...
+					Case  ==  00000001
+						Call  SpeakToPlayer ( .Npc:Self 00890006 00890006 00000000 0013001C ) % New dialogue (Go defeat Bower)
+				EndSwitch
+  10C:  EndSwitch
+		Thread
+			Call  SetNpcAnimation   ( .Npc:Self 00890007 ) %Added an unused animation.
+			Wait  116`
+			Call  SetNpcAnimation   ( .Npc:Self 00890001 )
+		EndThread
+  114:  Return
+  11C:  End
+}

@@ -1,16 +1,527 @@
+%Implement the partner abilities from Dark Star Edition for DBE 0.9.3 onwards.
+%Additionally, speed them up to make combat quicker.
+%Kooper's lowers enemy defense by 1.
+
+
+#new:Function $Function_CheckChill %chill out fails against targets with certain flags
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S2, 18 (SP)
+    8:  COPY		S2, A0
+    C:  SW			RA, 1C (SP)
+   10:  SW			S1, 14 (SP)
+   14:  SW			S0, 10 (SP)
+   18:  JAL			~Func:get_actor
+   1C:  LW			A0, 148 (S2)
+   20:  COPY		S0, V0
+   24:  JAL			~Func:get_actor
+   28:  LH			A0, 428 (S0)
+   2C:  COPY		S1, V0
+   30:  LB			A1, 426 (S0)
+   34:  JAL			~Func:get_actor_part
+   38:  COPY		A0, S1
+   3C:  SW			R0, 84 (S2)
+		%Ensure that def down is not already enabled
+		LB			T0, 226 (S1)	%duration
+		SLTI		T0, T0, 1
+		BEQ			T0, R0, .oA0
+		NOP
+   40:  LW			S1, 0 (S1)
+   44:  COPY		V1, V0
+   48:  ANDI		V0, S1, 4000 %check flag 4000 (normal star rod)
+   4C:  BNE			V0, R0, .oA0
+   50:  ADDIU		V0, R0, 2
+   54:  LUI			V0, 40
+   58:  AND			V0, S1, V0
+   5C:  BNE			V0, R0, .oA0
+   60:  ADDIU		V0, R0, 2
+   64:  ANDI		V0, S1, 2000
+   68:  BNE			V0, R0, .oA0
+   6C:  ADDIU		V0, R0, 2
+   70:  LW			V1, 7C (V1)
+   74:  LUI			V0, 4
+   78:  AND			V0, V1, V0
+   7C:  BNE			V0, R0, .oA0
+   80:  ADDIU		V0, R0, 2
+   84:  LUI			V0, 8
+   88:  AND			V0, V1, V0
+   8C:  BNE			V0, R0, .oA0
+   90:  ADDIU		V0, R0, 2
+   94:  ADDIU		V0, R0, 1
+   98:  SW			V0, 84 (S2)
+   9C:  ADDIU		V0, R0, 2
+        .oA0
+		ADDIU		V0, R0, 2
+   A0:  LW			RA, 1C (SP)
+   A4:  LW			S2, 18 (SP)
+   A8:  LW			S1, 14 (SP)
+   AC:  LW			S0, 10 (SP)
+   B0:  JR			RA
+   B4:  ADDIU		SP, SP, 20
+}
+
+#new:Function $Function_ChillTarget
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 1C (SP)
+    8:  SW			S0, 18 (SP)
+    C:  JAL			~Func:get_actor
+   10:  LW			A0, 148 (A0)
+   14:  COPY		S0, V0
+   18:  JAL			~Func:get_actor
+   1C:  LH			A0, 428 (S0)
+   20:  LB			A1, 426 (S0)
+   24:  COPY		S0, V0
+   28:  JAL			~Func:get_actor_part
+   2C:  COPY		A0, S0
+   30:  LW			V1, 0 (S0)
+   34:  COPY		A0, V0
+   38:  ANDI		V0, V1, 4000 %star rod flag
+   3C:  BNE			V0, R0, .o1E4
+   40:  ADDIU		V0, R0, 2
+   44:  LUI			V0, 40
+   48:  AND			V0, V1, V0
+   4C:  BEQ			V0, R0, .o5C
+   50:  ANDI		V0, V1, 2000
+   54:  BEQ			R0, R0, .o1E4
+   58:  ADDIU		V0, R0, 2
+        .o5C
+   5C:  BNE			V0, R0, .o1E4
+   60:  ADDIU		V0, R0, 2
+   64:  LW			V1, 7C (A0)
+   68:  LUI			V0, 4
+   6C:  AND			V0, V1, V0
+   70:  BNE			V0, R0, .o1E4
+   74:  ADDIU		V0, R0, 2
+   78:  LUI			V0, 8
+   7C:  AND			V0, V1, V0
+   80:  BNE			V0, R0, .o1E4
+   84:  ADDIU		V0, R0, 2
+   88:  COPY		A0, S0
+   8C:  CLEAR		A1
+   90:  ADDIU		A2, R0, A
+   94:  ADDIU		V0, R0, 1		%duration
+   98:  SB			V0, 226 (S0)	%def duration
+   9C:  ADDIU		V0, R0, 1		%amount				-1 with a 0 def cap
+   %A0:  JAL			802788F8						this event is already called, so don't do this!
+   A4:  SB			V0, 225 (S0)	%def reduction
+   A8:  LH			V0, 150 (S0)
+   AC:  LWC1		F0, 144 (S0)
+   B0:  LW			V1, 0 (S0)
+   B4:  MTC1		V0, F2
+   B8:  NOP
+   BC:  CVT.S.W		F2, F2
+   C0:  LBU			V0, 190 (S0)
+   C4:  ADD.S		F0, F0, F2
+   C8:  SRL			V0, V0, 1
+   CC:  MTC1		V0, F2
+   D0:  NOP
+   D4:  CVT.S.W		F2, F2
+   D8:  ANDI		V0, V1, 800
+   DC:  BEQ			V0, R0, .o114
+   E0:  ADD.S		F4, F0, F2
+   E4:  LH			V0, 152 (S0)
+   E8:  LWC1		F0, 148 (S0)
+   EC:  MTC1		V0, F2
+   F0:  NOP
+   F4:  CVT.S.W		F2, F2
+   F8:  LBU			V0, 191 (S0)
+   FC:  ADD.S		F0, F0, F2
+  100:  MTC1		V0, F2
+  104:  NOP
+  108:  CVT.S.W		F2, F2
+  10C:  BEQ			R0, R0, .o180
+  110:  SUB.S		F0, F0, F2
+        .o114
+  114:  ANDI		V0, V1, 8000
+  118:  BNE			V0, R0, .o150
+  11C:  NOP
+  120:  LH			V0, 152 (S0)
+  124:  LWC1		F0, 148 (S0)
+  128:  MTC1		V0, F2
+  12C:  NOP
+  130:  CVT.S.W		F2, F2
+  134:  LBU			V0, 191 (S0)
+  138:  ADD.S		F0, F0, F2
+  13C:  MTC1		V0, F2
+  140:  NOP
+  144:  CVT.S.W		F2, F2
+  148:  BEQ			R0, R0, .o180
+  14C:  ADD.S		F0, F2, F0
+        .o150
+  150:  LH			V0, 152 (S0)
+  154:  LWC1		F2, 148 (S0)
+  158:  MTC1		V0, F0
+  15C:  NOP
+  160:  CVT.S.W		F0, F0
+  164:  LBU			V0, 191 (S0)
+  168:  ADD.S		F2, F2, F0
+  16C:  SLL			V0, V0, 1
+  170:  MTC1		V0, F0
+  174:  NOP
+  178:  CVT.S.W		F0, F0
+  17C:  ADD.S		F0, F2, F0
+        .o180
+  180:  LH			V0, 154 (S0)
+  184:  MFC1		A2, F0
+  188:  LWC1		F0, 14C (S0)
+  18C:  MTC1		V0, F2
+  190:  NOP
+  194:  CVT.S.W		F2, F2
+  198:  ADD.S		F0, F0, F2
+  19C:  LIF			F2, 5.0
+  1A4:  ADDIU		A0, R0, 3		%damage icon (5 -> 3) (aka -1)
+  1A8:  ADD.S		F0, F0, F2
+  1AC:  MFC1		A1, F4
+  1B0:  LIF			F4, 1.0
+  1B8:  MFC1		A3, F0
+  1BC:  ADDIU		V0, R0, 3C
+  1C0:  SW			V0, 14 (SP)
+  1C4:  JAL			800718D0
+  1C8:  SWC1		F4, 10 (SP)
+  1CC:  JAL			~Func:sfx_play_sound
+  1D0:  ADDIU		A0, R0, 210C			%def down sound from ddown moves?
+  1D4:  ADDIU		V0, R0, 2
+  1D8:  ADDIU		V1, R0, 1
+  1DC:  SAW			V1, $End[0]
+        .o1E4
+  1E4:  LW			RA, 1C (SP)
+  1E8:  LW			S0, 18 (SP)
+  1EC:  JR			RA
+  1F0:  ADDIU		SP, SP, 20
+}
+
+%darker than curse effect color, for consistency but also to convey that this effect is weaker
+
+%new advances in effect programming mean I can add some more cool effects
+%curse effect: 	8DFF95000000
+%				64B26A000000
+
+
+%set var5, var6, var7 to correct position
+#new:Function $Function_DebuffEffect2
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        RA, 10 (SP)
+    C:  LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+   10:  CVT.S.W   F0, F0
+   14:  MFC1      A1, F0
+   18:  LWC1      F0, 9C (V0)
+   1C:  CVT.S.W   F0, F0
+   20:  MFC1      A2, F0
+   24:  LWC1      F0, A0 (V0)
+   28:  CVT.S.W   F0, F0
+   2C:  MFC1      A3, F0
+   30:  JAL       80070AF0
+   34:  ADDIU     A0, R0, 2   
+   38:  LW        A0, C (V0)
+		ADDIU     V1, R0, 64  
+   40:  SB        V1, 38 (A0)						%color byte 1?
+   44:  LW        A0, C (V0)
+		ADDIU     V1, R0, B2
+   4C:  SB        V1, 39 (A0)						%color byte 2?
+   50:  LW        V1, C (V0)
+		ADDIU     A0, R0, 6A
+   54:  SB        A0, 3A (V1)						%color byte 3?
+   58:  LW        A0, C (V0)
+		ADDIU     V1, R0, 0
+   60:  SB        V1, 3B (A0)						%color byte 4? (unused?)
+   64:  LW        A0, C (V0)
+		%ADDIU     V1, R0, 0  
+   6C:  SB        V1, 3C (A0)						%color byte 5?
+   70:  LW        V1, C (V0)
+   74:  SB        R0, 3D (V1)						%color byte 6?
+   78:  LW        RA, 10 (SP)
+   7C:  ADDIU     V0, R0, 2   						%return 2
+   80:  JR        RA
+   84:  ADDIU     SP, SP, 18
+}
+
+
+
+%first strike
+@ $Script_8023C754
+{
+    0:  Call  GetActorPos       ( .Actor:Partner *Var0 *Var1 *Var2 )
+   1C:  Add   *Var0  0000003C
+   2C:  Call  SetActorPos       ( .Actor:Partner *Var0 *Var1 *Var2 )
+   48:  Call  InitTargetIterator ( )
+   54:  Call  UseBattleCamPreset    ( 00000003 )
+   64:  Call  MoveBattleCamOver ( 0000000F )
+   74:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000A )
+   8C:  Call  SetGoalToTarget   ( .Actor:Partner )
+   9C:  Call  SetActorSpeed     ( .Actor:Partner *Fixed[25.0] )
+   B0:  Call  SetActorSounds    ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+   CC:  Call  RunToGoal ( .Actor:Partner 00000000 )
+   E0:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+  104:  If  *Var0  ==  .HitResult:Miss % 6
+  114:  	Thread
+  11C:  		Call  $Function_80238000 ( )
+  128:  		Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+  140:  	EndThread
+  148:  	Wait  2`
+  154:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0009 )
+  16C:  	Call  SetActorRotationOffset    ( .Actor:Partner 00000008 00000000 00000000 )
+  188:  	Set   *Var0  00000000
+  198:  	Loop  00000002
+  1A4:  		Add   *Var0  FFFFFFE2
+  1B4:  		Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var0 )
+  1D0:  		Wait  1`
+  1DC:  	EndLoop
+  1E4:  	Wait  1`
+  1F0:  	Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  20C:  	Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000010 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  250:  	Loop  00000005
+  25C:  		Add   *Var0  0000000C
+  26C:  		Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var0 )
+  288:  		Wait  1`
+  294:  	EndLoop
+  29C:  	Call  SetActorRotationOffset    ( .Actor:Partner 00000000 00000000 00000000 )
+  2B8:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000002 )
+  2D4:  	Wait  2`
+  2E0:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 FFFFFFFE )
+  2FC:  	Wait  2`
+  308:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000000 )
+  324:  	Wait  10`
+  330:  	Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000F )
+  348:  	Wait  5`
+  354:  	Call  SetGoalToHome     ( .Actor:Partner )
+  364:  	Call  SetActorSpeed     ( .Actor:Partner *Fixed[15.0] )
+  378:  	Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A0006 )
+  390:  	Call  RunToGoal ( .Actor:Partner 00000000 )
+  3A4:  	Return
+  3AC:  EndIf
+  3B4:  Set   *VarF  00000001
+  3C4:  Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+  3DC:  Switch  *Var2
+  3E8:  	Case  ==  00000089
+  3F4:  		Set   *VarF  00000001
+  404:  	Case  ==  0000008A
+  410:  		Set   *VarF  00000002
+  420:  	Case  ==  0000008B
+  42C:  		Set   *VarF  00000003
+  43C:  EndSwitch
+  444:  Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 0000009F 00000000 *VarF 00000030 )
+		If *VarF > 1
+			Call     $Function_CheckChill ( ) %0 = immune to def down
+			If  *Var[0]  ==  00000001 
+				Call     $Function_ChillTarget ( )
+				Call	 SetGoalToTarget ( .Actor:Self )
+				Call	 GetGoalPos ( .Actor:Self *Var5 *Var6 *Var7 ) 
+				Call	 $Function_DebuffEffect2 ( )				
+			EndIf
+		EndIf
+  468:  Call  GetMenuSelection      ( *Var0 *Var1 *Var2 )
+  480:  Switch  *Var2
+  48C:  	Case  ==  00000089
+  498:  		Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  4AC:  	Case  ==  0000008A
+  4B8:  		Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  4CC:  	Case  ==  0000008B
+  4D8:  		Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  4EC:  EndSwitch
+  4F4:  Call  UseBattleCamPreset    ( 00000003 )
+  504:  Call  GetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  520:  Sub   *Var0  00000028
+  530:  Set   *Var1  00000000
+  540:  Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.1] )
+  554:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  570:  Call  JumpToGoal    ( .Actor:Partner 0000000A .False .True .False )
+  590:  Sub   *Var0  0000001E
+  5A0:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  5BC:  Call  JumpToGoal    ( .Actor:Partner 00000008 .False .False .True )
+  5DC:  Sub   *Var0  00000014
+  5EC:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  608:  Call  JumpToGoal    ( .Actor:Partner 00000006 .False .False .True )
+  628:  Sub   *Var0  0000000A
+  638:  Call  JumpToGoal    ( .Actor:Partner 00000004 .False .False .True )
+  658:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000F )
+  670:  Wait  5`
+  67C:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+  694:  Call  SetGoalToHome ( .Actor:Partner )
+  6A4:  Call  SetActorSpeed ( .Actor:Partner *Fixed[15.5] )
+  6B8:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+  6D0:  Call  RunToGoal     ( .Actor:Partner 00000000 )
+  6E4:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+  6FC:  Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  710:  Call  UseIdleAnimation      ( .Actor:Self .True )
+  724:  Return
+  72C:  End
+}
+
+
+
+
 %Kooper's moves are faster now%
 
 
-@	$Script_80239384
+@ $Script_80239384
 {
-   [54]  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
-  [764]  	Wait  2`
-  [800]  	Wait  2`
-  [940]  	Wait  5`
-  [964]  	Wait  5`
-  [980]  	Call  SetActorSpeed     ( .Actor:Partner *Fixed[18.0] )
-}
-
+    0:  Call  LoadActionCommand ( .ActionCommand:Smash )
+   10:  Call  802A9000 ( )
+   1C:  Call  InitTargetIterator ( )
+   28:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   44:  Add   *Var0  0000001E
+   54:  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+   68:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+   80:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+   9C:  Call  RunToGoal     ( .Actor:Partner 00000000 .False )
+   B4:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+   CC:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000E )
+   E4:  Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+   F8:  Wait  13`
+  104:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  11C:  Loop  0000001E
+  128:  	Wait  1`
+  134:  	Call  CheckButtonDown   ( ~Flags:Buttons:40000 *Var0 )
+  148:  	If  *Var0  !=  .False
+  158:  		BreakLoop
+  160:  	EndIf
+  168:  EndLoop
+  170:  Call  802A9258  ( 00000000 0000002F 00000003 )
+  188:  Call  SetActionResult   ( 00000000 )
+  198:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000A )
+  1B0:  Call  PlaySoundAtActor  ( .Actor:Partner 0000200C )
+  1C4:  Call  UseBattleCamPreset    ( 0000003B )
+  1D4:  Set   *Var9  00000000
+  1E4:  Set   *Var1  00000000
+  1F4:  Loop  00000032
+  200:  	Wait  1`
+  20C:  	Switch  *Var9
+  218:  		Case  <  00000014
+  224:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  23C:  		Case  ==  00000014
+  248:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  264:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  2A8:  		Case  <  0000001E
+  2B4:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+  2CC:  		Case  ==  0000001E
+  2D8:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  2F4:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  338:  		Case  <  00000028
+  344:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+  35C:  		Case  ==  00000028
+  368:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  384:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  3C8:  		Case  <  00000032
+  3D4:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+  3EC:  		Case  ==  00000032
+  3F8:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  414:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  458:  	EndSwitch
+  460:  	Add   *Var9  00000001
+  470:  	Call  GetActionResult   ( *Var0 )
+  480:  	If  *Var0  !=  00000000
+  490:  		If  *Var1  !=  00000001
+  4A0:  			Set   *Var1  00000001
+  4B0:  		EndIf
+  4B8:  	EndIf
+  4C0:  	Call  CheckButtonDown   ( ~Flags:Buttons:40000 *Var0 )
+  4D4:  	If  *Var0  ==  .False
+  4E4:  		BreakLoop
+  4EC:  	EndIf
+  4F4:  EndLoop
+  4FC:  Label  0
+  508:  Wait  1`
+  514:  SetF  *VarA  *Fixed[8.0]
+  524:  Switch  *Var9
+  530:  	Case  <  00000014
+  53C:  		SetF  *VarA  *Fixed[10.0]
+  54C:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  564:  	Case  <  0000001E
+  570:  		SetF  *VarA  *Fixed[12.0]
+  580:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+  598:  	Case  <  00000028
+  5A4:  		SetF  *VarA  *Fixed[14.0]
+  5B4:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+  5CC:  	Case  <  00000032
+  5D8:  		SetF  *VarA  *Fixed[16.0]
+  5E8:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+  600:  EndSwitch
+  608:  Add   *Var9  00000001
+  618:  Call  GetActionSuccess  ( *Var0 )
+  628:  If  *Var0  ==  00000000
+  638:  	Goto  0
+  644:  EndIf
+  64C:  Call  PlaySoundAtActor  ( .Actor:Partner 0000200A )
+  660:  Call  UseBattleCamPreset    ( 00000003 )
+  670:  Call  MoveBattleCamOver ( 0000000F )
+  680:  ExecWait  $Script_802392A4
+  68C:  Call  AddActorDecoration    ( .Actor:Self 00000000 00000000 .Decoration:GreySmokeTrail )
+  6A8:  Call  SetGoalToTarget   ( .Actor:Partner )
+  6B8:  Call  SetActorSpeed     ( .Actor:Partner *VarA )
+  6CC:  Call  SetActorSounds    ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+  6E8:  Call  RunToGoal ( .Actor:Partner 00000000 )
+  6FC:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000 00000002 00000010 )
+  720:  If  *Var0  ==  .HitResult:Miss % 6
+  730:  	Thread
+  738:  		Call  $Function_80238000 ( )
+  744:  		Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+  75C:  	EndThread
+  764:  	Wait  2`
+  770:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0009 )
+  788:  	Call  SetActorRotationOffset    ( .Actor:Partner 00000008 00000000 00000000 )
+  7A4:  	Set   *Var0  00000000
+  7B4:  	Loop  00000002
+  7C0:  		Add   *Var0  FFFFFFE2
+  7D0:  		Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var0 )
+  7EC:  		Wait  1`
+  7F8:  	EndLoop
+  800:  	Wait  1`
+  80C:  	Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  828:  	Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000010 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  86C:  	Loop  00000005
+  878:  		Add   *Var0  0000000C
+  888:  		Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 *Var0 )
+  8A4:  		Wait  1`
+  8B0:  	EndLoop
+  8B8:  	Call  SetActorRotationOffset    ( .Actor:Partner 00000000 00000000 00000000 )
+  8D4:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000002 )
+  8F0:  	Wait  2`
+  8FC:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 FFFFFFFE )
+  918:  	Wait  2`
+  924:  	Call  SetActorRotation  ( .Actor:Partner 00000000 00000000 00000000 )
+  940:  	Wait  5`
+  94C:  	Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000F )
+  964:  	Wait  5`
+  970:  	Call  SetGoalToHome     ( .Actor:Partner )
+  980:  	Call  SetActorSpeed     ( .Actor:Partner *Fixed[18.2] )
+  994:  	Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A0006 )
+  9AC:  	Call  RunToGoal ( .Actor:Partner 00000000 )
+  9C0:  	Return
+  9C8:  EndIf
+  9D0:  Call  RemoveActorDecoration     ( .Actor:Self 00000000 00000000 )
+  9E8:  Call  GetActionCommandResult    ( *Var0 )
+  9F8:  Switch  *Var0
+  A04:  	Case  >  00000000
+  A10:  		Call  PartnerDamageEnemy    ( *VarC ~Flags:DamageType:0 0000009F 00000000 *VarF 00000070 )
+  A34:  	Default
+  A3C:  		Call  PartnerDamageEnemy    ( *VarC ~Flags:DamageType:0 0000009F 00000000 *VarE 00000030 )
+  A60:  EndSwitch
+		If *VarF > 2`
+			Call     $Function_CheckChill ( ) %0 = immune to def down
+			If  *Var[0]  ==  00000001 
+				Call     $Function_ChillTarget ( )
+				Call	 SetGoalToTarget ( .Actor:Self )
+				Call	 GetGoalPos ( .Actor:Self *Var5 *Var6 *Var7 ) 
+				Call	 $Function_DebuffEffect2 ( )				
+			EndIf
+		EndIf
+  A68:  Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  A7C:  Switch  *VarC
+  A88:  	CaseOR  ==  .HitResult:Hit % 0
+  A94:  	CaseOR  ==  00000002 % 2
+  AA0:  		ExecWait  $Script_80239084
+  AAC:  	EndCaseGroup
+  AB4:  	CaseOR  ==  00000001 % 1
+  AC0:  	CaseOR  ==  00000003 % 3
+  ACC:  		ExecWait  $Script_80238E38
+  AD8:  	EndCaseGroup
+  AE0:  EndSwitch
+  AE8:  Return
+  AF0:  End
+} 
 
 
 
@@ -44,20 +555,8 @@
 
 
 
-@	$Script_8023C754
-{
-   [9C]  Call  SetActorSpeed     ( .Actor:Partner *Fixed[25.0] )
-  [148]  	Wait  2`
-  [1E4]  	Wait  1`
-  [324]  	Wait  5`
-  [348]  	Wait  5`
-  [364]  	Call  SetActorSpeed     ( .Actor:Partner *Fixed[15.0] )
-  [670]  Wait  6`
-  [6A4]  Call  SetActorSpeed ( .Actor:Partner *Fixed[15.0] )
-}
-
-
 %Make Power Shell viable.
+%5 damage at Ultra Rank.
 
 @	$Script_80239E7C
 {
