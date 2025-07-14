@@ -1,6 +1,23 @@
 #define .NpcID:TayceT_00            00
 #define .NpcID:FiceT_01             01
 
+
+@	$Script_802435C0
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   38:  	Default
+   40:  		Exec  $Script_8024E150
+   4C:  EndSwitch
+   54:  Return
+   5C:  End
+}
+
+
+
 %New plot point that demands you get a Forest Pass from Fice T.
 
 @	$Script_Interact_8024A9E0
@@ -234,16 +251,20 @@
    18:  		Call  SetGroupEnabled   ( ~Model:cook_in 00000001 )
    2C:  		Set   *MapFlag[0A]  .True
 				Thread
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Wait  20`
-					Call  PushSong      ( 000000A4 00000000 )	%Mountain Railroad / Cooking Song
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Wait  20`
+						Call  PushSong      ( 000000A4 00000000 )	%Mountain Railroad / Cooking Song
+					EndIf
 				EndIf
 				EndThread
    3C:  	Case  ==  00000003
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+						Call  PopSong ( )
+					EndIf
 				EndIf
    48:  		Call  SetGroupEnabled   ( ~Model:cook_in 00000000 )
    5C:  		Set   *MapFlag[0A]  .False
@@ -530,6 +551,19 @@
 
 
 
+% Tayce T's "give cookbook" script
+% Completely changed to fix the bug that made Tayce T stop working after obtaining the cookbook
+@ $Script_80249550
+{
+  Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 0004001D ) % Oh, my! Oh, good heavens!! That book you have! It  ...
+  Set   *GF_MAC02_TayceT_HasCookbook  .True
+  Call  FindKeyItem   ( .CookbookItemID *Var0 )
+  Call  RemoveKeyItemAt ( *Var0 )
+  Call  SpeakToPlayer ( 00000000 00AA0004 00AA0001 00000000 00040020 ) % Ooh! I can have it? Oh, how delightful! With this  ...
+  Return
+  End
+}
+
 
 %screw this, rewrite it to actually make sense
 @ $Function_80242F60
@@ -584,6 +618,256 @@
    24:  SAW       R0, $End[6D0]
    2C:  JR        RA
    30:  LI        V0, 2
+}
+
+
+
+% in *Var[6] -> Item
+% out *Var[7] -> Reaction index
+#new:Script $Script_GetReaction
+{
+    UseIntBuffer $IntTable_ItemReactions
+    Loop 
+        Get1Int *Var[7] % Reaction Index
+        Get1Int *Var[D] % Item
+        If *Var[D] == *Var[6]
+            Return
+        EndIf
+        If *Var[D] == FFFFFFFF % End of table
+            Set *Var[7] .rNormal
+            Return
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+
+% ReactionIndex - Item
+% If an item isn't present here, it defaults to .rNormal (1)
+#new:IntTable $IntTable_ItemReactions
+{
+.rMistake   .Item:Mistake
+.rDelicious .Item:BlandMeal
+.rDelicious .Item:BigCookie
+.rDelicious .Item:YoshiCookie
+.rDelicious .Item:SpecialShake 
+.rDelicious .Item:YummyMeal
+.rSpecialty .Item:DeluxeFeast
+.rSpecialty .Item:HealthyJuice
+.rIdk       .Item:DizzyDial 
+.rIdk       .Item:SleepySheep 
+.rIdk       .Item:ThunderRage
+.rIdk       .Item:FireFlower 
+.rIdk		.Item:RepelGel
+FFFFFFFF FFFFFFFF % End of table
+}
+
+
+% ItemID - ScriptPtr
+% If a specified item is cooked on its own, the corresponding script will be called instead of the regular script
+% The replacement script should change *Var6 to choose which item should be the result of the cooking
+#new:IntTable $SpecialCookingResultHandlers
+{
+    .Item:Mystery $Script_HandleMysteryCooked
+    FFFFFFFF FFFFFFFF % end of table
+}
+
+
+#new:Script $Script_HandleMysteryCooked 
+{
+    % *Var6 -> ItemID of cooked item
+    Declare *RandomNumber
+
+    % Try to turn into a mistake
+    Call RandInt ( 1000` *RandomNumber )
+    If *RandomNumber > .mysteryMistakeChance
+        Set *Var6 .mysteryMistakeItem
+        Return
+    EndIf
+
+    % Turn into a random item from the table
+    Call RandInt ( 10000` *RandomNumber )
+    Mod *RandomNumber .mysteryItemCount
+    Add *RandomNumber 1`
+
+    UseIntBuffer $IntTable_8024909C
+    Loop *RandomNumber
+        Get1Int *Var6 % ItemID
+    EndLoop
+
+    Return
+    End
+}
+
+
+#define .mysteryMistakeChance 500` % chance for a mystery to turn into a mistake, multiplied by 10
+#define .mysteryMistakeItem .Item:Mistake
+#define .mysteryItemCount 23` % How many items are in $IntTable_8024909C
+
+% ItemID's that a mystery can turn into if it's not a mistake.
+% Be sure to update .mysteryItemCount!
+@ $IntTable_8024909C
+{
+	.Item:FireFlower    .Item:TastyTonic    .Item:SuperSoda    .Item:SleepySheep    .Item:LifeShroom
+    .Item:DizzyDial     .Item:VoltShroom    .Item:FriedShroom   .Item:Koopasta      .Item:SpicySoup
+	.Item:KoopaTea      .Item:Spaghetti     .Item:FriedEgg      .Item:BoiledEgg     .Item:PotatoSalad
+    .Item:HoneyShroom   .Item:BlandMeal     .Item:ThunderRage   .Item:EggMissile    .Item:ApplePie
+	.Item:KookyCookie   .Item:BigCookie     .Item:SpecialShake
+}
+
+% out *Var[6] -> Received item
+% out *Var[7] -> Reaction
+% in *Var[8] -> Item used for cooking
+#new:Script $Script_Get1ItemRecipe
+{
+    % Var[8] -> used ItemID
+
+    % Check if there's a special handler for this ItemID
+    UseIntBuffer $SpecialCookingResultHandlers
+    Loop
+        Get1Int *Var[D] % item
+        If *Var[D] == FFFFFFFF % end of table
+            BreakLoop
+        EndIf
+        Get1Int *Var[7] % Script
+        If *Var[D] == *Var[8]
+            % Custom handler exists, just use that
+            ExecWait *Var[7]
+            ExecWait $Script_GetReaction % Sets *Var[7] to reactionID
+            Return
+        EndIf
+    EndLoop
+    
+    UseIntBuffer $IntTable_RecipeTable
+    % 1 Item
+    Loop
+        Get1Int *Var[D] % Item1
+        If *Var[D] == 70707070
+            % End of table, no recipe :(
+            Set *Var[6] .Item:Mistake
+            Set *Var[7] 0
+            Return
+        EndIf
+        If *Var[D] == FFFFFFFF
+            % End of table, no recipe :(
+            Set *Var[6] .Item:Mistake
+            Set *Var[7] 0
+            Return
+        EndIf
+        Get1Int *Var[7] % Item2, not used but we still need to check for FFFFFFFF
+        Get1Int *Var[6] % Received item
+        If *Var[D] == *Var[8]
+        If *Var[7] == FFFFFFFF
+            % Recipe exists:
+            ExecWait $Script_GetReaction % Sets *Var[7]
+            Return
+        EndIf
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+% out *Var[6] -> Received item
+% out *Var[7] -> Reaction
+% in *Var[8] -> Item used for cooking
+% in *Var[9] -> 2nd Item used for cooking
+#new:Script $Script_Get2ItemRecipe {
+    UseIntBuffer $IntTable_RecipeTable
+    % 2 Items
+    Loop
+        Get1Int *Var[D] % Item1
+        If *Var[D] == 70707070
+            % End of table, no recipe :(
+            Set *Var[6] .Item:Mistake
+            Set *Var[7] 0
+            Return
+        EndIf
+        If *Var[D] == FFFFFFFF
+            % End of table, no recipe :(
+            Set *Var[6] .Item:Mistake
+            Set *Var[7] 0
+            Return
+        EndIf
+        Get1Int *Var[E] % Item 2
+        Get1Int *Var[6] % Received item
+        If *Var[D] == *Var[8] % Item1 == Item1
+            If *Var[E] == *Var[9] % Item2 == Item2
+                % Recipe exists:
+                ExecWait $Script_GetReaction % Sets *Var[7]
+                Return
+            EndIf
+        EndIf
+        If *Var[D] == *Var[9] % Item1 == Item2
+            If *Var[E] == *Var[8] % Item2 == Item1
+                % Recipe exists:
+                ExecWait $Script_GetReaction % Sets *Var[7]
+                Return
+            EndIf
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+#new:Function $Function_UnusedItem %arg 1 = output (FFFFFFFF if all recipes are done)
+{
+	PUSH	  RA, S1, S2, S3
+	COPY	  S2, A0
+	LW        V0, C (S2)
+	COPY	  S1, V0
+	JAL		  $FindUnusedRecipeItem
+	NOP
+	COPY	  A0, V0
+	LW        V0, C (S2)
+	COPY	  A2, A0
+	COPY	  A0, S2
+	JAL       ~Func:set_variable
+	LW        A1, 0 (S1) 
+	POP 	  RA, S1, S2, S3
+	JR		  RA
+	ORI 	  V0, R0, 2
+}
+
+#new:Function $FindUnusedRecipeItem		
+{
+	PUSH 	  RA, S1, S2, S3
+	COPY	  S1, R0
+	LA        S2, $RecipesDiscovedFlags
+    .o5C
+	LW        A1, 0 (S2)
+	BEQ       A1, R0, .o84
+	SLL       V0, S1, 10
+	JAL       ~Func:get_variable
+	CLEAR     A0
+	BEQ		  V0, R0, .found
+	NOP
+    .o78
+	ADDIU     S2, S2, 4
+	BEQ       R0, R0, .o5C
+	ADDIU     S0, S0, 1
+    .o84
+	ADDI	  S1, R0, FFFF
+	BEQ		  R0, R0, .notfound
+	NOP
+	.found
+	LI		  S3, $RecipesDiscovedFlags
+	SUB		  S2, S2, S3					%now S2 is an offset value
+	LI		  S3, $RecipesDiscovedIDs
+	ADD		  S2, S2, S3
+	LW		  S1, 0 (S2)
+	.notfound
+	COPY	  V0, S1
+	POP 	  RA, S1, S2, S3
+	JR		  RA
+	NOP
+}
+
+@ $Function_802418FC
+{
+   [BC]  CLEAR		V0 % never spawn chuck
+   [1B8] J          $Function_802418FC[1E4]
 }
 
 

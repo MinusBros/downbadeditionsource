@@ -1,0 +1,74 @@
+#export:Data $ExtraActorData_Everyone
+{
+    00000000 00000000 00000000 00000000 % Mario
+    %
+    00000000 00000000 00000000 00000000 % Enemy0
+    00000000 00000000 00000000 00000000 % Enemy1
+    00000000 00000000 00000000 00000000 % Enemy2
+    00000000 00000000 00000000 00000000 % Enemy3
+    00000000 00000000 00000000 00000000 % Enemy4
+    00000000 00000000 00000000 00000000 % Enemy5
+    00000000 00000000 00000000 00000000 % Enemy6
+    00000000 00000000 00000000 00000000 % Enemy7
+    00000000 00000000 00000000 00000000 % Enemy8
+    00000000 00000000 00000000 00000000 % Enemy9
+    00000000 00000000 00000000 00000000 % Enemy10
+    00000000 00000000 00000000 00000000 % Enemy11
+    00000000 00000000 00000000 00000000 % Enemy12
+    00000000 00000000 00000000 00000000 % Enemy13
+    00000000 00000000 00000000 00000000 % Enemy14
+    00000000 00000000 00000000 00000000 % Enemy15
+    00000000 00000000 00000000 00000000 % Enemy16
+    00000000 00000000 00000000 00000000 % Enemy17
+    00000000 00000000 00000000 00000000 % Enemy18
+    00000000 00000000 00000000 00000000 % Enemy19
+    00000000 00000000 00000000 00000000 % Enemy20
+    00000000 00000000 00000000 00000000 % Enemy21
+    00000000 00000000 00000000 00000000 % Enemy22
+    00000000 00000000 00000000 00000000 % Enemy23
+    FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+}
+
+
+
+% A0 = actorID
+#export:Function $GetActorExtraBattleData_Pointer
+{
+    PUSH    RA, A0, A1, A2, A3, V1
+    COPY    V0, A0
+    LIO     A0, $ExtraActorData_Everyone
+    % check if actor is Partner
+    ORI     A1, R0, 0100 % .Actor:Partner
+    BEQ     V0, A1, .Partner
+    NOP
+    % actor is the player?
+    BEQ     V0, R0, .FindActorData
+    CLEAR   A2
+    % It's an enemy, format actorID
+    ANDI    A2, V0, FDFF % remove 0X00 from the ID (number 2)
+    ADDIU   A2, A2, 2
+    .FindActorData
+    % clear extra data's buffs data
+    %
+    % get data offset
+    ORI     V1, R0, 10
+    MULT    A2, V1
+    MFLO    V1
+    %
+    ORI     A2, R0, 1 % Isn't partner?
+    BEQ     V0, R0, .CopyToV0 % Player
+    ADDU    A3, A0, V1
+    BNE     V0, A2, .CopyToV0 % Enemies
+    ADDI    A3, A3, -10 % because enemies' extraActorData starts at index 0x01 unlike the FX data.
+    .Partner
+    % It's partner
+    %JAL     $GetPartnerExtraBattleData_Pointer
+    NOP
+    COPY    A3, V0
+    .CopyToV0
+    COPY    V0, A3
+    .End
+    POP     RA, A0, A1, A2, A3, V1
+    JR      RA
+    NOP
+}

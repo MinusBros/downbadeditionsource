@@ -1,0 +1,133 @@
+
+%Chill out observations
+%Lines that check chill out strength (This is what determines when the arrow is first displayed?)
+%	AP + 223
+%	Continuously (*Changing chill out strength will immediately show an arrow)
+%80256D60
+%8026F3FC		<-- Called during other enemy turns (*so this does not directly control arrow)
+%	(When checking attack power)
+%80277890 	
+%	(initialize strength)
+%802656A0	
+
+
+% player pointer 80746250
+
+
+%80744264
+
+%Lines that check chill out duration
+%	AP + 224
+%	Start/End of enemy turns
+%8024283C	
+%80242840	(unsigned!)
+%		Note that there is some code that subtracts the value and then destroys the arrow when the values become 0
+%		Also, chill out strength is reset to 0 when duration becomes 0
+%	(When checking attack power)
+%80277884 	
+%	(initialize duration)
+%8026569C	
+
+
+%Clear out some more space
+%The two values after chill out values appear unused (They take some uninitialized values which is evidence that they are really unused)
+%Also, 209 + AP is unused
+@Hook 193F7C %8026569C
+{
+SB	R0, 19B (S1) %Sleep hit count (In order to fix a sleep bug I have to allow one hit)
+SB	R0, 209 (S1) %Status inflict count
+SB	R0, 223 (S1) %chillout strength
+SB	R0, 224 (S1) %chillout duration
+SB	R0, 225 (S1) %defdown strength
+J	802656A4
+SB	R0, 226 (S1) %defdown duration
+}
+
+
+@Hook 1A0848 %80271F68
+{
+PUSH	S0, S1, S2
+LB 		V0, 222 (S3)
+LB		S0, 226 (S3) %defdown duration
+BEQ		S0, R0, .no
+ORI		S0, R0, 0
+LB		S0, 225 (S3) %defdown strength
+.no
+SLT		S2, S5, R0	 %S5 < R0 => do not force defense = 0
+BNE		S2, R0, .defhigh
+SUBU 	S5, S5, S0	 %Subtract by defdown strength (or 0 if defdown duration is 0)
+BGT		S5, R0, .defhigh	%if defense < 0, force it to be 0
+NOP
+ORI		S5, R0, 0	 %force defense to be at least 0 (if defense was not already negative)
+.defhigh
+POP		S0, S1, S2
+J 		80271F70
+ADDU 	S5, S5, V0
+}
+
+@Hook 1AD290 %8027E9B0
+{
+PUSH	S5, S6, S2
+LB 		V0, 222 (S3)
+LB		S5, 226 (S3) %defdown duration
+BEQ		S5, R0, .no
+ORI		S5, R0, 0
+LB		S5, 225 (S3) %defdown strength
+.no
+SLT		S2, S0, R0	 %S0 < R0 => do not force defense = 0
+BNE		S2, R0, .defhigh
+SUBU 	S0, S0, S5	 %Subtract by defdown strength (or 0 if defdown duration is 0)
+BGT		S0, R0, .defhigh
+NOP
+ORI		S0, R0, 0	 %force defense to be at least 0	(if not already negative)
+.defhigh
+POP		S5, S6, S2
+J 		8027E9B8
+ADDU 	S0, S0, V0
+}
+
+%As it turns out, there are no items that do not ignore defense
+%Therefore I'm not programming def down for items (as it would always be skipped over)
+%If you really want to, you could locate the piece of code that reads from 222 + actor pointer and copy the above code
+%	^	Don't follow this advice, items wouldn't read from there anyway
+
+
+%Reduce defdown
+@Hook 17111C %8024283C
+{
+	LB		V0, 226 (V1)
+	ADDI	V0, V0, FFFF 	%there is no SUBI instruction :P
+	SLT		A0, R0, V0
+	BNE		A0, R0, .gt
+	NOP
+	ORI		V0, R0, 0		%Reset to 0
+	SB		R0, 225 (V1) 	%defdown strength
+	.gt
+	SB		V0, 226 (V1) 	%defdown duration
+	LB		V0, 224 (V1)
+	J 		80242844
+	LBU		A0, 224 (V1)
+}
+
+
+%Init mario chill / defdown
+@Hook 192F98 %802646B8
+{
+	SB		R0, 209 (S1) %Status inflict count
+	SB		R0, 225 (S0)
+	SB		R0, 226 (S0)
+	SB		R0, 223 (S0)
+	J 		802646C0
+	SB		R0, 224 (S0)
+}
+
+%init partner chill / defdown
+@Hook 193704 %80264E24
+{
+	SB		R0, 209 (S1) %Status inflict count
+	SB		R0, 225 (S1)
+	SB		R0, 226 (S1)
+	SB		R0, 223 (S1)
+	J 		80264E2C
+	SB		R0, 224 (S1)
+}

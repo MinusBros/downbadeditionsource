@@ -1,7 +1,10 @@
 % Just a bunch of random functions needed to make stuff from 
 % Master Quest, Dark Star and TTYD64 work.
 
-
+#export:Data $RandomBattleData
+{
+	00000000
+}
 
 % in which rain and quackles fix clover’s grand confusion
 #new:Function $IsBadgeEquippedScriptVer %args: (BadgeID, Var# to store result to)
@@ -325,6 +328,34 @@ NOP
 }
 
 
+%Get playerdata value
+%	Returns value of (second arg) + playerdata into (first arg)
+#export:Function $Function_GetPlayerDataByte %( out, offset ) 
+{
+PUSH RA, A0, A1, S0, S1, S2
+COPY	S2, A0
+LW		S1, C (A0)
+LW		A1, 0 (S1) %get argument 1
+COPY	S0, A1
+ADDIU	S1, S1, 4
+COPY	A0, S2
+JAL		~Func:get_variable
+LW		A1, 0 (S1) %get argument 2
+%S0 = first arg pointer
+%V0 = second arg
+LIO		T0, 8010F290
+ADD		T0, T0, V0
+LBU		T1, 0 (T0)
+%store
+COPY	A2, T1
+COPY	A0, S2
+ADDIU	S1, S1, FFFC
+JAL		~Func:set_variable
+LW		A1, 0 (S1) %get argument 1
+POP RA, A0, A1, S0, S1, S2
+JR	RA
+ADDIU	V0, R0, 2
+}
 
 %Get battle data value
 %	Returns value of (second arg) + battle data into (first arg)
@@ -725,6 +756,24 @@ ADDIU	V0, R0, 2
 }
 
 
+
+
+%I need a special version of BoostAttack and BoostDefense that allows enemies to buff themselves
+%	The problem with the originals is that they have this stupid property where it just cancels the scripts when the arrow appears
+
+%scratch that, I'll just modify the real one and hope that it never causes problems
+
+@Function 19E918
+{
+NOP
+NOP
+}
+
+@Function 19EDB8
+{
+NOP
+NOP
+}
 
 
 % Fade screen brightness to black

@@ -1,5 +1,14 @@
 #define .Flag_CastlePipeA *GameFlag[173]
 #define .Flag_CastlePipeB *GameFlag[174]
+#define .NpcID:Twink_01             01
+#define .NpcID:WorldEldstar_02      02
+#define .NpcID:WorldMamar_03        03
+#define .NpcID:WorldSkolar_04       04
+#define .NpcID:WorldMuskular_05     05
+#define .NpcID:WorldMisstar_06      06
+#define .NpcID:WorldKlevar_07       07
+#define .NpcID:WorldKalmar_08       08
+#define .NpcID:StarRod_09           09
 
 @ $EntryList
 {
@@ -78,6 +87,9 @@
 }
 
 
+%Speed up this cutscene by a few seconds and
+%add a new song to Xing's farewell.
+
 @	$Script_Main
 {
     0:  Set   *GB_WorldLocation  .Location:PeachsCastle
@@ -113,12 +125,14 @@
   3B4:  	Call  EnableGroup   ( ~Model:g116 .False )
   3C8:  EndIf
   3D0:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
+		If  *GF_KKJ25_Defeated_Bowser  ==  .True
   3E0:  	Call  FadeOutMusic  ( 00000000 000001F4 )
 			Thread
 				Wait 100`
 				Call  SetMusicTrack ( 00000000 .Song:Breathing 00000000 00000008 )
 			EndThread
   3F4:  EndIf
+		EndIf
   3FC:  Exec  $Script_EnterDoubleDoor_80240408
   408:  Wait  1`
   414:  If  *GB_StoryProgress  ==  .Story:Ch8_ReachedBowsersCastle % 5E
@@ -127,6 +141,254 @@
   43C:  Return
   444:  End
 }
+
+
+
+@	$Script_80241190
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePartnerAI  ( 00000000 )
+   20:  Call  SetMusicTrack ( 00000000 .Song:StarSpiritTheme 00000002 00000008 )
+   3C:  Call  SetPlayerPos  (  15`  0`  30` )
+   54:  Call  InterpPlayerYaw   (  90`  0` )
+   68:  Call  GetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+   84:  Call  SetNpcPos     ( .Npc:Partner  -70` *Var1  15` )
+   A0:  Call  SetNpcYaw     ( .Npc:Partner  90` )
+   B4:  Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+   C8:  Call  GetNpcPos     ( .NpcID:WorldEldstar_02 *Var0 *Var1 *Var2 )
+   E4:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  100:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  11C:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-7.0] )
+  134:  Call  SetCamDistance    ( .Cam:Default *Fixed[700.0] )
+  148:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  15C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  174:  Wait  1`
+  180:  Call  SetCamDistance    ( .Cam:Default *Fixed[350.0] )
+  194:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  1A8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1C0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1D4:  Wait  20`
+  1E0:  Call  SetPlayerAnimation    ( 00060005 )
+  1F0:  Call  SetNpcPos     ( .NpcID:StarRod_09  30`  25`  30` )
+  20C:  Wait  20`
+  218:  Call  SetNpcAnimation   ( .NpcID:WorldEldstar_02 00120003 )
+  22C:  Call  GetNpcPos     ( .NpcID:WorldEldstar_02 *Var0 *Var1 *Var2 )
+  248:  Set   *Var1  00000050
+  258:  Set   *Var2  00000023
+  268:  Call  SetNpcJumpscale   ( .NpcID:StarRod_09 *Fixed[0.5] )
+  27C:  Call  NpcJump1      ( .NpcID:StarRod_09 *Var0 *Var1 *Var2 00000014 )
+  29C:  Call  SetPlayerAnimation    ( 00010002 )
+  2AC:  Call  PlaySound     ( 00000139 )
+  2BC:  Loop  00000006
+  2C8:  	Call  PlayEffect    ( 00000033 00000009 *Var0 *Var1 *Var2 00000001 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  30C:  	Call  PlayEffect    ( ~FX:Sparkles:Random *Var0 *Var1 *Var2 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  350:  	Wait  10`
+  35C:  EndLoop
+  364:  Loop  00000014
+  370:  	Add   *Var1  FFFFFFFF
+  380:  	Call  SetNpcPos ( .NpcID:StarRod_09 *Var0 *Var1 *Var2 )
+  39C:  	Wait  1`
+  3A8:  EndLoop
+  3B0:  Call  SetNpcPos ( .NpcID:StarRod_09  0`  -1000`  0` )
+  3CC:  Wait  20`
+  3D8:  Call  SetNpcAnimation   ( .NpcID:WorldEldstar_02 00120001 )
+  3EC:  Wait  10`
+  3F8:  Call  SpeakToPlayer     ( .NpcID:WorldEldstar_02 00120002 00120001 00000000 00010000 ) % Oh, Mario! Thank you! You did it! You brought back ...
+  418:  Wait  10`
+  424:  Thread
+  42C:  	Wait  5`
+  438:  	Call  SetNpcJumpscale   ( .NpcID:WorldEldstar_02 *Fixed[0.0] )
+  44C:  	Call  NpcJump0  ( .NpcID:WorldEldstar_02  120`  80`  0`  40` )
+  46C:  	Call  InterpNpcYaw      ( .NpcID:WorldEldstar_02  270`  0` )
+  484:  EndThread
+  48C:  Call  GetNpcPos     ( .NpcID:WorldEldstar_02 *Var0 *Var1 *Var2 )
+  4A8:  Set   *Var0  00000078
+  4B8:  Set   *Var1  00000050
+  4C8:  Set   *Var2  00000000
+  4D8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  4F4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  510:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  524:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  538:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  550:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  568:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  57C:  Wait  10`
+  588:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  59C:  Call  GetNpcPos     ( .NpcID:WorldMamar_03 *Var0 *Var1 *Var2 )
+  5B8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  604:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  648:  Call  SpeakToPlayer ( .NpcID:WorldMamar_03 00130002 00130001 00000000 00010001 ) % Now we'll be able to grant everyone's wishes again ...
+  668:  Call  GetNpcPos     ( .NpcID:WorldSkolar_04 *Var0 *Var1 *Var2 )
+  684:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  6A0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  6BC:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  6D0:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  6E8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  700:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  714:  Call  SpeakToPlayer ( .NpcID:WorldSkolar_04 00140002 00140001 00000000 00010002 ) % When you look at the night sky, you'll know that t ...
+  734:  Call  GetNpcPos     ( .NpcID:WorldMuskular_05 *Var0 *Var1 *Var2 )
+  750:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  76C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  788:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  79C:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  7B4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  7CC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  7E0:  Call  SpeakToPlayer ( .NpcID:WorldMuskular_05 00150002 00150001 00000000 00010003 ) % You really took it to Bowser, Mario! Really socked ...
+  800:  Call  GetNpcPos     ( .NpcID:WorldMisstar_06 *Var0 *Var1 *Var2 )
+  81C:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  838:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  854:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  868:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  880:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  898:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  8AC:  Call  SpeakToPlayer ( .NpcID:WorldMisstar_06 00160002 00160001 00000000 00010004 ) % Mario... Don't think we don't know how hard you wo ...
+  8CC:  Call  GetNpcPos     ( .NpcID:WorldKlevar_07 *Var0 *Var1 *Var2 )
+  8E8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  904:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  920:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  934:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  94C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  964:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  978:  Call  SpeakToPlayer ( .NpcID:WorldKlevar_07 00170003 00170001 00000000 00010005 ) % I hope Bowser learned something from all this. May ...
+  998:  Call  GetNpcPos     ( .NpcID:WorldKalmar_08 *Var0 *Var1 *Var2 )
+  9B4:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  9D0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  9EC:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  A00:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  A18:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  A30:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  A44:  Call  SpeakToPlayer ( .NpcID:WorldKalmar_08 00180002 00180001 00000000 00010006 ) % No words can express completely how thankful we ar ...
+  A64:  Call  GetNpcPos     ( .NpcID:WorldEldstar_02 *Var0 *Var1 *Var2 )
+  A80:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  A9C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  AB8:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  ACC:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+  AE4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  AFC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  B10:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_02 00120002 00120001 00000000 00010007 ) % And Twink, may I say... you really rose to the occ ...
+  B30:  Call  GetNpcPos     ( .NpcID:Twink_01 *Var0 *Var1 *Var2 )
+  B4C:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  B68:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  B84:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  B98:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-2.0] )
+  BB0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  BC4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  BDC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  BF0:  Wait  3`
+  BFC:  Call  SpeakToPlayer ( .NpcID:Twink_01 00200009 00200001 00000005 00010008 ) % Tee hee hee... Aw, go on...
+  C1C:  Call  GetNpcPos     ( .NpcID:WorldEldstar_02 *Var0 *Var1 *Var2 )
+  C38:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  C54:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  C70:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  C84:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+  C9C:  Call  SetCamDistance    ( .Cam:Default *Fixed[275.0] )
+  CB0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  CC8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  CDC:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_02 00120002 00120001 00000000 00010009 ) % Well... I think it's time we returned to Star Have ...
+  CFC:  Wait  20`
+  D08:  Call  AdjustCam     ( .Cam:Default *Fixed[90.0]  70`  400` *Fixed[17.0] *Fixed[-11.0] )
+  D2C:  Call  SetPlayerAnimation    ( 0001002A )
+  D3C:  Thread
+  D44:  	Set   *Var4  00000002
+  D54:  	Call  PlaySoundAtNpc    ( *Var4 00002045 00000000 )
+  D6C:  	ExecWait  $Script_80240C18
+  D78:  EndThread
+  D80:  Thread
+  D88:  	Wait  30`
+  D94:  	Set   *Var4  00000006
+  DA4:  	Call  PlaySoundAtNpc    ( *Var4 00002046 00000000 )
+  DBC:  	ExecWait  $Script_80240C18
+  DC8:  EndThread
+  DD0:  Thread
+  DD8:  	Wait  60`
+  DE4:  	Set   *Var4  00000004
+  DF4:  	Call  PlaySoundAtNpc    ( *Var4 00002045 00000000 )
+  E0C:  	ExecWait  $Script_80240C18
+  E18:  EndThread
+  E20:  Thread
+  E28:  	Wait  90`
+  E34:  	Set   *Var4  00000003
+  E44:  	Call  PlaySoundAtNpc    ( *Var4 00002046 00000000 )
+  E5C:  	ExecWait  $Script_80240C18
+  E68:  EndThread
+  E70:  Thread
+  E78:  	Wait  120`
+  E84:  	Set   *Var4  00000008
+  E94:  	Call  PlaySoundAtNpc    ( *Var4 00002045 00000000 )
+  EAC:  	ExecWait  $Script_80240C18
+  EB8:  EndThread
+  EC0:  Thread
+  EC8:  	Wait  150`
+  ED4:  	Set   *Var4  00000005
+  EE4:  	Call  PlaySoundAtNpc    ( *Var4 00002046 00000000 )
+  EFC:  	ExecWait  $Script_80240C18
+  F08:  EndThread
+  F10:  Wait  150`
+  F1C:  Set   *Var4  00000007
+  F2C:  Call  PlaySoundAtNpc    ( *Var4 00002045 00000000 )
+  F44:  ExecWait  $Script_80240C18
+  F50:  Call  SetPlayerAnimation    ( 00010002 )
+  F60:  Wait  20`
+  F6C:  Call  SetMusicTrack     ( 00000000 .Song:Sorrow 00000000 00000008 )
+  F88:  Call  LoadPath  ( 0000001E $VectorList_80240B58 00000003 .Easing:Linear )
+  FA4:  Loop
+  FB0:  	Call  GetNextPathPos ( )
+  FBC:  	Call  SetNpcPos ( .NpcID:Twink_01 *Var1 *Var2 *Var3 )
+  FD8:  	Wait  1`
+  FE4:  	If  *Var0  ==  00000000
+  FF4:  		BreakLoop
+  FFC:  	EndIf
+ 1004:  EndLoop
+ 100C:  Wait  5`
+ 1018:  Call  InterpNpcYaw      ( .NpcID:Twink_01  270`  0` )
+ 1030:  Wait  10`
+ 103C:  Call  GetNpcPos ( .NpcID:Twink_01 *Var0 *Var1 *Var2 )
+ 1058:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+ 1074:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+ 1090:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-4.0] )
+ 10A8:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+ 10BC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[2.0] )
+ 10D0:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+ 10E8:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+ 10FC:  Call  SpeakToPlayer     ( .NpcID:Twink_01 00200009 00200001 00000000 0001000A ) % Mario, I'd like to thank you, too. And Princess Pe ...
+ 111C:  Wait  6`
+ 1128:  Call  SetNpcAnimation   ( 00000000 000C0000 )
+ 113C:  Wait  6`
+ 1148:  Call  SetNpcAnimation   ( 00000000 000C0026 )
+ 115C:  Call  SpeakToPlayer     ( 00000000 000C0001 000C0026 00000005 0001000B ) % Thank you so much for helping me, Twink. You've al ...
+ 117C:  Call  SetNpcAnimation   ( 00000000 000C0002 )
+ 1190:  Wait  6`
+ 119C:  Call  SetNpcAnimation   ( 00000000 000A0001 )
+ 11B0:  Wait  6`
+ 11BC:  Call  SetNpcAnimation   ( .NpcID:Twink_01 00200016 )
+ 11D0:  Call  SpeakToPlayer     ( .NpcID:Twink_01 00200016 00200016 00000000 0001000C ) % Princess Peach... I... I... Well, no, never mind!  ...
+ 11F0:  Call  SetNpcAnimation   ( .NpcID:Twink_01 00200001 )
+ 1204:  Call  EndSpeech ( .NpcID:Twink_01 00200009 00200001 00000000 )
+ 1220:  Wait  15`
+ 122C:  Exec  $Script_80240EC0
+ 1238:  Call  SetPlayerAnimation    ( 0001002A )
+ 1248:  Wait  220`
+ 1254:  Call  SetNpcAnimation   ( 00000000 000A0002 )
+ 1268:  Call  NpcMoveTo ( 00000000  -10`  30`  40` )
+ 1284:  Call  SetNpcAnimation   ( 00000000 000A0001 )
+ 1298:  Call  SetPlayerAnimation    ( 00010002 )
+ 12A8:  Call  InterpPlayerYaw   (  270`  0` )
+ 12BC:  Wait  40`
+ 12C8:  Call  InterpPlayerYaw   (  90`  0` )
+ 12DC:  Call  SetPlayerAnimation    ( 0001002A )
+ 12EC:  Wait  15`
+ 12F8:  Call  GotoMap   ( $ASCII_80244110 00000002 ) % hos_10
+ 130C:  Wait  80`
+ 1318:  Return
+ 1320:  End
+}
+
+
+
   
 #new:Script $Script_RaisePipe
 {

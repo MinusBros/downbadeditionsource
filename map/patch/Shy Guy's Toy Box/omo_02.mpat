@@ -13,10 +13,73 @@
 #define .NpcID:SpyGuy_51            33
 #define .NpcID:SpyGuy_52            34
 
+
 @	$Script_MakeEntities
 {
-    [0]  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242FE0 .Item:EggMissile 80000000 )
-   [38]  Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity80243018 .Item:StarPoint 80000000 )
+    0:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242FE0 .Item:EggMissile 80000000 )
+   28:  Call  AssignBlockFlag   ( *GF_OMO02_ItemBlock_SleepySheep )
+   38:  Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity80243018 .Item:StarPoint 80000000 )
+   60:  Call  AssignBlockFlag   ( *GF_OMO02_HiddenItem_Coin )
+   70:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80243050 80000000 )
+   94:  Call  MakeItemEntity    ( .Item:ShootingStar ~Vec3d:Item80243074 .ItemSpawnMode:Fall_NeverVanish *GF_OMO02_Item_ShootingStar )
+   B8:  Call  MakeEntity    ( .Entity:StarBoxLaucher ~Vec4d:Entity80243098 80000000 )
+   DC:  Call  AssignScript  ( $Script_80242E98 )
+		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry2 $Script_UseBluePipe ~Index:*GF_Chapter4_BluePipeA 80000000 )
+		If  *GF_Chapter4_BluePipeA == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
+   EC:  Return
+   F4:  End
+}
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShyGuysToybox
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .True $NpcGroupList_80247828 )
+   84:  ExecWait  $Script_MakeEntities
+   90:  ExecWait  $Script_8024351C
+   9C:  ExecWait  $Script_80242C10
+   A8:  ExecWait  $Script_8024455C
+   48:  Call  GetEntryID    ( *Var0 )
+   58:  Switch  *Var0
+			Case  ==  ~Entry:Entry2
+				Set *Var[A] $Script_80242CF8
+				Exec $Script_EnterVerticalPipe
+				Wait 1`
+			Default
+			    B4:  Set   *Var0  $Script_80242CF8
+				C4:  Exec  EnterWalk
+				D0:  Wait  1`
+		EndSwitch
+   DC:  Return
+   E4:  End
+}
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter4_BluePipeA  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap     	( "mac_04" 7 )
+	Wait     00000064 
+	Return
+	End
 }
 
 @	$Script_80242C10
@@ -30,7 +93,15 @@
    24:  End
 }
 
+#import EnterViaPipe.mpat
 
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -970.0    0.0    0.0   90.0
+	~Vec4f:Entry1 %  360.0    0.0   20.0  270.0
+	~Vec4f:Entry2
+}
 
 
 @	$Script_Idle_80244E8C

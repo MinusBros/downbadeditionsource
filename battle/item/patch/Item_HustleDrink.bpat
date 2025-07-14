@@ -1,0 +1,177 @@
+%imported from asset-sharing
+
+@ $Function_802A123C
+{
+    0:  ADDIU		SP, SP, FFE8
+    4:  SW			S0, 10 (SP)
+    8:  LAW			S0, 800DC148
+   10:  SW			RA, 14 (SP)
+   14:  LB			V0, 210 (S0)
+   18:  BEQ			V0, R0, .o30
+   1C:  NOP
+   20:  LH			A0, 436 (S0)
+   24:  SB			R0, 211 (S0)
+   28:  JAL			80047898
+   2C:  SB			R0, 210 (S0)
+   .o30									%this part clears the anim stuff and status 0D - was missing before
+    30:  LB			V0, 216 (S0)
+   34:  BEQ			V0, R0, .o0DClear
+   38:  NOP
+   3C:  LW			V0, 440 (S0)
+   40:  SB			R0, 217 (S0)
+   44:  SB			R0, 216 (S0)
+   48:  LW			V0, C (V0)
+   4C:  SW			R0, 3C (V0)
+	.o0DClear
+   30:  LB			V0, 212 (S0)
+   34:  BEQ			V0, R0, .o4C
+   38:  NOP
+   3C:  LH			A0, 436 (S0)
+   40:  SB			R0, 213 (S0)
+   44:  JAL			800479A0
+   48:  SB			R0, 212 (S0)
+        .o4C
+   4C:  LB			V0, 214 (S0)
+   50:  BEQ			V0, R0, .o60
+   54:  NOP
+   58:  SB			R0, 215 (S0)
+   5C:  SB			R0, 214 (S0)
+        .o60
+   60:  LB			V0, 218 (S0)
+   64:  BEQ			V0, R0, .o74
+   68:  NOP
+   6C:  SB			R0, 219 (S0)
+   70:  SB			R0, 218 (S0)
+        .o74
+   74:  LW			RA, 14 (SP)
+   78:  LW			S0, 10 (SP)
+   7C:  ADDIU		V0, R0, 2
+   80:  JR			RA
+   84:  ADDIU		SP, SP, 18
+}
+
+%			Call $ShowCustomMessage	( 002F00FE 0000005A )
+
+
+%so there's a bug where... what if Mario is already hustling?
+%the answer is: store the state of the hustle in BattlePerks[1]
+%and fish it out when the turn turns over
+%see BattleLib for more, I wrote a dissertation on this in there
+
+@ $Function_802A12C4
+{
+		%Now apply hustle?
+		LAB		  V0, $AntiHustleToken
+		BEQ		  V0, R0, .noHustleA
+		ADDIU     V0, R0, 2
+		%hustle is set - store to battle perks
+		.yeshustle
+		ADDIU     V0, R0, 2
+		SAB		  V0, $BattlePerks[1]
+		JR		  RA
+		ADDIU     V0, R0, 2		
+		%hustle is not set? - store in the regular place
+		.noHustleA
+		LAB     V0, 800DC0FB	%hustle tracker
+		BNE		V0, R0, .yeshustle
+		NOP
+		LI		V0, 2
+		SAB     V0, 800DC0FB	%hustle tracker
+		LI		V0, 1
+		SAB		V0, $AntiHustleToken
+    C:  JR        RA
+   10:  ADDIU     V0, R0, 2
+}
+
+
+
+
+@ $Script_UseItem
+{
+    0:  SetConst  *VarA  00000091
+   10:  ExecWait  $Script_802A12E0
+   1C:  ExecWait  $Script_802A1824
+		/%
+		Call  $Function_GetArbitraryWord ( *VarA $AntiHustleToken )		%if it was set before, will be 1 (but gets reset to 0 before mario's turn)
+		Call  $Function_SetArbitraryWord ( 00000001 $AntiHustleToken )
+		If *VarA != 0`
+			Call $ShowCustomMessage	( 002F00FE 0000005A )
+			ExecWait  $Script_802A1710
+			Return
+		EndIf
+		%/
+   28:  Call  SetAnimation      ( .Actor:Player 00000000 00010026 )
+   40:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+   5C:  Add   *Var1  00000019
+   6C:  Call  802D7520  ( *Var0 *Var1 *Var2 00000005 )
+   88:  Call  $Function_802A12C4 ( )
+   94:  Call  $Function_802A123C ( )
+   A0:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+   BC:  Add   *Var1  00000014
+   CC:  Call  UseBattleCamPreset    ( 0000000D )
+   DC:  Call  BattleCamTargetActor  ( .Actor:Self )
+   EC:  Call  MoveBattleCamOver ( 00000014 )
+   FC:  Call  PlaySoundAtActor  ( .Actor:Player 00000369 )
+  110:  Thread
+  118:  	Loop  00000002
+  124:  		Call  SetActorScale ( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  140:  		Wait  1`
+  14C:  		Call  SetActorScale ( .Actor:Self *Fixed[1.1] *Fixed[1.0] *Fixed[1.0] )
+  168:  		Wait  1`
+  174:  		Call  SetActorScale ( .Actor:Self *Fixed[1.2] *Fixed[0.95] *Fixed[1.0] )
+  190:  		Wait  1`
+  19C:  		Call  SetActorScale ( .Actor:Self *Fixed[1.3] *Fixed[0.9] *Fixed[1.0] )
+  1B8:  		Wait  1`
+  1C4:  		Call  SetActorScale ( .Actor:Self *Fixed[1.35] *Fixed[0.85] *Fixed[1.0] )
+  1E0:  		Wait  1`
+  1EC:  		Call  SetActorScale ( .Actor:Self *Fixed[1.38] *Fixed[0.8] *Fixed[1.0] )
+  208:  		Wait  1`
+  214:  		Call  SetActorScale ( .Actor:Self *Fixed[1.4] *Fixed[0.8] *Fixed[1.0] )
+  230:  		Wait  1`
+  23C:  		Call  SetActorScale ( .Actor:Self *Fixed[1.3] *Fixed[0.85] *Fixed[1.0] )
+  258:  		Wait  1`
+  264:  		Call  SetActorScale ( .Actor:Self *Fixed[1.2] *Fixed[0.9] *Fixed[1.0] )
+  280:  		Wait  1`
+  28C:  		Call  SetActorScale ( .Actor:Self *Fixed[1.1] *Fixed[0.95] *Fixed[1.0] )
+  2A8:  		Wait  1`
+  2B4:  	EndLoop
+  2BC:  	Call  SetActorScale ( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  2D8:  	Wait  1`
+  2E4:  	Call  SetActorScale ( .Actor:Self *Fixed[1.1] *Fixed[1.0] *Fixed[1.0] )
+  300:  	Wait  1`
+  30C:  	Call  SetActorScale ( .Actor:Self *Fixed[1.2] *Fixed[0.95] *Fixed[1.0] )
+  328:  	Wait  1`
+  334:  	Call  SetActorScale ( .Actor:Self *Fixed[1.3] *Fixed[0.9] *Fixed[1.0] )
+  350:  	Wait  1`
+  35C:  	Call  SetActorScale ( .Actor:Self *Fixed[1.35] *Fixed[0.85] *Fixed[1.0] )
+  378:  	Wait  1`
+  384:  	Call  SetActorScale ( .Actor:Self *Fixed[1.38] *Fixed[0.8] *Fixed[1.0] )
+  3A0:  	Wait  1`
+  3AC:  	Call  SetActorScale ( .Actor:Self *Fixed[1.4] *Fixed[0.8] *Fixed[1.0] )
+  3C8:  	Wait  1`
+  3D4:  	Call  PlaySoundAtActor  ( .Actor:Player 0000208E )
+  3E8:  	Call  SetActorScale ( .Actor:Self *Fixed[0.9] *Fixed[1.3] *Fixed[1.0] )
+  404:  	Wait  1`
+  410:  	Call  SetActorScale ( .Actor:Self *Fixed[0.9] *Fixed[1.2] *Fixed[1.0] )
+  42C:  	Wait  1`
+  438:  	Call  SetActorScale ( .Actor:Self *Fixed[0.95] *Fixed[1.1] *Fixed[1.0] )
+  454:  	Wait  1`
+  460:  	Call  SetActorScale ( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  47C:  	Wait  1`
+  488:  	Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+  4A0:  EndThread
+  4A8:  Loop  0000000A
+  4B4:  	Call  PlaySoundAtActor  ( .Actor:Player 00000369 )
+  4C8:  	Call  PlayEffect        ( ~FX:Steam:TinyOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  50C:  	Call  PlayEffect        ( ~FX:Steam:SmallOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  550:  	Wait  4`
+  55C:  EndLoop
+  564:  Wait  10`
+  570:  Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
+  588:  Call  UseBattleCamPreset    ( 00000002 )
+  598:  Call  MoveBattleCamOver     ( 00000014 )
+  5A8:  Wait  20`
+  5B4:  ExecWait  $Script_802A1710
+  5C0:  Return
+  5C8:  End
+}

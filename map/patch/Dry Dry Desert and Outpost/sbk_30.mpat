@@ -1,7 +1,4 @@
-@	$Script_ExitWalk_80241930
-{
-	[40]  Wait 50`
-}
+
 
 @ $Script_ExitWalk_8024198C
 {
@@ -16,4 +13,138 @@
 @ $Script_ExitWalk_80241A44
 {
 	[40]  Wait 50`
+}
+
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryDesert
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
+   30:  	Call  DisablePulseStone ( .False )
+   40:  EndIf
+   48:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   68:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   84:  Call  SetCamEnabled     ( .Cam:Default .True )
+   98:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   AC:  If  *GB_StoryProgress  <  FFFFFFCC % FFFFFFCC
+   BC:  	Call  EnableGroup   ( ~Model:g28 .False )
+   D0:  	Call  MakeNpcs      ( .False $NpcGroupList_80243DF8 )
+   E4:  Else
+   EC:  	Call  EnableGroup       ( ~Model:g23 .False )
+  100:  	Call  EnableGroup       ( ~Model:sakji_tent .False )
+  114:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:Default 7FFFFE00 )
+  12C:  	Call  SetZoneEnabled    ( ~Zone:o25 .False )
+  140:  EndIf
+  148:  Exec  $Script_802418B0
+  154:  Exec  $Script_EnterWalk_80241B20
+  160:  Exec  $Script_802447DC
+  16C:  Call  GetEntryID    ( *Var0 )
+  17C:  Switch  *Var0
+  188:  	CaseOR  ==  ~Entry:Entry4
+  194:  	CaseOR  ==  ~Entry:Entry5
+  1A0:  		ExecWait  $Script_80241BEC
+  1AC:  	EndCaseGroup
+  1B4:  	Default
+  1BC:  		Call  $Function_80240338 ( )
+  1C8:  EndSwitch
+  1D0:  Return
+  1D8:  End
+}
+
+%Let's add a surprise Mr. Trooper fight to throw off the player.
+
+
+@	$Script_ExitWalk_80241930
+{
+		If *GF_SBK30_MrTrooper == .False
+			If *GB_StoryProgress == .Story:Ch2_StarSpritDeparted
+				%ExecWait $MrTrooperCutscene
+				Wait 1`
+				%Return
+			EndIf
+		EndIf
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80244870 00000001 ) % sbk_99
+   40:  Wait  50`
+   4C:  Return
+   54:  End
+}
+
+#define .Npc:MrTrooper 00000003
+#import SwapToGoombarius.mpat
+
+
+#new:Script $MrTrooperCutscene
+{
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  DisablePlayerInput    ( .True )
+			Call  SetNpcPos     ( .Npc:MrTrooper -560` 0` 0` )
+			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+			Sub   *Var0 16`
+			Call  NpcMoveTo ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+			Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+			Set   *Var0  -251`
+			Call  PlayerJump1   ( *Var0 *Var1 *Var2  15` )
+			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+			Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
+			Call  SetNpcAnimation   ( .Npc:MrTrooper 00210006 )
+	  59C:  Call  GetNpcPos     ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+	  5B8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+	  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+	  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+	  604:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+	  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+	  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0102 ) %
+			ExecWait $SwapToGoombarius
+			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0103 ) %
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D0104 ) % 
+			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0105 ) %
+			Call  StartBossBattle   ( .Song:JrTroopaBattle )
+			Return
+			End
+}
+
+
+@	$NpcGroupList_80243DF8
+{
+	00000003 $NpcGroup_80243828 00000000
+	00000001 $NpcGroup_MrTrooper 00000000
+	00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_MrTrooper
+{
+	.Npc:MrTrooper $NpcSettings_MrTrooper ~Vec3f:MrTrooper
+	00640D0D $Script_Init_MrTrooper 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:MrTrooper
+	~AnimationTable:MrTrooper % .Sprite:JrTroopa
+	00000000 00000000 00000000 001A0006 % That's Jr. Troopa. He used to boot us out of the f ...
+}
+
+
+#new:NpcSettings $NpcSettings_MrTrooper
+{
+	00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+#new:Script $Script_Init_MrTrooper
+{
+    0:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_MrTrooper )
+   3C:  Return
+   44:  End
+}
+
+
+#new:Script $Script_Idle_MrTrooper
+{
+	Return
+	End
 }

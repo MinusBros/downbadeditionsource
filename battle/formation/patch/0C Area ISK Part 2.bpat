@@ -107,7 +107,7 @@
 
 
 
-%Tutankoopa is much more aggressive, having 45 HP,
+%Tutankoopa is much more aggressive, having more HP,
 %being less susceptible to statuses and having higher
 %attack power of course. On turn 1, he doesn't waste it
 %just by calling the Chomp. He then proceeds to magic
@@ -121,7 +121,7 @@
 @	 $Tutankoopa
 {
 	[Level]        64`b
-	[MaxHP]        45`b
+	[MaxHP]        52`b
 }
 
 @	$StatusTable_8021BA28
@@ -467,8 +467,6 @@
 
 
 %Summon Chomp
-%If Tutankoopa is low on HP and he is summoning a Chomp,
-%he'll retaliate by increasing his attack power.
 
 @	$Script_8021E9C8
 {
@@ -625,32 +623,98 @@
   A20:  Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[0.5] )
   A3C:  Call  SetActorVar   ( .Actor:Self 00000003 00000001 )
   A35:  ExecWait  $Script_8021D81C
-				Call  GetActorHP    ( .Actor:Self *Var0 )
-				If  *Var0  <=  00000013 
-					If  *GB_EnemyDefense  == 00000000
-						Set *GB_EnemyDefense  00000001
-			   3C:  	Call  UseBattleCamPreset    ( 0000000D )
-			   4C:  	Call  BattleCamTargetActor  ( .Actor:Self )
-			   5C:  	Call  MoveBattleCamOver     (  20` )
-			   6C:  	Wait  10`
-			   78:  	Call  SetAnimation  ( .Actor:Self 00000001 00680003 )
-			   90:  	Call  ActorSpeak    ( 000D00FD .Actor:Self 00000001 00680003 00680003 )
-						Set        *Var[8]  *Var[0] 
-						Call    SetTargetActor    ( .Actor:Self .Actor:Player )
-						Call    UseBattleCamPreset    ( 0000000E )
-						Call    BattleCamTargetActor    ( .Actor:Self )
-						Call    MoveBattleCamOver        ( 0000000F )
-						Wait    0000000F 
-						Call    GetActorPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
-						Call    GetStatusFlags    ( .Actor:Self *Var[A] )
-						Thread
-							Call    8026BF48    ( 00000001 )
-							Call    BoostAttack     ( .Actor:Self 00000001 )
-							Call    8026BF48    ( 00000000 )
-						EndThread
-							Wait 5`
-					EndIf
-				EndIf
   A54:  Return
   A5C:  End
+}
+
+
+%If Tutankoopa is low on HP, he'll retaliate
+%by increasing his attack power.
+
+@	$Script_TakeTurn_8021CCD4
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Label  0
+   34:  Call  GetActorVar       ( .Actor:Self 00000008 *Var0 )
+   4C:  If  *Var0  ==  00000000
+   5C:  	Call  ActorExists   ( .Actor:Enemy1 *Var0 )
+   70:  	If  *Var0  ==  .False
+   80:  		Call  GetActorVar   ( .Actor:Self 0000000C *Var0 )
+   98:  		If  *Var0  ==  00000000
+   A8:  			ExecWait  $Script_8021E9C8
+   B4:  			Call  EnableIdleScript  ( .Actor:Self 00000001 )
+   C8:  			Call  UseIdleAnimation  ( .Actor:Self .True )
+   DC:  			Return
+   E4:  		Else
+   EC:  			Sub   *Var0  00000001
+   FC:  			Call  SetActorVar   ( .Actor:Self 0000000C *Var0 )
+  114:  		EndIf
+  11C:  	EndIf
+  124:  	Call  GetStatusFlags    ( .Actor:Self *Var0 )
+  138:  	If  *Var0  &  ~Flags:StatusFlags:Shrink % 80000
+  148:  		Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+  160:  	EndIf
+  168:  	Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+  180:  	Switch  *Var0
+  18C:  		Case  ==  00000000
+  198:  			Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
+  1B0:  			If  *Var0  ==  00000000
+  1C0:  				ExecWait  $Script_8021D81C
+  1CC:  				Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+										Call  GetActorHP    ( .Actor:Self *Var0 )
+										If  *Var0  <=  00000016 
+											If  *GB_EnemyDefense  == 00000000
+												Set *GB_EnemyDefense  00000001
+									   3C:  	Call  UseBattleCamPreset    ( 0000000D )
+									   4C:  	Call  BattleCamTargetActor  ( .Actor:Self )
+									   5C:  	Call  MoveBattleCamOver     (  20` )
+									   6C:  	Wait  10`
+									   78:  	Call  SetAnimation  ( .Actor:Self 00000001 00680003 )
+									   90:  	Call  ActorSpeak    ( 000D00FD .Actor:Self 00000001 00680003 00680003 )
+												Set        *Var[8]  *Var[0] 
+												Call    SetTargetActor    ( .Actor:Self .Actor:Player )
+												Call    UseBattleCamPreset    ( 0000000E )
+												Call    BattleCamTargetActor    ( .Actor:Self )
+												Call    MoveBattleCamOver        ( 0000000F )
+												Wait    0000000F 
+												Call    GetActorPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+												Call    GetStatusFlags    ( .Actor:Self *Var[A] )
+												Thread
+													Call    8026BF48    ( 00000001 )
+													Call    BoostAttack     ( .Actor:Self 00000001 )
+													Call    8026BF48    ( 00000000 )
+												EndThread
+													Wait 5`
+											EndIf
+										EndIf
+  1E4:  			Else
+  1EC:  				Call  GetStatusFlags    ( .Actor:Self *Var0 )
+  200:  				If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
+  210:  					ExecWait  $Script_8021D04C
+  21C:  					Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+  234:  				Else
+  23C:  					ExecWait  $Script_8021D81C
+  248:  					Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+  260:  				EndIf
+  268:  			EndIf
+  270:  		Default
+  278:  			Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+  290:  			ExecWait  $Script_8021D81C
+  29C:  	EndSwitch
+  2A4:  	Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  2B8:  	Call  UseIdleAnimation  ( .Actor:Self .True )
+  2CC:  	Return
+  2D4:  Else
+  2DC:  	Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
+  2F4:  	Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+  30C:  	ExecWait  $Script_8021F80C
+  318:  	ExecWait  $Script_8021F5E8
+  324:  	Goto  0
+  330:  EndIf
+  338:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  34C:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  360:  Return
+  368:  Return
+  370:  End
 }

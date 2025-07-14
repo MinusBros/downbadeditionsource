@@ -4,10 +4,15 @@
 
 @	$Script_80240560
 {
-		Call  SetMusicTrack ( 00000000 .Song:DBE_Prologue 00000000 00000008 )
+		Call  SetMusicTrack ( 00000000 .Song:DBE_Prologue 00000001 00000008 )
 		Thread
 			Wait 15`
-			Call  802D5FA4  ( 00000004 )
+			Label 1
+				Call  802D5FA4  ( 00000004 )
+				Wait  1`
+				Goto  1
+			Wait  2`
+			Goto  1
 		EndThread
    1C:  Return
    24:  End
@@ -34,8 +39,51 @@
 
 @	$Script_Defeat_80241334
 {
-  [12C]  		Call  SetNpcSpeed   ( .Npc:Self *Fixed[8.0] )
-  [18C]  		Wait  50`
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   40:  		Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   5C:  		Call  SetPanTarget  ( .Cam:Default  400` *Var1 *Var2 )
+   78:  		Call  SetCamDistance    ( .Cam:Default *Fixed[275.0] )
+   8C:  		Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-7.5] )
+   A4:  		Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   B8:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   D0:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+   E4:  		Call  PlayerFaceNpc ( .Npc:Self .False )
+   F8:  		Call  SetNpcAnimation   ( .Npc:Self 00210011 )
+  10C:  		Call  SpeakToPlayer ( .Npc:Self 00210011 00210011 00000000 000B00B5 ) % Shoooooot!! I was winning, too! I'll be back, Mari ...
+  12C:  		Call  SetNpcSpeed   ( .Npc:Self *Fixed[6.0] )
+  140:  		Call  SetNpcAnimation   ( .Npc:Self 00210009 )
+  154:  		Call  NpcMoveTo     ( .Npc:Self  564`  10`  0` )
+  170:  		Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+  18C:  		Wait  50`
+  198:  		Call  SetNpcPos     ( .Npc:Self  564`  0`  10` )
+  1B4:  		Call  NpcMoveTo     ( .Npc:Self  435`  10`  0` )
+  1D0:  		Call  SpeakToPlayer ( .Npc:Self 0021001A 00210006 00000000 000B00B6 ) % I mean it, I'll be back!!
+  12C:  		Call  SetNpcSpeed   ( .Npc:Self *Fixed[9.0] )
+  140:  		Call  SetNpcAnimation   ( .Npc:Self 00210009 )
+  154:  		Call  NpcMoveTo     ( .Npc:Self  564`  10`  0` )
+  170:  		Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+  18C:  		Wait  50`
+  198:  		Call  SetNpcPos     ( .Npc:Self  564`  0`  10` )
+  1B4:  		Call  NpcMoveTo     ( .Npc:Self  435`  10`  0` )
+  1D0:  		Call  SpeakToPlayer ( .Npc:Self 0021001A 00210006 00000000 000B0104 ) % I mean it, I'll be back!!
+				Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000002 00000008 )
+  1F0:  		Call  NpcMoveTo     ( .Npc:Self  564`  10`  0` )
+  20C:  		Call  SetNpcAnimation   ( .Npc:Self 00210003 )
+  220:  		Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+  23C:  		Thread
+  244:  			Call  ResetCam  ( .Cam:Default  4` )
+  258:  		EndThread
+				Wait  180`
+  260:  		Exec  $Script_80240560
+  26C:  		Set   *AreaByte[0]  00000000
+  27C:  		Set   *GB_StoryProgress  .Story:Ch0_DefeatedJrTroopa
+  28C:  		Call  DisablePlayerInput    ( .False )
+  29C:  EndSwitch
+  2A4:  Return
+  2AC:  End
 }
 
 @	$Script_80242CE4

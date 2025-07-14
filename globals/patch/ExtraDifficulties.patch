@@ -57,14 +57,13 @@ J 		80265510
 SB		V0, 01B9 (S1) % write max hp
 }
 
+
 % Apply damage boost according to the current difficulty.
 %
 % Also change ~DamageType:IgnoreDefense to pierce all player or partner defenses
 % Instead of only the value from their defense tables.
 %
 %
-
-
 % Patch EnemyDamageTarget (API)
 @Hook 1AB628 % 8027CD48
 {
@@ -81,40 +80,16 @@ SB		V0, 01B9 (S1) % write max hp
     LW	    A1, 0000 (S0)
 }
 
-
-% *out = V0
-#export:Function $Function_GetMarioDefense
-{
-    PUSH    RA, A0, T0, S0
-    % Check how many times Mario have the following Badges
-	.CheckDefensePlus
-    JAL     $IsBadgeActivated_Stack
-    ORI     A0, R0, 00FB % .Item:DefendPlusA
-	BNEL    V0, R0, .CheckPDownDUp
-	ADDU    S0, S0, V0
-	.CheckPDownDUp
-	JAL     $IsBadgeActivated_Stack
-	ADDIU   A0, R0, 0116 % .Item:PDownDUp
-	BNEL    V0, R0, .End
-	ADDU    S0, S0, V0
-    .End
-    COPY    V0, S0
-	POP     RA, A0, T0, S0
-	JR	    RA
-	NOP
-}
-
-
-#export:Data $PierceDefenseFlag
-{ 00 }
-
+% V0 = defense boost
+%
+% Returns a zero if wasn't Player or Partner or if IgnoreDefense wasn't present.
 #new:Function $PiercePlayerTeamDefense
 {
     PUSH    RA, A0, A1, A2, A3, V1
     CLEAR   A3
     % Pierce defense?
     % Used when an attack has the IgnoreDefense flag or when an enemy have a D Down badge
-    LABU    V0, $PierceDefenseFlag % placed in Battle_EnemiesBadges.patch
+    LABU    V0, $PierceDefenseFlag 
     BNE     V0, R0, .GetTargetID
     NOP
     % check if this attack has the IgnoreDefense flag
@@ -130,12 +105,19 @@ SB		V0, 01B9 (S1) % write max hp
     %
     % S2 = attacker's actor data
     LHU     V0, 428 (S2) % load targetID
-    BNE     V0, R0, .End
+    BNE     V0, R0, .GetPartnerDef
     NOP
     JAL     $Function_GetMarioDefense
     NOP
     BEQ     R0, R0, .End
-    %COPY    A3, V0
+    COPY    A3, V0
+    .GetPartnerDef
+    ORI     V1, R0, 100 % .Actor:Partner
+    BNE     V0, V1, .End
+    NOP
+    JAL     $Function_GetPartnerDefense
+    NOP
+    COPY    A3, V0
     .End
     COPY    V0, A3
     SAB     R0, $PierceDefenseFlag % nuke
@@ -143,6 +125,50 @@ SB		V0, 01B9 (S1) % write max hp
     JR      RA
     NOP
 }
+
+
+#export:Data $PierceDefenseFlag
+{ 00 }
+
+% *out = V0
+#export:Function $Function_GetMarioDefense
+{
+    PUSH    RA, A0, T0, S0
+	% Check if Mario have any defense boosts
+    JAL     $GetActorExtraBattleData_Pointer
+    CLEAR   A0 % .Actor:Player
+    CLEAR   S0 % init S0
+    LB      T0, E (V0) % defend command
+    ADDU    S0, S0, T0
+    % Check how many times Mario have the following Badges
+	.CheckDefensePlus
+    JAL     $IsBadgeActivated_Stack
+    ORI     A0, R0, 00FB % .Item:DefendPlusA
+	BNEL    V0, R0, .CheckDefensePlus2
+	ADDU    S0, S0, V0
+	.CheckDefensePlus2
+    JAL     $IsBadgeActivated_Stack
+    ORI     A0, R0, 013E % .Item:DefendPlusX
+	BNEL    V0, R0, .CheckPDownDUp
+	ADDU    S0, S0, V0
+	.CheckPDownDUp
+	JAL     $IsBadgeActivated_Stack
+	ADDIU   A0, R0, 0116 % .Item:PDownDUp
+	BNEL    V0, R0, .End
+	ADDU    S0, S0, V0
+    .End
+    COPY    V0, S0
+	POP     RA, A0, T0, S0
+	JR	    RA
+	NOP
+}
+
+% *out = V0
+#export:Function:Battle $Function_GetPartnerDefense
+{
+	NOP
+}
+
 
 % V0=*out (Difficulty boost)
 %

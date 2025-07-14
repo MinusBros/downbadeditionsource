@@ -1,0 +1,48 @@
+%Status changes
+%Every time you status an enemy, they get 50% more resistant to everything
+
+
+%209 + actor pointer is set up at a different place
+
+
+
+%80265FF4 = place where status ID is set
+
+%Let's see if 209 + actor pointer works
+%It is uninitialized data so yes
+
+@Hook 1948D0
+{
+	PUSH	V0, V1
+	LAW		V1, 800DC148
+	BEQ		S0, V1 .skip	%make sure mario is not affected by the status change
+	NOP
+	LB		V0, 209 (S0)
+	ADDIU	V0, V0, 1
+	SB		V0, 209 (S0)
+	.skip
+	%is this 1 turn dizzy or 1 turn shrink?
+	%S1 = status ID
+	%S2 = status turns
+	LI		V0, 1
+	BNE		S2, V0, .notlow	%check this one first
+	NOP
+	LI		V0, 4
+	BEQ		S1, V0, .islow
+	NOP
+	LI		V0, A
+	BEQ		S1, V0, .islow
+	NOP
+	BEQ		R0, R0, .notlow
+	NOP
+	.islow
+	LI		S2, 2
+	.notlow
+	POP		V0, V1
+	%hooked over
+	SLTI	V0, V0, A	%Restrict status turncount to be below 9
+	J		80265FF8
+	SB		S1, 210 (S0) %Store status ID
+}
+
+

@@ -51,3 +51,66 @@
   [C4C]  	Wait  1`
   [C68]  	Call  StartBossBattle   ( .Song:LegendaryBattle2 )
 }
+
+#import AutoSave.mpat
+
+@	$Script_8024257C
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_IWA04_Defeated_Buzzar  .True
+   38:  		Exec  $Script_80241140
+   44:  		Call  SetNpcPos     ( .Npc:Self  530`  15`  -20` )
+   60:  		Call  SetNpcAnimation   ( .Npc:Self 0067000B )
+   74:  		Call  AdjustCam     ( .Cam:Default *Fixed[90.0]  50`  350` *Fixed[15.0] *Fixed[-12.0] )
+   98:  		Wait  10`
+   A4:  		Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 000D0036 ) % Yow! I got whupped!
+   C4:  		Thread
+   CC:  			Call  GetNpcYaw ( .Npc:Self *Var0 )
+   E0:  			Loop  00000037
+   EC:  				Add   *Var0  0000001E
+   FC:  				Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+  118:  				Wait  1`
+  124:  			EndLoop
+  12C:  		EndThread
+  134:  		Call  SetNpcJumpscale   ( .Npc:Self *Fixed[0.75] )
+  148:  		Call  NpcJump1  ( .Npc:Self  400`  -200`  -300` 0000003C )
+  168:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  184:  		Call  ResetCam  ( .Cam:Default *Fixed[2.5] )
+				Exec  $AutoSave
+  198:  	Case  ==  .Outcome:PlayerLost % 1
+  1A4:  	Case  ==  .Outcome:PlayerFled % 2
+  1B0:  EndSwitch
+  1B8:  Return
+  1C0:  End
+}
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:MtRugged
+   10:  Call  SetSpriteShading      ( .Shading:None )
+   20:  Call  SetCamPerspective     ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer      ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80242B50 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_80241140
+   B0:  Call  ParentColliderToModel ( ~Collider:o962 ~Model:o962 )
+   C4:  Call  ParentColliderToModel ( ~Collider:o979 ~Model:o979 )
+   D8:  Call  ParentColliderToModel ( ~Collider:o980 ~Model:o980 )
+   EC:  Call  ParentColliderToModel ( ~Collider:o981 ~Model:o981 )
+  100:  Call  ParentColliderToModel ( ~Collider:o982 ~Model:o982 )
+  114:  Call  ParentColliderToModel ( ~Collider:o983 ~Model:o983 )
+  128:  Call  ParentColliderToModel ( ~Collider:o984 ~Model:o984 )
+  13C:  Call  ParentColliderToModel ( ~Collider:o985 ~Model:o985 )
+  150:  Call  ParentColliderToModel ( ~Collider:o992 ~Model:o992 )
+  164:  Call  ParentColliderToModel ( ~Collider:o993 ~Model:o993 )
+  178:  Set   *Var0  $Script_80241228
+  188:  Exec  EnterWalk
+  194:  Wait  1`
+		Exec  $AutoSave
+  1A0:  Return
+  1A8:  End
+}

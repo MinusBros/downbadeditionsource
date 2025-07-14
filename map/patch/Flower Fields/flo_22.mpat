@@ -1,3 +1,8 @@
+#define .NpcID:Bzzap_00             00
+#define .NpcID:Dayzee_01            01
+
+%Add a dark easter egg and a hidden block cuz why not.
+
 @	$Script_802402E0
 {
     0:  Switch  *GB_StoryProgress
@@ -21,4 +26,86 @@
    Call  AssignBlockFlag   ( *GF_FLO22_HiddenBlock )
    Return
    End
+}
+
+
+@	$Script_80241028
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerInput    ( .False )
+   20:  Call  ShowConsumableChoicePopup ( )
+   2C:  Call  CloseChoicePopup ( )
+   38:  Call  DisablePlayerInput    ( .True )
+   48:  Set   *Var8  *Var0
+   58:  Switch  *Var8
+   64:  	Case  <=  FFFFFFFF
+   70:  	Case  <=  00000000
+   7C:  		Call  ShowMessageAtScreenPos    ( 001D015C  160`  40` ) % It's a well.
+   94:  	Case  ==  0000009E
+   A0:  		ExecWait  $Script_80240E84
+   AC:  		Call  RemoveItemAt  ( *Var1 )
+   BC:  		If  *GF_FLO22_ThrewBlueBerryDownWell  ==  .False
+					If  *GB_StoryProgress  <  .Story:Ch6_StarSpritDeparted % FFFFFFFD
+   CC:  				Call  ShowMessageAtWorldPos ( 001100DD  35`  35`  0` ) % Sniffle!!!!! Who's throwing stuff down into my wel ...
+					EndIf
+   E8:  			Set   *GF_FLO22_ThrewBlueBerryDownWell  .True
+   F8:  			Call  MakeItemEntity    ( .Item:FlowerSaverB ~Vec3d:Item80241120 00000000 *GF_FLO22_Item_FlowerSaverB )
+  11C:  			Set   *Var7  *Var0
+  12C:  			Call  SetNpcFlagBits    ( .NpcID:Bzzap_00 00000002 .True )
+  144:  			Call  SetNpcFlagBits    ( .NpcID:Bzzap_00 00000010 .False )
+  15C:  			Call  SetNpcPos ( .NpcID:Bzzap_00  35`  0`  0` )
+  178:  			Call  SetNpcJumpscale   ( .NpcID:Bzzap_00 *Fixed[1.0] )
+  18C:  			Thread
+  194:  				Call  NpcJump0  ( .NpcID:Bzzap_00  -53`  0`  0`  25` )
+  1B4:  				Call  NpcJump0  ( .NpcID:Bzzap_00  -73`  0`  0`  15` )
+  1D4:  				Call  NpcJump0  ( .NpcID:Bzzap_00  -83`  0`  0`  8` )
+  1F4:  			EndThread
+  1FC:  			Loop  00000035
+  208:  				Call  GetNpcPos     ( .NpcID:Bzzap_00 *Var1 *Var2 *Var3 )
+  224:  				Call  SetItemPos    ( *Var7 *Var1 *Var2 *Var3 )
+  240:  				Wait  1`
+  24C:  			EndLoop
+  254:  			Call  SetNpcPos ( .NpcID:Bzzap_00  0`  -1000`  0` )
+  270:  			Call  SetNpcFlagBits    ( .NpcID:Bzzap_00 00000002 .False )
+  288:  			Call  SetNpcFlagBits    ( .NpcID:Bzzap_00 00000010 .True )
+  2A0:  		Else
+					   If  *GB_StoryProgress  <  .Story:Ch6_StarSpritDeparted % FFFFFFFD
+							Call  ShowMessageAtWorldPos ( 001100DE  35`  35`  0` ) % Sniffle!!!!! Burp... No more berries! I'm stuffed  ...
+						Else 
+							Call  ShowMessageAtWorldPos ( 0011003E  35`  35`  0` ) % Easter egg
+					   EndIf
+  2C4:  		EndIf
+  2CC:  	Default
+  2D4:  		ExecWait  $Script_80240E84
+  2E0:  		Call  RemoveItemAt  ( *Var1 )
+				If  *GB_StoryProgress  <  .Story:Ch6_StarSpritDeparted % FFFFFFFD
+		2F0:  		Call  ShowMessageAtWorldPos ( 001100DC  35`  35`  0` ) % Sniffle... Who's throwing stuff down into my well? ...
+				EndIf
+  30C:  		Call  RandInt   ( 00000001 *Var1 )
+  320:  		If  *Var1  ==  00000000
+  330:  			Call  SetNpcJumpscale   ( .NpcID:Bzzap_00 *Fixed[0.0] )
+  344:  			Call  NpcFacePlayer ( .NpcID:Bzzap_00 00000000 )
+  358:  			Wait  1`
+  364:  			Call  SetNpcPos     ( .NpcID:Bzzap_00  30`  0`  0` )
+  380:  			Call  SetNpcAnimation   ( .NpcID:Bzzap_00 004B0001 )
+  394:  			Call  NpcJump0      ( .NpcID:Bzzap_00  30`  60`  0`  20` )
+  3B4:  			Wait  10`
+  3C0:  			Call  SetNpcAnimation   ( .NpcID:Bzzap_00 004B0004 )
+  3D4:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  3EC:  			Add   *Var1  00000014
+  3FC:  			Call  NpcJump0      ( .NpcID:Bzzap_00 *Var0 *Var1 *Var2  5` )
+  41C:  			Set   *MapVar[A]  00000001
+  42C:  		Else
+  434:  			Call  SetNpcPos ( .NpcID:Dayzee_01  30`  0`  0` )
+  450:  			Call  SetNpcAnimation   ( .NpcID:Dayzee_01 0048000E )
+  464:  			Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  47C:  			Add   *Var1  00000014
+  48C:  			Call  SetNpcJumpscale   ( .NpcID:Dayzee_01 *Fixed[2.0] )
+  4A0:  			Call  NpcJump0  ( .NpcID:Dayzee_01 *Var0 *Var1 *Var2  20` )
+  4C0:  			Set   *MapVar[B]  00000001
+  4D0:  		EndIf
+  4D8:  EndSwitch
+  4E0:  Call  DisablePlayerInput    ( .False )
+  4F0:  Return
+  4F8:  End
 }

@@ -1,3 +1,10 @@
+#define .NpcID:MontyMole_00         00
+#define .NpcID:MontyMole_01         01
+#define .NpcID:MontyMole_02         02
+#define .NpcID:MontyMole_03         03
+#define .NpcID:Whacka_04            04
+#define .NpcID:Whacka_05            05
+
 @	$Script_ExitWalk_80240350
 {
    [40]  Wait  50`
@@ -6,4 +13,227 @@
 @ $Script_ExitWalk_802403AC
 {
    [40]  Wait  50`
+}
+
+
+%Super Paragoomba
+%Paragoomba in this room ported from Dark Star.
+
+#import NPC_Paragoomba.mpat
+
+#new:NpcGroup $NpcGroup_Paragoomba
+{
+	00000008 $NpcSettings_Paragoomba ~Vec3f:paragoomba % 960 210 -20
+	00000400 00000000 00000000 00000000 0000010E
+	~Items:5:DriedFruit:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:2
+	~Movement:paragoomba
+	00280101 00280103 00280104 00280104 00280101 00280101 00280106 00280106
+	00280104 00280104 00280104 00280104 00280104 00280104 00280104 00280104
+	00000001 00000000 00000000 00000000 % no tattle string
+}
+
+%make them a little more aggressive
+@ $Script_NpcAI_Paragoomba
+{
+    0:  Call  SetSelfVar    ( 00000000 00000001 )	%???
+   14:  Call  SetSelfVar    ( 00000005 FFFFFCAE )	%amplitude (how far down the paragoomba goes) (*Not 1:1 correspondent with map units)
+   28:  Call  SetSelfVar    ( 00000006 0000003C )	%amplitude variable 2 (*high values result in lower amplitude?)
+   3C:  Call  SetSelfVar    ( 00000001 000002BC )	%???
+   50:  Call  $Function_8024130C_Paragoomba    ( $AISettings_Paragoomba )
+   60:  Return
+   68:  End
+}
+
+@ $NpcGroupList_80242780
+{
+00000002 $NpcGroup_8024105C 09060002 
+00000002 $NpcGroup_8024143C 09070002 
+00000001 $NpcGroup_Paragoomba 090B0002 
+00000002 $NpcGroup_802423A0 090D0001 %add whacka formation 
+00000000 00000000 00000000 
+}
+
+
+
+@ $NpcGroup_802423A0
+{
+00000004 $NpcSettings_80240FCC ~Vec3f:NPC_Whacka_04 % 725 -30 225
+00400D05 $Script_Init_8024228C 00000000 00000000 0000005A 
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:NPC_Whacka_04
+00920001 00920001 00920001 00920001 00920001 00920001 00920001 00920001 
+00920001 00920001 00920001 00920001 00920001 00920001 00920001 00920001 
+00000000 00000000 00000000 001A0089 % He's a Whacka. When you hit Whackas, they get Bump ...
+% 
+% $NpcGroup_802423A0[1F0]
+00000005 $NpcSettings_80240FCC ~Vec3f:NPC_Whacka_05 % 725 -30 225
+03F04F0C $Script_Init_80242338 00000000 00000000 0000005A % flags were 03704F0C
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:NPC_Whacka_05
+00920001 00920001 00920001 00920001 00920001 00920001 00920001 00920001 
+00920001 00920001 00920001 00920001 00920001 00920001 00920001 00920001 
+00000000 00000000 00000000 001A0089 % He's a Whacka. When you hit Whackas, they get Bump ...
+}
+
+
+
+@ $Script_Init_8024228C % Init script from first NPC
+{
+	0:	Call	SetNpcVar	( 00000004 00000008 00000000 )
+   18:	If  *GB_IWA00_Whacka_HitCount  <  00000008 
+   28:		Call	BindNpcInteract	( .Npc:Self $Script_Interact_8024181C )
+   3C:		Call	BindNpcIdle 	( .Npc:Self $Script_Idle_802419EC )
+			Call	BindNpcDefeat	( .Npc:Self $Script_PostBattle )
+   50:		Call	EnableNpcShadow	( .Npc:Self .False )
+   64:		Call	SetNpcFlagBits	( .Npc:Self 00200000 .True )
+   7C:  Else
+   84:		Call	RemoveNpc		( .Npc:Self )
+   94:  EndIf
+   9C:  Return
+   A4:  End
+}
+
+@ $Script_Init_80242338 % Init script from second NPC
+{
+	0:  If  *GB_IWA00_Whacka_HitCount  <  00000008 
+   10:		Call	EnableNpcShadow	( .Npc:Self .False )
+   24:		Call	BindNpcHit		( .Npc:Self $Script_Hit_80241C6C )
+			Call	BindNpcDefeat	( .Npc:Self $Script_DummyPostBattle )
+   38:  Else
+   40:		Call	RemoveNpc		( .Npc:Self )
+   50:  EndIf
+   58:  Return
+   60:  End
+}
+
+
+%Changing how Whacka works.
+%He now works like in TTYD Remake where after the 8th hit
+%he'll do a tough boss fight with you.
+
+@ $Script_Hit_80241C6C % OnHit script from second NPC
+{
+	Call     80044600 ( *Var[0] )
+	Switch   *Var[0] 
+		Case     ==  00000004 % hammer
+			Set      *Var[A] 00000001 
+		Case     ==  00000002 
+			Set      *Var[A] 00000001 
+		Case     ==  00000006 % partner
+			Call     GetCurrentPartner 	( *Var[2] )
+			If       *Var[2] ==  00000002 
+				Set      *Var[A] 00000002 
+			Else
+				Set      *Var[A] 00000003 
+			EndIf
+		Default
+			Set      *Var[A] 00000000 
+	EndSwitch
+	If       *Var[A] ==  00000000 
+		Return
+	EndIf
+	Add      *GB_IWA00_Whacka_HitCount 00000001 
+	Call     DisablePlayerInput 	( .True )
+	Call     BindNpcInteract 	( 00000004 00000000 )
+	Call     EnableNpcAI 	( 00000004 .False )
+	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+	Call     GetNpcPos   	( .Npc:Self *Var[3] *Var[4] *Var[5] )
+	If       *Var[0]  <  *Var[3] 
+		Call     InterpNpcYaw 	( .Npc:Self 0000010E 00000000 )
+		Set      *Var[B] 00000000 
+	Else
+		Call     InterpNpcYaw 	( .Npc:Self 0000005A 00000000 )
+		Set      *Var[B] 00000001 
+	EndIf
+	Switch   *Var[A] 
+		CaseOR   ==  00000002 
+		CaseOR   ==  00000003 
+			Call     PlaySoundAtNpc ( 00000004 000000E1 00000000 )
+		EndCaseGroup
+	EndSwitch
+	If *GB_IWA00_Whacka_HitCount == 8`
+		Call     SpeakToPlayer 	( 00000004 00920005 00920001 00000000 $WhackaAngryString )
+		Call     StartBossBattle ( .Song:Faith )
+	Else
+		ExecWait $Script_WhackaHit
+	EndIf
+	Return
+	End
+}
+
+
+
+#string $WhackaAngryString
+{
+[STYLE:RIGHT][PrintRising]Ooooaaaugh!![/fx][BR]
+[Pause 10]I've had it with your whackin'[BR]
+and smackin' old man![BR]
+[Wait][Next]
+[PrintRising]It's time for a little payback[BR]
+from ol' Whankha![/fx][WAIT][END]
+}
+
+
+
+
+#new:Script $Script_DummyPostBattle
+{
+	Return
+	End
+}
+
+#new:Script $Script_PostBattle
+{
+	Call     GetBattleOutcome ( *Var[0] )
+	Switch   *Var[0] 
+		Case     ==  00000000 	% player won
+				ExecWait $Script_WhackaHit
+		Case == 00000002 %player fled
+			Sub *GB_IWA00_Whacka_HitCount 1 %reset his hit count back to what it was before
+			Call	DisablePlayerInput 	( .False )
+	EndSwitch
+	Return
+	End
+}
+
+
+%Make the Whacka
+
+#new:Script $Script_WhackaHit
+{
+			Wait     00000001
+			Call     SetNpcAnimation 	( 00000004 00920004 )
+			Wait     0000000F 
+			Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     GetNpcPos   	( 00000004 *Var[3] *Var[4] *Var[5] )
+			If       *Var[0]  <  *Var[3] 
+				Add      *Var[3] 0000000E 
+			Else
+				Sub      *Var[3] 0000000E 
+			EndIf
+			Add      *Var[4] 0000001E 
+			Add      *Var[5] 00000002 
+			Call     MakeItemEntity		( .Item:WhackasBump *Var[3] *Var[4] *Var[5] 0000000D 00000000 )
+			If *GB_IWA00_Whacka_HitCount >= 00000008 %you get way too many bumps, hopefully you used at least 5 items in the fight or else you're not gonna have room
+				Loop 4
+					Wait 	 00000001
+					Call     MakeItemEntity		( .Item:WhackasBump *Var[3] *Var[4] *Var[5] 0000000D 00000000 )
+				EndLoop
+			EndIf
+			Call     SetNpcAnimation	( 00000004 00920001 )
+			Wait     00000005 
+			Call     SpeakToPlayer 		( 00000004 00920005 00920001 00000000 000D002F ) % Whack-a-waaaaaaaaa.... I can't take this abuse!
+			Call     SetNpcAnimation 	( 00000004 00920003 )
+			Wait     0000000F 
+			If       *GB_IWA00_Whacka_HitCount >=  00000008 
+				Call     $Function_80240118 ( )
+			Else
+			EndIf
+			Call	SetNpcPos   	( 00000004 00000000 FFFFFC18 00000000 )
+			Call	SetNpcPos   	( 00000005 00000000 FFFFFC18 00000000 )
+			Call	DisablePlayerInput 	( .False )
+			Call	RemoveNpc   	( 00000004 )
+			Call	RemoveNpc   	( 00000005 )
+			Return
+			End
 }

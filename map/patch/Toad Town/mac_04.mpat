@@ -17,6 +17,7 @@
 	~Vec4f:Entry4 %    0.0 -100.0    0.0    0.0
 	~Vec4f:Entry5 % -420.0   20.0  235.0  270.0
     ~Vec4f:Entry6
+    ~Vec4f:Entry7
 }
 
 
@@ -29,6 +30,16 @@
    40:  Wait  50`
    4C:  Return
    54:  End
+}
+
+#import EnterViaPipe.mpat
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap     	( "omo_02" 2 )
+	Wait     00000064 
+	Return
+	End
 }
 
 
@@ -74,7 +85,58 @@
    B0:  End
 }
 
-
+@	$Script_EnterWalk_80242280
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry2
+   28:  		Exec  $Script_80242238
+   34:  		Exec  $Script_8024ECDC
+   40:  		Thread
+   48:  			Wait  20`
+   54:  			Set   *MapFlag[0A]  .True
+   64:  		EndThread
+   6C:  	Case  ==  ~Entry:Entry3
+   78:  		Exec  $Script_80242238
+   84:  		Call  SetPlayerPos  (  -420`  20`  -95` )
+   9C:  		Call  SetNpcPos     ( .Npc:Partner  -420`  20`  -65` )
+   B8:  		Thread
+   C0:  			Wait  20`
+   CC:  			Set   *MapFlag[0A]  .True
+   DC:  		EndThread
+   E4:  	Case  ==  ~Entry:Entry4
+   F0:  		Call  $Function_80240194 ( )
+   FC:  		Call  $Function_80240050    ( 00000000 00000000 00000000 00000000 00000000 00000000 00000000 000003B6 000003E8 )
+  12C:  		Exec  $Script_8024DED0
+  138:  	Case  ==  ~Entry:Entry5
+  144:  		Exec  $Script_80242238
+			Case  ==  ~Entry:Entry7
+   70:  		If  *GF_Chapter4_BluePipeB   ==  .False
+   80:  			Call  DisablePlayerInput    ( .True )
+   90:  			Call  DisablePlayerPhysics  ( .True )
+   A0:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   B8:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   D4:  			Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+   EC:  			Wait  30`
+   F8:  			Call  PlaySound ( 0000208E )
+  108:  			Set   *GF_Chapter4_BluePipeB  .True
+  118:  			Wait  30`
+  124:  			Call  SetPlayerActionState  ( .ActionState:Idle )
+  134:  			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  14C:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  168:  			Call  DisablePlayerPhysics  ( .False )
+  178:  			Call  DisablePlayerInput    ( .False )
+  188:  		EndIf
+				Set *Var[A] $Script_80242238
+				Exec $Script_EnterVerticalPipe
+				Wait 1`
+  150:  	Default
+  158:  		Set   *Var0  $Script_80242238
+  168:  		Exec  EnterWalk
+  174:  EndSwitch
+  17C:  Return
+  184:  End
+}
 
 %Add Silver Credit in the Warehouse.
 %The secret TTYD pipe behind the shop is now replaced with a Star Piece panel.
@@ -109,6 +171,7 @@
   1D8:  Bind  $Script_8024F278 .Trigger:WallPressA ~Collider:sign 00000001 00000000
     0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:NewPanel ~Model:FloorBehindShop 80000000 )
    28:  Call  AssignPanelFlag   ( *GF_MAC04_HiddenPanel )
+		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry7 $Script_UseBluePipe ~Index:*GF_Chapter4_BluePipeB 80000000 )
   1F4:  Return
   1FC:  End
 }

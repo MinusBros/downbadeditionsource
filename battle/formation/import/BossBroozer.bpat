@@ -1,0 +1,457 @@
+%Broozer code by MMMRRREEEOOOWWW
+%Sprites by 1upguy
+
+#define .part_broozer 1
+#define .part_barrel  2
+#define .anim_broozer_idle        00EC0001
+#define .anim_broozer_run         00EC0002
+#define .anim_broozer_punchnormal 00EC0008
+#define .anim_broozer_punchbarrel 00EC000C
+#define .anim_broozer_punchfast   00EC000D
+#define .anim_barrel_idle         00EC000B
+#define .anim_barrel_explode      00EC000E
+#define .avar_counter 0`
+
+#new:Actor $BossBroozer {
+% stats
+[Index]        9Fb 
+[Level]        40`b 
+[MaxHP]        50`b 
+[Coins]         2`b 
+[Flags]       00000000 
+[StatusTable] $StatusTable_Broozer
+% ai
+[PartsCount]    2`s 
+[PartsTable]  $PartsTable_Broozer
+[Script]      $Script_Init_Broozer
+% move effectiveness
+[Escape]       60`b 
+[Item]         70`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]  80`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]        123`b 119`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -53`b 103`b % dx dy
+[StatusIcon]   33`b  92`b % dx dy
+}
+
+#new:DefenseTable $DefenseTable_Broozer {
+.Element:Normal     0`
+.Element:End
+}
+
+#new:StatusTable $StatusTable_Broozer {
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep      50`
+.Status:Poison     50`
+.Status:Frozen      0`
+.Status:Dizzy      40`
+.Status:Fear        0`
+.Status:Static     50`
+.Status:Paralyze   90`
+.Status:Shrink      0`
+.Status:Stop       50`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      1`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod      -1`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_Broozer {
+     % broozer
+     /% s32 flags %/                 00800000
+     /% s8 index %/                  ~Byte:.part_broozer
+     /% Vec3b posOffset %/           01b 00b 00b
+     /% Vec2b targetOffset %/        FFb 30b %for cursor when selecting to attack in battle
+     /% s16 opacity %/               00FFs
+     /% s32* IdleAnimations %/       $IdleAnimations_Broozer_Normal
+     /% s32* defenseTable %/         $DefenseTable_Broozer
+     /% s32 eventFlags %/            00000000
+     /% s32 elementImmunityFlags %/  00000000
+     /% s8 unk_1C %/                 08b
+     /% s8 unk_1D %/                 FDb
+     /% s8 unk_1E %/                 00b
+     /% s8 unk_1F %/                 00b
+     /% s8 unk_20 %/                 00000000
+     
+     % barrel
+     /% s32 flags %/                 00120001
+     /% s8 index %/                  ~Byte:.part_barrel
+     /% Vec3b posOffset %/           01b 00b 00b
+     /% Vec2b targetOffset %/        00b 00b %for cursor when selecting to attack in battle
+     /% s16 opacity %/               00FFs
+     /% s32* IdleAnimations %/       $IdleAnimations_Broozer_Barrel
+     /% s32* defenseTable %/         $DefenseTable_Broozer
+     /% s32 eventFlags %/            00000000
+     /% s32 elementImmunityFlags %/  00000000
+     /% s8 unk_1C %/                 00b
+     /% s8 unk_1D %/                 00b
+     /% s8 unk_1E %/                 00b
+     /% s8 unk_1F %/                 00b
+     /% s8 unk_20 %/                 00000000
+}
+
+#new:IdleAnimations $IdleAnimations_Broozer_Normal {
+.Status:Normal    .anim_broozer_idle
+.Status:Stone     00EC0000
+.Status:Sleep     00EC0003
+.Status:Poison    00EC0001
+.Status:Stop      00EC0000
+.Status:Static    00EC0001
+.Status:Paralyze  00EC0000
+.Status:Dizzy     00EC0005
+.Status:Fear      00EC0005
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_Broozer_Counter {
+.Status:Normal    .anim_broozer_punchfast
+.Status:Stone     00EC0000
+.Status:Sleep     00EC0003
+.Status:Poison    00EC0001
+.Status:Stop      00EC0000
+.Status:Static    00EC0001
+.Status:Paralyze  00EC0000
+.Status:Dizzy     00EC0005
+.Status:Fear      00EC0005
+.Status:End
+}
+
+
+#new:IdleAnimations $IdleAnimations_Broozer_Barrel {
+.Status:Normal    .anim_barrel_idle
+.Status:End
+}
+
+#new:Script $Script_Init_Broozer {
+        Call  SetActorScale     ( .Actor:Self *Fixed[1.75] *Fixed[1.75] *Fixed[1.75] )
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_Broozer )
+   14:  Call  BindIdle          ( .Actor:Self $Script_Idle_Broozer )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_Broozer )
+   3C:  Return
+   44:  End
+}
+
+#new:Script $Script_Idle_Broozer {
+    Label  0
+    % Check Broozer safety
+    Call  GetActorVar  ( .Actor:Self .avar_counter *Var0 )
+    Switch *Var0
+        Case  ==  .True
+            % Broozer is unsafe
+            Call  SetIdleAnimations ( .Actor:Self .part_broozer $IdleAnimations_Broozer_Counter )
+            Call  SetPartEventBits   ( .Actor:Self .part_broozer 00010000 .True )
+        Case  ==  .False
+            % Broozer is safe
+            Call  SetIdleAnimations ( .Actor:Self .part_broozer $IdleAnimations_Broozer_Normal )
+            Call  SetPartEventBits   ( .Actor:Self .part_broozer 00010000 .False )
+    EndSwitch
+    Wait 1`
+    Goto  0
+    Return
+    End
+}
+
+#new:Script $Script_HandleEvent_Broozer {
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self .False )
+   28:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   3C:  Switch  *Var0 
+   48:  	CaseOR  ==  .Event:HitCombo % 9
+   54:  	CaseOR  ==  .Event:Hit % A
+   60:  		SetConst  *Var0  .part_broozer
+   70:  		SetConst  *Var1  00EC0004 
+   80:  		ExecWait  DoNormalHit 
+   8C:  	EndCaseGroup
+   94:  	Case  ==  .Event:BurnHit % E
+   A0:  		SetConst  *Var0  .part_broozer
+   B0:  		SetConst  *Var1  00EC0006 
+   C0:  		SetConst  *Var2  00EC0007 
+   D0:  		ExecWait  DoBurnHit 
+   DC:  	Case  ==  .Event:BurnDeath % 24
+   E8:  		SetConst  *Var0  .part_broozer
+   F8:  		SetConst  *Var1  00EC0006 
+  108:  		SetConst  *Var2  00EC0007 
+  118:  		ExecWait  DoBurnHit 
+  124:  		SetConst  *Var0  .part_broozer
+  134:  		SetConst  *Var1  00EC0007 
+  144:  		ExecWait  DoDeath 
+  150:  		Return
+  158:  	Case  ==  .Event:SpinSmashHit % B
+  164:  		SetConst  *Var0  .part_broozer
+  174:  		SetConst  *Var1  00EC0004 
+  184:  		ExecWait  DoSpinSmashHit 
+  190:  	Case  ==  .Event:SpinSmashDeath % 21
+  19C:  		SetConst  *Var0  .part_broozer
+  1AC:  		SetConst  *Var1  00EC0004 
+  1BC:  		ExecWait  DoSpinSmashHit 
+  1C8:  		SetConst  *Var0  .part_broozer
+  1D8:  		SetConst  *Var1  00EC0004 
+  1E8:  		ExecWait  DoDeath 
+  1F4:  		Return
+  1FC:  	Case  ==  .Event:ShockHit % 2F
+  208:  		SetConst  *Var0  .part_broozer
+  218:  		SetConst  *Var1  00EC0004 
+  228:  		ExecWait  DoShockHit 
+  234:  		SetConst  *Var0  .part_broozer
+  244:  		SetConst  *Var1  00EC0004 
+  254:  		ExecWait  DoJumpBack 
+  260:  		SetConst  *Var0  .part_broozer
+  270:  		SetConst  *Var1  00EC0002 
+  280:  		ExecWait  DoReturnHome 
+  28C:  	Case  ==  .Event:ShockDeath % 26
+  298:  		SetConst  *Var0  .part_broozer
+  2A8:  		SetConst  *Var1  00EC0004 
+  2B8:  		ExecWait  DoShockHit 
+  2C4:  		SetConst  *Var0  .part_broozer
+  2D4:  		SetConst  *Var1  00EC0004 
+  2E4:  		ExecWait  DoDeath 
+  2F0:  		Return
+  2F8:  	CaseOR  ==  00000017 % 17
+  304:  	CaseOR  ==  .Event:Immune % 19
+  310:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  31C:  		SetConst  *Var0  .part_broozer
+  32C:  		SetConst  *Var1  00EC0001 
+  33C:  		ExecWait  DoImmune 
+  348:  	EndCaseGroup
+  350:  	Case  ==  .Event:Death % 20
+  35C:  		SetConst  *Var0  .part_broozer
+  36C:  		SetConst  *Var1  00EC0004 
+  37C:  		ExecWait  DoNormalHit 
+  388:  		Wait  10`
+  394:  		SetConst  *Var0  .part_broozer
+  3A4:  		SetConst  *Var1  00EC0004 
+  3B4:  		ExecWait  DoDeath 
+  3C0:  		Return
+  3C8:  	Case  ==  .Event:RecoverStatus % 31
+  3D4:  		SetConst  *Var0  .part_broozer
+  3E4:  		SetConst  *Var1  00EC0001 
+  3F4:  		ExecWait  DoRecover 
+  400:  	Case  ==  .Event:ScareAway % 39
+  40C:  		SetConst  *Var0  .part_broozer
+  41C:  		SetConst  *Var1  00EC0002 
+  42C:  		SetConst  *Var2  00EC0004 
+  43C:  		ExecWait  DoScareAway 
+  448:  		Return
+  450:  	Case  ==  .Event:BeginAirLift % 3A
+  45C:  		SetConst  *Var0  .part_broozer
+  46C:  		SetConst  *Var1  00EC0004 
+  47C:  		ExecWait  DoAirLift 
+  488:  	Case  ==  .Event:BlowAway % 16
+  494:  		SetConst  *Var0  .part_broozer
+  4A4:  		SetConst  *Var1  00EC0004 
+  4B4:  		ExecWait  DoBlowAway 
+  4C0:  		Return
+  4C8:  	Default
+  4D0:  EndSwitch
+  4D8:  Call  EnableIdleScript  ( .Actor:Self .True )
+  4EC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  500:  Return
+  508:  End
+}
+
+#new:Script $Script_TakeTurn_Broozer {
+    Call UseIdleAnimation  ( .Actor:Self .False )
+    Call EnableIdleScript  ( .Actor:Self .False )
+
+    % Randomize Broozer attack
+    Call RandInt ( 100` *Var0 )
+    If *Var0 < 50`
+        % The intent of this attack is that he basically runs over Mario, off screen and appears on the other side where goes back to his position
+        ExecWait $Script_AttackPunch_Broozer
+        610:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+        624:  Call  UseIdleAnimation  ( .Actor:Self .True )
+    Else
+        % Punches barrel at you, if you block it, GREAT! If you fail, 2 damage and it knocks your partner out for two turns
+        ExecWait $Script_AttackBarrel_Broozer
+        610:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+        624:  Call  UseIdleAnimation  ( .Actor:Self .True )
+    EndIf
+
+    % Randomize Broozer safety
+    Call RandInt ( 100` *Var0 )
+    If *Var0 < 50`
+        % Broozer is unsafe
+        Call  SetActorVar  ( .Actor:Self .avar_counter .True )
+    Else
+        % Broozer is safe
+        Call  SetActorVar  ( .Actor:Self .avar_counter .False )
+    EndIf
+
+    Call EnableIdleScript  ( .Actor:Self .True )
+    Call UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+#new:Script $Script_AttackPunch_Broozer {
+    Call  SetTargetActor        ( .Actor:Self .Actor:Player )
+    Call  UseBattleCamPreset    ( 0000003F )
+    Call  BattleCamTargetActor  ( .Actor:Self )
+
+    % Broozer run to Mario
+    Call  SetAnimation          ( .Actor:Self .part_broozer .anim_broozer_run )   
+    Call  SetGoalToTarget       ( .Actor:Self )
+    Call  AddGoalPos            ( .Actor:Self 40` 0` 0` )
+    Call  SetActorSpeed         ( .Actor:Self *Fixed[8.0] ) 
+    Call  RunToGoal             ( .Actor:Self 0` .False )
+
+    % Broozer punch
+    Call  SetAnimation          ( .Actor:Self .part_broozer .anim_broozer_punchnormal )
+
+    % Get successful hit
+    Call  EnemyTestTarget       ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000001 00000010 )
+    Switch  *VarA 
+      CaseOR  ==  .HitResult:Miss
+      CaseOR  ==  .HitResult:Lucky
+        % Do Lucky hit
+        If  *VarA  ==  .HitResult:Lucky
+            Call  EnemyTestTarget   ( .Actor:Self *VarA ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+        EndIf
+
+        % Broozer runs off screen
+        Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+        Call  SetGoalPos        ( .Actor:Self -400` *Var1 *Var2 )
+        Call  SetActorSpeed     ( .Actor:Self *Fixed[12.0] ) 
+        Call  RunToGoal         ( .Actor:Self 0` .False )
+
+        % Pause when offscreen
+        Wait  20`
+
+        % Send Broozer to other side of the screen and run home
+        Call  SetAnimation      ( .Actor:Self .part_broozer .anim_broozer_run )
+        Call  SetGoalToHome     ( .Actor:Self )
+        Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+        Call  SetActorPos       ( .Actor:Self 250` *Var1 *Var2 )
+        Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] ) 
+        Call  RunToGoal         ( .Actor:Self 0` .False )
+        Call SetAnimation       ( .Actor:Self .part_broozer 00EC0003)
+        Wait  25`
+        Call  YieldTurn ( )
+        
+        Return
+      EndCaseGroup
+    EndSwitch
+    % Damage Mario
+    Wait  2`
+    Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000000 7` 00000020 )
+
+    % Broozer runs off screen
+    Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+    Call  SetGoalPos        ( .Actor:Self -400` *Var1 *Var2 )
+    Call  SetActorSpeed     ( .Actor:Self *Fixed[12.0] ) 
+    Call  RunToGoal         ( .Actor:Self 0` .False )
+
+    % Pause when offscreen
+    Wait  20`
+
+    % Send Broozer to other side of the screen and run home
+    Call  SetAnimation      ( .Actor:Self .part_broozer .anim_broozer_run )
+    Call  SetGoalToHome     ( .Actor:Self )
+    Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+    Call  SetActorPos       ( .Actor:Self 250` *Var1 *Var2 )
+    Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] ) 
+    Call  RunToGoal         ( .Actor:Self 0` .False )
+    Call SetAnimation       ( .Actor:Self .part_broozer .anim_broozer_idle)
+    Wait  5`
+    Call  YieldTurn ( )
+
+    Return
+    End
+}
+
+#new:Script $Script_AttackBarrel_Broozer {
+    Call SetTargetActor     ( .Actor:Self .Actor:Player )
+    Call SetAnimation       ( .Actor:Self .part_broozer 00EC0009)
+    Call  UseBattleCamPreset    ( 00000002 )
+    Call GetActorPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+    Add *Var0 -35`
+    Call  PlayEffect    ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+    Call  PlaySound     ( .Sound:SmokeBurst )
+    Call SetPartPos         ( .Actor:Self .part_barrel  *Var0  *Var1  *Var2 )
+    Call SetPartScale       ( .Actor:Self .part_barrel *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+    Call SetPartFlagBits    ( .Actor:Self .part_barrel 00000001 .False )
+    Call SetPartJumpGravity ( .Actor:Self .part_barrel *Fixed[2.0] )
+    Call JumpPartTo        ( .Actor:Self .part_barrel *Var0 *Var1 *Var2  15` .True )
+    Wait 10`
+    Call SetAnimation       ( .Actor:Self .part_broozer .anim_broozer_punchbarrel )
+    Wait 15`
+    Call GetActorPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+    Add *Var0 -35`
+    Call SetGoalToTarget    ( .Actor:Self )
+    Call GetGoalPos         ( .Actor:Self *Var0 *Var1 *Var2 )
+    Call EnemyTestTarget    ( .Actor:Self *Var3 ~Flags:DamageType:0 00000000 00000001 00000010 )
+    Call  PlaySound     ( 000000E9 )
+    Call SetAnimation       ( .Actor:Self .part_barrel 00EC000A)
+    Switch  *Var3 
+        CaseOR  ==  .HitResult:Miss % 6
+        CaseOR  ==  .HitResult:Lucky % 5
+            Add *Var1 -32` %target mario's feet
+            Call JumpPartTo        ( .Actor:Self .part_barrel *Var0 *Var1 *Var2  15` .True )
+            Call SetAnimation      ( .Actor:Self .part_barrel .anim_barrel_explode)
+            Call SetPartFlagBits   ( .Actor:Self .part_barrel 00000001 .True )
+            Wait  3`
+        EndCaseGroup
+    EndSwitch
+    Call JumpPartTo        ( .Actor:Self .part_barrel *Var0 *Var1 *Var2  15` .True )
+    Wait 2`
+    Call SetAnimation       ( .Actor:Self .part_broozer .anim_broozer_idle)
+    Call EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000020 )
+    Call  GetStatusFlags    ( .Actor:Partner *Var5 )
+    If  *Var5  !&  ~Flags:StatusFlags:KO % 1000000
+    ExecWait $Script_PartnerBarrel_Broozer
+    Else
+    EndIf
+
+   %%jump off screen
+   Call SetAnimation ( .Actor:Self .part_barrel .anim_barrel_explode )
+   Wait 10`
+   Call SetPartScale       ( .Actor:Self .part_barrel *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   Call SetPartMoveSpeed   ( .Actor:Self .part_barrel *Fixed[3.0] ) 
+   Call SetPartFlagBits    ( .Actor:Self .part_barrel 00000001 .False ) 
+   Set *Var0 -250
+   Call RunPartTo          ( .Actor:Self .part_barrel -250 *Var1 *Var2 .True)
+   %%jump off screen
+
+    Return
+    End
+}
+#new:Script $Script_PartnerBarrel_Broozer {
+   %%Partner attack
+   Wait 2`
+   Call SetPartScale       ( .Actor:Self .part_barrel *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   Call SetPartJumpGravity ( .Actor:Self .part_barrel *Fixed[2.0] ) 
+   Call SetPartFlagBits    ( .Actor:Self .part_barrel 00000001 .False )
+   Call SetTargetActor    ( .Actor:Self .Actor:Partner )
+   Call SetGoalToTarget ( .Actor:Self ) 
+   Call GetGoalPos (.Actor:Self *Var3 *Var4 *Var5) 
+   Call EnemyTestTarget    ( .Actor:Self *Var4 ~Flags:DamageType:0 00000000 00000001 00000010 )
+   Call JumpPartTo        ( .Actor:Self .part_barrel *Var3 *Var4 *Var5  15` .True )
+   Call EnemyDamageTarget ( .Actor:Self *Var3 ~Flags:DamageType:NoContact 00000000 00000000 00000002 00000020 )        
+
+   %%jump off screen
+   Call SetAnimation ( .Actor:Self .part_barrel .anim_barrel_explode )
+   Wait 10`
+   Call SetPartScale       ( .Actor:Self .part_barrel *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   Call SetPartMoveSpeed   ( .Actor:Self .part_barrel *Fixed[3.5] ) 
+   Call SetPartFlagBits    ( .Actor:Self .part_barrel 00000001 .False ) 
+   Set *Var0 -250
+   Call RunPartTo          ( .Actor:Self .part_barrel -250 *Var1 *Var2 .True)
+   %%jump off screen
+
+   Return
+   End
+   %%End attack
+}

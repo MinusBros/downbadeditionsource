@@ -1,0 +1,934 @@
+%Greed stone's function (Max health = 5, coins = 999)
+%probably the first asm I wrote
+/%
+#new:Function $Function_GreedStoneMode
+LIO		A1, 8010F290
+ADDIU	A2, R0, 5`
+SB		A2, 4 (A1)
+SB		A2, 3 (A1)
+LB		A2, 2 (A1) %check current health
+LIO		A1, 5
+BLE		A2, A1, .label %health is within limits, do nothing   not really needed, just nice to have
+NOP
+LIO		A1, 8010F290
+ADDIU	A2, R0, 5`
+SB		A2, 2 (A1)
+.label
+LIO		A1, 8010F290 
+ADDIU	A2, R0, 1`
+SB		A2, 16 (A1) %hopefully this is unused so I can use it to check greed stone
+ADDIU	A2, R0, 999`
+SH		A2, C (A1) %coins = 999
+JR		RA
+NOP
+%/
+
+% get the flag, but set a variable too
+#export:Function $Function_HasGreedStone %Parameter is a variable
+{
+PUSH	RA
+LABU	V0, 8010F2A6 %this is where the flag is
+ADDI	A2, V0, 0
+LW		V0, C (A0)
+JAL		~Func:set_variable
+LW		A1, 0 (V0)
+POP		RA
+JR		RA
+ADDIU	V0, R0, 2
+}
+
+% just return flag on v0
+#export:Function $HasGreedStone
+{
+LIO		V0, 8010F2A6
+LBU		V0, 0 (V0)
+JR		RA
+NOP
+}
+
+%This is just the one the game uses, so it probably does everything right
+%looks like a wrapper around the real function (800EB168)
+#export:Function $Function_PartnerSwap %Parameter is a value of the specified partner
+{
+ADDIU     SP, SP, FFE8
+SW        RA, 10 (SP)
+LW        V0, C (A0)
+JAL       ~Func:get_variable
+LW        A1, 0 (V0)
+JAL       800EB168
+DADDU     A0, V0, R0
+LW        RA, 10 (SP)
+ADDIU     V0, R0, 2
+JR        RA
+ADDIU     SP, SP, 18
+}
+
+%some behavior of 800EB168
+%	Try to change partner to the same one you have before = no visible effect
+%	Try to change to partner 0 (no partner) = works (but opening the partner menu with no partner is a crash)
+
+%8010CFD8 = value used to determine which partner to spawn when entering new maps
+%	Value is set at 800EB4E4 for map transitions (Changing this value here changes the partner that spawns but doesn't really set the "real" value)
+
+%8010F2A2 = real value used to determine which partner is out?
+
+
+%Trying to make an in battle force partner swap function (do this during enemy turns to prevent player control from messing stuff up?)
+
+%802458C8 = line where in battle new partner ID is stored into 8010F2A2
+%	change this
+%	^delay slot of a function call to 80264B74 (which reads from the partner byte directly)
+
+%Setting it to 0 is a memory crash
+%The crash from switching to partner 0 is right after that function (no partner pointer => tries to store to a value near 00000000 => memory crash)
+
+
+
+%Trying to switch partners when no partner is out = crash when selecting (TLB exception)
+
+
+
+
+#export:Function $KillMario %set hp to 0, clear inv. Used for un-survivable attacks
+{
+PUSH	A0, A1, RA
+LIO		A0, 8010F292 %curr health
+SB		A0, 0 (R0)
+JAL		$Clear_Inventory %could recode life shrooms to not work, but this is easier
+NOP
+POP		A0, A1, RA
+JR RA
+NOP
+}
+
+% #new:Function $Function_HasMaxCoins
+% PUSH	RA
+% LIO		V0, 8010F29C %coin address
+% LHU		V0, 0 (V0)
+% SLTI	V0, V0, 03E7 %if less than 999
+% ADDIU	A2, V0, 0
+% LW		V0, C (A0)
+% JAL		{Func:SetVariable}
+% LW		A1, 0 (V0)
+% POP		RA
+% JR		RA
+% ADDIU	V0, R0, 2
+
+% #new:Function $Function_IncrementCoins
+% LIO		V0, 8010F29C %coin address
+% LIO		A0, 3E7 %max coins
+% LH		V1, 0 (V0)
+% ADDI	V1, V1, A %+10 coins per call
+% SUB		V1, V1, A0
+% BLTZ	V1, .ok
+% ADD		V1, V1, A0
+% ADD		V1, A0, R0
+% .ok
+% JR		RA
+% ADDIU	V0, R0, 2
+
+%it works, but not completely
+#export:Function $Function_StunPartner
+{
+PUSH RA, A0, A1, T0
+ORI		A0, R0, 100 %sets A0 to partner id (00000100)
+JAL		80269D6C %{Func:GetActor}
+NOP
+ADD		T0, V0, R0
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument
+ORI		A0, R0, D %stun effect id
+SB		A0, 216 (T0) %effect id (but apparently it's stored at a different location than regular statuses)
+SB		V0, 217 (T0) %turns
+POP RA, A0, A1
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+% #new:Function $Function_SubtractFP %takes one argument (fp to subtract). Does not underflow*
+% PUSH	A0, A1, A2, T0, T1, RA
+% JAL		{Func:GetVariable}
+% LW		A1, 0 (S0) %get argument
+% LIO		A2, 8010F295 %load current fp address
+% LB		T0, 0 (A2) %load fp
+% SUB		T1, T0, V0 %subtract
+% BLTZ	T1, .end %check if fp < 0
+% SB		R0, 0 (A2) %fp is out of bounds, set to 0
+% SB		T1, 0 (A2) %fp is within bounds, set to normal value
+% .end
+% POP		A0, A1, A2, T0, T1, RA
+% JR		RA
+% NOP
+
+%mostly copied from food script, but now checks for hp < 1/fp < 0
+%use negative numbers for hp/fp reduction
+#export:Function $Function_HPHeal
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  LW        V0, C (A0)
+   10:  JAL       ~Func:get_variable
+   14:  LW        A1, 0 (V0)
+   18:  LIA       V1, 8010F290
+   20:  LB        A0, 2 (V1)
+   24:  LB        A1, 3 (V1)
+   28:  ADDU      A0, A0, V0
+   2C:  SLT       V0, A1, A0
+   30:  BEQ       V0, R0, .belowlimit
+   34:  DADDU     S0, V1, R0
+   38:  DADDU     A0, A1, R0
+        .belowlimit
+		BGT		  A0, R0, .end %value is ok
+   3C:  SB        A0, 2 (S0)
+		ORI		  A0, R0, 1
+		SB		  A0, 2 (S0)
+		.end
+   40:  LW        RA, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  ADDIU     V0, R0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+#export:Function $Function_FPHeal
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  LW        V0, C (A0)
+   10:  JAL       ~Func:get_variable
+   14:  LW        A1, 0 (V0)
+   18:  LIA       V1, 8010F290
+   20:  LB        A0, 5 (V1)
+   24:  LB        A1, 6 (V1)
+   28:  ADDU      A0, A0, V0
+   2C:  SLT       V0, A1, A0
+   30:  BEQ       V0, R0, .belowlimit
+   34:  DADDU     S0, V1, R0
+   38:  DADDU     A0, A1, R0
+        .belowlimit
+		BGE		  A0, R0, .end %value is ok
+   3C:  SB        A0, 5 (S0)
+		SB		  R0, 5 (S0)
+		.end
+   40:  LW        RA, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  ADDIU     V0, R0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+#export:Function $Function_SubtractMaxHP %takes one argument (m hp to subtract). Cannot go below 1. Note that this affects the "visible" value, which is reset upon unpausing
+{
+%watch for stuff that reverts this back to normal
+PUSH	A0, A1, A2, T0, T1, RA
+JAL       ~Func:get_variable
+LW		A1, 0 (S0) %get argument
+LIO		A2, 8010F293 %load max hp address
+LB		T0, 0 (A2) %load max hp
+SUB		T1, T0, V0 %subtract
+SUBI	T1, T1, 1 
+BLTZ	T1, .hpok %check if hp < 1
+ADD		T1, R0, R0
+SUB		T1, T0, V0 %subtract
+SUBI	T1, T1, 1 
+.hpok
+ADDI	T1, T1, 1
+SB		T1, 0 (A2) %store hp
+%Force normal hp to be within bounds
+LIO		A2, 8010F292 %load max hp address
+%LB		T0, 1 (A2)
+LB		T1, 0 (A2)
+BLT		T1, T0 .chpok
+NOP
+SB		T0, 1 (A2)
+.chpok
+POP		A0, A1, A2, T0, T1, RA
+JR		RA
+ORI 	V0, R0, 2
+}
+
+#export:Function $Function_AddSP %takes one argument (sp to add). Cannot go above max sp. Pass in a negative number to decrease SP
+{
+PUSH	A0, A1, A2, T0, T1, RA	%SP is stored as a 2 byte val with the first byte equal to bars full and second byte is partial bars (0-FF)
+JAL       ~Func:get_variable		%may crash if you go above 7 (Max SE above 7 is fine, but current SE at or above 8.0 will crash due to nonexistent sprites)
+LW		A1, 0 (S0) %get argument
+LUI		A2, 8011 %load sp address
+LH		T0, F520 (A2) %load sp
+ADD		T0, T0, V0 %addition
+BLTZ	T0, .set0
+NOP
+LB		T1, F51E (A2) %max sp
+SLL		T1, T1, 8
+BLT		T0, T1 .return
+NOP
+ADD		T0, T1, R0
+%SH		T1, F520 (A2)
+BEQ		R0, R0, .return
+NOP
+.set0
+ADD		T0, R0, R0
+%SH		R0, F520 (A2) %Negative SE does NOT crash, but it's a bit unintuitive since there's no way to tell how much negative SE you have
+.return
+SH		T0, F520 (A2)
+POP		A0, A1, A2, T0, T1, RA
+JR		RA
+ORI 	V0, R0, 2
+}
+
+%what happens outside of normal bounds?
+%7.0 to 7.9
+%weird stars start appearing after the 7th star, instead of the bar
+%At 8.0 or above, game crash due to nonexistent/broken graphics
+
+%Below 0.0
+%The SE bar is completely empty. However, it still increases when you do things like focusing
+
+
+%% borrowed from rain
+% @Hook 82758
+% JAL $StoneFunction
+% NOP
+% .end
+% LIO     RA, 800E974C %set the RA to this value because at this point in code, it's always this
+% J        800E92B0
+% NOP
+
+% #new:Function $StoneFunction
+% PUSH V1, A0, A1, A2, A3, RA, T0, T1
+% LIO		V0, 8010F2A6
+% LB		A0, 0 (V0) %this is where the flag is
+% BEQ		A0, R0, .end %no, so jump to end
+% NOP
+% LIO		V0, 8010F29C
+% LH		A0, 0 (V0)
+% ADDI	A0, A0, A %+10 coins per call
+% SLTI	V1, A0, 03E8 %if less than 1000
+% BNE		V1, R0, .coinsok %jump to end (its within limits)
+% NOP
+% ADDI	A0, R0, 03E7 %otherwise set to 999
+% .coinsok
+% SH		A0, 0 (V0)
+% LIO		V0, 8010F293 %time to check health
+% LB		A0, 0 (V0)
+% SUBI	A0, A0, 5
+% BEQ		A0, R0, .end %all good, max health = 5
+% NOP
+% LB		A0, FFFF (R0)	%uh oh, its not 5, so crash game (load an invalid address) press f to pay respects
+% To do: Replace this with death warp
+% as it turns out, making a death warp is really complicated
+% as of now it just resets the health to where its supposed to be
+% LIO		V0, 8010F290
+% LIO		A0, 5
+% SB		A0, 3 (V0)
+% .end
+% POP V1, A0, A1, A2, A3, RA, T0, T1
+% JR RA
+% NOP
+
+%this is where health gets set from the pause menu
+%Unfortunately, the hook mysteriously disappeared
+% @Hook 1617C %800E789C    At this point, S0 is 8010F290, which is useful for hp setting
+% PUSH	T0
+% LB		T0, 16 (S0)
+% BEQ		T0, R0 .end
+% NOP
+% ADDIU	V1, R0, 5
+% .end
+% POP		T0
+% SB		V1, 3 (S0) %hooked over
+% SLL		V1, V1, 24 %hooked over
+% J 800E78A4
+% NOP
+
+
+#new:Function $SixToFiveHP
+{
+	PUSH	S0, S1, S2, S3
+	LAB		S0, 8010F294
+	LI		S1, 6`
+	LI		S2, 5`
+	BNE		S0, S1 .not6A
+	NOP
+	SAB		S2, 8010F294	
+	LAB		S2, 8010F293	
+	ADDI	S2, S2, FFFF	%Note: HP Plus will cause the max hp values to desync, so subtract 1 instead of setting
+	SAB		S2, 8010F293	
+	%Enforce new HP cap
+	LAB		S1, 8010F292
+	BLT		S1, S2, .not6A
+	NOP
+	SAB		S2, 8010F292	
+	.not6A
+	/%
+	LAB		S0, 8010F294
+	BNE		S0, S1 .not6B
+	NOP
+	SAB		S2, 8010F294	
+	.not6B
+	%/	
+	POP		S0, S1, S2, S3
+	JR		RA
+	NOP
+}
+
+#new:Function $OuttaSightCheck
+{
+	PUSH	RA
+	%Also reset outta sight cost
+	LAW		V1, $OuttaSightAddress
+	ORI		V0, R0, 3
+	SB		V0, 0 (V1)
+	POP		RA
+	JR		RA
+	NOP
+}
+
+% #new:Script:Map $StoneScript
+% Call	$Function_GreedStoneMode ( *Var[0] )
+% If ( *Var[0] == 1 )
+	% Call	$Function_HasMaxCoins ( *Var[1] )
+	% If ( *Var[1] != 1 )
+		% Call $Function_IncrementCoins ()
+	% EndIf
+% EndIf
+% Return
+% End
+
+
+%The old system.
+%How it worked:
+%put the init script in all the enemy init scripts in that area
+%put the exec script in all the enemy "take turn" scripts
+
+%It wasn't that great since you had to manually add it to every enemy in an area; it also makes it harder to import enemies from other areas
+
+% #new:Script:Battle $Script_InitEnviroEffect %how to use: put in the "init" script of enemies
+% Call	SetActorVar ( .Actor:Self 00000010 00000000 ) %hopefully this is unused and usable
+% Call	$Function_InitCurrentTurn ()
+% Return
+% End
+
+% #new:Script:Battle $Script_ExecEnviroEffect
+% Call	GetActorVar ( .Actor:Self 00000010 *Var[A] )
+% Call	$Function_GetCurrentTurn ( *Var[B] )
+% If ( *Var[A] == *Var[B] ) %If the local turn count matches the local turn count, this must be the first enemy. Advance the global turn count and do the effect
+	% Call $Function_AdvanceCurrentTurn ( ) 
+	% Call $Function_GetEnviroVal ( *Var[C] )
+	% Switch (*Var[C])
+		% Case == 00000001 %Dry Dry Desert's FP reduction
+			% Call	GetActorVar ( .Actor:Self 00000010 *Var[D] )
+			% Mod *Var[D], 2
+			% If (*Var[D] == 1) %1 in 2 turns
+				% Call	$Function_ReduceFP ( )
+			% EndIf
+		% Case == 00000002
+		% Default
+			% Goto 00000000
+	% EndSwitch
+% EndIf
+% Label 00000000 %go here if there is no effect to do
+% Add		*Var[A], 1
+% Call	SetActorVar ( .Actor:Self 00000010 *Var[A] ) 
+% Return
+% End
+
+
+%To do: replace current enviro effect system with a map-based approach
+%step 1: locate suitable function to hook into
+%step 2: add scripts to the right stages (easy)
+
+%Ram address that loads at the start of each turn (?) (check if merlee is required/interferes)
+%80240F8C
+%LHU V1 0x028C (S0)
+%SLTI V0, V0, 2
+
+% @Hook 16F86C
+% PUSH	 RA, A0, A1, A2		%might need to push and pop some stuff so the script doesn't break everything
+% LIO 	 A0, $EnviroScript
+% ADDIU    A1, R0, 0000
+% DADDU    A2, R0, R0
+% JAL 	802C33E0 %Start Script
+% NOP
+% POP		RA, A0, A1, A2
+% LHU 	V1 028C (S0) %lines hooked over
+% SLTI 	V0, V0, 2 %lines hooked over
+% J 		80240F84
+% NOP
+
+
+%A random address that loads after mario's turn (before poison takes effect im pretty sure) (check if poison/other statuses interfere)
+%80242414
+%LW	V1, 0 (S0)
+%ADDIU V0, R0, F
+%this one sometimes doesn't run
+
+%alternative:
+%170C5C / 8024237C
+%unfortunately, this one can execute multiple times per turn
+
+%attempt 3
+%170E04 / 80242524
+%LUI S0, 800E
+%ADDIU	S0, S0, C070
+%right after the poison damage counter
+
+%location 4
+%1720D0 / 802437F0
+%ADDIU	S3, R0, D
+%DADDU	S2, S6, R0
+%part of the code for ending the player's turn (setting the battle phase to D)
+%The key difference is that this is right after marios turn and before the enemies turn
+%instead of being right after the enemies turn and before marios turn
+%This should prevent crashes from BoostAttack and BoostDefense interfering with movement
+
+%Enviro Effects V3
+%-no longer requires scripts on each stage
+%(but may require special cases for new areas)
+
+
+
+
+%Mario speed hook
+
+%The real speed values are at 800F7B70 and 800F7B78. This hook doesn't change them
+
+%current walk speed = 8010F020, run speed = 8010F028
+%note: lakilester speed has no correlation with them
+
+%Change specified values to change walk/run speed
+%Default: 2/4
+%Note that spin speed is independent but is based on these (so increasing speed will make spinning faster too)
+%Spin vals: 8010f270 8010f274 (dynamically generated?)
+% @Hook 10A70 %800E2190
+% PUSH	A0
+% LIO		A0, 40800000 %load in the float value as a hex
+% MTC1 	A0, F0 %moves literal value, (so the value above becomes 4 units)
+% CVT.S.W F0, F0
+% POP		A0
+% J	800E2198
+
+%Hooked over:
+%MUL.S	F0, F0, F2      F2 is equal to 1 here so it doesn't matter?
+%NOP					might be important, but the hook won't change this nop to something else
+
+% @Hook 10A84 %800E21A4
+% PUSH	A0
+% LIO		A0, 41000000 %load in the float value as a hex
+% MTC1 	A0, F0
+% CVT.S.W F0, F0
+% POP		A0
+% J	800E2198
+
+%Hooked over:
+%MUL.S	F0, F0, F2      F2 is equal to 1 here so it doesn't matter?
+%NOP					might be important, but the hook won't change this nop to something else
+
+%Speedy Spin
+%802B6116 is where the speedy spin - exclusive code is * (sometimes, use a rom editor to find the hook/function values)
+% @Function E25E8C %1E4A06
+% LUI	AT, 408C
+
+%probably not going to be using this much
+#export:Function $Clear_Inventory
+{
+PUSH t0 
+LIO t0, 8010F456
+SH  r0, 0000 (t0)
+SH  r0, FFFE (t0)
+SH  r0, FFFC (t0)
+SH  r0, FFFA (t0)
+SH  r0, FFF8 (t0)
+SH  r0, FFF6 (t0)
+SH  r0, FFF4 (t0)
+SH  r0, FFF2 (t0)
+SH  r0, FFF0 (t0)
+SH  r0, FFEE (t0)
+POP t0
+JR RA
+ORI V0, R0, 2
+}
+
+%this could probably be turned into a loop but I'm too lazy to figure that out
+#export:Function $Function_HasItems %1 = yes, 0 = no
+{
+PUSH t0, t1, ra
+LIO t0, 8010F456 %item table
+LH	t1, 0000 (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFFE (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFFC (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFFA (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFF8 (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFF6 (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFF4 (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFF2 (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFF0 (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+LH	t1, FFEE (t0)
+BNE	t1, r0, .end
+ADDIU A2, R0, 1 %found one, set to 1
+ADDIU A2, R0, 0 %if you get to this point, none of the branches triggered, so there are no items
+.end
+JAL		~Func:set_variable
+NOP
+POP t0, t1, ra
+JR RA
+NOP
+}
+
+% ====================================================
+% Custom Battle Popups
+% These work, but could be implemented better.
+% ====================================================
+
+#export:Function $ShowCustomMessage % ( stringID from Custom section, message display time )
+{
+	PUSH	RA, S0, S1
+	DADDU	S0, A0, R0
+	LW		S1, C (A0)
+	JAL		~Func:get_variable
+	LW		A1, 0 (S1)
+	ADDIU	S1, S1, 4
+	DADDU	A0, S0, R0
+	DADDU	S0, V0, R0
+	JAL		~Func:get_variable
+	LW		A1, 0 (S1)
+	DADDU	S1, V0, R0
+	DADDU	A0, R0, R0
+	JAL		8024EF68	% CreateMessageBox? (usually at 8029F2C0)
+	DADDU	A1, S1, R0
+	DADDU	V1, V0, R0
+	BEQ		V1, R0, .Done
+	NOP
+	SW		R0, 0 (V1)
+	LIA		V0, $Custom_8024FB3C
+	SW		V0, 4 (V1)
+	SW		R0, 8 (V1)
+	LIA		V0, $Custom_80250EA4
+	SW		V0, C (V1)
+	SH		S0, 12 (V1)	% message ID
+	SH		S1, 14 (V1) % message time
+	SB		R0, 16 (V1)
+	ADDIU	V0, R0, 1
+	SB		V0, 17 (V1)
+	SW		R0, 18 (V1)
+	SAW		V1, 802838F8
+	SAH		R0, 8029F640
+	SAH		R0, 8029F64A
+	SAH		R0, 8029F64C
+	SAH		R0, 8029F64E
+	SAH		R0, 8029F650
+	.Done
+	POP		RA, S0, S1
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+	
+#export:Function $ShowCustomMessage_ASM 		%Same as above but uses A0 and A1 as args
+{
+	PUSH	RA, S0, S1
+	DADDU	S0, A0, R0
+	%LW		S1, C (A0)
+	%JAL		~Func:get_variable
+	%LW		A1, 0 (S1)
+	%ADDIU	S1, S1, 4
+	%DADDU	A0, S0, R0
+	%DADDU	S0, V0, R0
+	COPY	S0, A0
+	%JAL	~Func:get_variable
+	%LW		A1, 0 (S1)
+	COPY	S1, A1
+	%DADDU	S1, V0, R0
+	DADDU	A0, R0, R0
+	JAL		8024EF68	% CreateMessageBox? (usually at 8029F2C0)
+	DADDU	A1, S1, R0
+	DADDU	V1, V0, R0
+	BEQ		V1, R0, .Done
+	NOP
+	SW		R0, 0 (V1)
+	LIA		V0, $Custom_8024FB3C
+	SW		V0, 4 (V1)
+	SW		R0, 8 (V1)
+	LIA		V0, $Custom_80250EA4
+	SW		V0, C (V1)
+	SH		S0, 12 (V1)	% message ID
+	SH		S1, 14 (V1) % message time
+	SB		R0, 16 (V1)
+	ADDIU	V0, R0, 1
+	SB		V0, 17 (V1)
+	SW		R0, 18 (V1)
+	SAW		V1, 802838F8
+	SAH		R0, 8029F640
+	SAH		R0, 8029F64A
+	SAH		R0, 8029F64C
+	SAH		R0, 8029F64E
+	SAH		R0, 8029F650
+	.Done
+	POP		RA, S0, S1
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+	
+#export:Function $Custom_80250EA4 % [17F784]
+{
+	ADDIU	SP, SP, FFC0
+	SW		S3, 34 (SP)
+	DADDU	S3, A0, R0
+	SW		RA, 3C (SP)
+	SW		S4, 38 (SP)
+	SW		S2, 30 (SP)
+	SW		S1, 2C (SP)
+	SW		S0, 28 (SP)
+	%
+	LH		V0, 12 (S3)
+	LUI		S0, 002F
+	OR		S0, S0, V0
+	%
+	LB		V0, 17 (S3)
+	BEQ		V0, R0, .Done
+	NOP
+	SB		R0, 17 (S3)
+	%
+	DADDU	A1, R0, R0
+	JAL		80126474		% GetTextWidth  (9D)
+	DADDU	A0, S0, R0
+	%
+	ADDIU	A3, V0, 1E
+	SRL		V0, A3, 1F
+	ADDU	V0, A3, V0
+	SRA		V0, V0, 1
+	ADDIU	V1, R0, A0 % 160`
+	SUBU	S1, V1, V0 % S1 = 160 - (V0 + 30) / 2	(start pos)
+	DADDU	S2, A3, R0 % S1 = V0 + 30 				(box width)
+	JAL		801264B0		% GetTextLines? (2)
+	DADDU	A0, S0, R0
+	%
+	ADDIU	V0, V0, FFFF
+	ADDIU	A0, R0, 9
+	DADDU	A1, S1, R0	% text hpos
+	ADDIU	A2, R0, 50	% text vpos
+	DADDU	A3, S2, R0	% box width
+	SLL		V0, V0, 1
+	LTH		T0, V0 (802835D0) % (1C/28)
+	SW		T0, 10 (SP) % box height
+	SW		R0, 14 (SP)
+	LIA		V0, $Custom_80250818
+	SW		V0, 18 (SP)
+	SW		S3, 1C (SP)
+	ADDIU	V0, R0, FFFF
+	SW		V0, 20 (SP)
+	JAL		80147CC8
+	NOP
+	%
+	ADDIU	A0, R0, 9
+	ADDIU	A1, R0, 1
+	JAL		80147E7C
+	NOP
+	.Done
+	LW		RA, 3C (SP)
+	LW		S4, 38 (SP)
+	LW		S3, 34 (SP)
+	LW		S2, 30 (SP)
+	LW		S1, 2C (SP)
+	LW		S0, 28 (SP)
+	JR		RA
+	ADDIU	SP, SP, 40
+}
+	
+#export:Function $Custom_8024FB3C		% 17E41C
+{
+	ADDIU	SP, SP, FFE0
+	SW		S1, 14 (SP)
+	DADDU	S1, A0, R0
+	SW		S2, 18 (SP)
+	SW		RA, 1C (SP)
+	SW		S0, 10 (SP)
+	LIA		A0, 800DC070
+	DADDU	S2, R0, R0
+	LIO		V0, 8024FB84
+	JR		V0
+	NOP
+}
+	
+#export:Function $Custom_80250818	% [17F0F8]
+{
+	ADDIU     SP, SP, FFC8
+	SW        S2, 20 (SP)
+	ADDIU     S2, A1, F
+	SW        S3, 24 (SP)
+	DADDU     S3, A0, R0
+	SW        RA, 2C (SP)
+	SW        S4, 28 (SP)
+	SW        S1, 1C (SP)
+	SW        S0, 18 (SP)
+	SDC1      F20, 30 (SP)
+	ADDIU     S1, A2, 6
+	LH		V0, 12 (S3)
+	LUI		S0, 002F
+	OR		S0, S0, V0
+	JAL       801264B0
+	DADDU     A0, S0, R0
+	ADDIU     V1, V0, FFFF
+	DADDU     A0, S0, R0
+	DADDU     A1, S2, R0
+	ADDIU     A3, R0, FF
+	SLL       V0, V1, 1
+	LTH       A2, V0 (802835D4)
+	ADDIU     V0, R0, F
+	SW        V0, 10 (SP)
+	SW        R0, 14 (SP)
+	JAL       801264EC		% DrawString
+	ADDU      A2, S1, A2
+	LW        RA, 2C (SP)
+	LW        S4, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F20, 30 (SP)
+	JR        RA
+ADDIU SP, SP, 38
+}
+
+%@Function DCBD8
+%NOP %fix weird crash
+
+%@Function DCE38
+%NOP %fix weird crash
+
+%@Function DCE64
+%NOP %fix weird crash
+
+
+%first attack: 80041550
+%hook over: LH V0, 28 (V0)
+%			SLT V1, V1, V0  <--false = die, true = don't die
+
+%spin attack: 80040728
+%hook over: LH V0, 28 (V0)
+%			SLT V1, V1, V0  <--false = die, true = don't die
+%spin attack -> ?
+
+%bump attack: 800415B8
+%hook over: LH V0, 28 (V0)
+%			SLT V1, V1, V0  <--false = die, true = don't die
+%bump attack -> super challenge
+
+%ability equipped function: 800E9D48, aka {Func:is_ability_active}
+%A0 = ability to check (from the game's hardcoded ids)
+%return V0 = true or false (1 or 0)
+
+%how to find where ability is checked:
+%0C03A752 2404000B <- search this in a rom editor
+%			  ____ replace the last bytes with the ability id to earch for
+%this won't catch all of them since there are other ways of checking abilities
+
+%the other ability checker: JAL		802672AC	
+%calls the original one, but has some differences
+%	A0: ???? (this must be a specific value or the game crashes!)
+%	A1: ability to check
+
+%Some of this stuff was for the old enviro effect system. The new system no longer requires scripts on enemies.
+%#export $Function_AdvanceCurrentTurn
+%#export	$Function_InitCurrentTurn
+%#export $Function_GetCurrentTurn
+%#export $GetEnviroVar
+%#export $SetEnviroVar
+
+% #export	$Script_InitEnviroEffect
+% #export	$Script_ExecEnviroEffect
+
+
+#export:Function $Function_SetLevel %pass in enemy pointer
+{
+	PUSH	RA, S0, S1, S2
+	DADDU	S1, A0, R0
+	LW		S0, C (S1)
+	LW		A1, 0 (S0)
+	JAL		~Func:get_variable
+	ADDIU	S0, S0, 4
+	DADDU	A0, S1, R0
+	LW		A1, 0 (S0)
+	JAL		~Func:get_variable
+	DADDU	S2, V0, R0
+	SB		V0, 6 (S2)
+	POP		RA, S0, S1, S2
+	JR		RA
+	ADDIU V0, R0, 2
+}
+
+#export:Function $Function_SetEscape %sets the "can you run away?" flag (zero = no, non-zero = yes)
+{
+PUSH	RA
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument
+SLTI	V0, V0, 1 %force it to be a boolean value, (but this inverts it too!)
+LUI		A1, 800E %1st half of battle data address (actually 800D)
+LB		A2, C077 (A1) %get the flags
+BEQ		V0, R0, .false 
+ORI		A2, A2, 20  %20 flag
+ANDI	A2, A2, FFDF %everything but the 20 flag (signed value?)
+.false
+SB		A2, C077 (A1) %set the flags
+POP		RA
+JR RA
+ORI V0, R0, 2
+}
+
+%Fix stop status effect against Mario
+
+%Observations
+%The game reads a value from 80744FFC to determine which message to display, depending on status
+%then it looks through a jump table, if it can't find that status, it defaults to message "0"
+%though 0 here is actually string 1D-71 ?
+
+%apparently if you inflict certain status effects, they will all say the same message (the spell will increase your attack power)
+%Hopefully that specific text box isn't broken by my patch here (it's not)
+@Function 17622C
+{
+ADDIU A0, R0, 9
+}
+
+/%
+#export	$Function_HasGreedStone
+#export	$HasGreedStone
+
+#export $Function_PartnerSwap
+#export $Function_StunPartner
+#export $Function_SubtractMaxHP
+
+#export $Function_HPHeal
+#export $Function_FPHeal
+#export $Function_AddSP
+
+
+#export $Function_HasItems
+
+#export $KillMario
+
+#export $Custom_8024FB3C
+#export $Custom_80250818
+#export $Custom_80250EA4
+#export $ShowCustomMessage
+
+#export $Function_SetLevel
+#export $Function_SetEscape
+%/

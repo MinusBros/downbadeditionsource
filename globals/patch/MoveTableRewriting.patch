@@ -16,15 +16,38 @@
 	8008FEA9
 }
 
-
 #new:Function $OuttaSightCheck
 {
 	PUSH	RA
 	%Also reset outta sight cost
 	LAW		V1, $OuttaSightAddress
-	ORI		V0, R0, 3
+	ORI		V0, R0, 5
 	SB		V0, 0 (V1)
 	POP		RA
 	JR		RA
 	NOP
 }
+
+%13F420 --> 8024C0E0
+@Hook 13F474
+{
+	PUSH 	T0, T1
+	%this isn't the best way but who cares
+	LI		T0, 8010F2CC	
+	LB		T1, 0 (T0)
+	SB		R0, 0 (T0)
+	%
+	ADDU    V0, S3, V0
+	LBU     V0, 14 (V0)
+	%
+	SB		T1, 0 (T0)
+	POP		T0, T1
+	PUSH	V0, V1
+	%Also reset outta sight cost
+	LAW		V1, $OuttaSightAddress
+	ORI		V0, R0, 3
+	SB		V0, 0 (V1)
+	POP		V0, V1
+	J		8024C13C
+	NOP
+} 

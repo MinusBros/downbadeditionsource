@@ -1,0 +1,99 @@
+@	$Script_80240380
+{
+    0:  If  *GF_ISK09_ThirdWarning  ==  .False
+   10:  	Thread
+   18:  		Call  SetMusicTrack ( 00000000 .Song:TutankoopaWarning 00000000 00000008 )
+   50:  		Call  DisablePlayerInput        ( .True )
+   60:  		Wait  15`
+   6C:  		SetGroup  00000000
+   78:  		Call  SetTimeFreezeMode ( 00000001 )
+   88:  		Call  ShowMessageAtScreenPos    ( 000D00DF  160`  40` ) % Uh...? Wait! C'mon, don't go in that room! ... Ooo ...
+   A0:  		Set   *GF_ISK09_ThirdWarning  .True
+   B0:  		Call  DisablePlayerInput        ( .False )
+   C0:  		Call  SetTimeFreezeMode ( 00000000 )
+   D0:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  108:  	EndThread
+  110:  	Return
+  118:  EndIf
+  120:  Switch  *GB_StoryProgress
+  12C:  	Case  <  .Story:Ch2_SolvedArtifactPuzzle % FFFFFFC7
+  138:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  154:  	Case  <  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  160:  		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000000 00000008 )
+  17C:  	Case  >=  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  188:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  1A4:  EndSwitch
+  1AC:  Return
+  1B4:  End
+}
+
+@	$Script_ExitWalk_80240580
+{
+   [40]  Wait  75`
+}
+
+
+#import AutoSave.mpat
+
+%Auto-save game after getting Super Hammer.
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryRuins
+   10:  Call  SetSpriteShading  ( .Shading:isk_09 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_80241DB0
+   9C:  Exec  $Script_80240380
+   A8:  ExecWait  $Script_80241CA4
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_802405DC
+   38:  	Return
+   40:  EndIf
+   B4:  Set   *Var0  $Script_802405DC
+   C4:  Exec  EnterWalk
+   D0:  Return
+   D8:  End
+}
+
+@	$Script_802408BC
+{
+    0:  If  *GF_ISK09_GiantChest  ==  .False
+   10:  	ExecWait  $Script_8024083C
+   1C:  	Loop
+   28:  		If  *GF_ISK09_GiantChest  ==  .True
+   38:  			BreakLoop
+   40:  		EndIf
+   48:  		Wait  1`
+   54:  	EndLoop
+   5C:  	Call  PartnerIsFlying   ( *Var0 )
+   6C:  	If  *Var0  ==  .False
+   7C:  		Thread
+   84:  			Call  DisablePartnerAI  ( 00000000 )
+   94:  			Call  NpcFlyTo  ( .Npc:Partner  -222`  -347`  -531`  20`  0` .Easing:Linear )
+   BC:  			Call  InterpNpcYaw      ( .Npc:Partner  70`  0` )
+   D4:  			Loop
+   E0:  				If  *GB_StoryProgress  ==  .Story:Ch2_GotSuperHammer % FFFFFFC5
+   F0:  					BreakLoop
+   F8:  				EndIf
+  100:  				Wait  1`
+  10C:  			EndLoop
+  114:  			Call  EnablePartnerAI ( )
+  120:  		EndThread
+  128:  	EndIf
+  130:  	Wait  60`
+  13C:  	Exec  $Script_8024053C
+  148:  	Call  ShowMessageAtScreenPos    ( 001D017D  160`  40` ) % You got the Super Hammer! The attack power of Mari ...
+  160:  	Call  $Function_802402BC ( )
+  16C:  	Set   *GB_StoryProgress  .Story:Ch2_GotSuperHammer
+  17C:  EndIf
+  184:  ExecWait  $Script_8024087C
+		Exec  $AutoSave
+  190:  Return
+  198:  End
+}

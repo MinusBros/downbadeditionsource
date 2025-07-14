@@ -33,10 +33,15 @@ glad I have this cap.[BR]
 ~Vec4f:Entry1 %  coordinates
 }
 
+%This room has a tendency to crash, so auto-save just in case
+%unless I can figure out the solution.
+
+#import AutoSave.mpat
+
 #new:Script_Main $Script_Main
 {
 	Set  *GB_WorldLocation  1B 
-	Call	SetSpriteShading 	( 00030000 
+	Call	SetSpriteShading 	( 00030000 )
 	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
 	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
 	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
@@ -50,6 +55,11 @@ glad I have this cap.[BR]
 	ExecWait $Script_MakeEntities 
 		Set		*Var[0] $Script_MakeExits 
 		Exec	EnterWalk 
+	Thread
+		Wait  20`
+		Call  802D5FA4  ( 00000004 )
+	EndThread
+	Exec  $AutoSave
 	Return
 	End
 }
@@ -110,13 +120,13 @@ glad I have this cap.[BR]
 
 #new:AISettings $AISettings_802435B0
 {
-    1.5 % move speed
+    1.0 % move speed
     500` % move time
     10` % wait time
    80.0 % alert radius
    30.0
     3`
-    5.5 % chase speed
+    3.6 % chase speed
     40`
     3`
   250.0 % chase radius

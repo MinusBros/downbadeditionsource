@@ -232,17 +232,24 @@
     C:  	Case  ==  00000000
    18:  		Call  SetGroupEnabled   ( ~Model:shop_in 00000001 )
    2C:  		Call  EnableModel       ( ~Model:o375 .False )
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Call  PushSong      ( 000000A1 00000000 )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Thread
+						Wait  50`
+						Call  PushSong      ( 000000A1 00000000 )
+						EndThread
+					EndIf
 				EndIf
    40:  	Case  ==  00000002
    4C:  	Case  ==  00000003
    58:  		Call  SetGroupEnabled   ( ~Model:shop_in 00000000 )
    6C:  		Call  EnableModel       ( ~Model:o375 .True )
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+						Call  PopSong ( )
+					EndIf
 				EndIf
    80:  EndSwitch
    88:  Return
@@ -264,7 +271,10 @@
 				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
 					If *ShopState == 00000000
 						Set *ShopState 00000001
+						Thread
+						Wait  30`
 						Call  PushSong      ( 000000A5 00000000 )	%Heavy Lobster / Dojo Theme
+						EndThread			
 					EndIf
 				EndIf
    3C:  	Case  ==  00000003
@@ -280,6 +290,37 @@
    7C:  EndSwitch
    84:  Return
    8C:  End
+}
+
+
+
+@	$Script_ToggleVis_802455A0
+{
+    0:  Switch  *Var0
+    C:  	Case  ==  00000000
+   18:  		Call  SetGroupEnabled   ( ~Model:intel_inn 00000001 )
+   2C:  		Set   *MapFlag[0A]  .True
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Thread
+						Wait  30`
+						Call  PushSong      ( 000000C2 00000000 )	%Russ T Theme
+						EndThread			
+					EndIf
+				EndIf
+   3C:  	Case  ==  00000003
+   48:  		Call  SetGroupEnabled   ( ~Model:intel_inn 00000000 )
+   5C:  		Set   *MapFlag[0A]  .False
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+						Call  PopSong ( )
+					EndIf
+				EndIf
+   6C:  EndSwitch
+   74:  Return
+   7C:  End
 }
 
 % ====================================================

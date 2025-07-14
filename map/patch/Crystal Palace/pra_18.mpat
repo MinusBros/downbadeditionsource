@@ -1,0 +1,93 @@
+@	$Script_80240F90
+{		
+		Call  UseDoorSounds ( .DoorSounds:Basic )
+		If  *GB_StoryProgress  <  .Story:Ch7_DefeatedClubbas
+			Call  SetMusicTrack ( 00000000 .Song:Elite4 00000000 00000008 )
+			Return
+		Else
+			Call  SetMusicTrack ( 00000000 .Song:CrystalPalace 00000000 00000008 )
+		EndIf
+		Thread
+   		Label 1
+    0:  Switch  *GB_StoryProgress
+   34:  	Case  >=  .Story:Ch7_DefeatedKooperDuplighosts
+   40:  		Call  802D5FA4  ( 00000007 )
+    C:  	Case  .Story:Ch7_DefeatedMirrorDuplighosts to .Story:Ch7_DefeatedClubbas
+   18:  		Call  802D5FA4  ( 00000006 )
+   88:  	Default
+   90:  		Call  802D5FA4  ( 00000005 )
+   9C:  EndSwitch
+			Wait  3`
+			Goto  1
+		EndThread
+   2C:  Return
+   34:  End
+}
+
+
+@	$Script_Defeat_8024226C
+{
+    0:  Thread
+    8:  	Call  DisablePlayerInput    ( .True )
+   18:  	Wait  50`
+   24:  	Loop  0000000A
+   30:  		Wait  2`
+   3C:  		Call  SetGroupEnabled   ( ~Model:g298 00000001 )
+   50:  		Wait  2`
+   5C:  		Call  SetGroupEnabled   ( ~Model:g298 00000000 )
+   70:  	EndLoop
+   78:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1174 7FFFFE00 )
+   90:  	Bind  $Script_802413C0 .Trigger:WallPressA ~Collider:deilittne 00000001 00000000
+   AC:  	Set   *GB_StoryProgress  .Story:Ch7_DefeatedClubbas
+   BC:  	Call  DisablePlayerInput    ( .False )
+   CC:  EndThread
+   D4:  Thread
+   DC:  	Wait  30`
+   E8:  	Set   *VarA  000002D5
+   F8:  	Set   *VarB  00000014
+  108:  	Set   *VarC  FFFFFFB5
+  118:  	Exec  $Script_80241DF4
+  124:  EndThread
+  12C:  Call  DoNpcDefeat ( )
+		Exec  $Script_80240F90
+  138:  Return
+  140:  End
+}
+
+#import AutoSave.mpat
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:CrystalPalace
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  24`  24`  40` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80243350 )
+   98:  Exec  $Script_80240F90
+   A4:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   B4:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1174 7FFFFE00 )
+   CC:  	Call  SetGroupEnabled       ( ~Model:g298 00000000 )
+   E0:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1175 7FFFFE00 )
+   F8:  	Call  SetGroupEnabled       ( ~Model:g296 00000000 )
+  10C:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1176 7FFFFE00 )
+  124:  	Call  SetGroupEnabled       ( ~Model:g297 00000000 )
+  138:  Else
+  140:  	Switch  *GB_PRA18_ClubbasDefeated
+  14C:  		Case  ==  00000001
+  158:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:o1176 7FFFFE00 )
+  170:  			Call  SetGroupEnabled       ( ~Model:g297 00000000 )
+  184:  		Case  ==  00000002
+  190:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:o1175 7FFFFE00 )
+  1A8:  			Call  SetGroupEnabled       ( ~Model:g296 00000000 )
+  1BC:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:o1176 7FFFFE00 )
+  1D4:  			Call  SetGroupEnabled       ( ~Model:g297 00000000 )
+  1E8:  	EndSwitch
+  1F0:  EndIf
+  1F8:  Exec  $Script_802415C4
+  204:  Wait  1`
+		Exec  $AutoSave
+  210:  Return
+  218:  End
+}

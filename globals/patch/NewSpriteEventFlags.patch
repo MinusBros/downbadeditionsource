@@ -1,0 +1,22 @@
+
+%Make it so that Quake + Jump does not trigger spikiness (normally, jump moves are hardcoded to trigger spikiness unless you have spike shield, regardless of other factors)
+%1A0034 --> 80271754
+/%
+   E0:  LW        V0, 188 (S2)								%(damage type word)
+   E4:  ANDI      V0, V0, 80								%check for 80 (Jump)
+%/
+@Hook 1A0114
+{
+	LW        V0, 188 (S2)
+	%Check for 800 flag
+	ANDI      V0, V0, 800
+	BNE		  V0, R0, .new
+	NOP
+	.normal
+	LW        V0, 188 (S2)
+	J		  8027183C
+	ANDI      V0, V0, 80	%check it normally
+	.new
+	J		  8027183C
+	ORI		  V0, R0, 0		%nope, no jump flag here
+}
