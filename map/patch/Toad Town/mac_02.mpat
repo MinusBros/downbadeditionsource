@@ -1,5 +1,14 @@
 #define .NpcID:TayceT_00            00
 #define .NpcID:FiceT_01             01
+#define .NpcID:Bubulb_02            02
+#define .NpcID:Toad_03              03
+#define .NpcID:ThreeSisters_04      04
+#define .NpcID:Toad_05              05
+#define .NpcID:ToadKid_06           06
+#define .NpcID:Toad_07              07
+#define .NpcID:Toad_08              08
+#define .NpcID:Bootler_09           09
+#define .NpcID:ShyGuy_11            0B
 
 
 @	$Script_802435C0
@@ -16,6 +25,11 @@
    5C:  End
 }
 
+%Nagitoad
+@	$Script_Interact_8024C618
+{
+  [194]  Call  SpeakToPlayer ( .NpcID:Toad_08 00830704 00830701 00000000 *Var0 ) % variable string ID
+}
 
 
 %New plot point that demands you get a Forest Pass from Fice T.
@@ -124,6 +138,10 @@
 %Having a few less dialogue boxes to mash through will
 %save a lot of time, much like Zess T. in TTYD Remake.
 
+
+#define .lOneItemCook 5
+#define .lHandleCook 6
+
 @	$Script_80249684
 {
     0:  Call  DisablePlayerInput    ( .True )
@@ -162,17 +180,17 @@
   2F4:  	Goto  1
   300:  EndIf
   308:  If  *GF_MAC02_TayceT_HasCookbook  ==  .False
-  318:  	Goto  5
+  318:  	Goto  .lOneItemCook
   324:  EndIf
   32C:  Call  $Function_80243040    ( *Var0 )
   33C:  If  *Var0  <  00000002
-  34C:  	Goto  5
+  34C:  	Goto  .lOneItemCook
   358:  EndIf
   360:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040007 ) % Would you like me to use another ingredient?
   380:  Call  ShowChoice    ( 001E0010 ) % Yes No
   390:  Call  CloseMessage ( )
   39C:  If  *Var0  ==  00000001
-  3AC:  	Goto  5
+  3AC:  	Goto  .lOneItemCook
   3B8:  EndIf
   3C0:  Label  2
   3CC:  Call  RemoveItem    ( *Var8 *Var0 )
@@ -203,17 +221,26 @@
   5F4:  Set   *Var1  *Var9
   604:  Call  $Function_80241874    ( *Var1 )
   69C:  Call  $Function_80242DBC    ( *Var6 *Var7 *Var8 *Var9 )
-  6B8:  Call  RemoveItem        ( *Var8 *Var0 )
-  6CC:  Call  RemoveItem        ( *Var9 *Var0 )
-  6E0:  Goto  6
-  6EC:  Label  5
-  6F8:  Set   *Var0  *Var8
-  708:  Call  $Function_80241874    ( *Var0 )
-  7A0:  Call  $Function_80242C44    ( *Var6 *Var7 *Var8 *GF_MAC02_TayceT_HasCookbook )
+  % Cook double item recipe:
+  %69C:  Call     $Function_80242DBC ( *Var[6] *Var[7] *Var[8] *Var[9] )
+        ExecWait $Script_Get2ItemRecipe
+  6B8:  Call     RemoveItem  	( *Var[8] *Var[0] )
+  6CC:  Call     RemoveItem  	( *Var[9] *Var[0] )
+  6E0:  Goto     .lHandleCook
+  % One Item
+  6EC:  Label    .lOneItemCook 
+  6F8:  Set  *Var[0]  *Var[8] 
+  708:  Call     $Function_80241874 ( *Var[0] )
+  718:  Call     SetMessageString 	( *Var[0] 00000000 )
+  75C:  If  *Var[0]  ==  00000001 
+  76C:  	Call     ContinueSpeech 	( 00000000 00AA0004 00AA0001 00000000 0004000C ) % Oh my. You don't want me to cook now? Well, come b ...
+  78C:  	Goto     00000009 
+  798:  EndIf
+  %7A0:  Call     $Function_80242C44 ( *Var[6] *Var[7] *Var[8] *Flag_MAC_98 ) % GetOneItemRecipe
+        ExecWait $Script_Get1ItemRecipe
   7BC:  Call  RemoveItem    ( *Var8 *Var0 )
-  7D0:  Label  6
+  7D0:  Label  .lHandleCook
   7DC:  Call  SpeakToPlayer        ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 0004000D ) % I'll whip something special up just for you, honey ...
-  7FC:  ExecWait  $Script_802490F8
   808:  Switch  *Var7
   814:  	Case  ==  00000000
   820:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040012 ) % Oh... I'm so sorry. This recipe didn't work out. O ...
@@ -235,7 +262,7 @@
 			Wait  20`
 			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0001 )
 		EndThread
-  944:  ExecWait  $Script_80246154
+  944:  ExecWait  $Script_80246154 %Show got item
   950:  Call  AddItem   ( *Var6 *Var0 )
   964:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040015 ) % Come back anytime, hon. I look forward to it!
   984:  Label  9
@@ -273,6 +300,7 @@
    7C:  End
 }
 
+
 @	$RecipesDiscovedIDs
 {
 	000000B0 000000B1 000000B2 000000B3 000000B4 000000B5 000000B6 000000B7
@@ -303,6 +331,10 @@
 }
 
 
+
+%==========================================
+% Recipes
+%==========================================
 
 % COOKING OVERHAUL
 % By JaThePlayer
@@ -544,6 +576,7 @@
 .Item:Spaghetti .Item:PotatoSalad .Item:YummyMeal
 %New Stuff%
 .Item:CakeMix 	.Item:ShootingStar .Item:StarCake
+.Item:Horsetail FFFFFFFF .Item:SpicySoup
 }
 
 
@@ -620,6 +653,24 @@
    30:  LI        V0, 2
 }
 
+
+@ $Script_Interact_8024A034
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+   10:  	If  *GB_StoryProgress  <  .Story:Ch4_GotTayceTsCake % FFFFFFFD
+   20:  		ExecWait  $Script_8024926C
+   2C:  		Return
+   34:  	EndIf
+   3C:  EndIf
+   44:  Call  FindKeyItem   ( .Item:Cookbook *Var0 )
+   58:  If  *Var0  ==  FFFFFFFF
+   68:  	ExecWait  $Script_80249684
+   74:  Else
+   7C:  	ExecWait  $Script_80249550
+   88:  EndIf
+   90:  Return
+   98:  End
+}
 
 
 % in *Var[6] -> Item
@@ -1191,4 +1242,80 @@ FFFFFFF2 00000012 % < chapter 4 start
 02010202 01000201 00010201 00020100 
 02000102 00000001 00020002 02010001
 02020102 02010102 00020102 01000201
+}
+
+
+
+@	$NpcGroup_8024CB48
+{
+	.NpcID:TayceT_00 $NpcSettings_80246090 ~Vec3f:NPC_TayceT_00 % -217 20 -434
+	00002D09 $Script_Init_8024A0D4 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_TayceT_00
+	~AnimationTable:NPC_TayceT_00 % .Sprite:TayceT
+	00000000 00000000 $ExtraAnimationList_8024CB04 001A0033 % She's Tayce T., by far the greatest cook around. T ...
+	%
+	% $NpcGroup_8024CB48[1F0]
+	.NpcID:FiceT_01 $NpcSettings_80246090 ~Vec3f:NPC_FiceT_01 % 389 0 -90
+	00002D09 $Script_Init_8024AC30 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_FiceT_01
+	~AnimationTable:NPC_FiceT_01 % .Sprite:FiceT
+	00000000 00000000 00000000 001A0034 % This Toad guards the path to Forever Forest. He lo ...
+	%
+	% $NpcGroup_8024CB48[3E0]
+	.NpcID:Bubulb_02 $NpcSettings_80246124 ~Vec3f:NPC_Bubulb_02 % 150 20 500
+	00000801 $Script_Init_8024CA88 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Bubulb_02
+	~AnimationTable:NPC_Bubulb_02 % .Sprite:Bubulb
+	00000000 00000000 $ExtraAnimationList_8024CB2C 001A003C % Oh! A Bub-ulb. Talking flowers seem weird... Didn' ...
+	%
+	% $NpcGroup_8024CB48[5D0]
+	.NpcID:Toad_03 $NpcSettings_80245F90 ~Vec3f:NPC_Toad_03 % 40 0 -60
+	00002D09 $Script_Init_8024BE48 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_03
+	~AnimationTable:NPC_Toad_03 % .Sprite:Toad
+	00000000 00000000 00000000 001A0035 % This Toad is diligent and very hard working. He ha ...
+	%
+	% $NpcGroup_8024CB48[7C0]
+	.NpcID:ThreeSisters_04 $NpcSettings_80246090 ~Vec3f:NPC_ThreeSisters_04 % -26 0 -220
+	00002D09 $Script_Init_8024C090 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ThreeSisters_04
+	~AnimationTable:NPC_ThreeSisters_04 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0036 % She worships Tayce T. because she really loves to  ...
+	%
+	% $NpcGroup_8024CB48[9B0]
+	.NpcID:Toad_05 $NpcSettings_80246090 ~Vec3f:NPC_Toad_05 % -350 20 -140
+	00002D09 $Script_Init_8024C278 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_05
+	~AnimationTable:NPC_Toad_05 % .Sprite:Toad
+	00000000 00000000 00000000 001A0037 % This Toad can't keep his mouth shut. He's an incur ...
+	%
+	% $NpcGroup_8024CB48[BA0]
+	.NpcID:ToadKid_06 $NpcSettings_80245F90 ~Vec3f:NPC_ToadKid_06 % 180 20 -435
+	00002D09 $Script_Init_8024C3A4 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ToadKid_06
+	~AnimationTable:NPC_ToadKid_06 % .Sprite:ToadKid
+	00000000 00000000 00000000 001A0038 % He always talks about what he wants to be when he  ...
+	%
+	% $NpcGroup_8024CB48[D90]
+	.NpcID:Toad_07 $NpcSettings_80245F90 ~Vec3f:NPC_Toad_07 % -160 0 25
+	00002D09 $Script_Init_8024C5F4 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_07
+	~AnimationTable:NPC_Toad_07 % .Sprite:Toad
+	00000000 00000000 00000000 001A0039 % This Toad is pretty smart. I wonder where he gets  ...
+	%
+	% $NpcGroup_8024CB48[F80]
+	.NpcID:Toad_08 $NpcSettings_80246090 ~Vec3f:NPC_Toad_08 % -80 0 300
+	00002D09 $Script_Init_8024C7DC 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_08
+	~AnimationTable:NPC_Toad_08 % .Sprite:Toad
+	00000000 00000000 00000000 001A003A % This Toad is constantly running his mouth. When I' ...
 }

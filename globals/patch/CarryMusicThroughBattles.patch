@@ -1,0 +1,119 @@
+%Made by Rain
+%Patch allows defining a byte in memory to be used as a toggle for if -
+%the overworld music should carry into the battle
+
+/%
+	Example scripting usage to toggle this flag on
+	Call $SetFlagCarryOverworldMusicToBattle()
+
+	Example scripting usage to toggle this flag off
+	Call $ClearFlagCarryOverworldMusicToBattle()
+
+%/
+
+#define .GameByteMusicToggleAddr 800DBD9E
+
+%update_encounters_pre_battle
+/% comments these lines out in `update_encounters_pre_battle`
+	// bgm_push_battle_song();
+	// HasPreBattleSongPushed = TRUE;
+%/
+@Hook:Global 800416C4 {
+	LABU at, .GameByteMusicToggleAddr %load Gamebyte for if carrying overworld music into battle
+	BNE at, r0, .keepOverworldMusic
+	NOP
+
+	%block of code to play music and push previous song
+	JAL 8014AEF8
+	NOP
+	ADDIU v0, r0, 1
+	LUI at, 800A
+	SB v0, A654 (at)
+
+	.keepOverworldMusic
+	J 800416D8
+	NOP
+}
+
+
+
+%btl_state_update_celebration
+/% does this patch in `btl_state_update_celebration`
+	// sfx_play_sound(SOUND_JINGLE_WON_BATTLE);
+	prevSP = playerData->starPoints + battleStatus->totalStarPoints;
+    // if (prevSP > 99) {
+    //     bgm_set_song(0, SONG_LEVEL_UP, 0, 250, 8);
+    // } else {
+    //     bgm_set_song(0, SONG_BATTLE_END, 0, 250, 8);
+    // }
+%/
+@Hook:Battle 8025E260 {
+	LABU at, .GameByteMusicToggleAddr %load Gamebyte for if carrying overworld music into battle
+	BNE at, r0, .skipBattleWonJingle
+	NOP
+	JAL 80149CB4 %sfx_play_sound(SOUND_JINGLE_WON_BATTLE);
+	ADDIU a0, r0, 00D4
+	.skipBattleWonJingle
+	J 8025E268
+	NOP
+}
+
+@Hook:Battle 8025E2A0 {
+	%a1 holds song ID here, 0x8E is level up, 0x8B is battle end
+	LABU at, .GameByteMusicToggleAddr %load Gamebyte for if carrying overworld music into battle
+	BNE at, r0, .skipBattleEndMusic
+	NOP
+
+	JAL 8014A918
+	ADDIU a3, r0, 00FA
+	.skipBattleEndMusic
+	J 8025E2A8
+	NOP
+}
+
+@Hook:Battle 8025E23C {
+	LUI at, 802A %restore from hook
+	SW r0, FB8C (at) %restore from hook, LevelUpSelectTextVelX = 0;
+
+	LABU at, .GameByteMusicToggleAddr %load Gamebyte for if carrying overworld music into battle
+	BEQ at, r0, .normalMusicRoutine
+	NOP
+
+	%added logic to set BS_FLAGS2_DONT_STOP_MUSIC
+	LI at, 800DC070 %gBattleStatus
+	LW v0, 0004 (at) %gBattleStatus.flags2
+	LUI a0, 0200 %BS_FLAGS2_DONT_STOP_MUSIC
+	OR v0, v0, a0
+	SW v0, 0004 (at) %set BS_FLAGS2_DONT_STOP_MUSIC
+
+	.normalMusicRoutine
+	J 8025E244
+	NOP
+}
+
+%Make the music not fade on running away
+@Hook:Battle 80245308 {
+	LABU at, .GameByteMusicToggleAddr %load Gamebyte for if carrying overworld music into battle
+	BNE at, r0, .skipBattleEndRemovingMusic
+	NOP
+
+	JAL 8014A918
+	ADDIU a3, r0, 05DC
+	.skipBattleEndRemovingMusic
+	J 80245310
+	NOP
+}
+
+
+#export:Function $SetFlagCarryOverworldMusicToBattle {
+	ORI t0, r0, 1
+	SAB t0, .GameByteMusicToggleAddr
+	JR RA
+	ORI v0, r0, 2 %return ApiStatus_DONE2;
+}
+
+#export:Function $ClearFlagCarryOverworldMusicToBattle {
+	SAB r0, .GameByteMusicToggleAddr
+	JR RA
+	ORI v0, r0, 2 %return ApiStatus_DONE2;	
+}

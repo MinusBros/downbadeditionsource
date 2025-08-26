@@ -39,6 +39,8 @@ to Goombarius's house,[Pause 10] then[BR]
 we'd be talking! Heh!
 [Wait][End]
 }
+
+
 	
 
 #new:EntryList $EntryList
@@ -140,14 +142,48 @@ End
 	Return
 	End
 }
+
+
+#import SwapToGoombarius.mpat
 	
 	 #new:Script $Script_Interact
 {
 	Call	 DisablePlayerInput ( .True )
 	Call     SpeakToPlayer 	( .Npc:Self 00950104 00950101 00000000 $TalkString )
+	ExecWait  $SwapToGoombarius %Bow in this case
+	Call     SpeakToPlayer 	( .Npc:Partner 00050009 00050009 00000005 $Bow )
+	Call     SpeakToPlayer 	( .Npc:Self 00950104 00950101 00000000 $IUnderstand )
 	Call	 DisablePlayerInput ( .False )
 	Return
 	End
+}
+
+
+@	$SwapToGoombarius
+{
+		Call  EnablePartnerAI ( )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Bow 
+			Call  $PartnerSwap    ( 00000008 )
+			Thread
+				Set   *MapVar[0]  00000000
+				Wait  1`
+				Set   *MapVar[0]  00000001
+			EndThread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcYaw ( .Npc:Partner  90` )
+			Call  EnablePartnerAI ( )
+			Loop
+				Wait  1`
+				If  *MapVar[0]  ==  00000001
+				BreakLoop
+				EndIf
+			EndLoop
+		Wait  32`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+		Return
+		End
 }
 	
 #string $TalkString
@@ -166,6 +202,24 @@ hairy junkie like [Pause 3][PrintRising]you[/fx][Pause 3] is invited![BR]
 through here.[BR]
 [Pause 10]What do you say, my Lady?
 [Wait][End]
+}
+
+
+#string $Bow
+{
+[Style Right]
+[Wave]Ohohohoho![/fx][BR]
+What a delightful idea![BR]
+[Wait][Next]
+But... [Pause 8]I'm afraid it'll have to[BR]
+wait until after we tkae care[BR]
+of our debates.[Wait][End]
+}
+
+#string $IUnderstand
+{
+[Style Right]
+[PrintRising]You got it, my lady![/fx][Wait][End]
 }
 	
 	% =========
@@ -193,7 +247,7 @@ through here.[BR]
 ~Movement:booguard
 00950101 00950102 00950103 00950103 00950101 00950101 00950100 00950100 
 00950101 00950102 00950103 00950103 00950101 00950101 00950100 00950100
-00000000 00000000 00000000 001A0124 % he has a tattle now!
+00000000 00000000 00000000 001A0126 % he has a tattle now!
 }
 
 #new:NpcSettings $BlankSettings

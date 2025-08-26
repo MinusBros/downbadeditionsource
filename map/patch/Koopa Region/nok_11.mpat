@@ -7,6 +7,24 @@
 #define .NpcID:KentCKoopa_08        08
 
 
+% Add a new exit to nok_05
+
+@ $Header
+{
+	[MainScript]  $Script_Main_EnterWalk
+	[EntryList]   $EntryList
+	[EntryCount]  00000003
+	[Background]  80200000
+	[MapTattle]   00190045
+}
+
+@ $EntryList
+{
+	~Vec4f:Entry0 % -758.0    0.0  -49.0   90.0
+	~Vec4f:Entry1 %  886.0    0.0  -40.0  270.0
+	~Vec4f:Entry2
+}
+
 
 #new:Function $Function_SwapToGoombarius
 {
@@ -21,6 +39,46 @@
    20:  LI        V0, 2
    24:  JR        RA
    28:  ADDIU     SP, SP, 18
+}
+
+
+#new:Script $Script_ExitWalk_Entry2
+{
+    Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
+    Exec  ExitWalk
+    Call  GotoMap   ( "nok_05" 00000000 )
+    Wait  100`
+    Return
+    End
+}
+
+@	$Script_80242400
+{
+    0:  Bind  $Script_ExitWalk_80242010 .Trigger:FloorAbove ~Collider:deiri1 00000001 00000000
+   1C:  Bind  $Script_ExitWalk_80242088 .Trigger:FloorAbove ~Collider:deili2 00000001 00000000
+		Bind  $Script_ExitWalk_Entry2 .Trigger:FloorAbove ~Collider:Exit2 00000001 00000000
+   38:  Return
+   40:  End
+}
+
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity802425F0 80000000 )
+   24:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242614 .Item:Coin 80000000 )
+   4C:  Call  AssignBlockFlag   ( *GF_NOK11_ItemBlock_Coin )
+   5C:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity8024264C 80000000 )
+   80:  Call  MakeEntity    ( .Entity:RedBlock ~Vec4d:Entity80242670 .Item:DizzyAttack 80000000 )
+   A8:  Call  AssignBlockFlag   ( *GF_NOK11_BadgeBlock_DizzyAttack )
+   B8:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity802426A8 80000000 )
+   DC:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity802426CC 80000000 )
+  100:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity802426F0 .Item:FrightJar 80000000 )
+  128:  Call  AssignBlockFlag   ( *GF_NOK11_ItemBlock_FrightJar )
+  100:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:newbadge .Item:PleaseComeBack 80000000 )
+  128:  Call  AssignBlockFlag   ( *GF_NOK11_NewBlock )
+  138:  Return
+  140:  End
 }
 
 

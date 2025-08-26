@@ -1,11 +1,61 @@
 @	$Script_UsePower
 {
-   [3C]  Wait  5`
-   [50]  	Wait  4`
-  [108]  Call  $Function_802A18E8    ( *Var0 *Var1 *Var2 00000007 )
-  [160]  Call  $Function_802A19A8    ( *Var0 *Var1 *Var2 00000007 )
-  [1A8]  Call  802D7520      ( *Var0 *Var1 *Var2 00000007 )
-  [1C4]  Call  $Function_802A1840    ( 00000007 )
-  [1D4]  Call  $Function_802A1894    ( 00000007 )
-  [1F0]  Wait  16`
+    0:  ExecWait  $Script_802A1A70
+    C:  SetConst  *Var0  00190001
+   1C:  ExecWait  $Script_802A21A0
+   28:  Call  SetNpcAnimation   ( 00000064 00190002 )
+   3C:  Wait  4`
+   48:  Thread
+   50:  	Wait  10`
+   5C:  	Call  UseBattleCamPreset    ( 00000002 )
+   6C:  EndThread
+   74:  Call  PlaySound     ( 00000242 )
+   84:  Call  EnableNpcBlur ( 00000064 .True )
+   98:  Call  $Function_802A1518    ( 00000064 )
+   A8:  Call  EnableNpcBlur ( 00000064 .False )
+   BC:  Call  DeleteNpc     ( 00000064 )
+   CC:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   E8:  Add   *Var0  00000000
+   F8:  Add   *Var1  00000023
+  108:  Call  $Function_802A18E8    ( *Var0 *Var1 *Var2 00000007 )
+  124:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  140:  Add   *Var0  00000014
+  150:  Add   *Var1  00000019
+  160:  Call  $Function_802A19A8    ( *Var0 *Var1 *Var2 00000007 )
+  17C:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+  198:  Add   *Var1  00000019
+  1A8:  Call  802D7520      ( *Var0 *Var1 *Var2 00000007 )
+  1C4:  Call  $Function_802A1840    ( 00000007 )
+  1D4:  Call  $Function_802A1894    ( 00000007 )
+  1E4:  Call  $Function_802A17D4 ( )
+  1F0:  Wait  15`
+  1FC:  Call  80276EFC ( )
+  208:  ExecWait  $Script_802A27FC
+		Call $LuckyStarRefund
+		Return
+		End
 }
+	
+#new:Function $LuckyStarRefund
+{
+  PUSH        V0, RA                        % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Lucky Day
+  ADDIU       A0, R0, 171                   % id of badge (Lucky Day = 114) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  LIO         S0, $SPSubtractArguments      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  .NotEquipped
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0, RA                        % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  JR          RA                            % Return to the Script
+  NOP                                       % Nullpointer below the JR, because a JR ALWAYS reads the next line too
+}
+
+#new:Unknown $SPSubtractArguments
+{
+FFFFFFFF 000000AA                           % The typical SPSubtractMainFunction Arguments ( Full bars / Fractions of a bar )
+}
+	

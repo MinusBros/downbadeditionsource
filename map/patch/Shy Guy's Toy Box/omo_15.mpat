@@ -16,7 +16,120 @@
 
 @	$Script_Idle_80241930
 {
+   [94]  			Call  SetNpcAnimation   ( .Npc:Self 003B0C03 )
+   [A8]  			Call  SetNpcSpeed       ( .Npc:Self *Fixed[4.0] )
   [14C]  			Call  StartBossBattle   ( .Song:KoopaBrosInterlude )
+}
+
+
+@	$Script_80240F98
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Wait  30`
+   1C:  Thread
+   24:  	Wait  10`
+   30:  	Call  GetCurrentPartner ( *Var0 )
+   40:  	If  *Var0  !=  00000000
+   50:  		Call  802D2B6C ( )
+   5C:  		Wait  30`
+   68:  		Call  802D2C14  ( 00000001 )
+   78:  		Call  SetNpcFlagBits    ( .Npc:Partner 00000100 .True )
+   90:  		Wait  45`
+   9C:  		Call  802D2C14  ( 00000000 )
+   AC:  	EndIf
+   B4:  EndThread
+   BC:  Call  SpeakToPlayer ( .NpcID:GeneralGuy_00 0076000A 00760002 00000000 000F005F ) % So, you came, did you?
+   DC:  Wait  10`
+   E8:  Call  UseSettingsFrom   ( .Cam:Default  250`  -50`  10` )
+  104:  Call  SetPanTarget  ( .Cam:Default  250`  -50`  10` )
+  120:  Call  SetCamPosB    ( .Cam:Default *Fixed[205.0] *Fixed[11.0] )
+  138:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  14C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  164:  Wait  20`
+  170:  Call  SpeakToPlayer ( .NpcID:GeneralGuy_00 0076000A 00760002 00000000 000F0060 ) % I'm General Guy. We're following the orders of Kin ...
+  190:  Wait  20`
+  19C:  Call  SpeakToPlayer ( .NpcID:GeneralGuy_00 0076000A 00760002 00000000 000F0061 ) % I don't care for you, sir. You are rude, and furth ...
+  1BC:  Wait  20`
+  1C8:  Call  SpeakToPlayer ( .NpcID:GeneralGuy_00 0076000A 00760002 00000000 000F0062 ) % Prepare to fight me, sir!
+  1E8:  Call  SetPlayerSpeed    ( *Fixed[3.0] )
+  1F8:  Call  PlayerMoveTo  (  -200`  0`  0` )
+  210:  Set   *Var0  00000001
+  220:  Loop  00000009
+  22C:  	Call  SetNpcAnimation   ( *Var0 003B0C02 )
+  240:  	Add   *Var0  00000001
+  250:  EndLoop
+  258:  Call  SetNpcAnimation   ( .NpcID:GeneralGuy_00 0076000C )
+  26C:  Call  ShowMessageAtScreenPos    ( 000F0063  160`  40` ) % Taste defeat!
+  284:  Call  SetNpcAnimation   ( .NpcID:GeneralGuy_00 00760002 )
+  298:  Wait  20`
+		Call $SetFlagCarryOverworldMusicToBattle()
+  2A4:  Set   *Var0  00000001
+  2B4:  Loop  00000009
+  2C0:  	Call  SetNpcAnimation   ( *Var0 003B0C01 )
+  2D4:  	Add   *Var0  00000001
+  2E4:  EndLoop
+  2EC:  Call  SpeakToPlayer ( .NpcID:GeneralGuy_00 00760002 0076000A 00000000 000F0064 ) % Charge!!
+  30C:  Thread
+  314:  	Wait  10`
+			Call  SetMusicTrack ( 00000000 .Song:KoopaBrosInterlude 00000000 00000008 )
+  320:  	Call  PlaySound ( 8000004D )
+  330:  	Set   *Var0  00000001
+  340:  	Loop  00000009
+  34C:  		Call  SetNpcVar ( *Var0 00000000 0000000A )
+  364:  		Add   *Var0  00000001
+  374:  	EndLoop
+  37C:  EndThread
+  384:  Loop  0000001E
+  390:  	Call  SetCamDistance    ( .Cam:Default *Fixed[330.0] )
+  3A4:  	Wait  1`
+  3B0:  	Call  SetCamDistance    ( .Cam:Default *Fixed[320.0] )
+  3C4:  	Wait  1`
+  3D0:  EndLoop
+  3D8:  Set   *Var0  00000001
+  3E8:  UseIntBuffer  $IntTable_80240F2C
+  3F4:  Loop  00000009
+  400:  	Get3Int  *Var1 *Var2 *Var3
+  414:  	Call  SetNpcSpeed   ( *Var0 *Var1 )
+  428:  	Call  SetNpcPos     ( *Var0 *Var2  0` *Var3 )
+  444:  	Add   *Var0  00000001
+  454:  EndLoop
+  45C:  Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+  470:  Wait  20`
+  47C:  Label  5
+  488:  Call  GetNpcVar ( .NpcID:ShyGuy_09 00000000 *Var0 )
+  4A0:  If  *Var0  !=  00000028
+  4B0:  	Wait  1`
+  4BC:  	Goto  5
+  4C8:  EndIf
+		
+  4D0:  Call  GetCurrentPartnerID   ( *Var0 )
+  4E0:  If  *Var0  ==  .Partner:Watt % 6
+  4F0:  	Call  DisablePartnerAI  ( 00000000 )
+  500:  	Call  SpeakToPlayer     ( .Npc:Partner 00000108 00000106 00000000 000F0075 ) % Yay! Yippeeee!! We beat the Shy Guys! Hm hm hee he ...
+  520:  	Call  EnablePartnerAI ( )
+  52C:  EndIf
+  534:  Call  InterpPlayerYaw       (  90`  0` )
+  548:  Call  SetPanTarget  ( .Cam:Default  150`  0`  0` )
+  564:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.5] )
+  578:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  590:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call $ClearFlagCarryOverworldMusicToBattle()
+  5A4:  Call  FadeOutMusic  ( 00000000 00000BB8 )
+  5B8:  Exec  $Script_802408E0
+  5C4:  Call  DisablePlayerInput    ( .False )
+  5D4:  Return
+  5DC:  End
+}
+
+
+
+@	$Script_80241AC4
+{
+  [21C]  				Call  SetNpcAnimation   ( *Var9 003B0C04 )
+  [230]  				Call  SetNpcSpeed       ( *Var9 *Fixed[10.0] )
+  [390]  					Call  SetNpcAnimation   ( *Var9 003B0C10 )
+  [490]  				Call  SetNpcAnimation   ( *Var9 003B0C01 )
+ 
 }
 
 %Update the Red Shy Guys to Grey.

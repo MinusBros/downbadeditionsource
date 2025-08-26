@@ -39,12 +39,37 @@
 
 @	$Script_80240A48
 {
-    [0]  Call  SetBattleMusic    ( .Song:LegendaryBattle )
+		Call  $ClearFlagCarryOverworldMusicToBattle()
+    0:  Call  SetBattleMusic    ( .Song:LegendaryBattle )
+   10:  Call  GetOwnerEncounterTrigger  ( *Var0 )
+   20:  Switch  *Var0
+   2C:  	Case  ==  .EncounterTrigger:None % 1
+   38:  	CaseOR  ==  .EncounterTrigger:Jump % 2
+   44:  	CaseOR  ==  .EncounterTrigger:Hammer % 4
+   50:  	CaseOR  ==  .EncounterTrigger:Partner % 6
+   5C:  		Set   *Var0  002E0003
+   6C:  		ExecWait  800936DC
+   78:  	Case  ==  .EncounterTrigger:Spin % 3
+   84:  		Thread
+   8C:  			Call  800458CC  ( *Var0 )
+   9C:  			If  *Var0  ==  00000000
+   AC:  				Set   *VarA  00000000
+   BC:  				Loop  0000001E
+   C8:  					Add   *VarA  00000028
+   D8:  					Call  SetNpcRotation    ( .Npc:Self 00000000 *VarA 00000000 )
+   F4:  					Wait  1`
+  100:  				EndLoop
+  108:  			EndIf
+  110:  		EndThread
+  118:  	EndCaseGroup
+  120:  EndSwitch
+  128:  Return
+  130:  End
 }
-
 
 @	$Script_EnterDoubleDoor_80240490
 {
+		Call $SetFlagCarryOverworldMusicToBattle()
     0:  Call  GetLoadType   ( *Var1 )
    10:  If  *Var1  ==  00000001
    20:  	Exec  EnterSavePoint

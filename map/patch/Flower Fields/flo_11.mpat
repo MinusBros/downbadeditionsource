@@ -1,6 +1,8 @@
 #define .NpcID:Lakitu_00            00
 #define .NpcID:Lakitu_01            01
 
+#import AutoSave.mpat
+
 %Let's add some Bzzaps from Master Quest
 
 @ $NpcGroupList_802430D4
@@ -47,7 +49,7 @@
   1B0:  Call  SetCamDistance    ( .Cam:Default  450` )
   1C4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   1DC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-  1F0:  Wait  20`
+  1F0:  Wait  10`
   1FC:  Set   *Var0  0000010E
   20C:  Set   *Var1  00000064
   21C:  Set   *Var2  FFFFFFA9
@@ -60,7 +62,7 @@
   2C4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
   2D8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   2F0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-  304:  Wait  20`
+  304:  Wait  10`
 		Call  PushSong      ( .Song:MinibossBattle 00000000 )
   310:  Call  SetCamDistance    ( .Cam:Default  150` )
   324:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-16.0] )
@@ -74,7 +76,7 @@
   394:  Call  NpcFaceNpc    ( .NpcID:Lakitu_00 .NpcID:Lakitu_01 00000001 )
   3AC:  Call  NpcFaceNpc    ( .NpcID:Lakitu_01 .NpcID:Lakitu_00 00000001 )
   3C4:  Exec  $Script_80241E4C
-  3D0:  Wait  15`
+  3D0:  Wait  10`
   3DC:  Call  SpeakToPlayer ( .NpcID:Lakitu_00 00490016 00490001 00000000 00110088 ) % Hey! Where'd you drop it, idiot? Huff N. Puff will ...
   3FC:  Call  NpcFaceNpc    ( .NpcID:Lakitu_01 .NpcID:Lakitu_00 00000001 )
   414:  Call  SpeakToPlayer ( .NpcID:Lakitu_01 00490016 00490001 00000000 00110089 ) % Ohhhh, man, I'm so clumsy... That stone gave out a ...
@@ -119,7 +121,38 @@
 }
 
 
-
+@	$Script_Defeat_802428B8
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  SetNpcPos     ( .NpcID:Lakitu_00  400`  20`  -40` )
+   44:  		Call  SetNpcPos     ( .NpcID:Lakitu_01  400`  20`  40` )
+   60:  		Call  InterpNpcYaw  ( .NpcID:Lakitu_00  270`  0` )
+   78:  		Call  InterpNpcYaw  ( .NpcID:Lakitu_01  270`  0` )
+   90:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   A8:  		Add   *Var2  FFFFFFC4
+   B8:  		Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+   D4:  		Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   F0:  		Call  SetCamDistance        ( .Cam:Default  900` )
+  104:  		Call  SetCamPitch   ( .Cam:Default *Fixed[24.0] *Fixed[-4.0] )
+  11C:  		Call  SetCamPosA    ( .Cam:Default *Fixed[-95.0] *Fixed[0.0] )
+  134:  		Call  SetCamPosB    ( .Cam:Default *Fixed[0.0] *Fixed[-50.0] )
+  14C:  		Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  160:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  178:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  18C:  		ExecWait  $Script_802420C8
+  198:  		Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+  1AC:  		Set   *GF_FLO11_Defeated_Lakitus  .True
+  1BC:  		Set   *MapVar[0]  00000001
+  1CC:  		Call  DisablePlayerInput    ( .False )
+				Exec  $AutoSave
+  1DC:  	Case  ==  .Outcome:PlayerLost % 1
+  1E8:  	Case  ==  .Outcome:PlayerFled % 2
+  1F4:  EndSwitch
+  1FC:  Return
+  204:  End
+}
 
 
 % dumped from map flo_09

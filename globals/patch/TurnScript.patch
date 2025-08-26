@@ -45,123 +45,11 @@ ADDIU	V0, R0, 2
 	00000000
 }
 
-#export:Data $AntiHustleToken
-{
-	00000000
-}
 
 
 
 %80745072		= player
 %
-
-/%
-%Triggers before Mario's turn
-@Hook 170E04 %80242524
-{
-PUSH	 RA, A0, A1, A2, A3, T0, T1, S5		%probably unnecessary but who cares
-LIO 	 A0, $FirstTimeText %script
-ADDIU    A1, R0, 000A %priority
-DADDU    A2, R0, R0 %????
-DADDU	 A3, R0, R0 %group id?
-JAL 	 802C33E0 %Start Script
-NOP
-%Reset autoblock value
-%Reset BEFORE turn so that it stays in effect until next turn
-%Check AutoBlock
-JAL     $IsBadgeEquipped
-ORI		A0, R0, FC %formerly payoff
-%
-ORI		V0, R0, 1
-BNE		A0, R0, .yes
-NOP
-%ORI	V0, R0, 0
-LAB 	V0, $BattlePerks[2]
-BLE		V0, R0, .postautoblock
-NOP
-ADDI	V0, V0, FFFF
-SAB 	V0, $BattlePerks[2]
-BEQ		R0, R0, .postautoblock
-NOP
-.yes
-SAB 	V0, $BattlePerks[2]
-.postautoblock
-%Reset stellar nova boolean
-SAB		R0, $StellarNovaBoolean
-%Reset Flower Power value (Failsafe 1)
-SAB		R0, $FlowerPowerBool
-%Now check Mario's chill / defdown values
-%I could probably make this less convoluted but it works so I won't fix it
-LAW		A0, 800DC148	%Get mario pointer
-LB		S5, 224 (A0) %chillout duration
-BNE		S5, R0, .chill
-NOP
-SB		R0, 223 (A0) %chillout strength
-SB		R0, 224 (A0) %chillout duration
-BEQ		R0, R0, .endchill
-NOP
-.chill
-ADDI	S5, S5, FFFF
-BNE		S5, R0, .endchill
-SB		S5, 224 (A0) %chillout duration
-SB		R0, 223 (A0) %chillout strength
-SB		R0, 224 (A0) %chillout duration
-%only gets here if it ticks from 1 to 0
-JAL		$Function_LoseAttackEffect
-NOP
-.endchill
-LB		S5, 226 (A0) %defdown duration
-BNE		S5, R0, .defdown
-NOP
-SB		R0, 225 (A0) %defdown strength
-SB		R0, 226 (A0) %defdown duration
-BEQ		R0, R0, .enddefdown
-NOP
-.defdown
-ADDI	S5, S5, FFFF
-BNE		S5, R0, .enddefdown
-SB		S5, 226 (A0) %defdown duration
-SB		R0, 225 (A0) %defdown strength
-SB		R0, 226 (A0) %defdown duration
-%only gets here if it ticks from 1 to 0
-JAL		$Function_LoseDefenseEffect
-NOP
-.enddefdown
-LI		A0, $ItemCostReductionData
-LB		S5, 1 (A0)		%turncount
-BNE		S5, R0, .saver
-NOP
-SB		R0, 0 (A0)		%str
-SB		R0, 1 (A0)		%count
-BEQ		R0, R0, .endsaver
-NOP
-.saver
-ADDI	S5, S5, FFFF
-BNE		S5, R0, .endsaver
-SB		S5, 1 (A0)		%count
-SB		R0, 0 (A0)		%str
-SB		R0, 1 (A0)		%count
-%only gets here if it ticks from 1 to 0
-JAL		$Function_LoseSaverEffect
-NOP
-.endsaver
-LI		A0, $MiracleJellyData
-LB		S5, 0 (A0)		%turncount
-SLTI	T0, S5, 1
-BNE		T0, R0, .endmiracle
-SB		R0, 0 (A0)		%count
-.miracle
-ADDI	S5, S5, FFFF
-BNE		S5, R0, .endmiracle
-SB		S5, 0 (A0)		%count
-.endmiracle
-SAW		R0, $AntiHustleToken				%Reset this
-POP		RA, A0, A1, A2, A3, T0, T1, S5
-LUI S0, 800E
-J		8024252C
-ADDIU	S0, S0, C070
-}
-%/
 
 #new:Function $Function_LoseAttackEffect 
 {
@@ -673,27 +561,3 @@ End
 
 %#export $EnableAutoBlock
 
-
-
-%Thanks quackles
- %Note that this actually handles clearing the cache and storing it to the hustle tracker. Caching is handled in Hustle Drink's patch.
-  
-@Hook 175328 %80246450 + 5F8
-{
-    %A1 has flag clear mask
-    %V1 has battle struct
-    %V0 has battle flags
-    %A0 is about to be overwritten
-    LUI    A0, 400
-    AND    A0, V0, A0 %A0 will be nonzero if hustle flag is set
-    BEQL A0, R0, .clearCache
-        NOP
-    LAB A0, $BattlePerks[1]    
-    SB    A0, 8B (V1) %store result from cache into hustle byte
-    .clearCache 
-    SAB R0, $BattlePerks[1]    
-    %now put back original code from hook, and return
-    ADDIU        A0, R0, 8
-    J            80246A50 %80246450 + 600
-    AND            V0, V0, A1 %this clears hustle flag, so uncached value will be stored for next turn
-}  

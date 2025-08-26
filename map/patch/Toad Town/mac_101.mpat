@@ -1,0 +1,1291 @@
+#import mac_01_data.mpat
+
+%Make this Ninji red and give him a unique name.
+
+@	$NpcGroup_8025441C
+{
+	.NpcID:Ninji_29 $NpcSettings_80248B44 ~Vec3f:NPC_Ninji_29 % 0 -1000 0
+	11300F08 00000000 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_Ninji_29
+	~AnimationTable:NPC_Ninji_29 % .Sprite:Ninji
+	00000000 00000000 00000000 001A001F % He's a Toad kid who wants to be really powerful. H ...
+}
+
+
+@ $Function_8024522C
+{
+  [A4]  LA        A3, $Global_ItemHudScripts
+}
+
+
+
+@	$Script_80246770
+{
+    0:  Switch  *GB_StoryProgress
+   34:  	Case  ==  .Story:Epilogue % 60
+				If  *GF_EnclosureFlag == .False
+   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+				EndIf
+   5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   6C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   88:  	Default
+   90:  		Exec  $Script_802488A8
+   9C:  EndSwitch
+   A4:  Return
+   AC:  End
+}
+
+
+@	$Script_80246850
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   38:  	Default
+   40:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+   5C:  		Wait  20`
+   68:  		Call  802D5EE0      ( 00000000 )
+   78:  		Call  802D5F28      ( 00000000 00000002 00000002 )
+   90:  EndSwitch
+   98:  Return
+   A0:  End
+}
+
+
+
+@	$Script_80246BD8
+{
+    0:  Bind  $Script_ExitWalk_80246950 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  Bind  $Script_80246A88 .Trigger:WallPressA ~Collider:deilitn 00000001 00000000
+   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
+   48:  	Return
+   50:  EndIf
+   58:  Bind  $Script_ExitWalk_802469AC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   74:  Bind  $Script_ExitWalk_80246B7C .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
+   90:  Bind  $Script_80259AD0 .Trigger:WallPressA ~Collider:deilitf 00000001 00000000
+   AC:  Return
+   B4:  End
+}
+
+
+
+
+%Speedy Spin and Happy Heart have swapped places.
+%A Speedy Spin can now be obtained as soon as you
+%reach Shooting Star Summit or in Prologue.
+%Happy Heart A is obtainable after Chapter 1.
+
+
+
+
+
+% ====================================================
+% Changed the way Rowf selects badges from his table.
+% Now you can supply up to 64` badges. As a bonus,
+% Flag_MAC_03 through Flag_MAC_12 are no longer used.
+% ====================================================
+
+% When the number of badges in the table is changed,
+% be sure to update this number! Maximum is 40 (64`).
+#define .NumRowfBadges 19`
+
+%FFFFFF80 == After Chapter 1
+%FFFFFFCB == After Chapter 2
+%FFFFFFF3 == After Chapter 3
+%00000007 == After Chapter 4
+%00000029 == After Chapter 5
+%0000003B == After Chapter 6
+
+@	$RowfBadgeInventory
+{
+ FFFFFF80	.Item:HappyHeartA     50`    00240079 % Replaces Speedy Spin.
+ FFFFFF80	.Item:FirstAttack     25`    00240087 % 
+ FFFFFF80	.Item:Multibounce     50`    0024005E % 
+ FFFFFF80	.Item:DDownPound      50`    00240069 % Now renamed Piercing Blow.
+ FFFFFFCB	.Item:SpinSmash       50`    00240068 % Now renamed Super Hammer.
+ FFFFFFCB	.Item:SleepStomp      50`    0024005C % 
+ FFFFFFCB	.Item:DoubleDip      100`    0024006D % 
+ FFFFFFCB	.Item:DodgeMaster     75`    00240080 % Now renamed Tatsujin.
+ FFFFFFF3	.Item:JumpCharge      75`    0024005A % 
+ FFFFFFF3	.Item:MedicineMan    100`    0024005A % Medicine Man added.
+ FFFFFFF3	.Item:HPPlusC        100`    00240071 % 
+ 00000007   .Item:TornadoJump_1      100`    00230115 % Tornado Jump added.
+ 00000007	.Item:DamageDodgeA   100`    00240075 % 
+ 00000007	.Item:SSmashChg       75`    00240065 % 
+ 00000007	.Item:PityFlower     125`    0023011B % Pity Flower added.
+ 00000029	.Item:MegaQuake      200`    0024006C %
+ 00000029   .Item:SuperSmash     175`	 00230067 % Multi-Smash added.
+ 00000029	.Item:AllorNothing   125`    00240093 % 
+ 0000003B   .Item:MegaHPDrain    175`	 00230114 % Mega HP Drain added.
+ 0000003B	.Item:FPPlusC        100`    00240072 % 
+ 0000003B	.Item:ShrinkSmash    200`    00240072 % Recoil Throw added.
+}
+
+
+%Start shop music
+
+@	 $Script_8025573C
+{
+		If *ShopState == 00000000
+			Set *ShopState 00000001
+			Call  PushSong      ( 000000A1 00000001 )
+		EndIf		
+    0:  Set   *MapFlag[0B]  .True
+   10:  Call  SetNpcYaw ( 00000001  270` )
+   24:  Thread
+   2C:  	Call  PlaySoundAt   ( 000000A9 00000000 FFFFFF24 00000025 0000010F )
+   4C:  	Call  MakeLerp      ( 00000000 FFFFFF24 0000001E .Easing:CosBounce )
+   68:  	Label  0
+   74:  	Call  UpdateLerp ( )
+   80:  	Call  RotateModel   ( ~Model:omote *Var0 00000001 00000000 00000000 )
+   A0:  	If  *Var1  ==  00000001
+   B0:  		Wait  1`
+   BC:  		Goto  0
+   C8:  	EndIf
+   D0:  EndThread
+   D8:  Wait  4`
+   E4:  Thread
+   EC:  	Call  MakeLerp  ( 00000000 FFFFFF88 0000000A .Easing:CosSlowOvershoot )
+  108:  	Label  1
+  114:  	Call  UpdateLerp ( )
+  120:  	DivF  *Var0  *Fixed[10.0]
+  130:  	Call  TranslateModel    ( ~Model:omote2 00000000 *Var0 00000000 )
+  14C:  	If  *Var1  ==  00000001
+  15C:  		Wait  1`
+  168:  		Goto  1
+  174:  	EndIf
+  17C:  EndThread
+  184:  Thread
+  18C:  	Call  MakeLerp  ( 00000000 00000064 00000005 .Easing:CosSlowOvershoot )
+  1A8:  	Label  2
+  1B4:  	Call  UpdateLerp ( )
+  1C0:  	DivF  *Var0  *Fixed[10.0]
+  1D0:  	Call  TranslateModel    ( ~Model:ura 00000000 00000000 *Var0 )
+  1EC:  	If  *Var1  ==  00000001
+  1FC:  		Wait  1`
+  208:  		Goto  2
+  214:  	EndIf
+  21C:  EndThread
+  224:  Call  EnableModel   ( ~Model:ju_1 .True )
+  238:  Call  $Function_80244CC0 ( )
+  244:  Call  PlaySoundAtCollider   ( ~Collider:o295 000000AA 00000000 )
+  25C:  UseIntBuffer  $IntTable_802555AC
+  268:  Loop  00000032
+  274:  	Get2Int  *Var0 *MapVar[0]
+  284:  	Call  RotateGroup   ( ~Model:jutan2 *Var0 00000000 00000001 00000000 )
+  2A4:  	DivF  *Var0  *Fixed[10.0]
+  2B4:  	Set   *MapVar[1]  *Var0
+  2C4:  	Call  RotateGroup   ( ~Model:jutan1 *Var0 00000000 00000001 00000000 )
+  2E4:  	DivF  *Var0  *Fixed[200.0]
+  2F4:  	AddF  *Var0  *Fixed[1.0]
+  304:  	Call  ScaleGroup    ( ~Model:jutan2 *Var0 00000001 *Var0 )
+  320:  	Wait  1`
+  32C:  EndLoop
+  334:  Call  NpcJump0  ( 00000001  -213`  6`  256`  16` )
+  354:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
+  364:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:b3 7FFFFE00 )
+  37C:  EndIf
+  384:  If  *GF_MAC01_RowfBadgeAvailableB  ==  .False
+  394:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:b2 7FFFFE00 )
+  3AC:  EndIf
+  3B4:  If  *GF_MAC01_RowfBadgeAvailableC  ==  .False
+  3C4:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:b1 7FFFFE00 )
+  3DC:  EndIf
+  3E4:  Return
+  3EC:  End
+}
+
+
+%Stop music
+
+@	$Script_80255B30
+{
+		If *ShopState == 00000001
+			Set *ShopState 00000000
+			Call  PopSong ( )
+		EndIf
+    0:  Set   *MapFlag[0B]  .False
+   10:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
+   20:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b3 7FFFFE00 )
+   38:  EndIf
+   40:  If  *GF_MAC01_RowfBadgeAvailableB  ==  .False
+   50:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b2 7FFFFE00 )
+   68:  EndIf
+   70:  If  *GF_MAC01_RowfBadgeAvailableC  ==  .False
+   80:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b1 7FFFFE00 )
+   98:  EndIf
+   A0:  Call  NpcJump0  ( 00000001  -220`  -54`  261`  16` )
+   C0:  Thread
+   C8:  	Call  PlaySoundAtCollider   ( ~Collider:o295 000000AC 00000000 )
+   E0:  	Call  MakeLerp      ( 00000000 00000258 00000032 .Easing:Linear )
+   FC:  	Label  A
+  108:  	Call  UpdateLerp ( )
+  114:  	Call  RotateGroup   ( ~Model:jutan2 *Var0 00000000 00000001 00000000 )
+  134:  	DivF  *Var0  *Fixed[10.0]
+  144:  	Set   *MapVar[1]  *Var0
+  154:  	Call  RotateGroup   ( ~Model:jutan1 *Var0 00000000 00000001 00000000 )
+  174:  	DivF  *Var0  *Fixed[200.0]
+  184:  	AddF  *Var0  *Fixed[1.0]
+  194:  	Call  ScaleGroup    ( ~Model:jutan2 *Var0 00000001 *Var0 )
+  1B0:  	If  *Var1  ==  00000001
+  1C0:  		Wait  1`
+  1CC:  		Goto  A
+  1D8:  	EndIf
+  1E0:  	Call  EnableModel   ( ~Model:ju_1 .False )
+  1F4:  	Call  $Function_80244D68 ( )
+  200:  EndThread
+  208:  Wait  10`
+  214:  Thread
+  21C:  	Call  MakeLerp      ( FFFFFF24 00000000 00000014 .Easing:QuadraticIn )
+  238:  	Label  0
+  244:  	Call  UpdateLerp ( )
+  250:  	Call  RotateModel   ( ~Model:omote *Var0 00000001 00000000 00000000 )
+  270:  	If  *Var1  ==  00000001
+  280:  		Wait  1`
+  28C:  		Goto  0
+  298:  	EndIf
+  2A0:  	Call  PlaySoundAt   ( 000000AB 00000000 FFFFFF24 00000025 0000010F )
+  2C0:  EndThread
+  2C8:  Wait  15`
+  2D4:  Thread
+  2DC:  	Call  MakeLerp  ( FFFFFF88 00000000 0000000A .Easing:CosInOut )
+  2F8:  	Label  1
+  304:  	Call  UpdateLerp ( )
+  310:  	DivF  *Var0  *Fixed[10.0]
+  320:  	Call  TranslateModel    ( ~Model:omote2 00000000 *Var0 00000000 )
+  33C:  	If  *Var1  ==  00000001
+  34C:  		Wait  1`
+  358:  		Goto  1
+  364:  	EndIf
+  36C:  EndThread
+  374:  Thread
+  37C:  	Call  MakeLerp  ( 00000064 00000000 00000005 .Easing:CosInOut )
+  398:  	Label  2
+  3A4:  	Call  UpdateLerp ( )
+  3B0:  	DivF  *Var0  *Fixed[10.0]
+  3C0:  	Call  TranslateModel    ( ~Model:ura 00000000 00000000 *Var0 )
+  3DC:  	If  *Var1  ==  00000001
+  3EC:  		Wait  1`
+  3F8:  		Goto  2
+  404:  	EndIf
+  40C:  EndThread
+  414:  Wait  31`
+  420:  Return
+  428:  End
+}
+
+
+@	$Script_Main
+{
+		Call  SetSpriteShading  ( .Shading:arn_11 )
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  90`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *AreaFlag[00E]  .False
+   94:  Set   *AreaFlag[00F]  .False
+   A4:  Set   *AreaFlag[010]  .False
+   B4:  Set   *AreaFlag[011]  .False
+   C4:  Set   *AreaFlag[012]  .False
+   D4:  Set   *AreaFlag[013]  .False
+   E4:  Set   *AreaFlag[014]  .False
+   F4:  Set   *AreaFlag[015]  .False
+  104:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+  114:  	Exec  $Script_80248070
+  120:  Else
+  128:  	Call  EnableGroup   ( ~Model:jutan1 .False )
+  13C:  EndIf
+  144:  Switch  *GB_StoryProgress
+  150:  	Case  ==  .Story:Intro % FFFFFF80
+  15C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025FA2C )
+  170:  	Case  >=  .Story:Epilogue % 60
+  17C:  		Call  MakeNpcs  ( .False $NpcGroupList_80261830 )
+  190:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+  19C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFF0 )
+  1B0:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+  1BC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F044 )
+  1D0:  	Case  ==  .Story:Ch1_DefeatedJrTroopa % FFFFFFB6
+  1DC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F080 )
+  1F0:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+  200:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0BC )
+  214:  	Case  ==  .Story:Ch6_ReturnedToToadTown % 3C
+  220:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0F8 )
+  234:  	Default
+  23C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFA8 )
+  250:  EndSwitch
+  258:  If  *GB_StoryProgress  >=  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+  268:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt 7FFFFE00 )
+  280:  EndIf
+  288:  Exec  $Script_8025A2F0
+  294:  Exec  $Script_MakeEntities
+  2A0:  Exec  $Script_80247D18
+  2AC:  Exec  $Script_80248818
+  2B8:  Exec  $Script_80248428
+  2C4:  Exec  $Script_80246770
+  2D0:  Call  UseDoorSounds ( .DoorSounds:Large )
+  2E0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+  2F0:  Exec  $Script_EnterWalk_80246C94
+  2FC:  Wait  1`
+  308:  Call  EnableTexPanning      ( ~Model:hikari .True )
+  31C:  Thread
+  324:  	SetGroup  00000000
+  330:  	Set   *Var0  00000000
+  340:  	Set   *Var1  00000000
+  350:  	Label  0
+  35C:  	Add   *Var0  FFFFFF9C
+  36C:  	Add   *Var1  FFFFFF38
+  37C:  	If  *Var0  <  00000000
+  38C:  		Add   *Var0  00010000
+  39C:  	EndIf
+  3A4:  	If  *Var1  <  00000000
+  3B4:  		Add   *Var0  00010000
+  3C4:  	EndIf
+  3CC:  	Call  SetTexPanOffset   ( 00000003 00000000 *Var0 00000000 )
+  3E8:  	Call  SetTexPanOffset   ( 00000003 00000001 *Var1 *Var1 )
+  404:  	Wait  1`
+  410:  	Goto  0
+  41C:  EndThread
+  424:  Bind  $Script_8024F27C .Trigger:WallPressA ~Collider:o335 00000001 00000000
+  440:  Exec  $Script_8025023C
+  44C:  Exec  $Script_80262604
+  458:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  46C:  Return
+  474:  End
+}
+
+%Play song when you enter Merlon's house.
+
+@	$Script_ToggleVis_80247A70
+{
+    0:  Switch  *Var0
+    C:  	Case  ==  00000000
+   18:  		Switch  *GB_StoryProgress
+   24:  			Case  <  .Story:Ch1_SpokeWithMerlin % FFFFFF9A
+   30:  				ExecWait  $Script_802502AC
+   3C:  				Set   *Var0  FFFFFFFF
+   4C:  				Return
+   54:  			Case  .Story:Ch6_ReturnedToToadTown  to  .Story:Ch7_InvitedToStarbornValley % 3C to 3D
+   64:  				Exec  $Script_80252EB0
+   70:  			Case  .Story:Ch3_GotSuperBoots  to  .Story:Ch8_ReachedPeachsCastle % FFFFFFD8 to 5F
+   80:  				If  *GB_StoryProgress  ==  .Story:Ch6_ReturnedToToadTown % 3C
+   90:  					BreakCase
+   98:  				EndIf
+   A0:  				If  *GF_MAC01_Merlon_HeardAboutDream  ==  .False
+   B0:  					Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 0003003C ) % Merlon is here!
+   D0:  					Set   *Var0  FFFFFFFF
+   E0:  					Return
+   E8:  				EndIf
+   F0:  			Case  >=  .Story:Epilogue % 60
+   FC:  				Call  ShowMessageAtScreenPos    ( 0001003F  160`  40` ) % Merlon isn't here now! Go away!
+  114:  				Set   *Var0  FFFFFFFF
+  124:  				Return
+  12C:  		EndSwitch
+				Thread
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Wait  24`
+						Call  PushSong      ( 000000AC 00000000 )
+					EndIf
+				EndIf
+				EndThread
+  134:  		Call  SetGroupEnabled   ( ~Model:dr_in 00000001 )
+  148:  		Set   *MapFlag[0A]  .True
+  158:  	Case  ==  00000001
+  164:  	Case  ==  00000002
+  170:  	Case  ==  00000003
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+				If *ShopState == 00000001
+					Set *ShopState 00000000
+					Call  PopSong ( )
+						If *MerlonState == 00000001
+							Exec $Script_80246850
+							Set *MerlonState 00000000
+						EndIf
+				EndIf
+				EndIf
+  17C:  		Call  SetGroupEnabled   ( ~Model:dr_in 00000000 )
+  190:  		Set   *MapFlag[0A]  .False
+  1A0:  EndSwitch
+  1A8:  Return
+  1B0:  End
+}
+
+
+
+@	$Script_80250414
+{
+    0:  Call  ShowMessageAtScreenPos    ( 00030020  160`  40` ) % Why do you keep on knocking? I'm telling you he's  ...
+   18:  Call  SetGroupEnabled   ( ~Model:dr_in 00000001 )
+   2C:  Thread
+   34:  	Call  PlaySoundAtCollider   ( ~Collider:deilitd .Sound:BasicDoorOpen 00000000 )
+   4C:  	Call  MakeLerp  ( 00000000 FFFFFFB0 0000000F .Easing:CosFastOvershoot )
+   68:  	Loop
+   74:  		Call  UpdateLerp ( )
+   80:  		Call  RotateModel   ( ~Model:door *Var0 00000000 00000001 00000000 )
+   A0:  		Wait  1`
+   AC:  		If  *Var1  ==  00000000
+   BC:  			BreakLoop
+   C4:  		EndIf
+   CC:  	EndLoop
+   D4:  EndThread
+   DC:  Thread
+   E4:  	Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[2.0] )
+  100:  EndThread
+  108:  Thread
+  110:  	Wait  1`
+  11C:  	Call  DisablePlayerPhysics  ( .True )
+  12C:  	Call  SetPlayerFlagBits     ( 00200000 .True )
+  140:  	Call  InterpPlayerYaw       (  270`  0` )
+  154:  	Wait  1`
+  160:  	Call  SetPlayerAnimation    ( .PlayerAnim:FallBack )
+  170:  	Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+  180:  	Call  PlayerJump1   (  -222`  20`  -158`  8` )
+  19C:  	Wait  5`
+  1A8:  	Call  SetPlayerFlagBits     ( 00200000 .False )
+  1BC:  	Call  $Function_80243380    ( 00000001 00000025 )
+  1D0:  	Call  $Function_80243500    ( FFFFFF29 00000014 FFFFFF62 )
+  1E8:  	Wait  1`
+  1F4:  	Call  SetPlayerPos  (  -215`  1000`  -158` )
+  20C:  	Call  MakeLerp  ( 00000000 0000005A 0000000A .Easing:QuadraticIn )
+  228:  	Loop
+  234:  		Call  UpdateLerp ( )
+  240:  		Call  $Function_802435C0    ( *Var0 00000000 00000000 )
+  258:  		Wait  1`
+  264:  		If  *Var1  ==  00000000
+  274:  			BreakLoop
+  27C:  		EndIf
+  284:  	EndLoop
+  28C:  	Call  $Function_80243500    ( FFFFFF29 00000015 FFFFFF62 )
+  2A4:  	Call  PlaySoundAtPlayer     ( 00000162 00000000 )
+  2B8:  EndThread
+  2C0:  Wait  50`
+  2CC:  Call  SetNpcPos ( 00000000  -241`  20`  -270` )
+  2E8:  Call  SetNpcAnimation   ( 00000000 00A50002 )
+  2FC:  Call  NpcMoveTo ( 00000000  -168`  -198`  20` )
+  318:  Call  SetNpcAnimation   ( 00000000 00A50001 )
+  32C:  Call  GetAngleToPlayer  ( 00000000 *Var0 )
+  340:  Call  InterpNpcYaw      ( 00000000 *Var0  5` )
+  358:  Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030021 ) % What the...? Why is someone sleeping in front of m ...
+  378:  Call  $Function_80243500    ( FFFFFF29 00000014 FFFFFF62 )
+  390:  Call  MakeLerp  ( 0000005A 00000000 0000000F .Easing:QuadraticOut )
+  3AC:  Loop
+  3B8:  	Call  UpdateLerp ( )
+  3C4:  	Call  $Function_802435C0    ( *Var0 00000000 00000000 )
+  3DC:  	Wait  1`
+  3E8:  	If  *Var1  ==  00000000
+  3F8:  		BreakLoop
+  400:  	EndIf
+  408:  EndLoop
+  410:  Call  SetPlayerPos      (  -222`  20`  -158` )
+  428:  Call  $Function_80243494 ( )
+  434:  Call  InterpPlayerYaw   (  90`  0` )
+  448:  Call  SetPlayerActionState  ( .ActionState:Jump )
+  458:  Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+  468:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  480:  Call  PlayerJump        ( *Var0 *Var1 *Var2  15` )
+  49C:  Call  SetPlayerActionState  ( .ActionState:Land )
+  4AC:  Wait  10`
+  4B8:  Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030022 ) % Oh! Maybe... No... Yes! It must be! You're Mario!  ...
+  4D8:  Thread
+  4E0:  	Call  SetNpcAnimation   ( 00000000 00A50002 )
+  4F4:  	Call  NpcMoveTo ( 00000000  -275`  -305`  30` )
+  510:  	Call  SetNpcAnimation   ( 00000000 00A50001 )
+  524:  	Call  SetNpcPos ( 00000000  -337`  20`  -360` )
+  540:  	Call  SetNpcYaw ( 00000000  135` )
+  554:  EndThread
+  55C:  Call  PlayerMoveTo  (  -168`  -198`  20` )
+  574:  Call  PlayerMoveTo  (  -275`  -305`  30` )
+  58C:  Exec  $Script_8024E7F0
+  598:  Wait  5`
+  5A4:  Call  SetNpcPos     ( .Npc:Partner  -240`  20`  -284` )
+  5C0:  Call  $Function_802447E0 ( )
+  5CC:  Thread
+  5D4:  	Set   *VarF  00000035
+  5E4:  	Set   *Var0  00000000
+  5F4:  	Call  $Function_802448A0 ( )
+  600:  EndThread
+  608:  Call  RotateGroup   ( ~Model:off_kabe 000000B4 00000000 00000001 00000000 )
+  628:  Set   *MapFlag[0A]  .True
+  638:  Call  DisablePlayerPhysics  ( .False )
+  648:  Call  UseSettingsFrom       ( .Cam:Default  -250`  20`  -280` )
+  664:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  678:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  690:  Wait  30`
+		Set *ShopState 00000001
+		Wait  24`
+		Call  PushSong      ( 000000AC 00000000 )
+  69C:  Call  $Function_80244848 ( )
+  6A8:  Call  InterpNpcYaw  ( 00000000  135`  5` )
+  6C0:  Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00030023 ) % Where to begin...? My name...is Merlon. I am a wiz ...
+  6E0:  Call  $Function_802447E0 ( )
+  6EC:  Wait  60`
+  6F8:  Call  SetPlayerAnimation    ( 0008001D )
+  708:  Thread
+  710:  	Call  $Function_80244848 ( )
+  71C:  EndThread
+  724:  Wait  10`
+  730:  Call  ContinueSpeech        ( 00000000 00A50004 00A50001 00000000 00030024 ) % ........................... ................. .... ...
+  750:  Call  SetPlayerAnimation    ( 0008001E )
+  760:  Wait  10`
+  76C:  Call  SetPlayerAnimation    ( 0008001C )
+  77C:  Wait  50`
+  788:  Call  GetNpcPos     ( 00000000 *Var0 *Var1 *Var2 )
+  7A4:  Call  SetCamType    ( .Cam:Default 00000000 .False )
+  7BC:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  7D8:  Call  SetCamDistance        ( .Cam:Default  200` )
+  7EC:  Call  SetCamPitch   ( .Cam:Default  15`  -10` )
+  804:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  818:  Wait  10`
+  824:  Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00030025 ) % Oh...all right. ...So, anyway, that is why I am ab ...
+  844:  Set   *GB_StoryProgress  .Story:Ch1_SpokeWithMerlin
+  854:  Call  ResetCam      ( .Cam:Default *Fixed[5.0] )
+  868:  Thread
+  870:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:o336 7FFFFE00 )
+  888:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o335 7FFFFE00 )
+  8A0:  	Call  AwaitPlayerLeave      ( FFFFFEE8 FFFFFED4 00000028 )
+  8B8:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:o335 7FFFFE00 )
+  8D0:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o336 7FFFFE00 )
+  8E8:  EndThread
+  8F0:  Return
+  8F8:  End
+}
+
+
+
+
+@	$Script_80246824
+{
+    0:  Call  PushSong      ( .Song:MerleeSpell 00000000 )
+   1C:  Return
+   24:  End
+}
+
+%Merlon will now allow you to change what difficulty you're playing
+%on instead of taking fortunes.
+
+@	$Script_8024F27C
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030036 ) % Ah, Mario. Do you want me to predict the path you  ...
+		Set     *Var1 *Var0
+		Switch *Var1
+        Case == 0 % Difficulty
+			Switch *Byte_Settings_Difficulty
+					Case == 0
+						Set *Var0 $String_Easy
+					Case == 1
+						Set *Var0 $String_Normal
+					Case == 2
+						Set *Var0 $String_Hard
+			EndSwitch
+				Call    SetMessageString ( *Var0 0 )
+				%Call    SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000000 $String_Settings_Difficulty )
+				Call    ShowChoice ( $String_Choice_Settings_Difficulty )
+				If *Var0 != 3 % Cancel
+					Set     *Byte_Settings_Difficulty *Var0
+					%Return
+				Else 
+					Call  CloseMessage
+					Goto 69
+				EndIf
+		EndSwitch
+  13C:  Call  ContinueSpeech    ( 00000000 00A50004 00A50001 00000000 00030037 ) % Excellent. Now relax while I read what your future ...
+  15C:  Call  SetNpcAnimation   ( 00000000 00A50008 )
+  170:  Wait  6`
+  17C:  Call  SpeakToPlayer     ( 00000000 00A50008 00A50008 00000000 00030038 ) % Ooooo---------! Crystal eye! Open wide! Aiiii----- ...
+  19C:  Exec  $Script_80246824
+  1A8:  Wait  10`
+  1B4:  If  *MapVar[C]  ==  00000000
+  1C4:  	NewArray  00000014 *MapVar[C]
+  1D4:  EndIf
+  1DC:  UseArray  *MapVar[C]
+  1E8:  ExecWait  $Script_8024EC64
+  1F4:  Wait  10`
+  200:  Call  PushSong      ( 000000AC 00000000 )
+		If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+			Set *MerlonState 00000001
+		EndIf
+		Switch *Byte_Settings_Difficulty
+					Case == 0
+						Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00210000 )
+					Case == 1
+						Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00210001 )
+					Case == 2
+						Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00210002 )
+		EndSwitch
+		Label 69
+  B88:  Call  DisablePlayerInput    ( .False )
+  B98:  Return
+  BA0:  End
+}
+
+
+
+#string $String_Settings_Difficulty
+{
+[Style Right]
+Well, Mario. Right now your[BR]
+journey is on [SaveColor][Color:07][Var 0][RestoreColor]
+[Yield][End]
+}
+
+
+#string $String_Choice_Settings_Difficulty
+{
+[Style Choice pos=101,90 size=108,60]
+[StartChoice]
+[Option 0][SaveColor][Color:01]Casual[RestoreColor][BR]
+[Option 1][SaveColor][Color:21]Normal[RestoreColor][BR]
+[Option 2][SaveColor][Color:20]Gamer[RestoreColor][BR]
+[EndChoice cancel=3][End]
+}
+
+
+#string $String_Easy
+{
+[SaveColor][Color:01]Casual[RestoreColor][End]
+}
+
+#string $String_Normal
+{
+[SaveColor][Color:21]Normal[RestoreColor][End]
+}
+
+#string $String_Hard
+{
+[SaveColor][Color:20]Gamer[RestoreColor][End]
+}
+
+
+
+
+
+
+
+
+% ====================================================
+% Chuck Quizmo will continue asking questions so long
+% as another is available.
+%
+% The existing script is modified by adding two labels
+% for flow control and new code to check for the next
+% question after the player recieves a star piece.
+% ====================================================
+
+@ $Script_8024A370
+{
+	0:  If  *GB_CompletedQuizzes  >  0000003F
+   10:  	Set   *Var0  00000000
+   20:  	Return
+   28:  EndIf
+   30:  Call  GetPlayerPos  ( *Array[1] *Array[2] *Array[3] )
+   48:  Call  NpcFacePlayer ( .Npc:Self 00000010 )
+   5C:  If  *GB_CompletedQuizzes  ==  0000003F
+   6C:  	Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 0008000A ) % Kaaaa-wiiiizzz! It's everyone's favorite quizmaste ...
+   8C:  Else
+   94:  	If  *GF_Met_ChuckQuizmo  ==  .True
+   A4:  		Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 00080009 ) % Kaaaa-wiiiizzz! It's everyone's favorite quizmaste ...
+   C4:  	Else
+   CC:  		Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 00080008 ) % Kaaaa-wiiiizzz! Chuck Quizmo's the name, and quizz ...
+   EC:  		Set   *GF_Met_ChuckQuizmo  .True
+   FC:  	EndIf
+  104:  EndIf
+  10C:  Call  ShowChoice    ( 001E000D ) % Yes No
+  11C:  If  *Var0  ==  00000001
+  12C:  	Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000C ) % Uh, oh. Not up to it, huh? Maybe another time! Wel ...
+  14C:  	ExecWait  $Script_80248D24
+  158:  	Set   *Var0  00000000
+  168:  	Return
+  170:  EndIf
+  178:  Set   *GF_Quizmo_TakingQuiz  .True
+  188:  Call  $Function_80242028 ( )
+  194:  Call  $Function_8024233C ( )
+  1A0:  Exec  $Script_80248DD4
+  1AC:  Call  DisablePartnerAI  ( 00000000 )
+  1BC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+  1D4:  Call  SetNpcFlagBits    ( 00000005 00000200 .False )
+  1EC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000148 .True )
+  204:  Call  SetNpcFlagBits    ( 00000005 00000100 .True )
+  21C:  Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+  230:  Exec  $Script_802494FC *Var1
+  240:  Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000B ) % Then let's go to the question!
+  260:  Call  PlaySound ( 00000089 )
+  270:  Loop
+  27C:  	DoesScriptExist  *Var1 *Var0
+  28C:  	If  *Var0  ==  00000000
+  29C:  		BreakLoop
+  2A4:  	EndIf
+  2AC:  	Wait  1`
+  2B8:  EndLoop
+  2C0:  Call  $Function_80242680 ( )
+  2CC:  Loop  00000005
+  2D8:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  2F0:  	Add   *Var1  00000001
+  300:  	Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  318:  	Wait  2`
+  324:  EndLoop
+      	Label	0	% new label for multiple questions
+  32C:  Set   *Var0  002C0000
+  33C:  Add   *Var0  *GB_CompletedQuizzes
+  34C:  Call  SpeakToPlayer ( .Npc:Self 00AF0005 00AF0006 00000000 *Var0 ) % variable string ID
+  36C:  Call  SetPlayerAnimation    ( .PlayerAnim:Question )
+  37C:  Set   *Var0  002D0000
+  38C:  Add   *Var0  *GB_CompletedQuizzes
+  39C:  Call  PlaySound     ( 0000008E )
+  3AC:  Call  ShowChoice    ( *Var0 ) % variable string ID
+  3BC:  Kill  *Var1
+  3C8:  Call  StopSound     ( 0000008E )
+  3D8:  Exec  $Script_80249570
+  3E4:  Wait  15`
+  3F0:  Call  PlaySound     ( 0000008D )
+  400:  Call  $Function_80242980    ( *Var0 )
+  410:  Set   *Array[4]  00000000
+  %420:  Call  $Function_80242F74 ( )
+  42C:  Wait  40`
+  438:  Call  $Function_802425FC ( )
+  444:  Thread
+  44C:  	Wait  110`
+  458:  	Call  CloseChoice ( )
+  464:  	Set   *Array[4]  00000000
+  474:  EndThread
+  47C:  If  *Var0  ==  00000001
+  48C:  	Call  SetNpcAnimation   ( 00000005 00AF0007 )
+  4A0:  	Set   *Array[4]  00000001
+  4B0:  	Thread
+  4B8:  		Call  $Function_8024294C    ( 00000001 )
+  4C8:  		Wait  6`
+  4D4:  		Wait  6`
+  4E0:  		Wait  6`
+  4EC:  		Call  $Function_8024294C    ( 00000002 )
+  4FC:  	EndThread
+  504:  	Thread
+  50C:  		Call  PlaySound ( 0000021C )
+  51C:  		Wait  6`
+  528:  		Call  PlaySound ( 0000021C )
+  538:  		Wait  6`
+  544:  		Call  PlaySound ( 0000021C )
+  554:  		Wait  6`
+  560:  		Call  PlaySound ( 0000021C )
+  570:  	EndThread
+  578:  	Call  PlaySound ( 0000008A )
+  588:  	Call  $Function_80242A18 ( )
+  594:  	Thread
+  59C:  		Wait  15`
+  5A8:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  5C0:  		Add   *Var1  00000032
+  5D0:  		Call  $Function_80242B90    ( 00000000 00000000 00000053 *Var0 *Var2 )
+  5F0:  		Call  PlayEffect    ( ~FX:Steam:Ring *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  634:  		Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var0 *Var1 *Var2 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  678:  		Wait  15`
+  684:  		Add   *Var1  FFFFFFFD
+  694:  		Call  $Function_80242B90    ( 00000000 00000000 0000003A *Var0 *Var2 )
+  6B4:  		Call  PlayEffect    ( ~FX:Steam:Ring *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  6F8:  		Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var0 *Var1 *Var2 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  73C:  		Wait  15`
+  748:  		Add   *Var1  0000001E
+  758:  		Call  $Function_80242B90    ( 00000000 00000000 0000005D *Var0 *Var2 )
+  778:  		Call  PlayEffect    ( ~FX:Steam:Ring *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7BC:  		Call  PlayEffect    ( ~FX:Confetti:Burst2 *Var0 *Var1 *Var2 00000001 0000003C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  800:  		Wait  15`
+  80C:  	EndThread
+  814:  	Wait  20`
+  820:  	Exec  $Script_8024A210 *Var1
+  830:  	Add   *GB_CompletedQuizzes  00000001
+  840:  	If  *GB_CompletedQuizzes  >  0000003F
+  850:  		Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00080010 ) % Correct!! Congratulations! This is my last prize!  ...
+  870:  		Call  SetNpcAnimation   ( 00000005 00AF0006 )
+  884:  		Loop
+  890:  			DoesScriptExist  *Var1 *Var0
+  8A0:  			If  *Var0  ==  00000000
+  8B0:  				BreakLoop
+  8B8:  			EndIf
+  8C0:  			Wait  1`
+  8CC:  		EndLoop
+  8D4:  		Call  SetNpcAnimation   ( 00000005 00AF0005 )
+  8E8:  		Set   *Var0  0000015C
+  8F8:  		Set   *Var1  00000003
+  908:  		ExecWait  $Script_80248C34
+  914:  		Call  AddStarPieces     ( 00000001 )
+  924:  		Call  $Function_8024294C    ( 0000000F )
+  934:  		Call  $Function_80242A00 ( )
+  940:  		Call  SetMessageValue   ( *GB_CompletedQuizzes 00000000 )
+  954:  		Call  SpeakToPlayer     ( .Npc:Self 00AF0004 00AF0001 00000000 00080011 ) % You've managed to correctly answer all questions.  ...
+  974:  	Else
+  97C:  		Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0008000E ) % Correct! Congratulations! Here's your Star Piece!
+  99C:  		Call  SetNpcAnimation   ( 00000005 00AF0006 )
+  9B0:  		Loop
+  9BC:  			DoesScriptExist  *Var1 *Var0
+  9CC:  			If  *Var0  ==  00000000
+  9DC:  				BreakLoop
+  9E4:  			EndIf
+  9EC:  			Wait  1`
+  9F8:  		EndLoop
+  A00:  		Call  SetNpcAnimation   ( 00000005 00AF0005 )
+  A14:  		Set   *Var0  0000015C
+  A24:  		Set   *Var1  00000001
+  A34:  		ExecWait  $Script_80248C34
+  A40:  		Call  AddStarPieces     ( 00000001 )
+  A50:  		Call  $Function_8024294C    ( 0000000F )
+  A60:  		Call  $Function_80242A00 ( )
+  A6C:  		Call  SetMessageValue   ( *GB_CompletedQuizzes 00000000 )
+  A80:  		If  *GB_CompletedQuizzes  ==  00000001
+  A90:  			Call  SetMessageString  ( 8014C294 00000001 )
+  AA4:  		Else
+  AAC:  			Call  SetMessageString  ( 8014C290 00000001 )
+  AC0:  		EndIf
+  AC8:  		Call  SpeakToPlayer ( .Npc:Self 00AF0004 00AF0001 00000000 0008000F ) % You've correctly answered question so far. Good lu ...
+			% ====================================================
+			% new: multiple quizzes can be completed at a time
+				Wait	10`
+				Call	$Function_IsNextQuestionAvailable ( )
+				If  *Var[0]  ==  00000000 
+					Call     SpeakToPlayer	( .Npc:Self 00AF0004 00AF0001 00000000 0008004A ) % Looks like that's it for now ...
+					Set      *Var[0] 00000001 
+					Goto	1
+				EndIf
+				Call     SpeakToPlayer		( .Npc:Self 00AF0004 00AF0001 00000000 00080049 ) % But we're not done yet ...
+				Call     ShowChoice			( 001E000D ) % Yes No 
+				If	*Var[0] ==  00000001 
+					Call     ContinueSpeech 	( .Npc:Self 00AF0004 00AF0001 00000000 0008000C ) % Uh, oh. Not up to it, huh? Maybe another time! Wel ...
+					Set      *Var[0] 00000001 
+					Goto	1
+				EndIf
+				Call     ContinueSpeech 	( .Npc:Self 00AF0004 00AF0001 00000000 0008000B ) % Then let's go to the question!
+				Thread
+					Call     $Function_80242B90 ( *Array[1] *Array[3] 0000006C *Var[0] *Var[1] )
+					SetF     *Var[2] *Array[1] 
+					AddF     *Var[2] *Var[0] 
+					SetF     *Var[3] *Array[3] 
+					AddF     *Var[3] *Var[1] 
+					Call     SetNpcAnimation 	( .Npc:Partner 00000102 )
+					Call     NpcMoveTo   		( .Npc:Partner *Var[2] *Var[3] 00000028 )
+					Call     SetNpcAnimation 	( .Npc:Partner 00000106 )
+					Call     NpcFacePlayer 		( .Npc:Partner 00000000 )
+				EndThread
+				Call     $Function_80242B90 ( *Array[1] *Array[3] 00000053 *Var[0] *Var[1] )
+				SetF     *Var[3] *Var[0] 
+				SetF     *Var[4] *Var[1] 
+				AddF     *Var[3] *Array[1]
+				AddF     *Var[4] *Array[3]
+				Call     PlayerMoveTo 	( *Var[3] *Var[4] 40` )
+				Loop     00000005 
+					Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+					Add      *Var[1] 00000001 
+					Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+					Wait     00000002 
+				EndLoop
+				Goto	0
+		%/new
+		% ====================================================
+  AE8:  	EndIf
+  AF0:  	Set   *Var0  00000001
+  B00:  Else
+  B08:  	Call  SetNpcAnimation   ( 00000005 00AF0009 )
+  B1C:  	Set   *Array[4]  00000002
+  B2C:  	Call  PlaySound ( 0000021D )
+  B3C:  	Call  PlaySound ( 0000008B )
+  B4C:  	Exec  $Script_8024A2C0 *Var1
+  B5C:  	Call  GetPlayerPos      ( *Var2 *Var3 *Var4 )
+  B74:  	Call  PlayEffect        ( ~FX:DeadLeaves:Gust1 *Var2 *Var3 *Var4 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  BB8:  	Call  ContinueSpeech    ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0008000D ) % Oops! Tough luck, pal! Wrong answer! Better luck n ...
+  BD8:  	Call  SetNpcAnimation   ( 00000005 00AF000A )
+  BEC:  	Loop
+  BF8:  		DoesScriptExist  *Var1 *Var0
+  C08:  		If  *Var0  ==  00000000
+  C18:  			BreakLoop
+  C20:  		EndIf
+  C28:  		Wait  1`
+  C34:  	EndLoop
+  C3C:  	Set   *Var0  00000000
+  C4C:  EndIf
+      	Label	1	% new label for multiple questions
+  C54:  Call  $Function_80242980    ( FFFFFFFF )
+  C64:  Call  EnablePartnerAI ( )
+  C70:  Thread
+  C78:  	Wait  30`
+  C84:  	Call  PlaySound ( 0000008F )
+  C94:  EndThread
+  C9C:  Thread
+  CA4:  	Wait  45`
+  CB0:  	Call  StopSound ( 00000089 )
+  CC0:  EndThread
+  CC8:  Call  $Function_80242A34 ( )
+  CD4:  Call  $Function_80242898 ( )
+  CE0:  ExecWait  $Script_80248D24
+  CEC:  Exec  $Script_8024906C
+  CF8:  Call  $Function_80242488 ( )
+  D04:  Call  $Function_8024203C ( )
+  D10:  Set   *GF_Quizmo_TakingQuiz  .False
+  D20:  Return
+  D28:  End
+}
+
+% Since we never loaded the O/X icon, don't try to free it.
+@ $Function_80242898[9C]
+{
+	NOP
+}
+ 
+#new:Function $Function_IsNextQuestionAvailable
+{
+	PUSH	RA, S0, S1
+	DADDU	S1, A0, R0
+	DADDU	A0, R0, R0
+	LIO		A1, *GB_CompletedQuizzes
+	JAL		~Func:get_variable
+	RESERVED
+	DADDU	A0, R0, R0
+	DADDU	S0, V0, R0
+	LIO		A1, *GB_StoryProgress
+	JAL		~Func:get_variable
+	RESERVED
+	DADDU	A1, V0, R0
+	LIA		A0, $QuizRequirements
+    .FindStoryProgress
+	LW		V0, 0 (A0)
+	SLT		V0, A1, V0
+	BNE		V0, R0, .CompareQuizIndex
+	NOP
+	BEQ		R0, R0, .FindStoryProgress
+	ADDIU	A0, A0, 8
+	.CompareQuizIndex
+	LW		V0, 4 (A0)
+	SLT		V0, S0, V0
+	SW		V0, 84 (S1)
+	.Done
+	POP		RA, S0, S1
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+
+@ $QuizRequirements
+{
+% if (story progress) < (col 1), the player can complete up to (col 2) quizzes
+FFFFFF94 00000000 % < chapter 1 start
+FFFFFFB4 00000006 % < chapter 2 start
+FFFFFFCA 0000000C % < chapter 3 start
+FFFFFFF2 00000012 % < chapter 4 start
+00000006 0000001A % < chapter 5 start
+00000027 00000022 % < chapter 6 start
+0000003A 0000002A % < chapter 7 start
+00000058 00000034 % < chapter 8 start
+0000005F 00000040 % end game
+00000060 00000040 % all
+}
+
+@ $QuizAnswers
+{
+01010200 01000200 01020001 01020200 
+02010202 01000201 00010201 00020100 
+02000102 00000001 00020002 02010001
+02020102 02010102 00020102 01000201
+}
+
+
+
+
+
+% Do not change anything below this point!
+% =================================================
+
+#new:Function $Function_HasBadge % args: A0 = badgeID
+{
+	LIO		A2, 8010F344
+	ADDIU	A3, A2, 100
+	.Loop
+	LH		A1, 0 (A2)
+	BEQL	A0, A1, .End
+	ADDIU	V0, R0, 1 % return true
+	BNE		A2, A3, .Loop
+	ADDIU	A2, A2, 2
+	ADDIU	V0, R0, 0 % return false
+	.End
+	JR		RA
+	NOP
+}
+
+% How does the game know to refresh the badges?
+% A bunch of maps set Flag_Rowf_Badges_Chosen to false in their Main script.
+% Some examples: mim_10, flo_00, hos_00, kmr_10, etc.
+	
+% Modified to support more badges and work with the more detailed table.
+@ $Function_802400C8
+{
+	ADDIU	SP, SP, -80
+	SW		RA, 3C (SP)
+	SW		S8, 38 (SP)
+	SW		S7, 34 (SP)
+	SW		S6, 30 (SP)
+	SW		S5, 2C (SP)
+	SW		S4, 28 (SP)
+	SW		S3, 24 (SP)
+	SW		S2, 20 (SP)
+	SW		S1, 1C (SP)
+	SW		S0, 18 (SP)
+	% save story progress to S5
+	LIO		A1, *GB_StoryProgress
+	JAL		~Func:get_variable
+	DADDU	S8, A0, R0
+	DADDU	S5, V0, R0
+	% allocate memory
+	JAL		8002ACE4	% allocate 0x30 bytes for shop inventory
+	ADDIU	A0, R0, 30
+	DADDU	S7, V0, R0
+	SW		R0, 0 (V0)
+	SW		R0, 4 (V0)
+	SW		R0, 8 (V0)
+	SW		R0, 0 (S7)
+	SW		R0, C (S7)
+	SW		R0, 18 (S7)
+	SW		R0, 24 (S7)
+	% check whether we should refresh shop inventory
+	LIO		A1, *GF_MAC01_RowfBadgesChosen
+	JAL		~Func:get_variable
+	DADDU	A0, S8, R0
+	BNE		V0, R0, .LoadBadges
+	DADDU	A0, S8, R0
+	% loop0: for each badge in Rowf's stock, copy the index
+	% of available badges to a temporary array on the stack
+	DADDU	S1, R0, R0 % badge table counter (0 to NumRowfBadges-1)
+	ADDIU	S2, SP, 50 % index array position
+	DADDU	S3, R0, R0 % saved badge count
+	DADDU	A0, R0, R0
+	.Loop0
+	LIA		S6, $RowfBadgeInventory
+	SLL		S0, S1, 4
+	DADDU	S0, S0, S6 % get ith entry in badge data table
+	% check required story progress
+	LW		V0, 0 (S0)
+	SLT		S4, S5, V0
+	BNEL	S4, R0, .EndLoop0
+	ADDIU	S1, S1, 1
+	% check if player has the badge
+	JAL		$Function_HasBadge
+	LW		A0, 4 (S0)
+	BNEL	V0, R0, .EndLoop0
+	ADDIU	S1, S1, 1
+	% save index to array
+	SB		S1, 0 (S2)
+	ADDIU	S2, S2, 1
+	ADDIU	S3, S3, 1
+	ADDIU	S1, S1, 1
+	.EndLoop0
+	SLTIU	V0, S1, .NumRowfBadges
+	BNE		V0, R0, .Loop0
+	% did we find any?
+	DADDU	A0, R0, R0
+	BEQ		S3, R0, .Done1
+	DADDU	S5, R0, R0
+	% randomly choose 3 badges for the shop
+	ADDIU	S4, SP, 50
+	ADDIU	S2, S3, FFFF
+	DADDU	S0, S7, R0
+	.Loop1
+	% get random badge index (0 to num-1)
+	JAL		~Func:rand_int
+	DADDU	A0, S2, R0
+	DADDU	S1, V0, R0
+	ADDU	V0, S4, V0
+	LBU		A2, 0 (V0)
+	% get badge from table (entry size increased: C -> 10 bytes)
+	LIA		A3, $RowfBadgeInventory
+	SLL		V1, A2, 4
+	ADDU	V1, V1, A3
+	% copy selected badge to inventory
+	LW		V0, 4 (V1)
+	SW		V0, 0 (S0)
+	LW		V0, 8 (V1)
+	SW		V0, 4 (S0)
+	LW		V0, C (V1)
+	SW		V0, 8 (S0)
+	% save index to (Byte_Rowf_Badge0 + i)
+	LIO		A1, *GB_MAC01_Rowf_Badge0
+	ADDU	A1, S5, A1
+	JAL		~Func:set_variable
+	DADDU	A0, S8, R0
+  	ADDIU	S5, S5, 1
+	SLTI	V0, S5, 3
+	BEQ		V0, R0, .Done1
+	ADDIU	S0, S0, C
+	% if chosen index < max, remove it from the table
+	SLT		V0, S1, S2
+	BEQ		V0, R0, .EndLoop1
+	DADDU	V1, S1, R0
+	.ShiftTable
+	ADDIU	V0, S1, 1
+	DADDU	S1, V0, R0
+	ADDU	V0, S4, V0
+	LBU		V0, 0 (V0)
+	ADDU	V1, S4, V1
+	SB		V0, 0 (V1)
+	SLT		V0, S1, S2
+	BNE		V0, R0, .ShiftTable
+	DADDU	V1, S1, R0
+	.EndLoop1
+	ADDIU	S3, S3, FFFF
+	BNE		S3, R0, .Loop1
+	ADDIU	S2, S2, FFFF
+	.Done1
+	DADDU	A0, S8, R0
+	LIO		A1, *GB_MAC01_Rowf_NumBadges
+	JAL		~Func:set_variable
+	DADDU	A2, S5, R0
+	DADDU	A0, S8, R0
+	LIO		A1, *GF_MAC01_RowfBadgesChosen
+	JAL		~Func:set_variable
+	ADDIU	A2, R0, 1
+	% Return with Var[3] == 0
+	BEQ		R0, R0, .Return
+	SW		R0, 90 (S8)
+	%
+	.LoadBadges
+	LIO		A1, *GB_MAC01_Rowf_NumBadges
+	JAL		~Func:get_variable
+	RESERVED
+	DADDU	S5, V0, R0
+	BLEZ	S5, .Return1
+	DADDU	S1, R0, R0
+	LIO		S3, *GB_MAC01_Rowf_Badge0
+	LIA		S6, $RowfBadgeInventory
+	DADDU	S0, S7, R0
+	.Loop3
+	% Load the previously chosen badges to the inventory.
+	% Very similar to the code in Loop1
+	DADDU	A0, S8, R0
+	JAL		~Func:get_variable
+	ADDU	A1, S1, S3
+	DADDU	A2, V0, R0
+	% get badge from table (entry size increased: C -> 10 bytes)
+	SLL		V1, A2, 4
+	ADDU	V1, V1, S6
+	% copy selected badge to inventory
+	LW		V0, 4 (V1)
+	SW		V0, 0 (S0)
+	LW		V0, 8 (V1)
+	SW		V0, 4 (S0)
+	LW		V0, C (V1)
+	SW		V0, 8 (S0)
+	ADDIU	S1, S1, 1
+	SLT		V0, S1, S5
+	BNE		V0, R0, .Loop3
+	ADDIU	S0, S0, C
+	.Return1
+	ADDIU	V0, R0, 1
+	SW		V0, 90 (S8) % var[3] = 1
+	.Return
+	SW		S5, 84 (S8) % var[0] = num badges
+	SW		S7, 8C (S8) % var[2] = inventory ptr
+	LW		RA, 3C (SP)
+	LW		S8, 38 (SP)
+	LW		S7, 34 (SP)
+	LW		S6, 30 (SP)
+	LW		S5, 2C (SP)
+	LW		S4, 28 (SP)
+	LW		S3, 24 (SP)
+	LW		S2, 20 (SP)
+	LW		S1, 1C (SP)
+	LW		S0, 18 (SP)
+	ADDIU	V0, R0, 2
+	JR		RA
+	ADDIU	SP, SP, 80
+}
+	
+% this function returns the number of badges remaining on *Var[0]
+% all references to the 'bought' flags are removed
+@ $Function_80244984
+{
+	PUSH	RA, S0, S1, S2, S3
+	DADDU	S3, A0, R0
+	LIA		S0, $RowfBadgeInventory
+	DADDU	S1, R0, R0
+	DADDU	S2, R0, R0
+	.CheckBadgesLoop
+	JAL		$Function_HasBadge
+	LW		A0, 4 (S0)
+	XORI	V0, V0, 1
+	DADDU	S1, S1, V0
+	ADDIU	S2, S2, 1
+	SLTIU	V0, S2, .NumRowfBadges
+	BNE		V0, R0, .CheckBadgesLoop
+	ADDIU	S0, S0, 10
+	SW		S1, 84 (S3)
+	POP		RA, S0, S1, S2, S3
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+
+% Story progress checks are now part of Function_802400C8, do not set flags here.
+@ $Script_80248070
+{
+		% -- Removed --
+  1C0:  Call     $Function_802400C8 ( )
+%  1CC:  Set      *MapVar[2] *Var[1] 
+  1DC:  If       *Var[3] ==  00000000 
+  1EC:     Set      *GF_MAC01_RowfBadgeAvailableA 00000000 
+  1FC:     Set      *GF_MAC01_RowfBadgeAvailableB 00000000 
+  20C:     Set      *GF_MAC01_RowfBadgeAvailableC 00000000 
+  21C:     If       *Var[0]  <  00000003 
+  22C:        Set      *GF_MAC01_RowfBadgeAvailableC 00000001 
+  23C:     EndIf
+  244:     If       *Var[0]  <  00000002 
+  254:        Set      *GF_MAC01_RowfBadgeAvailableB 00000001 
+  264:     EndIf
+  26C:     If       *Var[0]  <  00000001 
+  27C:        Set      *GF_MAC01_RowfBadgeAvailableA 00000001 
+  28C:     EndIf
+  294:  EndIf
+  29C:  Call     MakeShop    	( $RowfItemPositions *Var[2] $RowfDummyPriceList 00000000 )
+  2B8:  Call     MakeShopOwner 	( $ShopOwnerRowf )
+  2C8:  If       *Var[3] ==  00000001 
+  2D8:     If       *Var[0] >=  00000003 
+  2E8:        If       *GF_MAC01_RowfBadgeAvailableC ==  00000001 
+  2F8:           Call     $Function_80240044 ( 00000002 )
+  308:        EndIf
+  310:     EndIf
+  318:     If       *Var[0] >=  00000002 
+  328:        If       *GF_MAC01_RowfBadgeAvailableB ==  00000001 
+  338:           Call     $Function_80240044 ( 00000001 )
+  348:        EndIf
+  350:     EndIf
+  358:     If       *Var[0] >=  00000001 
+  368:        If       *GF_MAC01_RowfBadgeAvailableA ==  00000001 
+  378:           Call     $Function_80240044 ( 00000000 )
+  388:        EndIf
+  390:     EndIf
+  398:  EndIf
+  3A0:  Return
+  3A8:  End
+}
+
+% this is where the 'bought' flag is usually set,
+% so the function has been modified to skip that.
+@ $Function_80240044
+{
+	PUSH	RA
+	LW		V0, C (A0)
+	JAL		~Func:get_variable
+	LW		A1, 0 (V0)
+	LAW		V1, 8007419C
+	ADDIU	A1, R0, 40
+	LW		A0, 140 (V1)
+	SLL		V1, V0, 4
+	ADDU	V1, V1, A0
+	JAL		80134148
+	LW		A0, 0 (V1)
+	POP		RA
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+
+
+

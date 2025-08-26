@@ -2,8 +2,81 @@
 
 @	$Script_Interact_802424F4
 {
-  [3D4]  	Call  PushSong  ( 000000BA 00000000 ) %Bowser's Inside Story Minigame
+    0:  Call  GetSelfVar    ( 00000001 *Var0 )
+   14:  If  *Var0  ==  00000000
+   24:  	Call  SetSelfVar    ( 00000001 00000001 )
+   38:  EndIf
+   40:  Call  GetSelfVar    ( 00000002 *Var0 )
+   54:  If  *Var0  ==  FFFFFFFF
+   64:  	If  *GF_MGM_Met_JumpAttack  ==  .False
+   74:  		Call  $Function_80241780 ( )
+   80:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830004 00830001 00000000 0008002D ) % Greetings, my good man! This is the floor for Jump ...
+   A0:  		Set   *GF_MGM_Met_JumpAttack  .True
+   B0:  	Else
+   B8:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830004 00830001 00000000 0008002E ) % Welcome! You need ten coins to play. How about it? ...
+   D8:  	EndIf
+   E0:  	Call  ShowCoinCounter   ( .True )
+   F0:  	Call  $Function_802416CC ( )
+   FC:  	If  *VarA  <  0000000A
+  10C:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 00080039 ) % ...Mario, you don't have ten coins. You can't play ...
+  12C:  		Call  $Function_80241760 ( )
+  138:  		Wait  12`
+  144:  		Exec  $Script_802424D8
+  150:  		Call  GotoMap   ( $ASCII_80243614 00000001 ) % mgm_00
+  164:  		Wait  100`
+  170:  		Return
+  178:  	EndIf
+  180:  	Call  ShowChoice    ( 001E004E ) % 5-Block Option 7-Block Option 9-Block Option Don't ...
+  190:  	If  *Var0  ==  00000003
+  1A0:  		Call  $Function_80241760 ( )
+  1AC:  		Wait  5`
+  1B8:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 00080032 ) % Whatever suits you. Come again sometime! See you.
+  1D8:  		Exec  $Script_802424D8
+  1E4:  		Call  GotoMap   ( $ASCII_80243614 00000001 ) % mgm_00
+  1F8:  		Wait  100`
+  204:  		Return
+  20C:  	EndIf
+  214:  	Call  GetSelfVar    ( 00000006 *Var1 )
+  228:  	If  *Var1  <  00000064
+  238:  		Add   *Var1  00000001
+  248:  		Call  SetSelfVar    ( 00000006 *Var1 )
+  25C:  	EndIf
+  264:  	Thread
+  26C:  		Call  $Function_MonitorGame ( )
+  278:  	EndThread
+  280:  	Switch  *Var0
+  28C:  		Case  ==  00000000
+  298:  			Call  SetNpcVar ( .NpcID:Toad_00 00000004 00000004 )
+  2B0:  			Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 0008002F ) % Try to hit five blocks. Get ready to... JUMP... AT ...
+  2D0:  		Case  ==  00000001
+  2DC:  			Call  SetNpcVar ( .NpcID:Toad_00 00000004 00000006 )
+  2F4:  			Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 00080030 ) % Try to hit seven blocks. Get ready to... JUMP... A ...
+  314:  		Case  ==  00000002
+  320:  			Call  SetNpcVar ( .NpcID:Toad_00 00000004 00000008 )
+  338:  			Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 00080031 ) % Try to hit nine blocks. Get ready to... JUMP... AT ...
+  358:  		Case  ==  00000003
+  364:  	EndSwitch
+			Call  SetMusicTrack ( 00000000 .Song:Minigame 00000000 00000008 )
+  36C:  	Call  $Function_80241760 ( )
+  378:  	Call  EndSpeech ( .NpcID:Toad_00 00830004 00830001 00000005 )
+  394:  	Wait  5`
+  3A0:  	Call  $Function_80241234 ( )
+  3AC:  	Wait  10`
+  3B8:  	Call  EndSpeech ( .NpcID:Toad_00 00830004 00830001 00000005 )
+  3E8:  	Wait  10`
+  3F4:  	Call  EndSpeech ( .NpcID:Toad_00 00830004 00830001 00000005 )
+  410:  	Call  $Function_802403FC ( )
+  41C:  	Call  SetNpcVar ( .NpcID:Toad_00 00000003 FFFFFFFF )
+  434:  	Call  SetNpcVar ( .NpcID:Toad_00 00000002 00000000 )
+  44C:  	Wait  1`
+  458:  Else
+  460:  	Call  $Function_802416F8 ( )
+  46C:  	Call  SpeakToPlayer ( .NpcID:Toad_00 00830004 00830001 00000000 00080033 ) % Get jumping, Mario! You need to hit more block.
+  48C:  EndIf
+  494:  Return
+  49C:  End
 }
+
 
 
 @	$Script_80241C4C
@@ -78,8 +151,6 @@
   3E4:  Goto  0
   3F0:  Label  63
   3FC:  Call  $Function_80240438 ( )
-  41C:  	Call  PopSong ( )
-			Wait  15`
   430:  Switch  *VarB
   43C:  	Case  ==  00000001
 				Call  SetMusicTrack ( 00000000 .Song:Fail 00000000 00000008 )

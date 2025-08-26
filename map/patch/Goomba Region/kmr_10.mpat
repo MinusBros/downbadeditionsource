@@ -3,15 +3,106 @@
     [0]  Call  SetMusicTrack ( 00000000 .Song:DBE_Prologue 00000000 00000008 )
 }
 
-@ $Script_ExitWalk_8024070C
-{
-   [40]  Wait  80`
-}
-
 @ $Script_ExitWalk_80240768
 {
    [40]  Wait  80`
 }
+
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:GoombaRoad
+   10:  Call  SetSpriteShading  ( .Shading:arn_11 )
+		Call  EnableSpriteShading   ( .False )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .False $NpcGroupList_80240BFC )
+   84:  Call  ClearDefeatedEnemies ( )
+   90:  ExecWait  $Script_MakeEntities
+   9C:  Exec  $Script_80240680
+   A8:  ExecWait  $Script_80241B9C
+   B4:  If  *GB_StoryProgress  ==  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
+   C4:  	If  *AreaFlag[00D]  ==  .False
+   D4:  		Wait  40`
+   E0:  		Set   *AreaFlag[00D]  .True
+   F0:  	EndIf
+   F8:  EndIf
+  100:  Exec  $Script_EnterWalk_80240828
+  10C:  Wait  1`
+		If  *GB_StoryProgress  >=  .Story:Ch7_StarSpritDeparted
+		Thread
+		Wait  30`
+		Exec  $DetermineFog
+		EndThread
+				Call  GetEntryID    ( *Var0 )
+   D8:  		If  *Var0  ==  ~Entry:Entry0
+  11C:  			Call  $Function_FogFunction ( )
+  128:  			Call  EnableSpriteShading   ( .False )
+					Set   *AreaFlag[003]  .False
+  104:  		Else
+   F8:  			Call  $Function_FogFunction2 ( )
+					Call  EnableSpriteShading   ( .True )
+					Set   *AreaFlag[003]  .True
+  138:  		EndIf
+		EndIf
+  118:  Set   *GF_MAC01_RowfBadgesChosen  .False
+  128:  Return
+  130:  End
+}
+
+#new:Script  $DetermineFog
+{
+   10:  Label  0
+   1C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   34:  If  *Var0  >  267`
+   70:  		Goto  A
+   84:  EndIf
+   8C:  Wait  1`
+   98:  Goto  0
+   A4:  Label  A
+		If    *AreaFlag[003]  != .True
+		Set   *AreaFlag[003]  .True
+    0:  Call  $Function_FogFunction ( ) %Darken
+    C:  Thread
+   14:  	Call  $Function_802400CC    ( 000003DE 000003D4 000003E8 FFFFFFFF )
+   30:  EndThread
+   38:  Thread
+   40:  	Call  $Function_8024019C    ( 00000000 000000E8 00000014 )
+   58:  EndThread
+   60:  Thread
+   68:  	Call  $Function_8024025C    ( 000000A0 000000A0 000000FF )
+   80:  EndThread	
+		EndIf
+   D4:  Wait  10`
+   E0:  Label  14
+   EC:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  104:  If  *Var0  <  248`
+  140:  		Goto  1E
+  154:  EndIf
+  15C:  Wait  1`
+  168:  Goto  14
+  174:  Label  1E
+  19C:  Wait  10`
+		If    *AreaFlag[003]  != .False
+		Set   *AreaFlag[003]  .False
+    0:  Call  $Function_FogFunction ( ) %Brighten
+    C:  Thread
+   14:  	Call  $Function_802400CC    ( 000003D4 000003DE 000003E8 00000001 )
+   30:  EndThread
+   38:  Thread
+   40:  	Call  $Function_8024019C    ( 000000E8 00000000 FFFFFFEC )
+   58:  EndThread
+   60:  Thread
+   68:  	Call  $Function_8024025C    ( 000000FF 000000FF 000000FF )
+   80:  EndThread
+		EndIf
+  1A8:  Goto  0
+  1B4:  Return
+  1BC:  End
+}
+
 
 @ $Script_ExitWalk_802406B0
 {
@@ -22,4 +113,350 @@
         Wait  78`
    4C:  Return
    54:  End
+}
+
+
+@	$Script_ExitWalk_8024070C
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+    0:  Switch  *GB_StoryProgress
+   34:  	Case  >=  .Story:Ch7_StarSpritDeparted
+				Call  GotoMap   ( "mac_100" 00000000 ) % mac_00
+   88:  	Default
+   90:  		Call  GotoMap   ( $ASCII_80241C28 00000000 ) % mac_00
+   9C:  EndSwitch
+   40:  Wait  70`
+   4C:  Return
+   54:  End
+}
+
+
+#new:Function $Function_FogFunction
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:enable_world_fog
+    C:  NOP
+   10:  LI        A0, 3DE
+   14:  JAL       ~Func:set_world_fog_dist
+   18:  LI        A1, 3E8
+   1C:  CLEAR     A0
+   20:  LI        A1, 8
+   24:  LI        A2, 18
+   28:  JAL       ~Func:set_world_fog_color
+   2C:  LI        A3, FF
+   30:  LA        V0, 800B1D80
+   38:  LAW       A0, 8007419C
+   40:  LI        V1, 18
+   44:  SH        V1, 2C (V0)
+   48:  SH        V1, 2E (V0)
+   4C:  SH        V1, 30 (V0)
+   50:  SH        R0, 15C (A0)
+   54:  LW        RA, 10 (SP)
+   58:  LI        V0, 2
+   5C:  JR        RA
+   60:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_FogFunction2
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:enable_world_fog
+    C:  NOP
+   10:  LI        A0, 3D4
+   14:  JAL       ~Func:set_world_fog_dist
+   18:  LI        A1, 3E8
+   1C:  CLEAR     A0
+   20:  LI        A1, 8
+   24:  LI        A2, 18
+   28:  JAL       ~Func:set_world_fog_color
+   2C:  LI        A3, FF
+   30:  LA        V1, 800B1D80
+   38:  LI        V0, 18
+   3C:  SH        V0, 2C (V1)
+   40:  SH        V0, 2E (V1)
+   44:  SH        V0, 30 (V1)
+   48:  LAW       V1, 8007419C
+   50:  LI        V0, E8
+   54:  SH        V0, 15C (V1)
+   58:  LW        RA, 10 (SP)
+   5C:  LI        V0, 2
+   60:  JR        RA
+   64:  ADDIU     SP, SP, 18
+}
+
+
+
+#new:Function $Function_802400CC
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        S2, 18 (SP)
+   10:  SW        RA, 1C (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, C (S1)
+   1C:  BEQ       A1, R0, .o6C
+   20:  CLEAR     S2
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  SW        V0, 74 (S1)
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  JAL       ~Func:get_variable
+   40:  COPY      A0, S1
+   44:  SW        V0, 78 (S1)
+   48:  LW        A1, 0 (S0)
+   4C:  ADDIU     S0, S0, 4
+   50:  JAL       ~Func:get_variable
+   54:  COPY      A0, S1
+   58:  SW        V0, 70 (S1)
+   5C:  LW        A1, 0 (S0)
+   60:  JAL       ~Func:get_variable
+   64:  COPY      A0, S1
+   68:  SW        V0, 7C (S1)
+        .o6C
+   6C:  LW        V1, 7C (S1)
+   70:  LW        V0, 74 (S1)
+   74:  COPY      A0, V1
+   78:  ADDU      V0, V0, V1
+   7C:  BLTZ      A0, .o90
+   80:  SW        V0, 74 (S1)
+   84:  LW        V1, 78 (S1)
+   88:  BEQ       R0, R0, .o98
+   8C:  SLT       V0, V0, V1
+        .o90
+   90:  LW        V1, 78 (S1)
+   94:  SLT       V0, V1, V0
+        .o98
+   98:  BNE       V0, R0, .oA8
+   9C:  NOP
+   A0:  SW        V1, 74 (S1)
+   A4:  LI        S2, 2
+        .oA8
+   A8:  LW        A0, 74 (S1)
+   AC:  JAL       ~Func:set_world_fog_dist
+   B0:  LW        A1, 70 (S1)
+   B4:  COPY      V0, S2
+   B8:  LW        RA, 1C (SP)
+   BC:  LW        S2, 18 (SP)
+   C0:  LW        S1, 14 (SP)
+   C4:  LW        S0, 10 (SP)
+   C8:  JR        RA
+   CC:  ADDIU     SP, SP, 20
+}
+
+
+
+#new:Function $Function_8024019C
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        S2, 18 (SP)
+   10:  SW        RA, 1C (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, C (S1)
+   1C:  BEQ       A1, R0, .o58
+   20:  CLEAR     S2
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  SW        V0, 74 (S1)
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  JAL       ~Func:get_variable
+   40:  COPY      A0, S1
+   44:  SW        V0, 78 (S1)
+   48:  LW        A1, 0 (S0)
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      A0, S1
+   54:  SW        V0, 7C (S1)
+        .o58
+   58:  LW        V1, 7C (S1)
+   5C:  LW        V0, 74 (S1)
+   60:  COPY      A0, V1
+   64:  ADDU      V0, V0, V1
+   68:  BLTZ      A0, .o7C
+   6C:  SW        V0, 74 (S1)
+   70:  LW        V1, 78 (S1)
+   74:  BEQ       R0, R0, .o84
+   78:  SLT       V0, V0, V1
+        .o7C
+   7C:  LW        V1, 78 (S1)
+   80:  SLT       V0, V1, V0
+        .o84
+   84:  BNE       V0, R0, .o94
+   88:  NOP
+   8C:  SW        V1, 74 (S1)
+   90:  LI        S2, 2
+        .o94
+   94:  LAW       A0, 8007419C
+   9C:  LHU       V1, 76 (S1)
+   A0:  COPY      V0, S2
+   A4:  SH        V1, 15C (A0)
+   A8:  LW        RA, 1C (SP)
+   AC:  LW        S2, 18 (SP)
+   B0:  LW        S1, 14 (SP)
+   B4:  LW        S0, 10 (SP)
+   B8:  JR        RA
+   BC:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_8024025C
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        S3, 24 (SP)
+   10:  LA        S3, 80151328
+   18:  SW        RA, 28 (SP)
+   1C:  SW        S2, 20 (SP)
+   20:  SW        S0, 18 (SP)
+   24:  LW        S0, C (S1)
+   28:  BEQ       A1, R0, .o90
+   2C:  LW        S2, 0 (S3)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  SW        V0, 84 (S1)
+   40:  LW        A1, 0 (S0)
+   44:  ADDIU     S0, S0, 4
+   48:  JAL       ~Func:get_variable
+   4C:  COPY      A0, S1
+   50:  SW        V0, 88 (S1)
+   54:  LW        A1, 0 (S0)
+   58:  JAL       ~Func:get_variable
+   5C:  COPY      A0, S1
+   60:  SW        V0, 8C (S1)
+   64:  LBU       V0, AC (S2)
+   68:  SW        V0, 90 (S1)
+   6C:  LBU       V0, AD (S2)
+   70:  SW        V0, 94 (S1)
+   74:  LBU       V0, AE (S2)
+   78:  LW        V1, 0 (S3)
+   7C:  SW        R0, 9C (S1)
+   80:  SW        V0, 98 (S1)
+   84:  LHU       V0, 0 (V1)
+   88:  ORI       V0, V0, 1
+   8C:  SH        V0, 0 (V1)
+        .o90
+   90:  LWC1      F0, 90 (S1)
+   94:  CVT.S.W   F0, F0
+   98:  MFC1      A1, F0
+   9C:  LWC1      F0, 84 (S1)
+   A0:  CVT.S.W   F0, F0
+   A4:  LW        V0, 9C (S1)
+   A8:  MFC1      A2, F0
+   AC:  ADDIU     V0, V0, 1
+   B0:  SW        V0, 9C (S1)
+   B4:  LI        V0, 14
+   B8:  SW        V0, 10 (SP)
+   BC:  LW        A3, 9C (S1)
+   C0:  JAL       ~Func:update_lerp
+   C4:  CLEAR     A0
+   C8:  LIF       F2, 2.1474836E9
+   D0:  NOP
+   D4:  C.LE.S    F2, F0
+   D8:  NOP
+   DC:  BC1T      .oF4
+   E0:  ADDIU     A0, S2, AC
+   E4:  TRUNC.W.S F4, F0
+   E8:  MFC1      V1, F4
+   EC:  BEQ       R0, R0, .o110
+   F0:  SB        V1, 0 (A0)
+        .oF4
+   F4:  SUB.S     F0, F0, F2
+   F8:  LUI       V0, 8000
+   FC:  TRUNC.W.S F4, F0
+  100:  MFC1      V1, F4
+  104:  NOP
+  108:  OR        V1, V1, V0
+  10C:  SB        V1, 0 (A0)
+        .o110
+  110:  LWC1      F0, 94 (S1)
+  114:  CVT.S.W   F0, F0
+  118:  MFC1      A1, F0
+  11C:  LWC1      F0, 88 (S1)
+  120:  CVT.S.W   F0, F0
+  124:  MFC1      A2, F0
+  128:  LI        V0, 14
+  12C:  SW        V0, 10 (SP)
+  130:  LW        A3, 9C (S1)
+  134:  JAL       ~Func:update_lerp
+  138:  CLEAR     A0
+  13C:  LIF       F2, 2.1474836E9
+  144:  NOP
+  148:  C.LE.S    F2, F0
+  14C:  NOP
+  150:  BC1T      .o168
+  154:  ADDIU     A0, S2, AD
+  158:  TRUNC.W.S F4, F0
+  15C:  MFC1      V1, F4
+  160:  BEQ       R0, R0, .o184
+  164:  SB        V1, 0 (A0)
+        .o168
+  168:  SUB.S     F0, F0, F2
+  16C:  LUI       V0, 8000
+  170:  TRUNC.W.S F4, F0
+  174:  MFC1      V1, F4
+  178:  NOP
+  17C:  OR        V1, V1, V0
+  180:  SB        V1, 0 (A0)
+        .o184
+  184:  LWC1      F0, 98 (S1)
+  188:  CVT.S.W   F0, F0
+  18C:  MFC1      A1, F0
+  190:  LWC1      F0, 8C (S1)
+  194:  CVT.S.W   F0, F0
+  198:  MFC1      A2, F0
+  19C:  LI        V0, 14
+  1A0:  SW        V0, 10 (SP)
+  1A4:  LW        A3, 9C (S1)
+  1A8:  JAL       ~Func:update_lerp
+  1AC:  CLEAR     A0
+  1B0:  LIF       F2, 2.1474836E9
+  1B8:  NOP
+  1BC:  C.LE.S    F2, F0
+  1C0:  NOP
+  1C4:  BC1T      .o1DC
+  1C8:  ADDIU     A0, S2, AE
+  1CC:  TRUNC.W.S F4, F0
+  1D0:  MFC1      V1, F4
+  1D4:  BEQ       R0, R0, .o1F8
+  1D8:  SB        V1, 0 (A0)
+        .o1DC
+  1DC:  SUB.S     F0, F0, F2
+  1E0:  LUI       V0, 8000
+  1E4:  TRUNC.W.S F4, F0
+  1E8:  MFC1      V1, F4
+  1EC:  NOP
+  1F0:  OR        V1, V1, V0
+  1F4:  SB        V1, 0 (A0)
+        .o1F8
+  1F8:  LW        V1, 9C (S1)
+  1FC:  LI        V0, 14
+  200:  BNE       V1, V0, .o230
+  204:  CLEAR     V0
+  208:  LW        V1, 84 (S1)
+  20C:  LI        V0, FF
+  210:  BNEL      V1, V0, .o230
+  214:  LI        V0, 2
+  218:  LAW       V1, 80151328
+  220:  LHU       V0, 0 (V1)
+  224:  ANDI      V0, V0, FFFE
+  228:  SH        V0, 0 (V1)
+  22C:  LI        V0, 2
+        .o230
+  230:  LW        RA, 28 (SP)
+  234:  LW        S3, 24 (SP)
+  238:  LW        S2, 20 (SP)
+  23C:  LW        S1, 1C (SP)
+  240:  LW        S0, 18 (SP)
+  244:  JR        RA
+  248:  ADDIU     SP, SP, 30
 }

@@ -1,5 +1,13 @@
 %Change music for going into Star Way.
 
+#define .NpcID:WorldEldstar_00      00
+#define .NpcID:WorldMamar_01        01
+#define .NpcID:WorldSkolar_02       02
+#define .NpcID:WorldMuskular_03     03
+#define .NpcID:WorldMisstar_04      04
+#define .NpcID:WorldKlevar_05       05
+#define .NpcID:WorldKalmar_06       06
+
 @	$Script_80245050
 {
    [84]  Wait  10`
@@ -29,6 +37,41 @@
 }
 
 
+@	$Script_Init_80244058
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024373C )
+   14:  Call  BindNpcAux        ( .Npc:Self $Script_Aux_80243758 )
+   28:  If  *GB_StoryProgress  ==  .Story:Ch7_StarSpritDeparted % FFFFFF96
+   38:  	Exec  $LuigiSaysBye
+   44:  EndIf
+   28:  If  *GB_StoryProgress  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   38:  	Exec  $Script_80242604
+   44:  EndIf
+   
+   4C:  If  *GB_StoryProgress  >=  .Story:Ch0_MetStarSpirits % FFFFFF96
+   5C:  	Call  SetNpcPos ( .NpcID:WorldEldstar_00  0`  -1000`  0` )
+   78:  	Call  SetNpcPos ( .NpcID:WorldMamar_01  0`  -1000`  0` )
+   94:  	Call  SetNpcPos ( .NpcID:WorldSkolar_02  0`  -1000`  0` )
+   B0:  	Call  SetNpcPos ( .NpcID:WorldMuskular_03  0`  -1000`  0` )
+   CC:  	Call  SetNpcPos ( .NpcID:WorldMisstar_04  0`  -1000`  0` )
+   E8:  	Call  SetNpcPos ( .NpcID:WorldKlevar_05  0`  -1000`  0` )
+  104:  	Call  SetNpcPos ( .NpcID:WorldKalmar_06  0`  -1000`  0` )
+  120:  	Return
+  128:  EndIf
+  130:  Call  EnableNpcShadow   ( .NpcID:WorldMamar_01 .False )
+  144:  Call  EnableNpcShadow   ( .NpcID:WorldSkolar_02 .False )
+  158:  Call  EnableNpcShadow   ( .NpcID:WorldMuskular_03 .False )
+  16C:  Call  EnableNpcShadow   ( .NpcID:WorldMisstar_04 .False )
+  180:  Call  EnableNpcShadow   ( .NpcID:WorldKlevar_05 .False )
+  194:  Call  EnableNpcShadow   ( .NpcID:WorldKalmar_06 .False )
+  1A8:  Set   *MapVar[0]  00000028
+  1B8:  Set   *MapVar[1]  FFFFFFB0
+  1C8:  Return
+  1D0:  End
+}
+
+
 @	$Script_MakeEntities
 {
     0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity80244FE0 ~Model:o210 80000000 )
@@ -38,4 +81,42 @@
 		Call     AssignBlockFlag 	( *GF_HOS01_NewBlock )	
    5C:  Return
    64:  End
+}
+
+
+#new:Script $ShowGotItem
+{
+    0:  Call  ShowGotItem   ( *Var0 .True 00000000 )
+   18:  Return
+   20:  Return
+   28:  End
+}
+
+
+#new:Script $LuigiSaysBye
+{
+   10:  Label  0
+   1C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   34:  If  *Var1  >=  154`
+   44:  	If  *Var0  >=  -350`
+   70:  		Goto  A
+   7C:  	EndIf
+   84:  EndIf
+   8C:  Wait  1`
+   98:  Goto  0
+   A4:  Label  A
+   C0:  Call  FadeOutMusic  ( 00000000 000007D0 )
+   D4:  Wait  60`
+   E0:  Label  14
+   EC:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  104:  If  *Var1  <  154`
+  140:  		Goto  1E
+  154:  EndIf
+  15C:  Wait  1`
+  168:  Goto  14
+  174:  Label  1E
+  19C:  Wait  30`
+  1A8:  Goto  0
+  1B4:  Return
+  1BC:  End
 }

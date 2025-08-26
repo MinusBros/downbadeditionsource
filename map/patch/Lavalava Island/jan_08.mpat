@@ -1,0 +1,84 @@
+#define .NpcID:JungleGuy_00         00
+#define .NpcID:JungleGuy_01         01
+#define .NpcID:HurtPlant_02         02
+#define .NpcID:MBush_03             03
+#define .NpcID:MBush_04             04
+#define .NpcID:HeartPlant_05        05
+#define .NpcID:HeartPlant_06        06
+#define .NpcID:YoshiKid_07          07
+
+#import AutoSave.mpat
+
+@	$Script_Idle_80245230
+{
+    0:  Call  SetSelfVar    ( 00000000 00000000 )
+   14:  Label  0
+   20:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   38:  If  *Var1  <=  FFFFFFA6
+   48:  	If  *Var3  >  00000118
+   58:  		Call  GetEntryID    ( *Var0 )
+   68:  		If  *Var0  ==  ~Entry:Entry0
+   78:  			Wait  18`
+   84:  		EndIf
+   8C:  		Call  DisablePlayerInput        ( .True )
+   9C:  		Call  ShowMessageAtScreenPos    ( 001000AF  160`  40` ) % Buh-buh-boooo huh-hoooo!
+   B4:  		Exec  $Script_802451B8
+   C0:  		Call  DisablePlayerInput        ( .False )
+   D0:  		Set   *Var0  00000001
+   E0:  	EndIf
+   E8:  EndIf
+   F0:  If  *Var0  !=  00000001
+  100:  	Wait  1`
+  10C:  	Goto  0
+  118:  EndIf
+  120:  Label  A
+  12C:  Call  GetSelfVar    ( 00000000 *Var0 )
+  140:  If  *Var0  ==  00000000
+  150:  	Wait  1`
+  15C:  	Goto  A
+  168:  EndIf
+  170:  Call  DisablePlayerInput    ( .True )
+  180:  Call  AdjustCam ( .Cam:Default *Fixed[4.0]  -23`  350` *Fixed[17.0] *Fixed[-7.0] )
+  1A4:  Call  NpcFacePlayer ( .Npc:Self 00000000 )
+  1B8:  Call  GetCurrentPartnerID   ( *Var0 )
+  1C8:  Set   *AreaFlag[002]  .True
+  1D8:  Wait  12`
+  1E4:  If  *Var0  ==  .Partner:Sushie % 7
+  1F4:  	Call  SpeakToPlayer ( .Npc:Self 0097040B 0097040A 00000000 001000B0 ) % Aiigh! That was so scary! We were playing hide-and ...
+  214:  Else
+  21C:  	Call  SpeakToPlayer ( .Npc:Self 0097040B 0097040A 00000000 001000B1 ) % Aiigh! That was so scary! We were playing hide-and ...
+  23C:  EndIf
+  244:  Call  EndSpeech ( .Npc:Self 00970404 00970401 00000000 )
+  260:  Thread
+  268:  	Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+  280:  	Call  SetNpcAnimation   ( .Npc:Self 00970403 )
+  294:  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[7.0] )
+  2A8:  	Call  NpcMoveTo     ( .Npc:Self  -418`  -60`  0` )
+  2C4:  	Call  NpcMoveTo     ( .Npc:Self  -300`  80`  0` )
+  2E0:  	Call  NpcMoveTo     ( .Npc:Self  -320`  115`  0` )
+  2FC:  	Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+  318:  EndThread
+  320:  Set   *GF_JAN08_SavedYoshi  .True
+  330:  Set   *Var0  00000000
+  340:  Add   *Var0  *GF_JAN05_SavedYoshi
+  350:  Add   *Var0  *GF_JAN07_SavedYoshi
+  360:  Add   *Var0  *GF_JAN08_SavedYoshi
+  370:  Add   *Var0  *GF_JAN10_SavedYoshi
+  380:  Add   *Var0  *GF_JAN11_SavedYoshi
+  390:  If  *Var0  ==  00000005
+  3A0:  	Call  SetMusicTrack ( 00000000 .Song:YoshiKidsFound 00000000 00000008 )
+  3BC:  	Set   *GB_StoryProgress  .Story:Ch5_AllYoshiChildrenRescued
+  3CC:  	Call  SetPlayerAnimation    ( .PlayerAnim:ThumbsUp )
+  3DC:  	Wait  120`
+  3E8:  	Exec  $Script_802424A0
+  3F4:  	Call  SetPlayerAnimation    ( 00010002 )
+  404:  Else
+  40C:  	Wait  20`
+  418:  EndIf
+		Exec  $AutoSave
+  420:  Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  434:  Call  DisablePlayerInput    ( .False )
+  444:  Call  RemoveNpc ( .Npc:Self )
+  454:  Return
+  45C:  End
+}

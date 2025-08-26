@@ -3,3 +3,125 @@
     [0]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity802421B0 .Item:SpecialShake 80000000 )
    [38]  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity802421E8 .Item:HustleDrink 80000000 )
 }
+
+
+%add a new entrance in the water
+%the thing is, this map may or may not have water
+%so I put in 2 entrances depending on whether there's water or not
+
+@ $EntryList
+{
+~Vec4f:Entry0 % -455.0    0.0    0.0   90.0
+~Vec4f:Entry1 %  455.0    0.0    0.0  270.0
+~Vec4f:Entry2 %  455.0    0.0    0.0  270.0
+~Vec4f:Entry3 
+~Vec4f:Entry4 
+}
+
+@ $Header
+{
+[EntryList]   $EntryList 
+[EntryCount]  00000005 
+}
+
+#new:Script $Script_Entry3
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000003 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "flo_26" 00000001 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Entry4 %so exitwalk is also used for water transitions :P
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000004 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "flo_26" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+%update reference to collider:o124
+@ $Script_80241728
+{
+    0:  Set   *AreaFlag[01F]  .False
+   10:  Set   *AreaFlag[020]  .False
+   20:  Set   *Var0  $ShakeTreeEvent_Tree1
+   30:  Bind  $Script_ShakeTree_802410A0 .Trigger:WallHammer ~Collider:o124 00000001 00000000
+   4C:  Bind  $Script_ShakeTree_802410A0 .Trigger:PointBomb $TriggerCoord_80241718 00000001 00000000
+   68:  Return
+   70:  End
+}
+
+@ $Script_802409F4
+{
+    0:  Bind  $Script_ExitWalk_8024093C .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  Bind  $Script_ExitWalk_80240998 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+		If  *GB_StoryProgress  <  00000031 
+			Bind     $Script_Entry3 .Trigger:FloorAbove ~Collider:newentryfloor 00000001 00000000 
+		Else
+			Bind     $Script_Entry4 .Trigger:FloorAbove ~Collider:newentrywaterfloor 00000001 00000000 
+		EndIf
+   38:  Return
+   40:  End
+}
+
+@ $Script_Main_EnterWalk
+{
+	0:  Set  *GB_WorldLocation  .Location:FlowerFields
+   10:  Call     SetSpriteShading 	( FFFFFFFF )
+   20:  Call     SetCamLeadPlayer 	( .Cam:Default .False )
+   34:  Call     SetCamPerspective 	( .Cam:Default 00000003 00000019 00000010 00001000 )
+   54:  Call     SetCamBGColor 	( .Cam:Default 00000000 00000000 00000000 )
+   70:  Call     SetCamEnabled 	( .Cam:Default .True )
+   84:  ExecWait $Script_MakeEntities 
+   90:  Call     802C971C ( 0000005D )
+   A0:  Call     802C971C ( 00000064 )
+   B0:  Exec     $Script_80241728 
+   BC:  Exec     $Script_80241ABC 
+   C8:  Call     ModifyColliderFlags 	( 00000003 21 00000004 ) %~Collider:o177
+   E0:  Call     ModifyColliderFlags 	( 00000003 1F 00000004 ) %~Collider:o178
+   F8:  Call     ModifyColliderFlags 	( 00000003 20 00000004 ) %~Collider:o179
+  110:  Call     ModifyColliderFlags 	( 00000000 21 00080000 ) %~Collider:o177
+  128:  Call     ModifyColliderFlags 	( 00000000 1F 00080000 ) %~Collider:o178
+  140:  Call     ModifyColliderFlags 	( 00000000 20 00080000 ) %~Collider:o179
+  158:  Call     ModifyColliderFlags 	( 00000003 1B 00000001 ) %~Collider:o176
+  170:  Set  *Var[0]  FFFFFE20 
+  180:  Set  *Var[1]  FFFFFEA2 
+  190:  Set  *Var[2]  FFFFFFBF 
+  1A0:  Set  *Var[3]  FFFFFEFC 
+  1B0:  Set  *Var[4]  00000000 
+  1C0:  Exec     $Script_80240690 
+  1CC:  Set  *Var[0]  00000064 
+  1DC:  Set  *Var[1]  FFFFFEA2 
+  1EC:  Set  *Var[2]  000001E0 
+  1FC:  Set  *Var[3]  FFFFFEFC 
+  20C:  Set  *Var[4]  00000000 
+  21C:  Exec     $Script_80240690 
+  228:  Call     ModifyColliderFlags 	( 00000000 ~Collider:deilitw 7FFFFE00 ) 
+  240:  Call     ModifyColliderFlags 	( 00000000 ~Collider:deilite 7FFFFE00 )
+  258:  Call     GetEntryID  	( *Var[0] )
+  268:  If  *Var[0]  ==  00000002 
+  278:  	Exec     $Script_8024183C 
+  284:  	Exec     $Script_802409F4 
+  290:  Else
+  298:  	Set  *Var[0]  $Script_802409F4 
+  2A8:  	Exec     EnterWalk 
+  2B4:  EndIf
+  2BC:  ExecWait $Script_80240600 
+  2C8:  If  *GB_StoryProgress  >=  00000035 
+  2D8:  	Call     $Function_80240000 ( )
+  2E4:  EndIf
+  2EC:  Return
+  2F4:  End
+}
+
+@ $Script_80241ABC
+{
+[24]  	Call     ModifyColliderFlags 	( 00000000 22 7FFFFE00 ) %~Collider:g58
+}

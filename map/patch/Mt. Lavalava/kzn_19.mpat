@@ -28,10 +28,32 @@
 }
 
 
+@	$Script_80241DB0
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  ==  .Story:Ch5_DefeatedLavaPiranha % 23
+   18:  		Call  GetEntryID    ( *Var0 )
+   28:  		If  *Var0  ==  ~Entry:Entry1
+   38:  			Call  FadeOutMusic      ( 00000000 000001F4 )
+   4C:  			Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
+   5C:  			Return
+   64:  		EndIf
+   74:  Case  >=  .Story:Ch5_MtLavaLavaErupting % 24
+   80:  	Call  PlaySound ( 8000006B )
+   90:  EndSwitch
+		Call  GetEntryID    ( *Var0 )
+		If  *Var0  !=  ~Entry:Entry1
+			Call  SetMusicTrack     ( 00000000 .Song:MtLavalava 00000000 00000008 )
+		EndIf
+   B4:  Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
+   C4:  Return
+   CC:  End
+}
+
+
 @	$Script_Main_EnterWalk
 {
-		Set *Var0 .True
-		Set     *Byte_Settings_BGM *Var0
+		
     0:  Set   *GB_WorldLocation  .Location:MtLavalava
    10:  Call  SetSpriteShading  ( .Shading:kzn_19 )
    20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
@@ -98,6 +120,7 @@
    48:  	EndIf
    50:  EndLoop
    58:  Call  DisablePlayerInput    ( .True )
+		Call $SetFlagCarryOverworldMusicToBattle()
    68:  Call  SetMusicTrack ( 00000000 .Song:LavaPiranhaTheme 00000000 00000008 )
    84:  Call  LoadAnimatedModel     ( 00000000 $AnimatedModelTree_802431F8 )
    98:  Call  $Function_80241BC0    ( 00000000 00000000 )
@@ -210,6 +233,8 @@
   7CC:  	EndLoop
   7D4:  EndChildThread
   7DC:  Call  DisablePlayerInput    ( .False )
+		Call  SetMusicTrack ( 00000000 .Song:UnusedOpening 00000000 00000008 )
+		Call  ClearAmbientSounds    ( 000000FA )
   7EC:  Call  StartBossBattle       ( .Song:UnusedOpening )
   7FC:  Return
   804:  End
@@ -223,6 +248,7 @@
    1C:  	Wait  1`
    28:  	Goto  0
    34:  EndIf
+		Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
    3C:  Call  DisablePlayerInput    ( .True )
    4C:  Wait  55`
 		Call  GetCurrentPartnerID   ( *Var0 )
@@ -251,6 +277,8 @@
   1E0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   1F4:  Call  SetNpcAux     ( .NpcID:LavaPiranhaHead_02 00000000 )
   208:  Wait  10`
+		Call $ClearFlagCarryOverworldMusicToBattle()
+		Call $ClearFlagCarryOverworldMusicToBattle()
   214:  Call  FadeOutMusic  ( 00000000 000005DC )
   228:  Exec  $Script_80242164
   234:  Wait  30`
@@ -340,4 +368,22 @@
   378:  Call  DisablePlayerInput    ( .False )
   388:  Return
   390:  End
+}
+
+
+@	$Script_ExitWalk_802426F4
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
+   10:  If  *GB_StoryProgress  <  .Story:Ch5_DefeatedLavaPiranha % FFFFFFBA
+   20:  	Call  ShowMessageAtScreenPos    ( 00100125  160`  40` ) % No skipping Molten Piranha
+			Call  GotoMap   ( "kzn_18" 00000001 ) % kzn_20
+		Else
+			Call  GotoMap   ( $ASCII_80248364 00000000 ) % kzn_20
+   28:  EndIf		
+   20:  Exec  ExitWalk
+   2C:  
+   40:  Wait  70`
+   4C:  Return
+   54:  End
 }

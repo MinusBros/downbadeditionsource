@@ -21,8 +21,55 @@
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
 				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
    88:  	Default
-   90:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+   90:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000001 00000008 )
    9C:  EndSwitch
    B4:  Return
    BC:  End
 }
+
+%swap these two around since you get gold credit first now
+
+@	$ASCII_80243DD8
+{
+	"mgm_02"
+}
+
+@ $ASCII_80243DE0
+{
+	"mgm_01"
+}
+
+
+@	$Function_80241170
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        S0, 10 (SP)
+   10:  CLEAR     S0
+   14:  SW        RA, 18 (SP)
+   18:  JAL       ~Func:find_item
+   1C:  LI        A0, 7B %Silver > Gold credit
+   20:  BLTZ      V0, .o30
+   24:  NOP
+   28:  BEQ       R0, R0, .o40
+   2C:  LI        S0, 2
+        .o30
+   30:  JAL       ~Func:find_item
+   34:  LI        A0, 7C %Gold > Silver credit
+   38:  BGEZL     V0, .o40
+   3C:  LI        S0, 1
+        .o40
+   40:  COPY      A0, S1
+   44:  LI        A1, *Var5
+   4C:  JAL       ~Func:set_variable
+   50:  COPY      A2, S0
+   54:  LW        RA, 18 (SP)
+   58:  LW        S1, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  LI        V0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 20
+}
+
+

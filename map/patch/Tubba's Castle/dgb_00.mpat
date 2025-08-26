@@ -1,9 +1,74 @@
+@	$EntryList
+{
+	~Vec4f:Entry0 % -733.0    0.0   -8.0   90.0
+	~Vec4f:Entry1 %  250.0   10.0 -100.0  225.0
+	~Vec4f:Entry2
+	~Vec4f:Entry3
+}
+
+@ $Header
+{
+	[EntryCount]  00000005
+}
+
 @	$Script_MakeEntities
 {
     0:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80243760 80000000 )
 		Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 )
+		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_UseBluePipe ~Index:*GF_Chapter3_BluePipeA 80000000 )
+		If  *GF_Chapter3_BluePipeA == .False
+			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
+			Call     AssignAreaFlag ( 00000003 )
+			Set      *MapVar[1] *Var[0] 
+			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+		EndIf
    24:  Return
    2C:  End
+}
+
+
+@	$Script_80240110
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch3_TubbaWokeUp % FFFFFFE3
+   18:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+   34:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   40:  		Call  SetMusicTrack ( 00000000 .Song:TubbaEscape 00000000 00000008 )
+				Call $SetFlagCarryOverworldMusicToBattle()
+   5C:  	Default
+   64:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+   80:  EndSwitch
+   88:  Call  ClearAmbientSounds    ( 000000FA )
+   98:  Return
+   A0:  End
+}
+
+@	$Script_80240F50
+{
+    0:  SetGroup  000000EF
+    C:  Loop
+   18:  	Call  RandInt   ( 00000032 *Var0 )
+   2C:  	Add   *Var0  00000050
+   3C:  	Wait  *Var0
+   48:  	If  *MapVar[0]  ==  00000000
+   68:  		Call  PlaySoundAt   ( 000000B4 00000000 000000F0 0000000A FFFFFF83 )
+   88:  		Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[2.0] )
+   A4:  		Call  ShowMessageAtScreenPos    ( 000E00EF  160`  40` ) % I smell delicious ghosts! Open the doooooooor!!
+   CC:  	EndIf
+   D4:  EndLoop
+   DC:  Return
+   E4:  End
+}
+
+@	$Script_ExitWalk_802401C0
+{
+   [40]  Wait  70`
+}
+
+@   $Script_ExitDoubleDoor_8024021C
+{
+   [78]  Wait  15`
+   [98]  Wait  70`
 }
 
 @	$Script_80242B84
@@ -21,4 +86,70 @@
   [78C]  Wait  5`
   [7A8]  Wait  8`
   [7F8]  Wait  3`
+}
+
+#import EnterViaPipe.mpat
+
+@	$Script_EnterDoubleDoor_8024038C
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_802402D0
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+   58:  Switch  *Var0
+   64:  	Case  ==  ~Entry:Entry0
+   70:  		Set   *Var0  $Script_802402D0
+   80:  		Exec  EnterWalk
+   8C:  		Wait  1`
+   98:  	Case  ==  ~Entry:Entry1
+   A4:  		If  *GB_StoryProgress  >=  .Story:Ch3_TubbaSmashedTheBridges % FFFFFFE4
+   B4:  			If  *GB_StoryProgress  <  .Story:Ch3_EscapedTubbasManor % FFFFFFE7
+   C4:  				Exec  $Script_802402D0
+   D0:  				Thread
+   D8:  					ExecWait  $Script_8024103C
+   E4:  					ExecWait  $Script_802413F4
+   F0:  				EndThread
+   F8:  				Return
+  100:  			EndIf
+  108:  		EndIf
+  110:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+  120:  		Set   *Var2  00000005
+  130:  		Set   *Var3  00000007
+  140:  		ExecWait  EnterDoubleDoor
+  14C:  		Exec  $Script_802402D0
+  158:  	Case  ==  00000002
+  164:  		Exec  $Script_802402D0
+  170:  		Exec  $Script_80242B84
+			Case  ==  ~Entry:Entry2
+			Case  ==  ~Entry:Entry3
+				Set *Var[A] $Script_802402D0
+				Exec $Script_EnterVerticalPipe
+				Wait 1`
+  17C:  EndSwitch
+  184:  Return
+  18C:  End
+}
+
+
+
+#new:Script $Script_SwitchPressed
+{
+    0:  Wait  8`
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter3_BluePipeA  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap     	( "obk_01" 7 )
+	Wait     00000054 
+	Return
+	End
 }

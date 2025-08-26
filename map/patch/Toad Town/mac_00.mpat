@@ -1,8 +1,28 @@
-%After freeing Kalmar, Kinoko Town becomes dark
-%and covered in fog due to Bower, so change
-%this map based on story progression.
-
-
+#define .NpcID:ChuckQuizmo_06       06
+#define .NpcID:Toad_07              07
+#define .NpcID:Toad_08              08
+#define .NpcID:Toad_09              09
+#define .NpcID:Toad_10              0A
+#define .NpcID:ThreeSisters_11      0B
+#define .NpcID:ThreeSisters_12      0C
+#define .NpcID:ThreeSisters_13      0D
+#define .NpcID:ThreeSisters_14      0E
+#define .NpcID:Toad_15              0F
+#define .NpcID:Toad_16              10
+#define .NpcID:Toad_17              11
+#define .NpcID:ThreeSisters_18      12
+#define .NpcID:ToadKid_19           13
+#define .NpcID:ToadKid_20           14
+#define .NpcID:ShyGuy_21            15
+#define .NpcID:ShyGuy_22            16
+#define .NpcID:ShyGuy_23            17
+#define .NpcID:Toad_24              18
+#define .NpcID:Luigi_25             19
+#define .NpcID:Goompapa_26          1A
+#define .NpcID:Goomama_27           1B
+#define .NpcID:Gooma_28             1C
+#define .NpcID:HarryT_29            1D
+#define .NpcID:VannaT_30            1E
 
 @ $EntryList
 {
@@ -16,6 +36,352 @@
 ~Vec4f:Entry7 % -100.0   30.0 -370.0  135.0
 ~Vec4f:Entry8 %underneath the dojo stairs
 }
+
+%WIP for now, but have an NPC that sells you a Return Pipe for 100 coins.
+%It can be used during most parts of the game to warp to Kinoko Town.
+
+
+#define .Npc:PipeSalesman 00000030
+
+#new:NpcGroup $NpcGroup_Salesman
+{
+	.Npc:PipeSalesman $NpcSettings_80245D10 ~Vec3f:PipeSalesman % -150 0 -275
+	00112D09 $Script_Init_Salesman 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:PipeSalesman
+	~AnimationTable:PipeSalesman
+	00000000 00000000 00000000 001A0124 % Tattle ID
+}
+
+
+@	$NpcGroupList_8024E1A8
+{
+	00000003 $NpcGroup_8024D038 00000000
+	00000003 $NpcGroup_8024C45C 00000000
+	00000001 $NpcGroup_8024CA2C 00000000
+	00000002 $NpcGroup_8024CC1C 00000000
+	0000000A $NpcGroup_80251124 00000000
+	00000004 $NpcGroup_8024D7F8 00000000
+	00000001 $NpcGroup_8024DFB8 00000000
+	%00000001 $NpcGroup_Salesman 00000000
+	00000000 00000000 00000000
+}
+
+#new:Script $Script_Init_Salesman
+{
+   14:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+   24:  	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Salesman )
+   2C:  EndIf
+   68:  Return
+   70:  End
+}
+
+#import CountItems.mpat
+
+#new:Function $Function_CountCoins
+{
+    0:  LAH       V0, 8010F29C
+    8:  SLTI      V0, V0, 64
+    C:  BNE       V0, R0, .o1C
+   10:  LI        V0, 1
+   14:  BEQ       R0, R0, .o20
+   18:  SW        R0, 84 (A0)
+        .o1C
+   1C:  SW        V0, 84 (A0)
+        .o20
+   20:  JR        RA
+   24:  LI        V0, 2
+}
+
+#new:Function $Function_CountCoins2
+{
+    0:  LAH       V0, 8010F29C
+    8:  SLTI      V0, V0, 300`
+    C:  BNE       V0, R0, .o1C
+   10:  LI        V0, 1
+   14:  BEQ       R0, R0, .o20
+   18:  SW        R0, 84 (A0)
+        .o1C
+   1C:  SW        V0, 84 (A0)
+        .o20
+   20:  JR        RA
+   24:  LI        V0, 2
+}
+
+#new:Function $Function_TakeCoins
+{
+    0:  LA        V1, 8010F290
+    8:  LHU       V0, C (V1)
+    C:  ADDIU     V0, V0, FF9C
+   10:  SH        V0, C (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Function $Function_TakeCoins2
+{
+    0:  LA        V1, 8010F290
+    8:  LHU       V0, C (V1)
+    C:  ADDIU     V0, V0, -300`
+   10:  SH        V0, C (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Script $Script_Interact_Salesman
+{
+	Call    FindItem   ( .Item:ReturnPipe *Var1 )
+	If      *Var1  !=  FFFFFFFF
+		Call	SpeakToPlayer ( .Npc:Self 00890104 00890101 00000000 $HelloAgain )
+		Return
+	EndIf
+	Call	DisablePlayerInput ( .True )
+	Call	ShowCoinCounter ( .True )
+	If  *GF_BoughtReturnPipe == .False
+		Call	SpeakToPlayer ( .Npc:Self 00890104 00890101 00000000 $SalesmanIntro )
+	Else
+		Call	SpeakToPlayer ( .Npc:Self 00890104 00890101 00000000 $SalesmanReplacement )
+	EndIf
+	Call	SetMessageValue ( *VarB 00000000 )
+	Call  	ShowChoice    ( 001E000D ) % Yes No
+	If *Var0 != .False % No
+		Call	ShowCoinCounter ( .False )
+		Call   ContinueSpeech ( .Npc:Self 00890107 00890101 00000000 $Goodbye )
+		Call	DisablePlayerInput ( .False )
+		Return
+	Else
+	EndIf
+	ExecWait  $CountItems
+	If *Var0 == 10` %(Max inventory)
+		Call   ContinueSpeech ( .Npc:Self 00890106 00890101 00000000 $TooManyItems )
+		Call	ShowCoinCounter ( .False )
+		Call	DisablePlayerInput ( .False )
+		Return
+	EndIf
+	If  *GF_BoughtReturnPipe == .False
+		Call $Function_CountCoins ( )
+	Else
+		Call $Function_CountCoins2 ( )
+	EndIf
+	Call	AddCoin ( 0 )
+	If *Var0 < *VarB
+		Call	ContinueSpeech ( .Npc:Self 00890106 00890101 00000000 $YoureBroke )
+		Call	ShowCoinCounter ( .False )
+		Call	DisablePlayerInput ( .False )
+		Return
+	EndIf
+	ExecWait $Thanks
+	Return
+	End
+}
+
+#new:Script $Thanks
+{
+		Call  EndSpeech     ( 00000000  00890101 00890101 00000000 )
+		If  *GF_BoughtReturnPipe == .False
+			Call    $Function_TakeCoins ( )
+		Else
+			Call 	$Function_TakeCoins2 ( )
+		EndIf
+		Call	ShowCoinCounter ( .False )
+		Call  SetNpcAnimation   ( 00000000 00890005 )
+		ExecWait  $Script_8024ECEC
+		Set   *Var0  .Item:ReturnPipe
+		Set   *Var1  00000000
+		Call  AddItem   ( .Item:ReturnPipe *Var1 )
+		Set   *GF_BoughtReturnPipe .True
+		Call  SetNpcAnimation   ( 00000000 00890001 )
+		Call	SpeakToPlayer ( .Npc:Self 00890107 00890101 00000000 $ThankYou )
+		Call	DisablePlayerInput ( .False )
+		Return
+		End
+}
+
+#new:String $SalesmanIntro
+{
+[Style Right]
+Good day, sir.[BR]
+[Pause 10]Might I interest you in a little[BR]
+doodad I recently obtained[BR]
+during my trip to Flipside?[BR]
+[Wait][Next]
+It's only 100 Coins.[BR]
+Take it or leave it.[BR]
+[Yield][End]
+}
+
+#new:String $YoureBroke
+{
+[Next]
+What rot.[BR]
+You lack the funds, my good man.[BR]
+[Wait][End]
+}
+
+
+#new:String $TooManyItems
+{
+[Next]
+What rot.[BR]
+You lack the space, good man.[BR]
+[Wait][End]
+}
+
+#new:String $ThankYou
+{
+[Style Right]
+Pleasure doing business with ye.[BR]
+[Pause 20]Alright,[Pause 2] piss off now.[Wait][End]
+}
+
+#new:String $Goodbye
+{
+[Next]
+[Pause 20]Alright,[Pause 2] piss off then.[Wait][End]
+}
+
+#new:String $SalesmanReplacement
+{
+[Style Right]
+G'day again, sir.[BR]
+[Pause 20]What's this? Did you MISPLACE[BR]
+your Return Pipe?[BR]
+[Wait][Next]
+Oh no, this simply won't do.[BR]
+That was a relic, boy.[BR]
+[Pause 5]Oh well, it can't be helped[BR]
+I suppose.[BR]
+[Wait][Next]
+I did manage to get ahold of[BR]
+a spare, however.[BR]
+[Pause 15]It's not cheap, mind.[BR]
+[Wait][Next]
+Replacement fees will be 500[BR]
+Coins. Take it or leave it.[BR]
+[Yield][End]
+}
+
+#new:String $HelloAgain
+{
+[Style Right]
+Hello again, sir.[BR]
+[Pause 10]Is that Return Pipe serving[BR]
+you well?[BR]
+[Wait][Next]
+Don't expect it to work [Wave]all[/fx][BR]
+the time, however.[BR]
+[Pause 8][Wait][Next]
+It's saved my butt plenty, but[BR]
+at clutch moments, it randomly[BR]
+decides to deactivate.[BR]
+[Pause 10]Blasted thing...[BR]
+[Wait][Next]
+Still, it's quite useful.[BR]
+[Pause 10]Take good care of it.[Wait][End]
+}
+
+
+
+%Goombarius tries to hit on the ladies
+
+@	$Script_Interact_802504B4
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  000200CF
+   28:  		Set   *Var1  000200D0
+   38:  		Set   *Var2  000200D1
+   48:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   54:  		Set   *Var0  000200D2
+   64:  		Set   *Var1  000200D3
+   74:  		Set   *Var2  000200D4
+   84:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   90:  		Set   *Var0  000200D5
+   A0:  		Set   *Var1  000200D6
+   B0:  		Set   *Var2  000200D7
+   C0:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   CC:  		If  *GF_MAC03_BombedRock  ==  .False
+   DC:  			Set   *Var0  000200D8
+   EC:  			Set   *Var1  000200D9
+   FC:  			Set   *Var2  000200DA
+  10C:  		Else
+  114:  			Set   *Var0  000200DB
+  124:  			Set   *Var1  000200DC
+  134:  			Set   *Var2  000200DD
+  144:  		EndIf
+  14C:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+  158:  		Set   *Var0  000200DE
+  168:  		Set   *Var1  000200DF
+  178:  		Set   *Var2  000200E0
+  188:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+  194:  		If  *GF_MAC04_StoreroomKeyStolen  ==  .False
+  1A4:  			Set   *Var0  000200E1
+  1B4:  			Set   *Var1  000200E2
+  1C4:  			Set   *Var2  000200E3
+  1D4:  		Else
+  1DC:  			Set   *Var0  000200E4
+  1EC:  			Set   *Var1  000200E5
+  1FC:  			Set   *Var2  000200E6
+  20C:  		EndIf
+  214:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  220:  		Set   *Var0  000200E7
+  230:  		Set   *Var1  000200E8
+  240:  		Set   *Var2  000200E9
+  250:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  25C:  		Set   *Var0  000200EA
+  26C:  		Set   *Var1  000200EB
+  27C:  		Set   *Var2  000200EC
+  28C:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  298:  		Set   *Var0  000200ED
+  2A8:  		Set   *Var1  000200EE
+  2B8:  		Set   *Var2  000200EF
+  2C8:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  2D4:  		Set   *Var0  000200F0
+  2E4:  		Set   *Var1  000200F1
+  2F4:  		Set   *Var2  000200F2
+  304:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  310:  		Set   *Var0  000200F3
+  320:  		Set   *Var1  000200F4
+  330:  		Set   *Var2  000200F5
+  340:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  34C:  		Set   *Var0  000200F6
+  35C:  		Set   *Var1  000200F7
+  36C:  		Set   *Var2  000200F8
+  37C:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  388:  		Set   *Var0  000200F9
+  398:  		Set   *Var1  000200FA
+  3A8:  		Set   *Var2  000200FB
+  3B8:  	Case  <  .Story:Epilogue % 60
+  3C4:  		Set   *Var0  000200FC
+  3D4:  		Set   *Var1  000200FD
+  3E4:  		Set   *Var2  000200FE
+  3F4:  	Case  >=  .Story:Epilogue % 60
+  400:  		Set   *Var0  00010032
+  410:  		Set   *Var1  00010033
+  420:  		Set   *Var2  00010034
+  430:  EndSwitch
+  438:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840204 00840201 00000000 *Var0 ) % variable string ID
+  458:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840004 00840001 00000000 *Var1 ) % variable string ID
+  478:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840304 00840301 00000000 *Var2 ) % variable string ID
+		Call  GetCurrentPartnerID   ( *Var0 )
+  540:  If  *Var0  ==  .Partner:Goombario % 2
+				Wait  4`
+  570:  		Call  DisablePartnerAI  ( 00000000 )
+  580:  		Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 00020120 ) % 
+				Call  SetNpcAnimation   ( .Npc:Partner 00010013 )
+  438:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840201 00840201 00000000 00020121 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
+  458:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840001 00840001 00000000 00020121 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
+  478:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840301 00840301 00000000 00020121 ) 
+				Call  SpeakToPlayer    ( .Npc:Partner 0001000B 0001000B 00000005 00020121 ) % 
+  5EC:  		Call  EnablePartnerAI ( )
+  600:  EndIf
+  498:  Return
+  4A0:  End
+}
+
+
 
 
 @ $Header
@@ -91,13 +457,22 @@
 }
 
 
+%Change Toad Kid animation
+@	$Script_Interact_8024BA54
+{
+  [22C]  Call  SpeakToPlayer ( .Npc:Self 00830105 00830101 00000000 *Var0 ) % variable string ID
+}
+
+
 @	$Script_80243C20
 {
     0:  Switch  *GB_StoryProgress
-    C:  	Case  ==  .Story:Intro % FFFFFF80
-   18:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
    34:  	Case  ==  .Story:Epilogue % 60
-   40:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+				If  *GF_EnclosureFlag == .False
+   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+				EndIf
    5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
    6C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
@@ -210,7 +585,7 @@
 {
    [44]  Wait  3`
   [174]  Wait  20`
-  [18C]  Call  StartBattleWith   ( .Song:JrTroopaBattle )
+  [18C]  Call  StartBattleWith   ( .Song:Kazuya )
 }
 
 
@@ -218,7 +593,7 @@
 {
    [44]  Wait  3`
   [174]  Wait  10`
-  [18C]  Call  StartBattleWith   ( .Song:JrTroopaBattle )
+  [18C]  Call  StartBattleWith   ( .Song:Kazuya )
 }
 
 
@@ -322,6 +697,8 @@
    74:  Return
    7C:  End
 }
+
+
 
 % ====================================================
 % Chuck Quizmo will continue asking questions so long

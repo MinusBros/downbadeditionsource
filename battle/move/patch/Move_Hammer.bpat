@@ -1,3 +1,20 @@
+#new:Function $Function_CheckFirstAttack
+{
+PUSH	RA, A1, A2
+%JAL		~Func:is_ability_active
+%ORI		A0, R0, 3 %ability 3 is first attack
+PUSH	A0
+JAL     $IsBadgeEquiped %~Func:is_ability_active %800E9D48
+ORI		A0, R0, E6 %first attack
+ADD 	A2, A0, R0
+POP		A0
+JAL		~Func:set_variable
+LW		A1, 0 (S0) %get argument
+POP		RA, A1, A2
+JR		RA
+ADDIU	V0, R0, 2
+}
+
 %Make hammer faster and stronger.
 
 @	$Script_802A10B0
@@ -65,6 +82,101 @@
    [A8]  		Set   *VarF  00000005
    [F0]  		Set   *VarF  00000007
 }
+
+
+%+1 for normal hammer, +2 for super hammer, +3 for ultra
+
+@ $Script_UseMove1
+{
+    0:  Call     GetMenuSelection 	( *Var[0] *Var[1] *Var[2] )
+   18:  Switch  *Var[1] 
+   24:  	Case  ==  00000000 
+				Call $Function_CheckFirstAttack ( *Var[C] )
+				If *Var[C] == 0
+   30: 		 		Set  *Var[9]  00000001 
+				Else
+					Set  *Var[9]  00000002 
+				EndIf
+   40:  		SetConst  *Var[A]  0003000F 
+   50:  		SetConst  *Var[B]  00030011 
+   60:  		SetConst  *Var[C]  00030012 
+   70:  	Case  ==  00000001 
+				Call $Function_CheckFirstAttack ( *Var[C] )
+				If *Var[C] == 0
+   7C: 		 		Set  *Var[9]  00000002 
+				Else
+					Set  *Var[9]  00000004 
+				EndIf
+   8C:  		SetConst  *Var[A]  00030016 
+   9C:  		SetConst  *Var[B]  00030017 
+   AC:  		SetConst  *Var[C]  00030019 
+   BC:  	Case  ==  00000002 
+				Call $Function_CheckFirstAttack ( *Var[C] )
+				If *Var[C] == 0
+   C8: 		 		Set  *Var[9]  00000003 
+				Else
+					Set  *Var[9]  00000006 
+				EndIf
+   D8:  		SetConst  *Var[A]  0003001D 
+   E8:  		SetConst  *Var[B]  0003001E 
+   F8:  		SetConst  *Var[C]  00030020 
+  108:  EndSwitch
+  110:  Call     SetGoalToTarget 	( .Actor:Player )
+  120:  Call     AddGoalPos 	( .Actor:Player 00000000 00000000 00000000 )
+  13C:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  158:  Sub  *Var[0]  00000020 
+  168:  Set  *Var[1]  00000000 
+  178:  Call     SetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  194:  Call     8024E664 ( 0000002B )
+  1A4:  Call     SetAnimation 	( .Actor:Player 00000000 *Var[A] )
+  1BC:  Wait     00000008 
+  1C8:  Call     SetAnimation 	( .Actor:Player 00000000 *Var[B] )
+  1E0:  Wait     00000003 
+  1EC:  Call     UseBattleCamPreset 	( 0000002C )
+  1FC:  Call     SetAnimation 	( .Actor:Player 00000000 *Var[C] )
+  214:  Call     GetMenuSelection 	( *Var[0] *Var[1] *Var[2] )
+  22C:  Switch  *Var[1] 
+  238:  	Case  ==  00000000 
+  244:  		Call     PlaySoundAtActor 	( .Actor:Player 00002115 )
+  258:  		Call     80254218 ( 00000007 )
+  268:  		Thread
+  270:  			Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[1.3007812] )
+  28C:  		EndThread
+  294:  	Case  ==  00000001 
+  2A0:  		Call     PlaySoundAtActor 	( .Actor:Player 00002116 )
+  2B4:  		Call     80254218 ( 00000008 )
+  2C4:  		Thread
+  2CC:  			Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[1.6005859] )
+  2E8:  		EndThread
+  2F0:  	Case  ==  00000002 
+  2FC:  		Call     PlaySoundAtActor 	( .Actor:Player 00002117 )
+  310:  		Call     80254218 ( 00000009 )
+  320:  		Thread
+  328:  			Call     ShakeCam    	( 00000001 00000000 0000000A *Fixed[1.9003906] )
+  344:  		EndThread
+  34C:  EndSwitch
+  354:  Call     UseBattleCamPreset 	( 0000002C )
+  364:  Wait     00000001 
+  370:  Call     PlayerTestEnemy 	( *Var[0] 00000040 00000019 00000000 00000000 00000010 )
+  394:  If  *Var[0]  ==  00000006 
+  3A4:  	ExecWait $Script_802A1A64 
+  3B0:  	Return
+  3B8:  EndIf
+  3C0:  Call     GetMenuSelection 	( *Var[0] *Var[1] *Var[2] )
+  3D8:  Switch  *Var[1] 
+  3E4:  	Case  ==  00000000 
+  3F0:  		Call     PlaySoundAtActor 	( .Actor:Player 000000E9 )
+  404:  	Case  ==  00000001 
+  410:  		Call     PlaySoundAtActor 	( .Actor:Player 0000010E )
+  424:  	Case  ==  00000002 
+  430:  		Call     PlaySoundAtActor 	( .Actor:Player 0000010E )
+  444:  EndSwitch
+  44C:  Call     PlayerDamageEnemy 	( *Var[0] 00000040 00000019 00000000 *Var[9] 00000030 )
+  470:  ExecWait $Script_802A18AC 
+  47C:  Return
+  484:  End
+}
+
 
 @	$Script_UseMove2
 {

@@ -5,11 +5,98 @@
 	.Item:SnowmanDoll    0000000F 00240001 % A snowman that crushes all enemies. Attack Power:  ...
 	.Item:MapleSyrup     0000000A 00240017 % Delicious maple syrup. Restores 10 FP.
 	.Item:SuperShroom    0000000A 0024000A % A truly super Mushroom. Restores 10 HP.
-	.Item:LifeShroom     00000064 0024000C % A life-giving Mushroom. Restores 10 HP when Mario' ...
+	.Item:LifeShroom     00000064 0024000C % 100-coin Life Shroom lol
 	00000000 00000000 00000000
 }
 
 @	$Script_Main
 {
-   [10]  Call  SetSpriteShading  ( .Shading:kzn_05 )
+    0:  Set   *GB_WorldLocation  .Location:BoosMansion
+   10:  Call  SetSpriteShading  ( .Shading:kzn_05 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_80243B3C )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_80242C8C
+   B0:  Exec  $Script_80243B60
+   BC:  ExecWait  $Script_80241670
+   C8:  Exec  $Script_802412FC
+   D4:  Exec  $Script_80241060
+   E0:  Bind  $Script_80241184 .Trigger:WallPressA ~Collider:tt1 00000001 00000000
+   FC:  Bind  $Script_802410D0 .Trigger:WallPressA ~Collider:tt2 00000001 00000000
+  118:  Exec  $Script_80241238
+		Exec  $ShopCheck
+  124:  Return
+  12C:  End
+}
+
+#new:Script $ShopCheck
+{
+		Thread
+   80:  If  *Var0  !=  00000000
+   90:  	Goto  14
+   9C:  EndIf
+   A4:  Label  A
+   B0:  Wait  2`
+   BC:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   D4:  If  *Var2  <  -185`
+			If *Var1 < 270`
+				If *ShopState == 00000000
+					Set *ShopState 00000001
+					Call  PushSong      ( 000000C7 00000000 )
+	  120:  		Wait  2`
+	  12C:  		Goto  14
+				EndIf
+			EndIf
+  138:  EndIf
+  140:  Goto  A
+  14C:  Label  14
+  158:  Wait  2`
+  188:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+  1A0:  If  *Var2  >  -115`
+			If *ShopState == 00000001
+				Set *ShopState 00000000
+				Call  PopSong ( )
+			EndIf
+  1DC:  	Wait  2`
+  1E8:  	Goto  A
+		Else
+			If  *Var1  >  350`
+				If *ShopState == 00000001
+					Set *ShopState 00000000
+					Call  PopSong ( )
+				EndIf
+	  1DC:  	Wait  2`
+	  1E8:  	Goto  A
+		EndIf
+		EndIf
+  1FC:  Goto  14
+		EndThread
+		Return
+		End
+}
+
+%Make the shop always accessible.
+
+@	$Script_80241670
+{
+		Call  ModifyColliderFlags   ( 00000000 ~Collider:dummy 7FFFFE00 )
+   C8:  Call  MakeShop      ( $ShopItemPositions_802415E8 $ShopInventory_8024154C $ShopPriceList_802415A0 00000000 )
+   E4:  Call  MakeShopOwner ( $ShopOwnerNPC_80241654 )
+   F4:  Return
+   FC:  End
+}
+
+@	$Script_Interact_80243894
+{
+   10:  	ExecWait  ItemShopInteract
+   4C:  ExecWait  $Script_802437E0
+   58:  ExecWait  $Script_80243830
+   64:  If  *VarC  !=  00000000
+   74:  	Return
+   7C:  EndIf
+   84:  Return
+   8C:  End
 }

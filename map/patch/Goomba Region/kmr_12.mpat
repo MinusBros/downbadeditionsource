@@ -1,5 +1,23 @@
 #define .NpcID:Goomba_00            00
 
+
+@ $EntryList
+{
+~Vec4f:Entry0 % -126.0    0.0   12.0   90.0
+~Vec4f:Entry1 %  471.0    0.0   12.0  270.0
+~Vec4f:Entry2 %  on the rock thing
+}
+
+@ $Header
+{
+[MainScript]  $Script_Main_EnterWalk
+[EntryList]   $EntryList 
+[EntryCount]  00000003
+[Background]  80200000 
+[MapTattle]   00190040 
+}
+
+
 @	$Script_80240090
 {
     [0]  Call  SetMusicTrack ( 00000000 .Song:DBE_Prologue 00000000 00000008 )
@@ -42,9 +60,7 @@
    [20]  Call  SetNpcAnimation   ( .Npc:Self 0026010D )
   [12C]  Call  SetNpcAnimation   ( .Npc:Self 00260100 )
   [18C]  Call  SetNpcAnimation   ( .Npc:Self 00260107 )
-  [1A0]  Wait  15`
   [1AC]  Call  SetNpcAnimation   ( .Npc:Self 00260101 )
-  [21C]  Wait  3`
 }
 
 @	$NpcGroup_802407B8
@@ -55,4 +71,73 @@
 	~Movement:NPC_Goomba_00
 	~AnimationTable:NPC_Goomba_00 % .Sprite:Goomba
 	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+
+@ $Script_MakeEntities
+{
+	0:  Call     MakeEntity  	( .Entity:Signpost ~Vec4d:Entity80240A64 80000000 )
+   24:  Call     AssignScript 	( $Script_802409C0 )
+		Call     MakeEntity  	( .Entity:ScriptSpring 195` 0` -72` 0.0 80000000 )
+		Call     AssignScript 	( $Script_Spring )
+   34:  Return
+   3C:  End
+}
+
+
+  
+%spring script copied from iwa_04
+#new:Script $Script_Spring
+{
+	0:  Call     DisablePlayerInput 	( .True )
+   10:  Call     DisablePlayerPhysics 	( .True )
+   20:  Call     802D10D8 ( 00000006 )
+   30:  Wait     00000001 
+   3C:  Exec     $Script_80241420 *Var[A] 
+   4C:  If  *MapVar[9]  ==  00000000 
+   5C:  	Call     SetPlayerJumpscale 	( *Fixed[1.4003906] )
+   6C:  	Call     PlayerJump  	( 240` 85` -110` 0000000F )
+   88:  Else
+   90:  	Call     SetPlayerJumpscale 	( *Fixed[0.7001953] )
+   A0:  	Call     PlayerJump  	( 240` 85` -110` 00000028 )
+   BC:  EndIf
+   C4:  Kill     *Var[A] 
+   D0:  Call     802D10D8 ( 00000000 )
+   E0:  Call     DisablePlayerPhysics 	( .False )
+   F0:  Call     DisablePlayerInput 	( .False )
+  100:  Return
+  108:  End
+}
+  
+#new:Script $Script_80241420
+{
+	0:  Loop     
+    C:  	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+   24:  	Call     802CAF2C ( 00000000 *Var[0] *Var[1] *Var[2] )
+   40:  	Wait     00000001 
+   4C:  EndLoop
+   54:  Return
+   5C:  End
+}
+   
+#new:Script $Script_Entry2
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000002 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "flo_26" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+@ $Script_80240178
+{
+	0:  Bind     $Script_ExitWalk_802400C0 .Trigger:FloorAbove ~Collider:deili1 00000001 00000000 
+   1C:  Bind     $Script_ExitWalk_8024011C .Trigger:FloorAbove ~Collider:deili2 00000001 00000000 
+		Bind     $Script_Entry2 .Trigger:FloorAbove ~Collider:lzcollider 00000001 00000000 
+   38:  Return
+   40:  End
 }

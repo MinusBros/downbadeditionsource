@@ -86,3 +86,136 @@
 {
    [DC]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[4.0] )
 }
+
+
+
+
+#new:NpcGroup $RoseGoomba1 
+{
+00000000 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba1
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba1
+~AnimationTable:RoseGoomba1 % .Sprite:SpikedGoomba
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $RoseGoomba2 
+{
+00000001 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba2
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A  ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba2
+~AnimationTable:RoseGoomba2 % .Sprite:SpikedGoomba
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroup $RoseGoomba3 
+{
+00000002 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba3
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba3
+~AnimationTable:RoseGoomba3 % .Sprite:SpikedGoomba
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $RoseGoomba4
+{
+00000003 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba4
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba4
+~AnimationTable:RoseGoomba4 % .Sprite:SpikedGoomba
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroupList $NpcGroupList_Goombas
+{
+	00000001 $RoseGoomba1  26030000
+	00000001 $RoseGoomba2  26040000
+	00000001 $RoseGoomba3  26050000
+	00000001 $RoseGoomba4  26060000
+	00000000 00000000 00000000
+}
+
+
+
+#new:AISettings $AISettings_SpikedGoomba {
+    3.5 % move speed
+    40` % move time
+    10` % wait time
+  280.0 % alert radius
+    0.0
+    1`
+    6.5 % chase speed
+    180`
+    3`
+  550.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_SpikeGoomba {
+    0:  Call  DoBasicAI ( $AISettings_SpikedGoomba )
+   10:  Return
+   18:  End
+}
+
+#new:NpcSettings $NpcSettings_SpikedGoomba {
+00000000 00170017 00000000 00000000 $Script_NpcAI_SpikeGoomba 80077F70 00000000 8007809C 
+00000000 00000000 00060000 
+}
+
+
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:kkj_11 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Switch  *GB_StoryProgress
+   90:  	CaseOR  ==  .Story:Ch1_BeganPeachMission % FFFFFFB4
+   9C:  	CaseOR  ==  .Story:Ch2_BeganPeachMission % FFFFFFCA
+   A8:  	CaseOR  ==  .Story:Ch3_BeganPeachMission % FFFFFFF2
+   B4:  	CaseOR  ==  .Story:Ch4_BeganPeachMission % 6
+   C0:  	CaseOR  ==  .Story:Ch5_BeganPeachMission % 26
+   CC:  		Call  MakeNpcs  ( .False $NpcGroupList_8024468C )
+   E0:  	EndCaseGroup
+   E8:  	Case  ==  .Story:Ch6_BeganPeachMission % 3A
+   F4:  		Call  $Function_80240034    ( 00000001 )
+  104:  		Call  EnableModel   ( ~Model:o364 .False )
+  118:  		Call  EnableModel   ( ~Model:o365 .False )
+  12C:  		Call  EnableModel   ( ~Model:o366 .False )
+  140:  		Call  $Function_80240000 ( )
+  14C:  		Call  MakeNpcs      ( .False $NpcGroupList_80245EB4 )
+  160:  	Default
+  168:  		Call  EnableModel   ( ~Model:o364 .False )
+  17C:  		Call  EnableModel   ( ~Model:o365 .False )
+  190:  		Call  EnableModel   ( ~Model:o366 .False )
+  1A4:  		Call  $Function_80240000 ( )
+  1B0:  EndSwitch
+  1B8:  ExecWait  $Script_MakeEntities
+  1C4:  Call  GetDemoState  ( *Var0 )
+  1D4:  If  *Var0  !=  00000000
+  1E4:  	ExecWait  $Script_80242E38
+  1F0:  	Return
+  1F8:  EndIf
+  138:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
+			Call  MakeNpcs  ( .False $NpcGroupList_Goombas )
+  154:  EndIf
+  200:  If  *GB_StoryProgress  <  .Story:Ch8_ReachedPeachsCastle % 5F
+  210:  	Call  SetMusicTrack ( 00000000 .Song:PeachSneaking 00000000 00000008 )
+  22C:  EndIf
+  234:  Exec  $Script_8024168C
+  240:  Exec  $Script_EnterSingleDoor_80241790
+  24C:  Wait  1`
+  258:  Return
+  260:  End
+}

@@ -1,5 +1,260 @@
 #define .NpcID:TrainStationToad_00  00
 #define .NpcID:TrainStationToad_01  01
+#define .Npc:Kamopa 02
+
+#import Kamopa.mpat  %Just throw the entire Kammy script in here.
+
+%This is Red Station
+
+
+
+#new:Script $KamopaFly
+{
+		Exec  $FlyingInstructions *Var9
+   74:  Call  LoadPath  ( 80` $KamopaPath 00000004 .Easing:Linear )
+   90:  Loop
+   9C:  	Call  GetNextPathPos ( )
+   A8:  	Call  SetNpcPos ( .Npc:Kamopa *Var1 *Var2 *Var3 )
+   C4:  	If  *Var0  ==  00000000
+   D4:  		BreakLoop
+   DC:  	EndIf
+   E4:  	Wait  1`
+   F0:  EndLoop
+   80:  Return
+   88:  End
+}
+
+
+#new:Script $KamopaFly2
+{
+		Exec  $FlyingInstructions *Var9
+   74:  Call  LoadPath  ( 100` $KamopaPath2 00000005 .Easing:Linear )
+   90:  Loop
+   9C:  	Call  GetNextPathPos ( )
+   A8:  	Call  SetNpcPos ( .Npc:Kamopa *Var1 *Var2 *Var3 )
+   C4:  	If  *Var0  ==  00000000
+   D4:  		BreakLoop
+   DC:  	EndIf
+   E4:  	Wait  1`
+   F0:  EndLoop
+   80:  Return
+   88:  End
+}
+
+
+#new:Script $FlyingInstructions
+{
+    0:  ChildThread
+    8:  	Set   *Var0  0000006E
+   18:  	Loop
+   24:  		Call  PlaySoundWithVolume   ( 00000295 *Var0 )
+   38:  		Add   *Var0  FFFFFFFE
+   48:  		If  *Var0  <  0000000A
+   58:  			Set   *Var0  0000000A
+   68:  		EndIf
+   70:  		Wait  4`
+   7C:  	EndLoop
+   84:  EndChildThread
+   8C:  Call  GetNpcPos ( .Npc:Kamopa *Var6 *Var7 *Var8 )
+   A8:  Loop
+   B4:  	Call  $Function_802400C4 ( )
+   C0:  	Call  GetNpcPos ( .Npc:Kamopa *Var9 *VarA *VarB )
+   DC:  	Set   *Var3  *Var9
+   EC:  	Set   *Var4  *VarA
+   FC:  	Set   *Var5  *VarB
+  10C:  	Sub   *Var3  *Var6
+  11C:  	Sub   *Var4  *Var7
+  12C:  	Sub   *Var5  *Var8
+  13C:  	Set   *Var6  *Var9
+  14C:  	Set   *Var7  *VarA
+  15C:  	Set   *Var8  *VarB
+  16C:  	If  *Var3  ==  00000000
+  17C:  		If  *Var5  ==  00000000
+  18C:  		Else
+  194:  			%Call  PlayEffect    ( ~FX:PurpleRing *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 *Fixed[1.0] 00000000 00000000 00000000 00000000 00000000 )
+  1D8:  		EndIf
+  1E0:  	Else
+  1E8:  		%Call  PlayEffect    ( ~FX:PurpleRing *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 *Fixed[1.0] 00000000 00000000 00000000 00000000 00000000 )
+  22C:  	EndIf
+  234:  	Wait  3`
+  240:  EndLoop
+  248:  Return
+  250:  End
+}
+
+
+#new:Script  $KamopaCutscene
+{
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0
+		Call $ClearFlagCarryOverworldMusicToBattle()
+		Call  SetMusicTrack ( 00000000 .Song:KammyKoopaTheme 00000000 00000008 )
+		Call  DisablePlayerInput        ( .True )
+		Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )		
+		Call  ShowMessageAtScreenPos    ( 000F0076  160`  40` ) % Bling Bling
+		Call  SetNpcPos ( .Npc:Kamopa 0` 300` 0` )
+		Thread
+			Wait  3`
+			Set *Var0 317`
+			Set *Var1 180`
+			Set *Var2 0`
+			Exec $PanCamera
+			Wait  30`
+			Set *Var0 297`
+			Set *Var1 80`
+			Set *Var2 0`
+			Exec $PanCamera
+		EndThread
+		Call  DisablePartnerAI      ( 00000000 )
+		ExecWait $KamopaFly
+		Call  PlaySoundAtNpc    ( .Npc:Kamopa 0000032B 00000000 )
+		
+		Wait  30`
+		Call  SetPlayerPos      ( -9  0` 156` )
+		Call  SetNpcPos     ( .Npc:Partner -49  0` 156` )
+		Call  GetNpcPos     ( .Npc:Kamopa *Var0 *Var1 *Var2 )
+		ExecWait  $PanCamera
+		Call  SpeakToPlayer ( .Npc:Kamopa 00600016 00600014 00000200 000F0077 ) % Kamopa 1
+		Call  GetCurrentPartnerID   ( *Var0 )
+		
+		If  *Var0  ==  .Partner:Goombario % 0
+				
+				Call  GetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+				ExecWait  $PanCamera
+				Call  NpcFacePlayer ( .Npc:Partner 00000005 )
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000F0078 ) % Goombarius 1
+				Call  GetNpcPos     ( .Npc:Kamopa *Var0 *Var1 *Var2 )
+				ExecWait  $PanCamera
+			Call  SpeakToPlayer ( .Npc:Kamopa 0060000D 0060000C 00000200 000F0079 ) % Kamopa 2
+				Call  GetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+				ExecWait  $PanCamera
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000F007A ) % Goombarius 2
+				Call  GetNpcPos     ( .Npc:Kamopa *Var0 *Var1 *Var2 )
+				ExecWait  $PanCamera
+				Call  EnablePartnerAI ( )
+		Else 
+			Call  SpeakToPlayer ( .Npc:Kamopa 00600016 00600014 00000200 000F007C ) % Kamopa 2
+		EndIf
+		
+		Call  SpeakToPlayer ( .Npc:Kamopa 00600016 00600014 00000200 000F007B ) % Kamopa End	
+		Call  SetNpcVar ( .Npc:Kamopa 00000000 00000001 )
+		Return
+		End
+}
+
+
+
+#new:Script $Script_Defeat_Kamopa
+{
+		Call  SetCamDistance    ( .Cam:Default  200` )
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
+		Call  SpeakToPlayer ( .Npc:Kamopa 0060000D 0060000C 00000200 000F007F ) % Kamopa goodbye
+		Call  InterpNpcYaw      ( .Npc:Kamopa 90`  0` )
+		Call  SetNpcAnimation   ( .Npc:Kamopa 0060001A )
+		Call  SetCamDistance    ( .Cam:Default  400` )
+		Call  SetCamSpeed       ( .Cam:Default *Fixed[8.0] )
+		Call  SetCamPitch       ( .Cam:Default *Fixed[6.0] *Fixed[-13.0] )
+	    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Thread 
+		Wait  32`
+		Call  GetNpcYaw ( .Npc:Kamopa *Var0 )
+   E0:  			Loop  9`
+   EC:  				Add   *Var0  10`
+   FC:  				Call  SetNpcRotation    ( .Npc:Kamopa 0` *Var0 0` )
+  118:  				Wait  1`
+  124:  			EndLoop
+		EndThread
+		ExecWait $KamopaFly2
+		Wait  20`
+		Call  SetMusicTrack ( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
+		Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+		Call  DisablePlayerInput        ( .False )
+		Set   *GF_OMO10_KamopaBeaten  ( .True )
+		Return
+		End
+}
+
+
+
+#new:Script $BattleCheck
+{
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Wait  10`
+   70:  Call  GetNpcPos      ( .Npc:Kamopa *Var0 *Var1 *Var2 )
+   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+   C0:  Call  SetCamDistance    ( .Cam:Default  500` )
+   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[8.0] )
+  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  118:  Call  DisablePlayerInput    ( .False )
+		Call  StartBossBattle   ( .Song:Epsilon )	
+		Return
+		End
+}
+
+#new:Script $PanCamera
+{
+			
+			Call  SetCamSpeed       ( .Cam:Default *Fixed[8.0] )
+	  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+	  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[275.0] )
+	  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+	  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+			Return
+			End
+}
+
+
+#new:VectorList $KamopaPath
+{
+	148.000000 339.000000 -229.000000
+	389.000000 164.000000 -136.000000
+	297.000000 136.000000 119.000000
+    117.000000 81.000000 170.000000
+}
+
+#new:VectorList $KamopaPath2
+{
+	117.000000 81.000000 170.000000
+	217.000000 172.000000 70.000000
+	312.000000 305.000000 -11.000000
+    214.000000 428.000000 -55.000000
+	79.000000 567.000000 -81.000000
+}
+
+
+#new:NpcGroup $NpcGroup_Kamopa {
+	.Npc:Kamopa $NpcSettings_802408A0_osr_03 ~Vec3f:Kamopa % 0 -1000 0
+	00000D0D $Script_Init_Kamopa 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:Kamopa
+	~AnimationTable:Kamopa % .Sprite:WorldKammy
+	00000000 00000000 $ExtraAnimationList_802408CC_osr_03 00000000 % no tattle string
+}
+
+#new:Script $Script_Init_Kamopa {
+    0:  Call  BindNpcIdle   ( .Npc:Self $BattleCheck )
+		Call  BindNpcDefeat     ( .Npc:Self $Script_Defeat_Kamopa )
+   28:  Return
+   30:  End
+}
+
+@	$NpcGroupList_80244D54
+{
+	00000002 $NpcGroup_80244974 00000000
+	00000001 $NpcGroup_Kamopa   120B0000
+	00000000 00000000 00000000
+}
+
 
 @	$Script_MakeEntities
 {
@@ -85,16 +340,61 @@
 }
 
 
-@	$Script_80243E98
-{
-  [158]  	Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0011 ) % Station stop: Red Station! Welcome to Red Station, ...
-  [294]  	Wait  50`
-}
 
 @	$Script_802441D0
 {
-  [158]  	Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0011 ) % Station stop: Red Station! Welcome to Red Station, ...
-  [294]  	Wait  50`
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerPhysics  ( .True )
+   20:  Call  SetPlayerActionState  ( .ActionState:Land )
+   30:  Call  DisablePartnerAI      ( 00000000 )
+   40:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o961 7FFFFE00 )
+   58:  If  *AreaByte[6]  ==  00000003
+   68:  	Set   *MapVar[0]  00000000
+   78:  	Set   *MapVar[1]  $???_80244150
+   88:  	Set   *MapVar[2]  00000002
+   98:  	Exec  $Script_802410B0
+   A4:  	Set   *MapFlag[00]  .True
+   B4:  	Wait  1`
+   C0:  	Exec  $Script_80242278 *VarB
+   D0:  	Label  A
+   DC:  	If  *MapFlag[00]  ==  .True
+   EC:  		Wait  1`
+   F8:  		Goto  A
+  104:  	EndIf
+  10C:  	Wait  20`
+  118:  	Kill  *VarB
+  124:  	Exec  $Script_802422E0
+  130:  	Call  $Function_80240000 ( )
+  13C:  	Set   *Var9  $???_80243AC0
+  14C:  	ExecWait  $Script_802428BC
+  158:  	Call  SpeakToPlayer ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0011 ) % Station stop: Red Station! Welcome to Red Station, ...
+  178:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:o961 7FFFFE00 )
+  190:  	Call  DisablePlayerPhysics  ( .False )
+  1A0:  	Call  EnablePartnerAI ( )
+  1AC:  	Call  DisablePlayerInput    ( .False )
+			If *GF_OMO10_KamopaBeaten == .False
+				ExecWait  $KamopaCutscene
+			EndIf
+  1BC:  Else
+  1C4:  	Exec  $Script_80242278
+  1D0:  	Set   *MapVar[0]  00000000
+  1E0:  	Set   *MapVar[1]  $???_80244188
+  1F0:  	Set   *MapVar[2]  00000000
+  200:  	Exec  $Script_802410B0
+  20C:  	Set   *MapFlag[00]  .True
+  21C:  	Wait  1`
+  228:  	Exec  $Script_80242F1C
+  234:  	Label  14
+  240:  	If  *MapVar[B]  <  0000015E
+  250:  		Wait  1`
+  25C:  		Goto  14
+  268:  	EndIf
+  270:  	Call  GotoMap   ( $ASCII_80244E70 00000000 ) % omo_16
+  284:  	Set   *GB_OMO_TrainDestination  00000003
+  294:  	Wait  50`
+  2A0:  EndIf
+  2A8:  Return
+  2B0:  End
 }
 
 @	$Script_802444A0
@@ -110,6 +410,8 @@
 {
    [A4]  Wait  50`
 }
+
+
 
 
 @	$NpcGroup_80244974
@@ -128,4 +430,62 @@
 	~Movement:NPC_TrainStationToad_01
 	~AnimationTable:NPC_TrainStationToad_01 % .Sprite:TrainStationToad
 	00000000 00000000 00000000 001A00B8 % He's an employee of the Toy Box station. The emplo ...
+}
+
+
+
+
+#new:Function $Function_802400C4
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F22, 28 (SP)
+   1C:  SDC1      F20, 20 (SP)
+   20:  JAL       ~Func:get_npc_unsafe
+   24:  CLEAR     A0
+   28:  COPY      S0, V0
+   2C:  LA        S2, 800B1D80
+   34:  LWC1      F12, C (S0)
+   38:  LWC1      F0, 6C (S2)
+   3C:  ADD.S     F12, F12, F0
+   40:  LIF       F20, 180.0
+   48:  LIF       F22, 20.0
+   50:  JAL       ~Func:sin_deg
+   54:  ADD.S     F12, F12, F20
+   58:  MUL.S     F0, F0, F22
+   5C:  NOP
+   60:  LWC1      F2, 38 (S0)
+   64:  ADD.S     F2, F2, F0
+   68:  TRUNC.W.S F4, F2
+   6C:  SWC1      F4, 84 (S1)
+   70:  LWC1      F0, 3C (S0)
+   74:  LIF       F2, 18.0
+   7C:  NOP
+   80:  ADD.S     F0, F0, F2
+   84:  TRUNC.W.S F4, F0
+   88:  SWC1      F4, 88 (S1)
+   8C:  LWC1      F12, C (S0)
+   90:  LWC1      F0, 6C (S2)
+   94:  ADD.S     F12, F12, F0
+   98:  JAL       ~Func:cos_deg
+   9C:  ADD.S     F12, F12, F20
+   A0:  MUL.S     F0, F0, F22
+   A4:  NOP
+   A8:  LWC1      F2, 40 (S0)
+   AC:  SUB.S     F2, F2, F0
+   B0:  TRUNC.W.S F4, F2
+   B4:  SWC1      F4, 8C (S1)
+   B8:  LW        RA, 1C (SP)
+   BC:  LW        S2, 18 (SP)
+   C0:  LW        S1, 14 (SP)
+   C4:  LW        S0, 10 (SP)
+   C8:  LDC1      F22, 28 (SP)
+   CC:  LDC1      F20, 20 (SP)
+   D0:  LI        V0, 2
+   D4:  JR        RA
+   D8:  ADDIU     SP, SP, 30
 }

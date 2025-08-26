@@ -60,9 +60,9 @@
 {
 		If *GF_SBK30_MrTrooper == .False
 			If *GB_StoryProgress == .Story:Ch2_StarSpritDeparted
-				%ExecWait $MrTrooperCutscene
+				ExecWait $MrTrooperCutscene
 				Wait 1`
-				%Return
+				Return
 			EndIf
 		EndIf
     0:  SetGroup  0000001B
@@ -80,41 +80,125 @@
 
 #new:Script $MrTrooperCutscene
 {
-			Call  DisablePartnerAI  ( 00000000 )
+			Label A
+			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+			If  *Var1 != 0`
+				Wait 1`
+				Goto A
+			EndIf
 			Call  DisablePlayerInput    ( .True )
-			Call  SetNpcPos     ( .Npc:MrTrooper -560` 0` 0` )
+			Call  SetNpcFlagBits    ( .Npc:MrTrooper 00000100 .True )
+			Call  SetNpcAnimation   ( .Npc:MrTrooper 00210007 )
+			Call  SetNpcSpeed   ( .Npc:MrTrooper *Fixed[4.0] )
+			Wait  15`
+			Call  SetNpcPos     ( .Npc:MrTrooper -580` 0` 0` )
+			Wait  1`
 			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
-			Sub   *Var0 16`
-			Call  NpcMoveTo ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+			Sub   *Var0 20`
+			Call  DisablePlayerPhysics  ( .True )
+			Wait  1`
+			Call  NpcMoveTo ( .Npc:MrTrooper -515` 0` 0` )
+			Call  SetPlayerAnimation    ( 00010017 )
+			Call  SetNpcAnimation   ( .Npc:MrTrooper 0021001D )
+			Call  PlaySoundAtPlayer     ( 000000E1 00000000 )
 			Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+			Call  SetNpcSpeed   ( .Npc:MrTrooper *Fixed[4.0] )
 			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
-			Set   *Var0  -251`
+			Set   *Var0  -322`
 			Call  PlayerJump1   ( *Var0 *Var1 *Var2  15` )
-			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+			Call  DisablePartnerAI  ( 00000000 )
+			Wait  5`
+			Call  SetPlayerAnimation    ( 00010030 )
+			Wait  8`
+			Call  SetNpcAnimation   ( .Npc:MrTrooper 00210007 )
+			Call  NpcMoveTo ( .Npc:MrTrooper -372` 0` 0` )
+			Call  SetNpcFlagBits    ( .Npc:MrTrooper 00000100 .False )
+			Thread
+			Call  NpcMoveTo ( .Npc:Partner -277 0 0` )
+			EndThread
+			Call  SetPlayerAnimation    ( 00010002 )
 			Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
+			Call  DisablePlayerPhysics  ( .False )
 			Call  SetNpcAnimation   ( .Npc:MrTrooper 00210006 )
 	  59C:  Call  GetNpcPos     ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
 	  5B8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
 	  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
 	  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+			Call  SetCamSpeed   ( .Cam:Default *Fixed[10.0] )
 	  604:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
 	  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
 	  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
 			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0102 ) %
-			ExecWait $SwapToGoombarius
 			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0103 ) %
+			ExecWait $SwapToGoombarius
 			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D0104 ) % 
 			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0105 ) %
-			Call  StartBossBattle   ( .Song:JrTroopaBattle )
+			Call  SetNpcVar ( .Npc:MrTrooper 00000000 00000001 )
 			Return
 			End
+}
+
+
+#new:Script	$Script_Defeat_MrTrooper
+{
+	  59C:  Call  GetNpcPos     ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+	  5B8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+	  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+	  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+			Call  SetCamSpeed   ( .Cam:Default *Fixed[10.0] )
+	  604:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+	  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+	  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  SetNpcAnimation   ( .Npc:Self 00210005 )
+    0:  Call  SpeakToPlayer ( .Npc:MrTrooper 00210018 00210005 00000000 000D0106 ) % Nooooo! Darn it! Darn it!! Darn iiiiiit!!!
+		Call  SpeakToPlayer ( .Npc:MrTrooper 00210018 00210005 00000000 000D0109 )
+		Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000002 00000008 )
+   98:  Call  SetNpcAnimation   ( .Npc:Self 00210013 )
+   AC:  Wait  15`
+		Call  SetNpcAnimation   ( .Npc:Self 00210024 )
+		Wait  95`
+  7A1:  Call  GetNpcPos     ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+		Add   *Var1  10`
+  7A2:  Call  PlayEffect    ( ~FX:Explosion2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  D04:  Call  PlayEffect    ( ~FX:Firework:White *Var0 *Var1 *Var2 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7A2:  Call  PlayEffect    ( ~FX:Explosion3 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call  PlaySound     ( 0000034E )
+		Wait  1`
+   B8:  Call  SetNpcPos ( .Npc:Self 0 -1000 0` )
+   F0:  
+		Wait  60`
+			Call  SetNpcAnimation   ( .Npc:Self 00210007 )
+			Call  SetNpcSpeed   ( .Npc:MrTrooper *Fixed[4.0] )
+			Wait  15`
+			Call  SetNpcPos     ( .Npc:Self -580` 0` 0` )
+			Wait  1`
+			Thread
+				Wait  30`
+				Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
+			EndThread
+			Call  NpcMoveTo ( .Npc:Self -372` 0` 0` )
+			Call  SetNpcAnimation   ( .Npc:Self 00210003 )
+			Call  SpeakToPlayer ( .Npc:Self 00210016 00210003 00000000 000D010B ) %
+			Call  SetNpcAnimation   ( .Npc:Self 00210007 )
+			Call  SetNpcSpeed   ( .Npc:MrTrooper *Fixed[3.0] )
+			Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000002 00000008 )
+			Call  NpcMoveTo ( .Npc:Self -505` 0` 0` )
+			Wait  65`
+		Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+		Call  DisablePlayerInput    ( .False )
+		Call  SetMusicTrack ( 00000000 .Song:DryDryDesert 00000000 00000008 )
+		Set   *GF_SBK30_MrTrooper .True
+		Call  EnablePartnerAI  ( )
+  104:  Call  RemoveNpc ( .Npc:Self )
+  114:  Return
+  11C:  End
 }
 
 
 @	$NpcGroupList_80243DF8
 {
 	00000003 $NpcGroup_80243828 00000000
-	00000001 $NpcGroup_MrTrooper 00000000
+	00000001 $NpcGroup_MrTrooper 30030000
 	00000000 00000000 00000000
 }
 
@@ -138,6 +222,7 @@
 #new:Script $Script_Init_MrTrooper
 {
     0:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_MrTrooper )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_MrTrooper )
    3C:  Return
    44:  End
 }
@@ -145,6 +230,24 @@
 
 #new:Script $Script_Idle_MrTrooper
 {
-	Return
-	End
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Wait  10`
+   70:  Call  GetNpcPos      ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+   C0:  Call  SetCamDistance    ( .Cam:Default  200` )
+   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
+  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  118:  Call  DisablePlayerInput    ( .False )
+		Call  StartBossBattle   ( .Song:JrTroopaBattle )	
+		Return
+		End
 }

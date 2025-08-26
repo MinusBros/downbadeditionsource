@@ -1,0 +1,103 @@
+@	$NpcSettings_80242FB4
+{
+	00000000 001E0018 00000000 00000000 $Script_NpcAI_80242EE0 $ChangeBattleMusic $Script_80242F00 8007809C
+	00000000 00000000 00640000
+}
+
+#new:Script $ChangeBattleMusic
+{
+		Exec  80077F70
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0		
+    0:  Call  SetBattleMusic    ( .Song:Dayzee )
+  12C:  Return
+  134:  End
+}
+
+
+#new:Script  $IsAmazyDayzeeDead
+{
+	Thread
+		Label A
+		Wait  5`
+		If  *GF_FLO08_AmazyDayzee == .True
+			Set  *Byte_Settings_BGM .True
+		Else
+			Goto A
+		EndIf
+	EndThread
+	Return
+	End
+}
+
+
+@	$Script_Main_EnterWalk
+{
+		Exec  $IsAmazyDayzeeDead
+    0:  Set   *GB_WorldLocation  .Location:FlowerFields
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   34:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   54:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_80244EC4 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_80245F5C
+   B0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o114 00000002 )
+   C8:  Thread
+   D0:  	Call  ResetFromLava ( $LavaResetList_80242A2C )
+   E0:  EndThread
+   E8:  Call  EnableTexPanning  ( ~Model:o25 .True )
+   FC:  Call  EnableTexPanning  ( ~Model:o27 .True )
+  110:  Call  EnableTexPanning  ( ~Model:o31 .True )
+  124:  Call  EnableTexPanning  ( ~Model:o33 .True )
+  138:  Call  EnableTexPanning  ( ~Model:o35 .True )
+  14C:  Call  EnableTexPanning  ( ~Model:o37 .True )
+  160:  Call  EnableTexPanning  ( ~Model:o55 .True )
+  174:  Call  EnableTexPanning  ( ~Model:o28 .True )
+  188:  Call  EnableTexPanning  ( ~Model:o32 .True )
+  19C:  Call  EnableTexPanning  ( ~Model:o34 .True )
+  1B0:  Call  EnableTexPanning  ( ~Model:o36 .True )
+  1C4:  Call  EnableTexPanning  ( ~Model:o38 .True )
+  1D8:  Thread
+  1E0:  	Set   *Var0  00000000
+  1F0:  	Set   *Var1  00000000
+  200:  	Label  0
+  20C:  	Add   *Var0  0000008C
+  21C:  	If  *Var0  >  00010000
+  22C:  		Add   *Var0  FFFF0000
+  23C:  	EndIf
+  244:  	Call  SetTexPanOffset   ( 00000001 00000000 *Var0 00000000 )
+  260:  	Add   *Var1  FFFFFF38
+  270:  	If  *Var1  <  00000000
+  280:  		Add   *Var1  00010000
+  290:  	EndIf
+  298:  	Call  SetTexPanOffset   ( 00000002 00000000 *Var1 00000000 )
+  2B4:  	Wait  1`
+  2C0:  	Goto  0
+  2CC:  EndThread
+  2D4:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o129 00000006 )
+  2EC:  Set   *Var0  0000008C
+  2FC:  Set   *Var1  FFFFFF77
+  30C:  Set   *Var2  00000154
+  31C:  Set   *Var3  FFFFFFC4
+  32C:  Set   *Var4  00000000
+  33C:  Exec  $Script_80242680
+  348:  Set   *Var0  000001C2
+  358:  Set   *Var1  FFFFFF77
+  368:  Set   *Var2  0000024E
+  378:  Set   *Var3  FFFFFFC4
+  388:  Set   *Var4  00000000
+  398:  Exec  $Script_80242680
+  3A4:  Exec  $Script_80245914
+  3B0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  3C8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+  3E0:  Set   *Var0  $Script_802429E4
+  3F0:  Exec  EnterWalk
+  3FC:  ExecWait  $Script_80241F40
+  408:  If  *GB_StoryProgress  >=  .Story:Ch6_DestroyedPuffPuffMachine % 35
+  418:  	Call  $Function_80240D40 ( )
+  424:  EndIf
+  42C:  Return
+  434:  End
+}

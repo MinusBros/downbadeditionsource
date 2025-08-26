@@ -32,7 +32,7 @@
 
 @	$Script_80241B98
 {
-		Set *Var0 .False
+		Set *Var0 .True
 		Set     *Byte_Settings_BGM *Var0
     0:  If  *GB_StoryProgress  >=  .Story:Ch6_DefeatedHuffNPuff % 38
    10:  	Return
@@ -88,6 +88,7 @@
   388:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   3A0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   3B4:  Wait  10`
+		Call  $SetFlagCarryOverworldMusicToBattle()
   3C0:  Call  ShowMessageAtWorldPos ( 001100CA  630`  120`  0` ) % Are you a man named Mario? And did you or did you  ...
   3DC:  Call  SetCamDistance        ( .Cam:Default *Fixed[600.0] )
   3F0:  Call  SetCamPitch   ( .Cam:Default *Fixed[30.0] *Fixed[-9.0] )
@@ -102,12 +103,14 @@
   4B0:  Wait  10`
   4BC:  Call  GetCurrentPartnerID   ( *Var0 )
   4CC:  If  *Var0  ==  .Partner:Lakilester % 8
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToPlayer ( .Npc:Partner 0008000B 00080008 00000005 001100F9 )  %New Jonathan line
   4DC:  	Call  ShowMessageAtWorldPos ( 001100CD  630`  120`  0` ) % Is that you, Spike?! So! You have betrayed me! You ...
   4F8:  Else
 			 If  *Var0  ==  .Partner:Goombario % 1
-					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 001100F4 )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 001100F4 )
 					Call  ShowMessageAtWorldPos ( 001100F5  630`  120`  0` )
-					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 001100F6 )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 001100F6 )
 					Call  ShowMessageAtWorldPos ( 001100F7  630`  120`  0` )
 				Else
   500:  			Call  ShowMessageAtWorldPos ( 001100CC  630`  120`  0` ) % I must tell you, King Bowser ordered me to defeat  ...
@@ -115,6 +118,7 @@
   51C:  EndIf
 		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffBattle 00000000 00000008 )
 		Wait  20`
+		Call  EnablePartnerAI ( )
 		Call  802D5FA4  ( 00000005 )
   524:  ChildThread
   52C:  	Wait  15`
@@ -150,8 +154,9 @@
 
 @	$Script_80243010
 {
-		Set *Var0 .True
-		Set     *Byte_Settings_BGM *Var0
+
+		Call  $ClearFlagCarryOverworldMusicToBattle()
+		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffTheme 00000000 00000008 )
     0:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_01 007C0004 )
    14:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_00 007C0005 )
    28:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_02 007C0006 )

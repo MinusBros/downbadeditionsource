@@ -398,20 +398,6 @@ ADDIU	V0, R0, 2
 	ORI 	V0, R0, 2
 }
 
-#new:Function $AntiHustleDrink
-{
-	PUSH 	RA, S0
-	LIO 	A0, 800DC070
-	SB		R0, 8B (A0) %hustle drink value
-	%but also...
-	LAB		S0, $EternalCostIncreases
-	ADDI	S0, S0, 1
-	SAB		S0, $EternalCostIncreases
-	POP 	RA, S0
-	JR 		RA
-	ORI 	V0, R0, 2
-}
-
 
 
 #new:Function $Function_CureStatus %set debuff turns to 0, set attack boost and defense boost to 0 (note that the partner buff moves work separately to them)
@@ -1119,69 +1105,6 @@ ADDIU	V0, R0, 2
 	ORI 	V0, R0, 2
 }
 %/
-
-#new:Function $Function_SetSugar
-{
-	PUSH	RA, A0, A1
-	LI		A0, $ItemCostReductionData
-	LI 		A1, FFFB		%-5
-	SB		A1, 0 (A0)
-	LI 		A1, 3
-	SB		A1, 1 (A0)	
-	%Now apply hustle?
-	LAB		  V0, $AntiHustleToken
-	BEQ		  V0, R0, .noHustleA
-	ADDIU     V0, R0, 2
-	%hustle is set - store to battle perks
-	.yeshustle
-	ADDIU     V0, R0, 2
-	SAB		  V0, $BattlePerks[1]
-	POP		RA, A0, A1
-	JR		  RA
-	ADDIU     V0, R0, 2		
-	%hustle is not set? - store in the regular place
-	.noHustleA
-	LAB     V0, 800DC0FB	%hustle tracker
-	BNE		V0, R0, .yeshustle
-	NOP
-	LI		V0, 2
-	SAB     V0, 800DC0FB	%hustle tracker
-	LI		V0, 1
-	SAB		V0, $AntiHustleToken
-	POP		RA, A0, A1
-	JR		RA
-	ORI 	V0, R0, 2
-}
-
-
-
-#new:Function $Function_SetHustle
-{
-	PUSH	RA, A0, A1
-	%Now apply hustle?
-	LAB		  V0, $AntiHustleToken
-	BEQ		  V0, R0, .noHustleA
-	ADDIU     V0, R0, 2
-	%hustle is set - store to battle perks
-	.yeshustle
-	ADDIU     V0, R0, 2
-	SAB		  V0, $BattlePerks[1]
-	POP		RA, A0, A1
-	JR		  RA
-	ADDIU     V0, R0, 2		
-	%hustle is not set? - store in the regular place
-	.noHustleA
-	LAB     V0, 800DC0FB	%hustle tracker
-	BNE		V0, R0, .yeshustle
-	NOP
-	LI		V0, 2
-	SAB     V0, 800DC0FB	%hustle tracker
-	LI		V0, 1
-	SAB		V0, $AntiHustleToken
-	POP		RA, A0, A1
-	JR		RA
-	ORI 	V0, R0, 2
-}
 
 
 

@@ -1,0 +1,119 @@
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 2
+	[MapTattle]   $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]That's a dope-looking cave[BR]
+we got here.[BR]
+[Pause 12]Not as dope as a lady's[BR]
+cave, but I digress.[BR]
+[Wait][Next]
+I really got nothing better[BR]
+to say here.[BR]
+[Pause 10]Before you say "Shut up!",[BR]
+Mario, [Pause 3]I know.[BR]
+[Wait][Next]
+I'm repetitive.[BR]
+[Pause 8]How else am I going to get[BR]
+my point across though?[BR]
+[WAIT][END]
+}
+
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:KoopaBrosFortress
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Call     MakeEntity  	( .Entity:YellowBlock ~Vec4d:block1 .Item:UltraShroom 80000000 )
+	Call     AssignBlockFlag 	( *GF_NOK17_Block1 )
+	Call     MakeEntity  	( .Entity:HiddenYellowBlock ~Vec4d:block2 .Item:PleaseComeBack 80000000 )  %Mega POW Block
+	Call     AssignBlockFlag 	( *GF_NOK17_Block2 )
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "trd_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_SetupMusic
+{
+	%Call  FadeOutMusic  ( 00000000 500` ) % usually between 500-1000
+	Call  ClearAmbientSounds ( 250` )
+	Call  SetMusicTrack ( 00000000 .Song:PleasantPath 00000000 00000008 )
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call     GetEntryID  	( *Var[0] )
+	Set		*Var[0] $Script_CreateExitTriggers 
+	Exec EnterWalk
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_ExitWalk_Entry0 .Trigger:FloorAbove ~Collider:waterlz 00000001 00000000
+	Bind  $Script_ExitWalk_Entry1 .Trigger:FloorAbove ~Collider:cavelz 00000001 00000000
+	Return
+	End
+}
+
+#new:Script $Script_ExitWalk_Entry0
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( "nok_16" 00000001 ) 
+   40:  Wait  70`
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_ExitWalk_Entry1
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( "sam_17" 00000000 ) 
+   40:  Wait  70`
+   4C:  Return
+   54:  End
+}
+
+

@@ -1,0 +1,126 @@
+@	$Script_Idle_80241E14
+{
+   [BC]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[4.0] )
+}
+
+@	$Script_Idle_80242058
+{
+   [BC]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[4.0] )
+}
+
+@	$Script_Idle_802429C4
+{
+  [114]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[4.0] )
+}
+
+
+@	$Script_Idle_80242C60
+{
+  [114]  Call  SetNpcSpeed   ( .Npc:Self *Fixed[4.0] )
+}
+
+
+#new:NpcGroup $RoseGoomba1 
+{
+00000000 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba1
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba1
+~AnimationTable:RoseGoomba1
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $RoseGoomba2 
+{
+00000001 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba2
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba2
+~AnimationTable:RoseGoomba2
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroup $RoseGoomba3
+{
+00000002 $NpcSettings_SpikedGoomba ~Vec3f:RoseGoomba3
+00002C00 00000000 00000000 00000000 0000010E 
+~Items:5:UltraShroom:A ~HP:Standard:2 ~FP:Standard:2 ~CoinBonus:0:1
+~Movement:RoseGoomba3
+~AnimationTable:RoseGoomba3
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroupList $NpcGroupList_Goombas
+{
+	00000001 $RoseGoomba1  26010000
+	00000001 $RoseGoomba2  26010000
+	00000001 $RoseGoomba3  26020000
+	00000000 00000000 00000000
+}
+
+
+#new:AISettings $AISettings_SpikedGoomba {
+    3.0 % move speed
+    40` % move time
+    10` % wait time
+  180.0 % alert radius
+    0.0
+    1`
+    6.0 % chase speed
+    180`
+    3`
+  270.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_SpikeGoomba {
+    0:  Call  DoBasicAI ( $AISettings_SpikedGoomba )
+   10:  Return
+   18:  End
+}
+
+#new:NpcSettings $NpcSettings_SpikedGoomba {
+00000000 00170017 00000000 00000000 $Script_NpcAI_SpikeGoomba 80077F70 00000000 8007809C 
+00000000 00000000 00060000 
+}
+
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:kkj_10 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Switch  *GB_StoryProgress
+   90:  	CaseOR  ==  .Story:Ch4_BeganPeachMission % 6
+   9C:  	CaseOR  ==  .Story:Ch5_BeganPeachMission % 26
+   A8:  		Call  MakeNpcs  ( .False $NpcGroupList_80242738 )
+   BC:  	EndCaseGroup
+   C4:  	Case  ==  .Story:Ch6_BeganPeachMission % 3A
+   D0:  		Call  $Function_80240034    ( 00000001 )
+   E0:  		Call  MakeNpcs  ( .False $NpcGroupList_80243594 )
+   F4:  	Default
+   FC:  		Call  EnableModel   ( ~Model:o273 .False )
+  110:  		Call  EnableModel   ( ~Model:o274 .False )
+  124:  EndSwitch
+  12C:  ExecWait  $Script_MakeEntities
+  138:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
+  148:  	Call  $Function_80240000 ( )
+			Call  MakeNpcs  ( .False $NpcGroupList_Goombas )
+  154:  EndIf
+  15C:  If  *GB_StoryProgress  <  .Story:Ch8_ReachedPeachsCastle % 5F
+  16C:  	Call  SetMusicTrack ( 00000000 .Song:PeachSneaking 00000000 00000008 )
+  188:  Else
+  190:  	Call  SetMusicTrack ( 00000000 .Song:BowserAttacks 00000001 00000008 )
+  1AC:  EndIf
+  1B4:  Exec  $Script_80241598
+  1C0:  Exec  $Script_EnterSingleDoor_80241690
+  1CC:  Return
+  1D4:  End
+}

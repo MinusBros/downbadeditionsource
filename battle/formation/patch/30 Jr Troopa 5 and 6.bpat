@@ -5,6 +5,10 @@
 %Also added a new Jr. Troopa 7 battle last
 %second immediately after the 6th one as a joke.
 
+
+%Added a new "Jr. Troopa 8" battle, which actually
+%takes place during Chapter 2.
+
 %This battle formation also takes advantage
 %of a byte called "GB_JrTroopaBattle" located in
 %globals/GameBytes
@@ -19,10 +23,74 @@
 %If it's set to 3, it assumes you're fighting Jr. Troopa 7.
 
 
+#new:Script $ShowMessage1
+{
+	Call  ActorSpeak        ( 001F0053 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Freestyle Peace
+	Return
+	End
+}
+
+#new:Script $ShowMessage2
+{
+	Call  ActorSpeak        ( 001F0054 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Bars of Steel
+	Return 
+	End
+}
+
+#new:Script $ShowMessage3
+{
+	Call  ActorSpeak        ( 001F0055 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Bars of Obsidian
+	Return
+	End
+}
+
+#new:Script $ShowMessage4
+{
+	Call  ActorSpeak        ( 001F0056 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Lamar's Spike Drop
+	Return
+	End
+}
+
+#new:Script $ShowMessage5
+{
+	Call  ActorSpeak        ( 001F0057 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %The Prodigy
+	Return
+	End
+}
+
+#new:Script $ShowMessage6
+{
+	Call  ActorSpeak        ( 001F0058 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Wealth Got Health
+	Return
+	End
+}
+
+#new:Script $ShowMessage7
+{
+	Call  ActorSpeak        ( 001F0059 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Yo, Li'l Bolt
+	Return
+	End
+}
+
+
+#new:Script $ShowMessage8
+{
+	Call  ActorSpeak        ( 001F005A .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Buff Ain't Gruff
+	Return
+	End
+}
+
+#new:Script $ShowMessage9
+{
+	Call  ActorSpeak        ( 001F0062 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Bust-a-Cap
+	Return
+	End
+}
 
 #import JrTroopa5.bpat
 #import JrTroopa6.bpat
 #import JrTroopa7.bpat
+#import JrTroopa8.bpat
 #import KPA_Magikoopa.bpat
 
 %This Cody is way stronger.
@@ -199,11 +267,17 @@
 	$JrTroopa7 00000002 00000000 00000000 00000000 00000000 00000000
 }
 
+#new:Formation $Formation_03
+{
+	$JrTroopa8 00000002 00000000 00000000 00000000 00000000 00000000
+}
+
 #new:FormationTable $FormationTable
 {
 	$SJIS_80234DEC 00000001 $Formation_00 $Stage_80233AC4 00000000
 	$SJIS_80234DE0 00000002 $Formation_01 $Stage_80234DAC 00000000
 	$SJIS_80234DE0 00000001 $Formation_02 $Stage_80234DAC 00000000
+	00000000 00000001 $Formation_03 $Stage_8021F90C 00000000
 	00000000 00000000 00000000 00000000 00000000
 }
 
@@ -343,6 +417,177 @@
 }
 
 
+
+#new:Stage $Stage_8021F90C
+{
+	"sbk_tex"  % sbk_tex
+	"sbk_bt02_shape"  % sbk_bt02_shape
+	"sbk_bt02_hit"  % sbk_bt02_hit
+	$Script_BeforeBattle_8021F800
+	$Script_AfterBattle_80234D9C
+	"sbk_bg"  % sbk_bg
+	$ForegroundModelList_8021F8F8
+	00000000
+	00000000
+	00000000
+}
+
+
+
+#new:ForegroundModelList $ForegroundModelList_8021F8F8
+{
+	~Model:sbk_bt02:o322
+	~Model:sbk_bt02:o321
+	~Model:sbk_bt02:o320
+	~Model:sbk_bt02:o319
+	00000000
+}
+
+
+#new:Script $Script_BeforeBattle_8021F800
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Set   *Var0  00000001
+   20:  Set   *Var1  00000000
+   30:  Exec  $Script_8021F720
+   3C:  Set   *Var0  00000003
+   4C:  Set   *Var1  00000078
+   5C:  Exec  $Script_8021F720
+   68:  Set   *Var0  00000005
+   78:  Set   *Var1  000000F0
+   88:  Exec  $Script_8021F720
+   94:  Call  PlayEffect        ( ~FX:SunRays:RightCorner 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   D8:  Return
+   E0:  End
+}
+
+#new:Script $Script_8021F720
+{
+    0:  Set   *VarA  *Var0
+   10:  Set   *Var7  *Var1
+   20:  Mul   *Var7  0000000A
+   30:  Call  $Function_80218220 ( )
+   3C:  Label  0
+   48:  Add   *Var7  00000001
+   58:  If  *Var7  >  00000E0F
+   68:  	Sub   *Var7  00000E10
+   78:  EndIf
+   80:  Call  $Function_802180D0    ( *Var7 *Var0 *Var1 *Var2 )
+   9C:  Call  TranslateModel        ( *VarA *Var0 *Var1 *Var2 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+
+#new:Function $Function_80218220
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  JAL       ~Func:get_model_list_index_from_tree_index
+   14:  LW        A0, AC (S0)
+   18:  JAL       ~Func:get_model_from_list_index
+   1C:  COPY      A0, V0
+   20:  LWC1      F0, 98 (V0)
+   24:  TRUNC.W.S F2, F0
+   28:  SWC1      F2, B0 (S0)
+   2C:  LWC1      F0, 9C (V0)
+   30:  TRUNC.W.S F2, F0
+   34:  SWC1      F2, B4 (S0)
+   38:  LWC1      F0, A0 (V0)
+   3C:  TRUNC.W.S F2, F0
+   40:  SWC1      F2, B8 (S0)
+   44:  LW        RA, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  LI        V0, 2
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802180D0
+{
+    0:  ADDIU     SP, SP, FF78
+    4:  SW        S1, 54 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 60 (SP)
+   10:  SW        S3, 5C (SP)
+   14:  SW        S2, 58 (SP)
+   18:  SW        S0, 50 (SP)
+   1C:  SDC1      F26, 80 (SP)
+   20:  SDC1      F24, 78 (SP)
+   24:  SDC1      F22, 70 (SP)
+   28:  SDC1      F20, 68 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  MTC1      V0, F20
+   40:  NOP
+   44:  CVT.D.W   F20, F20
+   48:  LIF       F1, 2.5625
+   50:  MTC1      R0, F0
+   54:  LW        S2, 0 (S0)
+   58:  ADDIU     S0, S0, 4
+   5C:  DIV.D     F20, F20, F0
+   60:  LIF       F0, 6.28318
+   6C:  CVT.S.D   F20, F20
+   70:  MUL.S     F20, F20, F0
+   74:  NOP
+   78:  LW        S3, 0 (S0)
+   7C:  LW        S0, 4 (S0)
+   80:  LIF       F0, 360.0
+   88:  LIF       F24, 150.0
+   90:  DIV.S     F20, F20, F0
+   94:  JAL       ~Func:sin_rad
+   98:  MOV.S     F12, F20
+   9C:  MUL.S     F22, F0, F24
+   A0:  NOP
+   A4:  MTC1      R0, F26
+   A8:  NOP
+   AC:  ADD.S     F22, F22, F26
+   B0:  JAL       ~Func:cos_rad
+   B4:  MOV.S     F12, F20
+   B8:  MUL.S     F20, F0, F24
+   BC:  NOP
+   C0:  LIF       F24, -252.0
+   C8:  LWC1      F0, B8 (S1)
+   CC:  CVT.S.W   F0, F0
+   D0:  SUB.S     F24, F24, F0
+   D4:  LWC1      F0, B0 (S1)
+   D8:  CVT.S.W   F0, F0
+   DC:  SUB.S     F22, F22, F0
+   E0:  COPY      A0, S1
+   E4:  COPY      A1, S2
+   E8:  ADD.S     F20, F20, F26
+   EC:  LWC1      F0, B4 (S1)
+   F0:  CVT.S.W   F0, F0
+   F4:  MFC1      A2, F22
+   F8:  JAL       ~Func:set_float_variable
+   FC:  SUB.S     F20, F20, F0
+  100:  COPY      A0, S1
+  104:  MFC1      A2, F20
+  108:  JAL       ~Func:set_float_variable
+  10C:  COPY      A1, S3
+  110:  COPY      A0, S1
+  114:  MFC1      A2, F24
+  118:  JAL       ~Func:set_float_variable
+  11C:  COPY      A1, S0
+  120:  LW        RA, 60 (SP)
+  124:  LW        S3, 5C (SP)
+  128:  LW        S2, 58 (SP)
+  12C:  LW        S1, 54 (SP)
+  130:  LW        S0, 50 (SP)
+  134:  LDC1      F26, 80 (SP)
+  138:  LDC1      F24, 78 (SP)
+  13C:  LDC1      F22, 70 (SP)
+  140:  LDC1      F20, 68 (SP)
+  144:  LI        V0, 2
+  148:  JR        RA
+  14C:  ADDIU     SP, SP, 88
+}
 
 #new:SJIS $SJIS_80234DE0
 {

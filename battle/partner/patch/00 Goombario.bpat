@@ -10,7 +10,47 @@
     [210]  LTB  A0, V0 ($Global_ActorOffsetsTable[2])
 }
 
+%Might give Goombarius's Gun bullets later
 
+@	$Goombario
+{
+	% stats
+	[Index]        6Fb
+	[Level]         0`b
+	[MaxHP]        99`b
+	[Coins]         0`b
+	[Flags]       00000000
+	[StatusTable] $StatusTable_802391F8
+	% ai
+	[PartsCount]    1`s
+	[PartsTable]  $PartsTable_802392A4
+	[Script]      $Script_Init_802392F0
+	% move effectiveness
+	[Escape]        0`b
+	[Item]          0`b
+	[AirLift]       0`b
+	[Hurricane]     0`b % Bow's "Spook" as well
+	[UpAndAway]     0`b
+	[PowerBounce]  80`b
+	[SpinSmash]     4`b % weight (0-4)
+	% ui positions
+	[Size]         29`b  26`b % width height
+	[HealthBar]     0`b   0`b % dx dy
+	[StatusTurn]  -10`b  20`b % dx dy
+	[StatusIcon]   10`b  20`b % dx dy
+}
+
+@	$PartsTable_802392A4
+{
+	00000000 01000000 081600FF $IdleAnimations_802391B0 $DefenseTable_802391EC 00000000 00000000 00000000 00000000
+	%00120001 02000000 000000FF $IdleAnimations_Bullet $DefenseTable_802391EC 00000000 00000000 00000000 00000000
+}
+
+#new:IdleAnimations $IdleAnimations_Bullet
+{
+	.Status:Normal    00090019
+	.Status:End
+}
 
 
 #new:Function $Function_8023803C
@@ -634,6 +674,18 @@
 }
 
 
+@	$Script_Init_802392F0
+{
+    0:  Call  BindTakeTurn  ( .Actor:Partner $Script_TakeTurn_802396D8 )
+   14:  Call  BindIdle      ( .Actor:Partner $Script_Idle_80239350 )
+   28:  Call  BindHandleEvent   ( .Actor:Partner $Script_HandleEvent_80239360 )
+   3C:  Call  BindNextTurn  ( .Actor:Partner $Script_NextTurn_80239A3C )
+		Set   *GoombariusChargeCount 0`  %Set Goombarius's charge counter to 0 at the start of a fight.
+   50:  Return
+   58:  End
+}
+
+
 
 %Goombarius is a bit faster too
 
@@ -669,8 +721,8 @@
 {
    [68]  Wait  3`
   [1FC]  	Wait  8`
-  [2E0]  		Add   *Var0  00000004
-  [328]  		Add   *Var0  00000004
+  [2E0]  		Add   *Var0  00000003
+  [328]  		Add   *Var0  00000003
   [3F8]  	Wait  5`
   [4A0]  	Wait  2`
 }
@@ -693,7 +745,7 @@
 }
 
 
-%Tattling charges up Goombarius. Can be done indefinitely.
+%Tattling charges up Goombarius. Can be done up to 3 times.
 %Charging can only be done if a Super Block has been found,
 %locking it to Chapter 2 onwards.
 
@@ -744,6 +796,10 @@
 		If  *GF_Tutorial_SuperBlock  ==  .False
 			Return
 		EndIf
+		If    *GoombariusChargeCount == 3`
+			Return
+		EndIf
+		Add   *GoombariusChargeCount 1`
     0:  Call  UseBattleCamPreset    ( 00000037 )
    10:  Wait  8`
    1C:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090007 )
@@ -917,4 +973,15 @@
   8C0:  EndSwitch
   8C8:  Return
   8D0:  End
+}
+
+
+%Make Multibonk always start at 3.
+
+@	$Script_8023BB9C
+{
+  [2E0]  		Add   *Var0  00000003
+  [328]  		Add   *Var0  00000003
+  [848]  			Add   *Var0  00000003
+  [894]  			Add   *Var0  00000003
 }

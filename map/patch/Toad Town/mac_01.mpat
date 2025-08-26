@@ -1,6 +1,39 @@
-%Make this Ninji red and give him a unique name.
-
+#define .NpcID:WorldParakarry_04    04
+#define .NpcID:ChuckQuizmo_05       05
+#define .NpcID:ShyGuy_06            06
+#define .NpcID:ShyGuy_07            07
+#define .NpcID:ShyGuy_08            08
+#define .NpcID:ShyGuy_09            09
+#define .NpcID:Toad_10              0A
+#define .NpcID:Toad_11              0B
+#define .NpcID:Toad_12              0C
+#define .NpcID:Toad_13              0D
+#define .NpcID:Toad_14              0E
+#define .NpcID:Toad_15              0F
+#define .NpcID:Toad_16              10
+#define .NpcID:Bubulb_17            11
+#define .NpcID:MinhT_18             12
+#define .NpcID:DarkToad_20          14
+#define .NpcID:DarkToad_21          15
+#define .NpcID:DarkToad_22          16
+#define .NpcID:DarkToad_23          17
+#define .NpcID:KoopaBros_24         18
+#define .NpcID:KoopaBros_25         19
+#define .NpcID:KoopaBros_26         1A
+#define .NpcID:KoopaBros_27         1B
+#define .NpcID:Twink_28             1C
 #define .NpcID:Ninji_29             1D
+#define .NpcID:KoloradoWife_30      1E
+#define .NpcID:KoopaKoot_31         1F
+#define .NpcID:Koopa_32             20
+#define .NpcID:WorldBombomb_33      21
+#define .NpcID:Dryite_34            22
+#define .NpcID:Dryite_35            23
+#define .NpcID:Chanterelle_36       24
+#define .NpcID:ArtistToad_37        25
+#define .NpcID:ArtistToad_38        26
+
+%Make this Ninji red and give him a unique name.
 
 @	$NpcGroup_8025441C
 {
@@ -23,10 +56,12 @@
 @	$Script_80246770
 {
     0:  Switch  *GB_StoryProgress
-    C:  	Case  ==  .Story:Intro % FFFFFF80
-   18:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
    34:  	Case  ==  .Story:Epilogue % 60
-   40:  		Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+				If  *GF_EnclosureFlag == .False
+   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+				EndIf
    5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
    6C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
@@ -57,15 +92,30 @@
 }
 
 
+
+@	$Script_80246BD8
+{
+    0:  Bind  $Script_ExitWalk_80246950 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  Bind  $Script_80246A88 .Trigger:WallPressA ~Collider:deilitn 00000001 00000000
+   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
+   48:  	Return
+   50:  EndIf
+   58:  Bind  $Script_ExitWalk_802469AC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   74:  Bind  $Script_ExitWalk_80246B7C .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
+   90:  Bind  $Script_80259AD0 .Trigger:WallPressA ~Collider:deilitf 00000001 00000000
+   AC:  Return
+   B4:  End
+}
+
+
+
+
 %Speedy Spin and Happy Heart have swapped places.
 %A Speedy Spin can now be obtained as soon as you
 %reach Shooting Star Summit or in Prologue.
 %Happy Heart A is obtainable after Chapter 1.
 
 
-
-%I can't get Medicine Man to work properly,
-%so remove it from the pool for now.
 
 
 
@@ -112,6 +162,157 @@
 }
 
 
+%Start shop music
+
+@	 $Script_8025573C
+{
+		If *ShopState == 00000000
+			Set *ShopState 00000001
+			Call  PushSong      ( 000000A1 00000001 )
+		EndIf		
+    0:  Set   *MapFlag[0B]  .True
+   10:  Call  SetNpcYaw ( 00000001  270` )
+   24:  Thread
+   2C:  	Call  PlaySoundAt   ( 000000A9 00000000 FFFFFF24 00000025 0000010F )
+   4C:  	Call  MakeLerp      ( 00000000 FFFFFF24 0000001E .Easing:CosBounce )
+   68:  	Label  0
+   74:  	Call  UpdateLerp ( )
+   80:  	Call  RotateModel   ( ~Model:omote *Var0 00000001 00000000 00000000 )
+   A0:  	If  *Var1  ==  00000001
+   B0:  		Wait  1`
+   BC:  		Goto  0
+   C8:  	EndIf
+   D0:  EndThread
+   D8:  Wait  4`
+   E4:  Thread
+   EC:  	Call  MakeLerp  ( 00000000 FFFFFF88 0000000A .Easing:CosSlowOvershoot )
+  108:  	Label  1
+  114:  	Call  UpdateLerp ( )
+  120:  	DivF  *Var0  *Fixed[10.0]
+  130:  	Call  TranslateModel    ( ~Model:omote2 00000000 *Var0 00000000 )
+  14C:  	If  *Var1  ==  00000001
+  15C:  		Wait  1`
+  168:  		Goto  1
+  174:  	EndIf
+  17C:  EndThread
+  184:  Thread
+  18C:  	Call  MakeLerp  ( 00000000 00000064 00000005 .Easing:CosSlowOvershoot )
+  1A8:  	Label  2
+  1B4:  	Call  UpdateLerp ( )
+  1C0:  	DivF  *Var0  *Fixed[10.0]
+  1D0:  	Call  TranslateModel    ( ~Model:ura 00000000 00000000 *Var0 )
+  1EC:  	If  *Var1  ==  00000001
+  1FC:  		Wait  1`
+  208:  		Goto  2
+  214:  	EndIf
+  21C:  EndThread
+  224:  Call  EnableModel   ( ~Model:ju_1 .True )
+  238:  Call  $Function_80244CC0 ( )
+  244:  Call  PlaySoundAtCollider   ( ~Collider:o295 000000AA 00000000 )
+  25C:  UseIntBuffer  $IntTable_802555AC
+  268:  Loop  00000032
+  274:  	Get2Int  *Var0 *MapVar[0]
+  284:  	Call  RotateGroup   ( ~Model:jutan2 *Var0 00000000 00000001 00000000 )
+  2A4:  	DivF  *Var0  *Fixed[10.0]
+  2B4:  	Set   *MapVar[1]  *Var0
+  2C4:  	Call  RotateGroup   ( ~Model:jutan1 *Var0 00000000 00000001 00000000 )
+  2E4:  	DivF  *Var0  *Fixed[200.0]
+  2F4:  	AddF  *Var0  *Fixed[1.0]
+  304:  	Call  ScaleGroup    ( ~Model:jutan2 *Var0 00000001 *Var0 )
+  320:  	Wait  1`
+  32C:  EndLoop
+  334:  Call  NpcJump0  ( 00000001  -213`  6`  256`  16` )
+  354:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
+  364:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:b3 7FFFFE00 )
+  37C:  EndIf
+  384:  If  *GF_MAC01_RowfBadgeAvailableB  ==  .False
+  394:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:b2 7FFFFE00 )
+  3AC:  EndIf
+  3B4:  If  *GF_MAC01_RowfBadgeAvailableC  ==  .False
+  3C4:  	Call  ModifyColliderFlags   ( 00000001 ~Collider:b1 7FFFFE00 )
+  3DC:  EndIf
+  3E4:  Return
+  3EC:  End
+}
+
+
+%Stop music
+
+@	$Script_80255B30
+{
+		If *ShopState == 00000001
+			Set *ShopState 00000000
+			Call  PopSong ( )
+		EndIf
+    0:  Set   *MapFlag[0B]  .False
+   10:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
+   20:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b3 7FFFFE00 )
+   38:  EndIf
+   40:  If  *GF_MAC01_RowfBadgeAvailableB  ==  .False
+   50:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b2 7FFFFE00 )
+   68:  EndIf
+   70:  If  *GF_MAC01_RowfBadgeAvailableC  ==  .False
+   80:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b1 7FFFFE00 )
+   98:  EndIf
+   A0:  Call  NpcJump0  ( 00000001  -220`  -54`  261`  16` )
+   C0:  Thread
+   C8:  	Call  PlaySoundAtCollider   ( ~Collider:o295 000000AC 00000000 )
+   E0:  	Call  MakeLerp      ( 00000000 00000258 00000032 .Easing:Linear )
+   FC:  	Label  A
+  108:  	Call  UpdateLerp ( )
+  114:  	Call  RotateGroup   ( ~Model:jutan2 *Var0 00000000 00000001 00000000 )
+  134:  	DivF  *Var0  *Fixed[10.0]
+  144:  	Set   *MapVar[1]  *Var0
+  154:  	Call  RotateGroup   ( ~Model:jutan1 *Var0 00000000 00000001 00000000 )
+  174:  	DivF  *Var0  *Fixed[200.0]
+  184:  	AddF  *Var0  *Fixed[1.0]
+  194:  	Call  ScaleGroup    ( ~Model:jutan2 *Var0 00000001 *Var0 )
+  1B0:  	If  *Var1  ==  00000001
+  1C0:  		Wait  1`
+  1CC:  		Goto  A
+  1D8:  	EndIf
+  1E0:  	Call  EnableModel   ( ~Model:ju_1 .False )
+  1F4:  	Call  $Function_80244D68 ( )
+  200:  EndThread
+  208:  Wait  10`
+  214:  Thread
+  21C:  	Call  MakeLerp      ( FFFFFF24 00000000 00000014 .Easing:QuadraticIn )
+  238:  	Label  0
+  244:  	Call  UpdateLerp ( )
+  250:  	Call  RotateModel   ( ~Model:omote *Var0 00000001 00000000 00000000 )
+  270:  	If  *Var1  ==  00000001
+  280:  		Wait  1`
+  28C:  		Goto  0
+  298:  	EndIf
+  2A0:  	Call  PlaySoundAt   ( 000000AB 00000000 FFFFFF24 00000025 0000010F )
+  2C0:  EndThread
+  2C8:  Wait  15`
+  2D4:  Thread
+  2DC:  	Call  MakeLerp  ( FFFFFF88 00000000 0000000A .Easing:CosInOut )
+  2F8:  	Label  1
+  304:  	Call  UpdateLerp ( )
+  310:  	DivF  *Var0  *Fixed[10.0]
+  320:  	Call  TranslateModel    ( ~Model:omote2 00000000 *Var0 00000000 )
+  33C:  	If  *Var1  ==  00000001
+  34C:  		Wait  1`
+  358:  		Goto  1
+  364:  	EndIf
+  36C:  EndThread
+  374:  Thread
+  37C:  	Call  MakeLerp  ( 00000064 00000000 00000005 .Easing:CosInOut )
+  398:  	Label  2
+  3A4:  	Call  UpdateLerp ( )
+  3B0:  	DivF  *Var0  *Fixed[10.0]
+  3C0:  	Call  TranslateModel    ( ~Model:ura 00000000 00000000 *Var0 )
+  3DC:  	If  *Var1  ==  00000001
+  3EC:  		Wait  1`
+  3F8:  		Goto  2
+  404:  	EndIf
+  40C:  EndThread
+  414:  Wait  31`
+  420:  Return
+  428:  End
+}
 
 
 @	$Script_Main
@@ -1118,3 +1319,6 @@ FFFFFFF2 00000012 % < chapter 4 start
 	JR		RA
 	ADDIU	V0, R0, 2
 }
+
+
+

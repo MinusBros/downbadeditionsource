@@ -1,3 +1,22 @@
+#define .NpcID:HarryT_00            00
+#define .NpcID:ThreeSisters_01      01
+#define .NpcID:ThreeSisters_02      02
+#define .NpcID:Toad_03              03
+#define .NpcID:Toad_04              04
+#define .NpcID:ToadKid_05           05
+#define .NpcID:ToadKid_06           06
+#define .NpcID:ToadKid_07           07
+#define .NpcID:ThreeSisters_08      08
+#define .NpcID:Toad_09              09
+#define .NpcID:ChetRippo_13         0D
+#define .NpcID:ShyGuy_14            0E
+#define .NpcID:ShyGuy_15            0F
+#define .NpcID:WorldMuskular_17     11
+#define .NpcID:Goomama_18           12
+#define .NpcID:Goombaria_19         13
+#define .NpcID:ChuckQuizmo_20       14
+#define .NpcID:ToadKid_21           15
+
 @ $Header
 {
 	[MainScript]  $Script_Main
@@ -176,11 +195,12 @@
   1FC:  End
 }
 
+%Replacing Stone Caps with Eggs to make for easy recipes and disuade Stone Cap strageies
 
 @	$ShopInventory_80243C6C
 {
-	.Item:CakeMix        00000005 00230020
-	.Item:StoneCap       00000028 00240007 % Turns Mario to stone and makes him unable to move  ...
+	.Item:CakeMix        00000006 00230020
+	.Item:Egg            00000005 002300DA
 	.Item:ThunderRage    0000000F 00240002 % Lightning that strikes all enemies. Attack Power:  ...
 	.Item:KoopaTea       00000007 00230046 
 	.Item:VoltShroom     0000000F 00240008 % Electrifies Mario briefly and damages enemies who  ...
@@ -188,26 +208,169 @@
 	00000000 00000000 00000000
 }
 
-
+%Change shop theme
 @	$Script_ToggleVis_80242800
 {
     0:  Switch  *Var0
     C:  	Case  ==  00000000
    18:  		Call  EnableGroup   ( ~Model:mise_in .True )
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Call  PushSong      ( 000000A1 00000000 )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Thread
+						Wait  45`
+						Call  PushSong      ( 000000A1 00000000 )
+						EndThread
+					EndIf
 				EndIf
    2C:  		Exec  $Script_80248B08
    38:  	Case  ==  00000003
    44:  		Call  EnableGroup   ( ~Model:mise_in .False )
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
+				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+						Call  PopSong ( )
+					EndIf
 				EndIf
    58:  EndSwitch
    60:  Return
    68:  End
+}
+
+
+
+%Make this Toad a femboy
+
+@	$Script_Interact_8024A858
+{
+  [1A8]  Call  SpeakToPlayer ( .Npc:Self 00830404 00830401 00000000 *Var0 ) % variable string ID
+}
+
+
+
+
+@	$NpcGroup_8024B1D8
+{
+	.NpcID:ChetRippo_13 $NpcSettings_80243EE0 ~Vec3f:NPC_ChetRippo_13 % 410 20 -200
+	00000D09 $Script_Init_802497B0 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ChetRippo_13
+	~AnimationTable:NPC_ChetRippo_13 % .Sprite:ChetRippo
+	00000000 00000000 00000000 001A0051 % He claims that he can upgrade your point levels... ...
+	%
+	% $NpcGroup_8024B1D8[1F0]
+	.NpcID:HarryT_00 $NpcSettings_80243E88 ~Vec3f:NPC_HarryT_00 % 310 20 -430
+	00002D09 $Script_Init_8024911C 00000000 00000000 000000E6
+	~NoDrops
+	~Movement:NPC_HarryT_00
+	~AnimationTable:NPC_HarryT_00 % .Sprite:HarryT
+	00000000 00000000 00000000 001A0123 % New tattle for Harry
+	%
+	% $NpcGroup_8024B1D8[3E0]
+	.NpcID:ThreeSisters_01 $NpcSettings_80243E88 ~Vec3f:NPC_ThreeSisters_01 % -80 20 -100
+	00002D09 $Script_Init_80249AF0 00000000 00000000 00000085
+	~NoDrops
+	~Movement:NPC_ThreeSisters_01
+	~AnimationTable:NPC_ThreeSisters_01 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A004F % These Toads just moved here. This is the first tim ...
+	%
+	% $NpcGroup_8024B1D8[5D0]
+	.NpcID:ThreeSisters_02 $NpcSettings_80243E88 ~Vec3f:NPC_ThreeSisters_02 % -133 20 -82
+	00002D09 $Script_Init_80249CFC 00000000 00000000 00000085
+	~NoDrops
+	~Movement:NPC_ThreeSisters_02
+	~AnimationTable:NPC_ThreeSisters_02 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0050 % These Toads just moved here. They like peace and q ...
+	%
+	% $NpcGroup_8024B1D8[7C0]
+	.NpcID:Toad_03 $NpcSettings_80243E30 ~Vec3f:NPC_Toad_03 % 48 0 153
+	00002D09 $Script_Init_80249F08 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_03
+	~AnimationTable:NPC_Toad_03 % .Sprite:Toad
+	00000000 00000000 00000000 001A0045 % He talks a lot, this guy. Say, since I travel with ...
+	%
+	% $NpcGroup_8024B1D8[9B0]
+	.NpcID:Toad_04 $NpcSettings_80243E88 ~Vec3f:NPC_Toad_04 % -239 20 105
+	00002D09 $Script_Init_8024A104 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_04
+	~AnimationTable:NPC_Toad_04 % .Sprite:Toad
+	00000000 00000000 00000000 001A0046 % This guy is pretty wary. He doesn't believe most o ...
+	%
+	% $NpcGroup_8024B1D8[BA0]
+	.NpcID:ToadKid_05 $NpcSettings_80243E88 ~Vec3f:NPC_ToadKid_05 % 254 20 436
+	00002D09 $Script_Init_8024A4E0 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_ToadKid_05
+	~AnimationTable:NPC_ToadKid_05 % .Sprite:ToadKid
+	00000000 00000000 00000000 001A0047 % Look at these cheerful kids! Everything is just fu ...
+	%
+	% $NpcGroup_8024B1D8[D90]
+	.NpcID:ToadKid_06 $NpcSettings_80243E88 ~Vec3f:NPC_ToadKid_06 % 304 20 410
+	00002D09 $Script_Init_8024A504 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ToadKid_06
+	~AnimationTable:NPC_ToadKid_06 % .Sprite:ToadKid
+	00000000 00000000 00000000 001A0048 % They're just some Toad children, having a good tim ...
+	%
+	% $NpcGroup_8024B1D8[F80]
+	.NpcID:ToadKid_07 $NpcSettings_80243E88 ~Vec3f:NPC_ToadKid_07 % 345 20 438
+	00002D09 $Script_Init_8024A528 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ToadKid_07
+	~AnimationTable:NPC_ToadKid_07 % .Sprite:ToadKid
+	00000000 00000000 00000000 001A0049 % He's a Toad kid who follows the other two. He's a  ...
+	%
+	% $NpcGroup_8024B1D8[1170]
+	.NpcID:ThreeSisters_08 $NpcSettings_80243E88 ~Vec3f:NPC_ThreeSisters_08 % -274 0 400
+	00002D09 $Script_Init_8024A7F4 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_ThreeSisters_08
+	~AnimationTable:NPC_ThreeSisters_08 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A004A % She's always taking a walk around here. She's eleg ...
+	%
+	% $NpcGroup_8024B1D8[1360]
+	.NpcID:Toad_09 $NpcSettings_80243E88 ~Vec3f:NPC_Toad_09 % 500 20 -160
+	00002D09 $Script_Init_8024AA30 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_09
+	~AnimationTable:NPC_Toad_09 % .Sprite:Toad
+	00000000 00000000 00000000 001A004B % I think this Toad is a guide. He wants to be a Tou ...
+	%
+	% $NpcGroup_8024B1D8[1550]
+	0000000A $NpcSettings_80243E88 ~Vec3f:NPC_8024C728 % -110 0 568
+	00002D09 $Script_Init_8024AE0C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_8024C728
+	~AnimationTable:NPC_8024C728 % .Sprite:Toad
+	00000000 00000000 00000000 001A004C % He's part of the Great Gossip Trio. He can't get e ...
+	%
+	% $NpcGroup_8024B1D8[1740]
+	0000000B $NpcSettings_80243E88 ~Vec3f:NPC_8024C918 % -114 0 498
+	00002D09 $Script_Init_8024AE30 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_8024C918
+	~AnimationTable:NPC_8024C918 % .Sprite:Toad
+	00000000 00000000 00000000 001A004D % He's part of the Great Gossip Trio. I wonder when  ...
+	%
+	% $NpcGroup_8024B1D8[1930]
+	0000000C $NpcSettings_80243E88 ~Vec3f:NPC_8024CB08 % -52 0 525
+	00002D09 $Script_Init_8024AE54 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_8024CB08
+	~AnimationTable:NPC_8024CB08 % .Sprite:Toad
+	00000000 00000000 00000000 001A004E % He's part of the Great Gossip Trio. I wonder how t ...
+}
+
+
+
+%Toad Kid cutscene
+@	$Script_8024DED0
+{
+   [EC]  Wait  10`
+  [118]  Wait  3`
+  [138]  Wait  80`
 }
 
 

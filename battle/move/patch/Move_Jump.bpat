@@ -1,6 +1,29 @@
 % Mario's new jump command is much faster to speed
 % up the gameplay.
 
+%increase jump damage when using first attack
+%it's more complicated than the hammer
+%similar boost to hammer, +1 for normal boots, +2 for super boots, +3 for ultra
+
+
+#new:Function $Function_CheckFirstAttack
+{
+PUSH	RA, A1, A2
+%JAL		~Func:is_ability_active
+%ORI		A0, R0, 3 %ability 3 is first attack
+PUSH	A0
+JAL     $IsBadgeEquiped %~Func:is_ability_active %800E9D48
+ORI		A0, R0, E6 %first attack
+ADD 	A2, A0, R0
+POP		A0
+JAL		~Func:set_variable
+LW		A1, 0 (S0) %get argument
+POP		RA, A1, A2
+JR		RA
+ADDIU	V0, R0, 2
+}
+
+
 @ $Script_802A11FC
 {
    [D8]  Call  SetActorSpeed ( .Actor:Player *Fixed[15.0] )
@@ -31,7 +54,118 @@
   [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[15.0] )
 }
 
+
+@ $Script_802A3188
+{
+    0:  Call     SetGoalToTarget 	( .Actor:Player )
+   10:  Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   2C:  Sub  *Var[3]  00000028 
+   3C:  Set  *Var[4]  00000028 
+   4C:  Call     SetActorPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   68:  Call     SetGoalToTarget 	( .Actor:Player )
+   78:  Call     SetGoalToTarget 	( .Actor:Player )
+   88:  Call     8024E664 ( 00000022 )
+   98:  Call     SetGoalToTarget 	( .Actor:Player )
+   A8:  Call     GetGoalPos  	( .Actor:Player *Var[0] *Var[1] *Var[2] )
+   C4:  Call     GetActorPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   E0:  Sub  *Var[0]  *Var[3] 
+   F0:  Sub  *Var[0]  00000014 
+  100:  DivF  *Var[0]  *Fixed[10.588867] 
+  110:  AddF  *Var[0]  0000000F 
+  120:  Set  *Var[A]  *Var[0] 
+  130:  Call     SetGoalToTarget 	( .Actor:Player )
+  140:  Call     SetActorJumpGravity 	( .Actor:Player *Fixed[1.0] )
+  154:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00010008 00030000 )
+  174:  Call     80274A18 ( *Var[A] 00000000 )
+  188:  Call     $Function_802A10E4 ( )
+  194:  Call     SetActorSounds ( 00000000 00000003 0000015A 00000000 )
+        Call     PlayerTestEnemy 	( *Var[0] 00000080 00000000 00000000 00000001 00000000 )
+		If  *Var[0]  ==  00000006 
+			ExecWait $Script_802A203C 
+			Return
+		EndIf
+		Call 	 $Function_CheckFirstAttack ( *Var[C] )
+		If *Var[C] == 0
+			Goto 0
+		EndIf
+		Call     GetMenuSelection 	( *Var[0] *Var[1] *Var[2] )
+		Switch *Var[1]
+			Case == 00000000
+				Add *Var[F] 1
+			Case == 00000001
+				Add *Var[F] 2
+			Case == 00000002
+				Add *Var[F] 3
+		EndSwitch
+		Label 0
+  1B0:  Call     PlayerDamageEnemy 	( *Var[0] 00000080 00000000 00000000 *Var[F] 00000030 )
+  1D4:  ExecWait $Script_802A1628 
+  1E0:  Return
+  1E8:  End
+}
+
 @ $Script_802A3378
 {
-   [D8]  Wait  2`
+    0:  Call     SetGoalToTarget 	( .Actor:Player )
+   10:  Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   2C:  Sub  *Var[3]  00000028 
+   3C:  Set  *Var[4]  00000028 
+   4C:  Call     SetActorPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   68:  Call     SetGoalToTarget 	( .Actor:Player )
+   78:  ExecWait $Script_802A1458 
+   84:  Call     UseBattleCamPreset 	( 00000025 )
+   94:  Call     SetGoalToTarget 	( .Actor:Player )
+   A4:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 0001000A 0001000B )
+   C4:  Call     802752AC ( *Var[A] 00000000 )
+   D8:  Wait     00000002 
+   E4:  Call     802752AC ( 00000003 00000001 )
+   F8:  Call     SetGoalToTarget 	( .Actor:Player )
+  108:  Call     8024E664 ( 00000022 )
+  		Call     PlayerTestEnemy 	( *Var[0] 00000080 00000000 00000000 00000001 00000000 )
+		If  *Var[0]  ==  00000006 
+			ExecWait $Script_802A203C 
+			Return
+		EndIf
+  118:  Call     SetActorSounds ( 00000000 00000003 0000015B 00000000 )
+		Call 	 $Function_CheckFirstAttack ( *Var[C] )
+		If *Var[C] == 0
+  134: 		Call     PlayerDamageEnemy 	( *Var[0] 00000080 00000000 00000000 00000004 00000030 )
+		Else
+			Call     PlayerDamageEnemy 	( *Var[0] 00000080 00000000 00000000 00000006 00000030 )
+		EndIf
+  158:  ExecWait $Script_802A1628 
+  164:  Return
+  16C:  End
+}
+
+@ $Script_802A34EC
+{
+    0:  Call     SetGoalToTarget 	( .Actor:Player )
+   10:  Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   2C:  Sub  *Var[3]  00000028 
+   3C:  Set  *Var[4]  00000028 
+   4C:  Call     SetActorPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
+   68:  Call     SetGoalToTarget 	( .Actor:Player )
+   78:  ExecWait $Script_802A1540 
+   84:  Call     UseBattleCamPreset 	( 00000026 )
+   94:  Call     SetGoalToTarget 	( .Actor:Player )
+   A4:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00010007 00030000 )
+   C4:  Call     80275F00 ( *Var[A] 00000000 )
+   D8:  Set  *Var[A]  00000004 
+   E8:  Call     80275F00 ( *Var[A] 00000001 )
+   		Call     PlayerTestEnemy 	( *Var[0] 00000080 00000000 00000000 00000001 00000000 )
+		If  *Var[0]  ==  00000006 
+			ExecWait $Script_802A203C 
+			Return
+		EndIf
+   FC:  Call     SetActorSounds ( 00000000 00000003 0000015C 00000000 )
+		Call 	 $Function_CheckFirstAttack ( *Var[C] )
+		If *Var[C] == 0
+  118:  	Call     PlayerDamageEnemy 	( *Var[0] 00000080 00000000 00000000 00000006 00000030 )
+		Else
+			Call     PlayerDamageEnemy 	( *Var[0] 00000080 00000000 00000000 00000009 00000030 )
+		EndIf
+  13C:  ExecWait $Script_802A1628 
+  148:  Return
+  150:  End
 }

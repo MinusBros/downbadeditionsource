@@ -96,6 +96,7 @@
 #import KPA_HammerBros.bpat
 #import KPA_Koopatrol.bpat
 #import Flubba.bpat
+#import KammyKoopaCh4.bpat
 
 @	$ShyGuy
 {
@@ -108,6 +109,7 @@
 {
 	[Level]        50`b
 	[MaxHP]        60`b
+	[PowerBounce]  10`b
 }
 
 
@@ -226,7 +228,11 @@
   1C0:  Call  PlaySoundAtActor  ( .Actor:Self 000003D2 )
   6D4:  Thread
   6DC:  	Call  8026BF48  ( 00000001 )
-  6EC:  	Call  ElectrifyActor ( .Actor:Self 00000002 )
+			If *Byte_Settings_Difficulty == 2` %Gamer
+  6EC:  		Call  ElectrifyActor ( .Actor:Self 00000002 )
+			Else
+				Call  ElectrifyActor ( .Actor:Self 00000001 )
+			EndIf
   700:  	Call  8026BF48  ( 00000000 )
   710:  EndThread
   718:  Call  WaitForBuffDone ( )
@@ -256,7 +262,7 @@
    D4:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
    F0:  Add   *Var0  00000050
   100:  Set   *Var1  00000000
-  110:  Call  SetActorSpeed     ( .Actor:Self *Fixed[6.0] )
+  110:  Call  SetActorSpeed     ( .Actor:Self *Fixed[6.4] )
   124:  Call  SetAnimation      ( .Actor:Self 00000001 006D0006 )
   13C:  Call  SetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
   158:  Call  RunToGoal ( .Actor:Self  0` .False )
@@ -310,7 +316,7 @@
   4F4:  	Default
   4FC:  		Wait  2`
   508:  		Call  SetGoalToTarget   ( .Actor:Self )
-  518:  		Call  EnemyDamageTarget ( .Actor:Self *VarE ~Flags:DamageType:NoOtherDamagePopups 0000FFFF 00000000 00000002 00000020 )
+  518:  		Call  EnemyDamageTarget ( .Actor:Self *VarE ~Flags:DamageType:NoOtherDamagePopups 0000FFFF 00000000 00000004 00000020 )
   540:  		Wait  2`
   54C:  		Call  ActorExists       ( .Actor:Partner *Var0 )
   560:  		If  *Var0  ==  .True
@@ -336,7 +342,7 @@
   6A8:  	EndSwitch
   6B0:  EndThread
   6B8:  Call  SetAnimation      ( .Actor:Self 00000001 006D0014 )
-  6D0:  Wait  20`
+  6D0:  Wait  18`
   6DC:  Call  UseBattleCamPreset    ( 00000002 )
   6EC:  ExecWait  $Script_8021B0F8
   6ED:  Wait 1`
@@ -378,7 +384,7 @@
 	$SuperGoomba 00000002 00000009 00000000 00000000 00000000 00000000
 }
 
-%2 Pokeys, now replaced with 3 Lazy Bones.
+%4 Fuzzies, now replaced with 4 Bombshell Koopas.
 @ $Formation_08
 {
 	$BombshellKoopa 00000000 0000000A 00000000 00000000 00000000 00000000
@@ -400,7 +406,7 @@
 	$KPA_HammerBros 00000002 00000009 00000000 00000000 00000000 00000000
 }
 
-%4 Fuzzies, now replaced with 4 Bombshell Koopas.
+%2 Pokeys, now replaced with 3 Lazy Bones.
 @ $Formation_05
 {
 	$LazyBones 00000001 0000000A 00000000 00000000 00000000 00000000
@@ -421,6 +427,11 @@
 	$ShyGuy 00000003 00000008 00000000 00000000 00000000 00000000
 }
 
+#new:Formation $Formation_0B
+{
+	$KammyKoopa 00000006 0000000A 00000000 00000000 00000000 00000000
+}
+
 @	$FormationTable
 {
 	$SJIS_8022EE60 00000001 $Formation_00 $Stage_8021B4A0 00000000
@@ -434,5 +445,35 @@
 	$SJIS_8022ED80 00000004 $Formation_08 $Stage_8021B62C 00000000
 	$SJIS_8022ED64 00000002 $Formation_09 $Stage_8021B62C 00000000
 	$SJIS_8022ED58 00000003 $Formation_0A $Stage_8021B398 00000000
+	00000000       00000001 $Formation_0B $Stage_RedStation 00000000
 	00000000 00000000 00000000 00000000 00000000
+}
+
+#new:Stage $Stage_RedStation
+{
+	"omo_tex"  
+	"omo_bt09_shape"
+	"omo_bt09_hit"
+	 $Script_BeforeBattle_8021B3C0
+	$Script_AfterBattle_8021B388
+	$ASCII_8022EBB0  % omo_bg
+	00000000
+	00000000
+	00000000
+	00000000
+}
+
+@	$StageTable
+{
+	$ASCII_8022EEB4 $Stage_8021B398
+	$ASCII_8022EEAC $Stage_8021B40C
+	$ASCII_8022EEA4 $Stage_8021B4A0
+	$ASCII_8022EE9C $Stage_8021B51C
+	$ASCII_8022EE94 $Stage_8021B62C
+	$ASCII_8022EE8C $Stage_8021CD70
+	$ASCII_8022EE84 $Stage_8021CE1C
+	$ASCII_8022EE7C $Stage_8021D09C
+	$ASCII_8022EE74 $Stage_8021D11C
+	00000000 $Stage_RedStation
+	00000000 00000000
 }

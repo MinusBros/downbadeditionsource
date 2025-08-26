@@ -1,0 +1,167 @@
+#new:Header $Header
+{
+[MainScript]  $Script_Main 
+[EntryList]   $EntryList 
+[EntryCount]  00000002 
+[Background]  80200000 
+[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]That's right. [Pause 8]I got more Goomba[BR]
+homies chilling back here.[BR]
+[Pause 10]They're in the middle of[BR]
+selling dope right now.[BR]
+[Wait][Next]
+[PrintRising]Hey, maybe that's where you got[BR]
+your drugs from![BR]
+[Pause 10]Now it all makes sense![/fx][BR]
+[Wait][End]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set      *GB_WorldLocation 0000000A % sets the location on the pause screen map
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:PleasantPath 00000000 00000008 )
+	Call     MakeNpcs           ( 00000001 $NpcGroups_KMR_33 )
+	Call     802D60E8 ( 000000FA ) % stupid chirping birds I hope you die
+	ExecWait $Script_MakeEntities 
+	Set		*Var[0] $Script_MakeExits 
+	Exec	EnterWalk 
+	Return
+	End
+}
+	
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity			( .Entity:HiddenPanel ~Vec4d:starpiecepanel ~Model:panelmodel 80000000 )
+	Call	 AssignPanelFlag 	( *GF_KMR37_Panel )
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:block1 .Item:Mushroom 80000000 )
+	Call     AssignBlockFlag 	( *GF_KMR37_Block1 )
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:iblock1 .Item:HoneySyrup 80000000 )
+	Call     AssignBlockFlag 	( *GF_KMR37_Block2 )	
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:block2 .Item:Coin 80000000 )
+	Call     AssignBlockFlag 	( *GF_KMR37_Block3 )
+	Call     MakeEntity   ( .Entity:SimpleSpring ~Vec4d:Spring1 00000064 80000000 )
+	Return
+	End
+}
+	 
+#new:NpcGroupList $NpcGroups_KMR_33
+{
+00000001 $NPC_Chomp  00010000 %not actually a chomp just a leftover name from the original idea
+00000001 $NPC_Chomp2 00000000 %not actually a chomp just a leftover name from the original idea
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NPC_Chomp
+{
+00000001 $NpcSettings_Chomp ~Vec3f:chomp
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:20:Mushroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:2
+~Movement:chomp
+00260001 00260002 00260003 00260003 00260001 00260001 00260005 00260005 
+00260003 00260003 00260003 00260003 00260003 00260003 00260003 00260003  
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NPC_Chomp2
+{
+00000002 $NpcSettings_Chomp ~Vec3f:chomp2
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:20:Mushroom:A
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:2
+~Movement:chomp2
+00260001 00260002 00260003 00260003 00260001 00260001 00260005 00260005 
+00260003 00260003 00260003 00260003 00260003 00260003 00260003 00260003  
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Chomp
+{
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+}
+
+
+#new:Script $Script_ChompAI
+{
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+}
+	 
+#new:AISettings $AISettings_Chomp
+{
+    2.6 % move speed
+    60` % move time
+    30` % wait time
+   200.0 % alert radius
+    0.0
+    5`
+    3.9 % chase speed
+    60`
+    15`
+  400.0 % chase radius
+    0.0
+    1`
+}
+	 
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:exit0 00000001 00000000
+	%Bind     $Script_Entry2  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Return
+	End
+}
+	
+#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_00" 00000002 )
+	Wait     00000044 
+	Return
+	End	
+}
+	
+	
+/%
+#new:Script $Script_Entry2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_32" 00000000 )
+	Wait     00000064 
+	Return
+	End	
+}
+%/

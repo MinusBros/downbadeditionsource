@@ -122,6 +122,7 @@
 {
 	[Level]        64`b
 	[MaxHP]        52`b
+	[PowerBounce]   3`b
 }
 
 @	$StatusTable_8021BA28
@@ -150,10 +151,33 @@
 	.Status:End
 }
 
+#new:Script $ShowMessage1
+{
+	Call  ActorSpeak        ( 001F003B .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Kepri's Sin
+	Return
+	End
+}
+
+#new:Script $ShowMessage2
+{
+	Call  ActorSpeak        ( 001F0039 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Damning of Anubis
+	Return
+	End
+}
+
+#new:Script $ShowMessage3
+{
+	Call  ActorSpeak        ( 001F003A .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Hound Familiar
+	Return
+	End
+}
+
+
 %Shell Attack%
 
 @	$Script_8021D04C
 {
+		Exec  $ShowMessage1
     0:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    14:  Call  GetActorVar       ( .Actor:Self 00000002 *Var0 )
    2C:  Switch  *Var0
@@ -490,6 +514,7 @@
   12C:  EndIf
   134:  Call  SetAnimation  ( .Actor:Self 00000001 00680001 )
   14C:  Call  GetActorVar   ( .Actor:Self 00000008 *Var0 )
+		Exec  $ShowMessage3
   164:  If  *Var0  ==  00000000
   174:  	Call  UseBattleCamPreset    ( 0000000D )
   184:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
@@ -660,12 +685,14 @@
   18C:  		Case  ==  00000000
   198:  			Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
   1B0:  			If  *Var0  ==  00000000
+						Exec  $ShowMessage2
   1C0:  				ExecWait  $Script_8021D81C
   1CC:  				Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
 										Call  GetActorHP    ( .Actor:Self *Var0 )
 										If  *Var0  <=  00000016 
 											If  *GB_EnemyDefense  == 00000000
 												Set *GB_EnemyDefense  00000001
+												Wait  60`
 									   3C:  	Call  UseBattleCamPreset    ( 0000000D )
 									   4C:  	Call  BattleCamTargetActor  ( .Actor:Self )
 									   5C:  	Call  MoveBattleCamOver     (  20` )
@@ -694,12 +721,14 @@
   210:  					ExecWait  $Script_8021D04C
   21C:  					Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
   234:  				Else
+							Exec  $ShowMessage2
   23C:  					ExecWait  $Script_8021D81C
   248:  					Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
   260:  				EndIf
   268:  			EndIf
   270:  		Default
   278:  			Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+					Exec  $ShowMessage2
   290:  			ExecWait  $Script_8021D81C
   29C:  	EndSwitch
   2A4:  	Call  EnableIdleScript  ( .Actor:Self 00000001 )
@@ -717,4 +746,59 @@
   360:  Return
   368:  Return
   370:  End
+}
+
+
+
+
+
+@	$Script_8021FA54
+{
+			Thread			
+				Call  SetMusicTrack ( 00000000 .Song:TutankoopaBattle 00000001 00000008 )  %Ending stinger
+				Wait  195`
+				Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
+			EndThread
+    0:  Call  ActorExists   ( .Actor:Enemy1 *Var2 )
+   14:  If  *Var2  !=  .False
+   24:  	Call  GetActorHP    ( .Actor:Enemy1 *Var2 )
+   38:  	If  *Var2  !=  00000000
+   48:  		Thread
+   50:  			Call  8027D32C  ( 00000201 )
+   60:  			Call  EnableIdleScript  ( .Actor:Enemy1 00000000 )
+   74:  			Call  UseIdleAnimation  ( .Actor:Enemy1 .False )
+   88:  			Call  SetAnimation      ( .Actor:Enemy1 00000001 00690006 )
+   A0:  			Wait  10`
+   AC:  			Set   *Var2  00000000
+   BC:  			Loop  00000018
+   C8:  				Call  SetActorYaw   ( .Actor:Enemy1 *Var2 )
+   DC:  				Add   *Var2  0000001E
+   EC:  				Wait  1`
+   F8:  			EndLoop
+  100:  			Call  SetActorYaw   ( .Actor:Enemy1  0` )
+  114:  			Call  GetActorPos   ( .Actor:Enemy1 *Var0 *Var1 *Var2 )
+  130:  			Add   *Var1  0000000A
+  140:  			Call  PlayEffect    ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  184:  			Call  PlaySoundAtActor  ( .Actor:Enemy1 .Sound:Death )
+  198:  			Set   *Var3  00000000
+  1A8:  			Loop  0000000C
+  1B4:  				Call  SetActorRotation  ( .Actor:Enemy1 *Var3 00000000 00000000 )
+  1D0:  				Add   *Var3  00000008
+  1E0:  				Wait  1`
+  1EC:  			EndLoop
+  1F4:  			Call  RemoveActor   ( .Actor:Enemy1 )
+  204:  		EndThread
+  20C:  	EndIf
+  214:  EndIf
+  21C:  ExecWait  Collapse
+
+  228:  Label  0
+  234:  Call  ActorExists   ( .Actor:Enemy1 *Var0 )
+  248:  If  *Var0  !=  .False
+  258:  	Wait  1`
+  264:  	Goto  0
+  270:  EndIf
+  278:  Call  RemoveActor   ( .Actor:Self )
+  288:  Return
+  290:  End
 }

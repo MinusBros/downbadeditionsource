@@ -1,0 +1,61 @@
+
+% Reduced duration: 5 turns -> 4 turns
+% I returned chance to 100% because stop is all around weaker now due to modifications
+% done on a per-enemy basis. 
+@ $Script_UsePower
+{
+	0:  ExecWait $Script_802A1520 
+    C:  SetConst  *Var[0]  001E0001 
+   1C:  ExecWait $Script_802A1C50 
+   28:  Call     SetNpcAnimation 	( 00000064 001E0002 )
+   3C:  Wait     00000010 
+   48:  Call     UseBattleCamPreset 	( 00000003 )
+   58:  Call     PlaySound   	( 00000246 )
+   68:  Call     PlayEffect  	( ~FX:StopWatch 00000000 00000000 00000000 *Fixed[1.0] 000000C8 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   AC:  Call     PlaySoundAtActor 	( .Actor:Player 00000246 )
+   C0:  Wait     000000C8 
+   CC:  Call     InitTargetIterator 	( )
+   D8:  Label    00000000 
+   E4:  Call     SetGoalToTarget 	( .Actor:Self )
+   F4:  Call     ItemCheckHit 	( *Var[0] 00000000 00000000 00000000 00000000 )
+  114:  If  *Var[0]  ==  00000006 
+  124:  	Goto     00000001 
+  130:  EndIf
+  138:  Call     ItemDamageEnemy 	( *Var[0] 70000000 80200464 00000000 00000020 )
+  158:  Wait     00000005 
+  164:  Label    00000001 
+  170:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  184:  If  *Var[0]  !=  FFFFFFFF 
+  194:  	Goto     00000000 
+  1A0:  EndIf
+  1A8:  Wait     00000005 
+  1B4:  Call     80276EFC ( )
+  1C0:  ExecWait $Script_802A1E5C 
+  1CC:  ExecWait $Script_802A22AC
+	Call $LuckyStarRefund  
+  1D8:  Return
+  1E0:  End
+}
+  
+#new:Function $LuckyStarRefund
+{
+  PUSH        V0, RA                        % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Lucky Day
+  ADDIU       A0, R0, 171                   % id of badge (Lucky Day = 114) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  LIO         S0, $SPSubtractArguments      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  .NotEquipped
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0, RA                        % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  JR          RA                            % Return to the Script
+  NOP                                       % Nullpointer below the JR, because a JR ALWAYS reads the next line too
+}
+
+#new:Unknown $SPSubtractArguments
+{
+FFFFFFFF 00000055    
+}

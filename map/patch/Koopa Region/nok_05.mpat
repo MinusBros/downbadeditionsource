@@ -1,0 +1,180 @@
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 1
+    [MapTattle] $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:PleasantPath
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True )
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+    Set   *MapVar[0] 0
+	Exec  $Script_SetupMusic
+    %Call  MakeNpcs ( .False $NpcGroupList_Fuzzy )
+    Exec  $Script_MakeEntities
+	Set   *Var0 $Script_CreateExitTriggers
+	Exec  EnterWalk
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Call  SetMusicTrack ( 00000000 .Song:PleasantPath 00000000 00000008 )
+	Call  ClearAmbientSounds ( 250` )
+	Return
+	End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_NOK05_StarPiece )
+    Return
+    End
+}
+
+
+%%%
+/%
+#new:Script $Script_UpdateModelsAndCollisions
+{
+    ExecWait $Script_DisableAllModelsAndCols
+    Call    EnableGroup ( ~Model:default .True )
+    Switch *MapVar[0]
+        Case == 0
+            Call    EnableGroup ( ~Model:singleRoute .True )
+            Call    ModifyColliderFlags 	( .True ~Collider:singleEntrance_walls 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:singleRoute_walls 7FFFFE00 )
+        Case == 1
+            Call    EnableGroup ( ~Model:multipleRoutes .True )
+            %
+            Call    EnableGroup ( ~Model:tree .True )
+            Call    EnableModel ( ~Model:candyCane2 .True )
+            Call    EnableModel ( ~Model:cerco2 .True )
+            Call    ModifyColliderFlags 	( .True ~Collider:tree1 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:candyCane2 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:cerco2 7FFFFE00 )
+        Case == 2
+            Call    EnableGroup ( ~Model:multipleRoutes .True )
+            %
+            Call    EnableGroup ( ~Model:trunk1 .True )
+            Call    EnableModel ( ~Model:candyCane3 .True )
+            Call    ModifyColliderFlags 	( .True ~Collider:trunk1 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:candyCane3 7FFFFE00 )
+        Case == 3
+            Call    EnableGroup ( ~Model:multipleRoutes .True )
+            %
+            Call    EnableGroup ( ~Model:tree .True )
+            Call    EnableModel ( ~Model:cerco1 .True )
+            Call    ModifyColliderFlags 	( .True ~Collider:tree1 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:cerco1 7FFFFE00 )
+        Case == 4
+            Call    EnableGroup ( ~Model:multipleRoutes .True )
+            %
+            Call    EnableGroup ( ~Model:trunk1 .True )
+            Call    EnableGroup ( ~Model:trunk2 .True )
+            Call    EnableGroup ( ~Model:trunk3 .True )
+            Call    ModifyColliderFlags 	( .True ~Collider:trunk1 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:trunk2 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:trunk3 7FFFFE00 )
+        Case == 5
+            Call    EnableGroup ( ~Model:lastRoom .True )
+            Call    EnableGroup ( ~Model:default .False )
+            %
+            Call    ModifyColliderFlags 	( .True ~Collider:tree2 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:tree3 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:lastRoom_walls 7FFFFE00 )
+            Call    ModifyColliderFlags 	( .True ~Collider:singleEntrance_walls 7FFFFE00 )
+    EndSwitch
+    Return
+    End
+}
+
+#new:Script $Script_DisableAllModelsAndCols
+{
+    Call    EnableGroup ( ~Model:Main .False )
+    Call    ModifyColliderFlags 	( .False ~Collider:singleEntrance_walls 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:singleRoute_walls 7FFFFE00 )
+    %
+    Call    ModifyColliderFlags 	( .False ~Collider:lastRoom_walls 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:trunk1 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:trunk2 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:trunk3 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:candyCane1 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:candyCane2 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:candyCane3 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:tree1 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:cerco1 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:cerco2 7FFFFE00 )
+    %
+    Call    ModifyColliderFlags 	( .False ~Collider:tree2 7FFFFE00 )
+    Call    ModifyColliderFlags 	( .False ~Collider:tree3 7FFFFE00 )
+    Return
+    End
+}
+%/
+
+%===========
+% Exits
+%===========
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit1 .Trigger:FloorAbove ~Collider:Exit1 00000001 00000000
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+    Set      *Var0 0
+   20:  Call  GotoMap   ( "nok_11" 00000002 ) % nok_11
+   34:  Wait  50`
+	Return
+	End
+}
+
+#new:Script $Script_Nothing
+{
+    Return
+    End
+}
+
+%%%
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $String_Tattle
+JR        RA
+RESERVED
+}
+
+#string $String_Tattle
+{
+[Style Tattle][EnableCDownNext]
+Hey, Mario. When am I gonna get[BR]
+a hot babe in my bed, huh?[BR]
+[Pause 10]You better get...[BR]
+[Wait][Next]
+Wait[Pause 3].[Pause 3].[Pause 3].[Pause 3] this a room tattle.[BR]
+[Pause 5]I'm not supposed to be[BR]
+saying that.[BR]
+[Wait][Next]
+Regardless, my point still[BR]
+stands. I'm single and ready[BR]
+to mingle, Mario.[BR]
+[Wait][End]
+}

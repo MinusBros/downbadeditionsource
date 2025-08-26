@@ -40,6 +40,13 @@
 
 #new:DefenseTable $DefenseTable_LavaPiranha
 {
+	.Element:Normal 00000063
+	.Element:End
+}
+
+
+#new:DefenseTable $DefenseTable_LavaPiranhaBudsDown
+{
 	.Element:Normal 00000001
 	.Element:Water  00000000
 	.Element:Ice    00000000
@@ -119,7 +126,7 @@
 	[AirLift]       0`b
 	[Hurricane]     0`b % Bow's "Spook" as well
 	[UpAndAway]     0`b
-	[PowerBounce]  70`b
+	[PowerBounce]   3`b
 	[SpinSmash]     4`b % weight (0-4)
 	% ui positions
 	[Size]         50`b  50`b % width height
@@ -130,6 +137,7 @@
 
 #new:Script $Script_Init_8021D264
 {
+		Set *GB_EnemyDefense 0`
     0:  UseArray  $End[788]
     C:  Call  EnableGroup       ( 00000017 .True )
    20:  Call  EnableGroup       ( 0000001C .False )
@@ -176,7 +184,7 @@
   380:  Call  CreateNpc ( 00000000 00B70000 )
   394:  Call  SetNpcYaw ( 00000000  90` )
   3A8:  Call  SetNpcPos ( 00000000  -300`  0`  0` )
-  3C4:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021FC10 )
+  3C4:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_LavaPiranha )
   3D8:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021D6EC )
   3EC:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021F5A4 )
   400:  Call  BindNextTurn      ( .Actor:Self $Script_NextTurn_8021D8EC )
@@ -578,7 +586,7 @@
   220:  End
 }
 
-#new:Script $Script_TakeTurn_8021FC10
+#new:Script $Script_TakeTurn_LavaPiranha
 {
     0:  Call  GetActorFlags ( .Actor:Self *Var0 )
    14:  If  *Var0  &  00400000
@@ -587,11 +595,11 @@
    34:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
    4C:  Switch  *Var0
    58:  	Case  ==  00000000
-   64:  		ExecWait  $Script_8021FF3C %Lava Spit Phase 1
+   64:  		ExecWait  $Script_LavaSpit1 %Lava Spit Phase 1
    70:  	Default
    78:  		Call  GetActorVar   ( .Actor:Self 00000005 *Var0 )
    90:  		If  *Var0  ==  00000001
-   A0:  			ExecWait  $Script_802204B0 %Lava Spit Phase 2
+   A0:  			ExecWait  $Script_LavaSpit2 %Lava Spit Phase 2
    AC:  		Else
    B4:  			Call  GetActorVar   ( .Actor:Self 0000000B *Var0 )
    CC:  			Sub   *Var0  00000002
@@ -624,7 +632,7 @@
   288:  				Call  LoadBattleDmaData     ( 00000000 )
   298:  				Call  PlayModelAnimation    ( 00000000 $End[9230] )
   2AC:  				Call  EnableIdleScript      ( .Actor:Self 00000001 )
-  2BC:					ExecWait  $Script_802204B0
+  2BC:					ExecWait  $Script_LavaSpit2
   2C0:  			EndIf
   2C8:  		EndIf
   2D0:  EndSwitch
@@ -647,7 +655,7 @@
 	$LavaBud $Vector3D_8021FEF8 00000046 00000002 00000032 0000000E 00000014
 }
 
-#new:Script $Script_8021FF3C
+#new:Script $Script_LavaSpit1
 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
@@ -709,10 +717,10 @@
   42C:  Call  SetGoalToTarget   ( .Actor:Self )
 		Call  RandInt   ( 00000001 *Var0 )
 		If  *Var0  ==  00000000
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:75` 0000000F 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:75` 00000012 00000020 )
 		Else
 			Call  80269EAC  ( 0000001A )
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Poison:3:75` 0000000F 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 0000FFFF ~DebuffType:Poison:3:75` 00000012 00000020 )
 		EndIf
   464:  Set   *VarF  *Var0
   474:  Switch  *VarF
@@ -736,7 +744,7 @@
   56C:  End
 }
 
-#new:Script $Script_802204B0
+#new:Script $Script_LavaSpit2
 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
@@ -2059,7 +2067,7 @@
 	% stats
 	[Index]        EFb
 	[Level]         0`b
-	[MaxHP]        25`b
+	[MaxHP]        60`b
 	[Coins]         0`b
 	[Flags]       00000000
 	[StatusTable] $StatusTable_LavaPiranha
@@ -2073,7 +2081,7 @@
 	[AirLift]       0`b
 	[Hurricane]     0`b % Bow's "Spook" as well
 	[UpAndAway]     0`b
-	[PowerBounce]  80`b
+	[PowerBounce]   3`b
 	[SpinSmash]     4`b % weight (0-4)
 	% ui positions
 	[Size]         30`b  30`b % width height
@@ -2096,9 +2104,9 @@
    C0:  Call  SetActorVar   ( .Actor:Self 0000000D *Var0 )
    D8:  Call  SetActorVar   ( .Actor:Self 00000007 007B0803 )
    F0:  Call  SetActorVar   ( .Actor:Self 00000008 007B0809 )
-  108:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80225D98 )
+  108:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_LavaBud )
   11C:  Call  BindIdle      ( .Actor:Self $Script_Idle_802253F0 )
-  130:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80225738 )
+  130:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_LavaBud )
   144:  Return
   14C:  End
 }
@@ -2169,7 +2177,7 @@
    50:  End
 }
 
-#new:Script $Script_HandleEvent_80225738
+#new:Script $Script_HandleEvent_LavaBud
 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
@@ -2290,7 +2298,7 @@
   2E8:  End
 }
 
-#new:Script $Script_TakeTurn_80225D98
+#new:Script $Script_TakeTurn_LavaBud
 {
     0:  Call  GetActorFlags ( .Actor:Self *Var0 )
    14:  If  *Var0  &  00400000
@@ -2575,6 +2583,11 @@
   22C:  	Call  SetPartEventBits  ( .Actor:Self 00000002 00000002 .False )
   248:  	Wait  29`
   254:  	Call  PlaySoundAtActor  ( .Actor:Self 000003C7 )
+			If *GB_EnemyDefense == 0`
+				Add *GB_EnemyDefense 1`
+			Else
+				
+			EndIf
   268:  	Call  GetActorVar       ( .Actor:Self 00000000 *Var0 )
   280:  	If  *Var0  ==  00000001
   290:  		Call  OverrideBattleDmaDest ( $End[6230] )
@@ -2972,7 +2985,7 @@
   538:  Call  SetGoalToTarget   ( *Var5 )
   548:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
   55C:  Call  SetGoalToTarget   ( .Actor:Self )
-  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 00000009 00000020 )
+  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 0000000C 00000020 )
   594:  Switch  *Var9
   5A0:  	CaseOR  ==  .HitResult:Hit % 0
   5AC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -3064,7 +3077,7 @@
   538:  Call  SetGoalToTarget   ( *Var5 )
   548:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
   55C:  Call  SetGoalToTarget   ( .Actor:Self )
-  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 0000000A 00000020 )
+  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 0000000D 00000020 )
   594:  Switch  *Var9
   5A0:  	CaseOR  ==  .HitResult:Hit % 0
   5AC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -3176,7 +3189,7 @@
 	[AirLift]       0`b
 	[Hurricane]     0`b % Bow's "Spook" as well
 	[UpAndAway]     0`b
-	[PowerBounce]  80`b
+	[PowerBounce]   3`b
 	[SpinSmash]     0`b % weight (0-4)
 	% ui positions
 	[Size]         30`b  30`b % width height

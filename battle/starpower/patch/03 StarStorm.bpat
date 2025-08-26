@@ -1,0 +1,92 @@
+
+@ $Script_UsePower
+{
+    0:  ExecWait $Script_802A16F0 
+    C:  SetConst  *Var[0]  001B0001 
+   1C:  ExecWait $Script_802A1E20 
+   28:  Call     SetNpcAnimation 	( 00000064 001B0002 )
+   3C:  Wait     00000010 
+   48:  Call     UseBattleCamPreset 	( 00000003 )
+   58:  Thread
+   60:  	Set  *Var[0]  00000000 
+   70:  	Loop     0000000A 
+   7C:  		Call     PlaySound   	( 00000259 )
+   8C:  		Call     $Function_802A1518 ( )
+   98:  		Wait     00000005 
+   A4:  		Add  *Var[0]  00000001 
+   B4:  		Call     PlaySound   	( 0000025A )
+   C4:  		Call     $Function_802A1518 ( )
+   D0:  		Wait     00000005 
+   DC:  		Add  *Var[0]  00000001 
+   EC:  	EndLoop
+   F4:  EndThread
+   FC:  Thread
+  104:  	Set  *Var[0]  00000000 
+  114:  	Wait     00000032 
+  120:  	Loop     0000000A 
+  12C:  		Call     PlaySound   	( 0000025C )
+  13C:  		Add  *Var[0]  00000001 
+  14C:  		Wait     00000005 
+  158:  		Call     PlaySound   	( 0000025D )
+  168:  		Add  *Var[0]  00000001 
+  178:  		Wait     00000005 
+  184:  	EndLoop
+  18C:  EndThread
+  194:  Thread
+  19C:  	Loop     0000000A 
+  1A8:  		Wait     00000007 
+  1B4:  		Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  1D0:  		Call     StartRumble ( 00000008 )
+  1E0:  	EndLoop
+  1E8:  EndThread
+  1F0:  Wait     0000005A 
+  1FC:  Call     InitTargetIterator 	( )
+  208:  Label    00000000 
+  214:  Call     SetGoalToTarget 	( .Actor:Self )
+  224:  Call     ItemCheckHit 	( *Var[0] 00000000 00000000 00000000 00000000 )
+  244:  If  *Var[0]  ==  00000006 
+  254:  	Goto     00000001 
+  260:  EndIf
+  268:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  284:  Call     $Function_802A1628 ( *Var[0] *Var[1] *Var[2] )
+  29C:  Call     ItemDamageEnemy 	( *Var[0] 38000100 00000000 00000007 00000020 )
+  2BC:  Label    00000001 
+  2C8:  Wait     0000000A 
+  2D4:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  2E8:  If  *Var[0]  !=  FFFFFFFF 
+  2F8:  	Goto     00000000 
+  304:  EndIf
+  30C:  Wait     00000014 
+  318:  ExecWait $Script_802A202C 
+  324:  Call     80276EFC ( )
+  330:  ExecWait $Script_802A247C 
+  Call $LuckyStarRefund
+  33C:  Return
+  344:  End
+}
+  
+  	
+#new:Function $LuckyStarRefund
+{
+  PUSH        V0, RA                        % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Lucky Day
+  ADDIU       A0, R0, 171                   % id of badge (Lucky Day = 114) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  LIO         S0, $SPSubtractArguments      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  .NotEquipped
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0, RA                        % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  JR          RA                            % Return to the Script
+  NOP                                       % Nullpointer below the JR, because a JR ALWAYS reads the next line too
+}
+
+#new:Unknown $SPSubtractArguments
+{
+FFFFFFFF 00000000                           % The typical SPSubtractMainFunction Arguments ( Full bars / Fractions of a bar )
+}
+	
+	

@@ -1,0 +1,64 @@
+
+% Reduced status length (3 -> 2 turns), lowered chance 100% -> 60%
+% =================================================================
+% above is clovers modification, I returned chance to 100 and
+% number of turns to 3 since enemies status chances have been
+% edited on a per-enemy basis.
+@ $Script_UsePower
+{
+ 0:  ExecWait $Script_802A1620 
+    C:  SetConst  *Var[0]  001A0001 
+   1C:  ExecWait $Script_802A1D50 
+   28:  Call     SetNpcAnimation 	( 00000064 001A0002 )
+   3C:  Wait     00000008 
+   48:  Call     UseBattleCamPreset 	( 00000003 )
+   58:  Wait     0000000A 
+   64:  Call     PlaySound   	( 000003F4 )
+   74:  Call     $Function_802A1518 ( )
+   80:  Wait     0000001A 
+   8C:  Call     InitTargetIterator 	( )
+   98:  Label    00000000 
+   A4:  Call     SetGoalToTarget 	( .Actor:Self )
+   B4:  Call     ItemCheckHit 	( *Var[0] 00000000 00000000 00000000 00000000 )
+   D4:  If  *Var[0]  ==  00000006 
+   E4:  	Goto     00000001 
+   F0:  EndIf
+   F8:  Call     ItemDamageEnemy 	( *Var[0] 70000000 80001264 00000000 00000020 )
+  118:  Label    00000001 
+  124:  Wait     00000005 
+  130:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  144:  If  *Var[0]  !=  FFFFFFFF 
+  154:  	Goto     00000000 
+  160:  EndIf
+  168:  Wait     00000003 
+  174:  Call     80276EFC ( )
+  180:  ExecWait $Script_802A1F5C 
+  18C:  ExecWait $Script_802A23AC 
+		Call 	 $LuckyStarRefund
+  198:  Return
+  1A0:  End
+}
+  
+#new:Function $LuckyStarRefund
+{
+  PUSH        V0, RA                        % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Lucky Day
+  ADDIU       A0, R0, 171                   % id of badge (Lucky Day = 114) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  LIO         S0, $SPSubtractArguments      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  .NotEquipped
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0, RA                        % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  JR          RA                            % Return to the Script
+  NOP                                       % Nullpointer below the JR, because a JR ALWAYS reads the next line too
+}
+
+#new:Unknown $SPSubtractArguments
+{
+FFFFFFFF 000000AA                           % The typical SPSubtractMainFunction Arguments ( Full bars / Fractions of a bar )
+}
+	

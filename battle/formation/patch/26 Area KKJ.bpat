@@ -50,15 +50,15 @@
    14:  Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
    28:  Call  UseBattleCamPreset    ( 0000000E )
    38:  Call  BattleCamTargetActor  ( .Actor:Self )
-   48:  Wait  10`
+   48:  Wait  28`
    54:  Call  SetAnimation      ( .Actor:Self 00000001 00610007 )
-   6C:  Wait  3`
+   6C:  Wait  5`
    78:  Call  PlaySoundAtActor  ( .Actor:Self 0000207A )
    8C:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
    A8:  Sub   *Var0  00000019
    B8:  Add   *Var1  00000028
    C8:  Call  PlayEffect        ( ~FX:GatherEnergyPink *Var0 *Var1 *Var2 00000001 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  10C:  Wait  10`
+  10C:  Wait  18`
   118:  Call  UseBattleCamPreset    ( 00000013 )
   128:  Call  SetBattleCamTarget    (  80`  95`  15` )
   140:  Call  SetBattleCamZoom  (  340` )
@@ -94,9 +94,9 @@
   430:  		BreakLoop
   438:  	EndIf
   440:  EndLoop
-  448:  Wait  15`
+  448:  Wait  19`
   454:  Call  SetAnimation      ( .Actor:Self 00000001 00610008 )
-  46C:  Wait  5`
+  46C:  Wait  9`
   478:  Call  UseBattleCamPreset    ( 00000013 )
   488:  Call  SetBattleCamTarget    (  -80`  37`  5` )
   4A0:  Call  SetBattleCamZoom  (  256` )
@@ -141,8 +141,129 @@
   774:  Call  SetAnimation      ( .Actor:Self 00000001 00610005 )
   78C:  Wait  2`
   798:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic 00000000 00000000 00000004 00000020 )
+  7C0:  Set   *VarF  *Var0 
+  7D0:  Switch  *VarF 
+  7DC:  	CaseOR  ==  .HitResult:Hit % 0
+  7E8:  	CaseOR  ==  .HitResult:QuakeImmune % 2
   7F4:  		Wait  19`
   800:  		Call  UseBattleCamPreset    ( 00000002 )
+  810:  	EndCaseGroup
+  818:  EndSwitch
+		Wait  10`
   984:  Return
   98C:  End
+}
+
+
+
+
+%There's a lot of space in this bpat, so add room for new stages and Rose Goombas
+
+#import RoseGoomba.bpat
+#import KPA_Koopatrol.bpat
+#import KPA_FlyingMagikoopa.bpat
+
+
+
+#new:Formation $Formation_01
+{
+	$RoseGoomba 00000001 0000000A 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000002 00000009 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000003 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_02
+{
+	$RoseGoomba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000001 00000009 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000002 00000008 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000003 00000007 00000000 00000000 00000000 00000000
+}
+
+
+#new:Formation $Formation_03
+{
+	$RoseGoomba 00000001 0000000A 00000000 00000000 00000000 00000000
+	$KPA_Koopatrol 00000002 00000009 00000000 00000000 00000000 00000000
+	$KPA_Koopatrol 00000003 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_04
+{
+	$RoseGoomba 00000001 0000000A 00000000 00000000 00000000 00000000
+	$KPA_FlyingMagikoopa 00000006 00000009 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000003 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_05
+{
+	$RoseGoomba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$RoseGoomba 00000001 00000009 00000000 00000000 00000000 00000000
+	$KPA_Koopatrol 00000002 00000008 00000000 00000000 00000000 00000000
+	$KPA_FlyingMagikoopa 00000007 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_06
+{
+	$RoseGoomba 00000000 0000000A 00000000 00000000 00000000 00000000
+	$KPA_Koopatrol 00000001 00000009 00000000 00000000 00000000 00000000
+	$KPA_FlyingMagikoopa 00000006 00000008 00000000 00000000 00000000 00000000
+	$KPA_FlyingMagikoopa 00000007 00000007 00000000 00000000 00000000 00000000
+}
+
+@ $FormationTable
+{
+	$SJIS_80219FC0 00000001 $Formation_00 $Stage_80219F98 00000000
+	00000000 00000003 $Formation_01 $Stage_Foyer 00000000
+	00000000 00000004 $Formation_02 $Stage_Foyer 00000000
+	00000000 00000003 $Formation_03 $Stage_Foyer2 00000000
+	00000000 00000003 $Formation_04 $Stage_Foyer2 00000000
+	00000000 00000004 $Formation_05 $Stage_Foyer2 00000000
+	00000000 00000004 $Formation_06 $Stage_Foyer2 00000000
+	00000000 00000000 00000000 00000000 00000000
+}
+
+
+#new:Script $Script_BeforeBattle_Goombas
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   28:  Return
+   30:  End
+}
+
+@ $StageTable
+{
+	$ASCII_80219FE8 $Stage_80219F98
+	00000000 $Stage_Foyer
+	00000000 $Stage_Foyer2
+	00000000 00000000
+}
+
+
+#new:Stage $Stage_Foyer
+{
+	$ASCII_8021A018  % kkj_tex
+	"kkj_bt03_shape" 
+	"kkj_bt03_hit" 
+	$Script_BeforeBattle_Goombas
+	$Script_AfterBattle_80219F88
+	$ASCII_80219FF0  % kpa_bg
+	00000000
+	00000000
+	00000000
+	00000000
+}
+
+#new:Stage $Stage_Foyer2
+{
+	$ASCII_8021A018  % kkj_tex
+	"kkj_bt04_shape" 
+	"kkj_bt04_hit"  
+	$Script_BeforeBattle_Goombas
+	$Script_AfterBattle_80219F88
+	$ASCII_80219FF0  % kpa_bg
+	00000000
+	00000000
+	00000000
+	00000000
 }

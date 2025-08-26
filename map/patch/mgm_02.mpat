@@ -1,0 +1,173 @@
+#define .NpcID:Toad_00              00
+#define .NpcID:Fuzzy_10             0A
+#define .NpcID:Fuzzy_11             0B
+#define .NpcID:Fuzzy_12             0C
+#define .NpcID:Fuzzy_13             0D
+#define .NpcID:Fuzzy_14             0E
+#define .NpcID:Bombomb_30           1E
+#define .NpcID:Bombomb_31           1F
+#define .NpcID:Bombomb_32           20
+#define .NpcID:Bombomb_33           21
+#define .NpcID:Bombomb_34           22
+#define .NpcID:Luigi_100            64
+#define .NpcID:Luigi_101            65
+#define .NpcID:Luigi_102            66
+#define .NpcID:Luigi_103            67
+#define .NpcID:Luigi_104            68
+#define .NpcID:Luigi_105            69
+#define .NpcID:Luigi_106            6A
+#define .NpcID:Luigi_107            6B
+#define .NpcID:Luigi_108            6C
+#define .NpcID:Luigi_109            6D
+
+@	$Script_Interact_80245048
+{
+    0:  If  *GF_MGM_Met_SmashAttack  ==  .False
+   10:  	Call  $Function_802423D0 ( )
+   1C:  	Set   *GF_MGM_Met_SmashAttack  .True
+   2C:  	Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 0008003C ) % Hello, Mario! This is the floor for Smash Attack.  ...
+   4C:  Else
+   54:  	Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 0008003D ) % Welcome to Smash Attack! You need ten coins to pla ...
+   74:  EndIf
+   7C:  Call  ShowCoinCounter   ( .True )
+   8C:  Call  $Function_80242314 ( )
+   98:  If  *VarA  <  0000000A
+   A8:  	Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 0008003E ) % ...Mario, you don't have ten coins. Please bring m ...
+   C8:  	Call  $Function_802423A4 ( )
+   D4:  	Wait  12`
+   E0:  	Exec  $Script_8024502C
+   EC:  	Call  GotoMap   ( $ASCII_802485F0 00000002 ) % mgm_00
+  100:  	Wait  80`
+  10C:  	Return
+  114:  EndIf
+  11C:  Call  ShowChoice    ( 001E004F ) % Play Don't play
+  12C:  Switch  *Var0
+  138:  	Case  ==  00000000
+  144:  		Call  GetSelfVar    ( 00000004 *Var1 )
+  158:  		If  *Var1  <  00000064
+  168:  			Add   *Var1  00000001
+  178:  			Call  SetSelfVar    ( 00000004 *Var1 )
+  18C:  		EndIf
+  194:  		Thread
+  19C:  			Call  $Function_MonitorGame ( )
+  1A8:  		EndThread
+  1B0:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 0008003F ) % Ready to get ten Peach Panels? Get set to... SMASH ...
+  1D0:  		Call  $Function_802423A4 ( )
+  1DC:  	Default
+  1E4:  		Call  $Function_802423A4 ( )
+  1F0:  		Wait  5`
+  1FC:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 00080040 ) % Another time, perhaps.
+  21C:  		Exec  $Script_8024502C
+  228:  		Call  GotoMap   ( $ASCII_802485F0 00000002 ) % mgm_00
+  23C:  		Wait  80`
+  248:  		Return
+  250:  EndSwitch
+  258:  Thread
+  260:  	Call  DisablePartnerAI  ( 00000000 )
+  270:  	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  288:  	Sub   *Var2  00000003
+  298:  	Call  NpcMoveTo ( .Npc:Partner *Var0 *Var2  10` )
+  2B4:  EndThread
+  2BC:  Call  EndSpeech ( .NpcID:Toad_00 00830004 00830001 00000005 )
+  2D8:  Call  SetSelfVar    ( 00000003 00000001 )
+  2EC:  Call  PlaySoundWithVolume   ( 00002108 00000050 )
+  300:  Exec  $Script_80243888
+  30C:  Exec  $Script_80244A28
+  318:  Wait  25`
+  324:  Thread
+  32C:  	Wait  12`
+  338:  	Call  PlayEffect    ( ~FX:Steam:SmallPuff 00000166 FFFFFFF6 000000B9 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  37C:  	Call  SetNpcPos     ( .NpcID:Toad_00  358`  500`  185` )
+  398:  	Call  EnableNpcShadow   ( .NpcID:Toad_00 .False )
+  3AC:  	Call  $Function_802405A4 ( )
+  3B8:  	Call  PlayEffect    ( ~FX:Steam:SmallPuff 00000163 0000001E FFFFFF4C 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3FC:  EndThread
+  404:  Call  EndSpeech ( .NpcID:Toad_00 00830004 00830001 00000005 )
+  420:  Call  SetMusicTrack ( 00000000 .Song:Minigame 00000000 00000008 )
+  434:  Wait  8`
+  440:  Call  EndSpeech ( .NpcID:Toad_00 00830004 00830001 00000005 )
+  45C:  Call  EnablePartnerAI ( )
+  468:  Call  SetSelfVar    ( 00000003 00000002 )
+  47C:  Exec  $Script_80244A60
+  488:  Return
+  490:  End
+}
+
+@	$Script_80244A60
+{
+    0:  Call  $Function_80240544 ( )
+    C:  Call  $Function_80240BB0 ( )
+   18:  Call  $Function_80240580 ( )
+   24:  Call  DisablePlayerInput    ( .True )
+   34:  Call  SetSelfVar    ( 00000003 00000003 )
+   54:  Exec  $Script_80244A44
+   60:  Call  ShowMessageAtScreenPos    ( 00080041  160`  40` ) % Game Over
+   78:  Wait  5`
+   84:  Call  SetSelfVar    ( 00000003 00000004 )
+   98:  Exec  $Script_80243E9C
+   A4:  Exec  $Script_80243274
+   B0:  Wait  15`
+   BC:  Thread
+   C4:  	Call  UseSettingsFrom   ( .Cam:Default  358`  -20`  185` )
+   E0:  	Call  SetPanTarget  ( .Cam:Default  358`  -20`  185` )
+   FC:  	Call  SetCamDistance    ( .Cam:Default *Fixed[400.0] )
+  110:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  124:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  13C:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  150:  EndThread
+  158:  Call  SetNpcFlagBits    ( .NpcID:Toad_00 00000100 .True )
+  170:  Call  $Function_802405D0 ( )
+  17C:  Call  PlayEffect        ( ~FX:Steam:SmallPuff 00000163 0000002D FFFFFF51 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  1C0:  Thread
+  1C8:  	Call  SetNpcPos ( .NpcID:Toad_00  358`  -20`  185` )
+  1E4:  	Call  EnableNpcShadow   ( .NpcID:Toad_00 .True )
+  1F8:  	Call  PlayEffect        ( ~FX:Steam:SmallPuff 00000166 00000005 000000BD 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  23C:  	Call  SetSelfEnemyFlagBits  ( 19000000 00000000 )
+  250:  EndThread
+  258:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  270:  Call  GetNpcPos     ( .NpcID:Toad_00 *Var3 *Var4 *Var5 )
+  28C:  Call  GetDist2D     ( *VarA *Var0 *Var2 *Var3 *Var5 )
+  2AC:  Div   *VarA  00000008
+  2BC:  If  *VarA  <  00000003
+  2CC:  	Set   *VarA  00000003
+  2DC:  EndIf
+  2E4:  Call  PlayerMoveTo      (  330`  185` *VarA )
+  2FC:  Call  WaitForPlayerMoveToComplete ( )
+  308:  Call  SetNpcFlagBits    ( .NpcID:Toad_00 00000100 .False )
+  320:  Wait  5`
+  32C:  Call  SetSelfVar        ( 00000003 00000005 )
+  340:  Call  $Function_CalculateScore ( )
+  34C:  Switch  *Var0
+  358:  	Case  ==  FFFFFFFF
+				Call  SetMusicTrack ( 00000000 .Song:Fail 00000000 00000008 )
+  364:  		Call  SetSelfVar    ( 00000003 00000000 )
+  378:  		Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 00080043 ) % Game cleared! The remaining time is... Oh. Too bad ...
+  398:  	Case  ==  00000000
+				Call  SetMusicTrack ( 00000000 .Song:Fail 00000000 00000008 )
+  3A4:  		Call  SetSelfVar    ( 00000003 00000000 )
+  3B8:  		Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 00080044 ) % No more time! Too bad. Please come again.
+  3D8:  	Default
+				Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
+  3E0:  		Call  SpeakToPlayer     ( .Npc:Self 00830004 00830001 00000000 00080042 ) % Game cleared! The remaining time is .... So, well. ...
+  400:  		Call  ShowCoinCounter   ( .True )
+  410:  		Wait  10`
+  41C:  		Call  $Function_80241F38 ( )
+  428:  		Wait  15`
+  434:  		Call  ShowCoinCounter   ( .False )
+  444:  		Call  SetSelfVar        ( 00000003 00000000 )
+  458:  		Wait  5`
+  464:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830004 00830001 00000000 00080045 ) % Please come again.
+  484:  EndSwitch
+  48C:  Wait  5`
+  498:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  4B0:  Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+  4CC:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  4E8:  Call  SetCamDistance        ( .Cam:Default *Fixed[450.0] )
+  4FC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+  510:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  528:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  53C:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  554:  Call  DisablePlayerInput    ( .False )
+  564:  Return
+  56C:  End
+}

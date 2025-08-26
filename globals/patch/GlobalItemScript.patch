@@ -1,63 +1,6 @@
 %World item usage script
 %Gets dmaed at 802C05CC / 32579C
 
-/%
-0000004D 00000001 00000000 
-00000043 00000002 802D0E28 00000001 
-00000043 00000002 802D2B0C FE363C80 
-0000000B 00000002 FE363C80 00000000 
-	00000043 00000001 802D2B6C 
-	00000008 00000001 00000014 
-00000013 00000000 
-00000043 00000001 802C02E4 
-00000043 00000002 802C0358 FE363C8A 
-00000046 00000001 802C0410 
-0000000A 00000002 FE363C8D 00000000 
-	00000046 00000001 802C04F4
-00000012 00000000 
-	00000046 00000001 802C0560 
-00000013 00000000 
-0000000A 00000002 FE363C8F 00000001 
-	00000043 00000002 802D1084 0001001D 
-00000013 00000000 
-0000000D 00000002 FE363C8B 00000000 
-	00000043 00000004 802D1DFC FE363C80 FE363C81 FE363C82 
-	00000027 00000002 FE363C80 00000000 
-	00000027 00000002 FE363C81 00000023 
-	00000043 00000005 802C00AC FE363C80 FE363C81 FE363C82 FE363C8B 
-00000013 00000000
-0000000D 00000002 FE363C8C 00000000
-	00000043 00000004 802D1DFC FE363C80 FE363C81 FE363C82 
-	00000027 00000002 FE363C80 00000014 
-	00000027 00000002 FE363C81 00000019 
-	00000043 00000005 802C016C FE363C80 FE363C81 FE363C82 FE363C8C 
-00000013 00000000 
-00000043 00000004 802D1DFC FE363C80 FE363C81 FE363C82 
-00000027 00000002 FE363C81 00000019 
-00000043 00000005 802D7520 FE363C80 FE363C81 FE363C82 FE363C8B
-0000000B 00000002 FE363C8B 00000000
-	00000043 00000002 802C022C FE363C8B
-00000013 00000000 
-0000000B 00000002 FE363C8C 00000000 
-	00000043 00000002 802C0288 FE363C8C 
-00000013 00000000
-0000000A 00000002 FE363C8F 00000000
-	00000008 00000001 0000000A 
-	00000043 00000002 802D1084 00010032 
-	00000008 00000001 0000001E 
-00000012 00000000
-	00000008 00000001 0000001E 
-00000013 00000000 
-00000043 00000004 802D1DFC FE363C80 FE363C81 FE363C82 
-00000043 00000005 802D75D8 FE363C80 FE363C81 FE363C82 FE363C8B 
-00000043 00000002 802D1084 00010002 
-00000008 00000001 00000014 
-00000043 00000001 802C03E8
-00000043 00000002 802D0E28 00000000
-00000043 00000001 802C031C 
-00000002 00000000 
-00000001 00000000
-%/
 
 @Data 32579C
 {
@@ -107,6 +50,49 @@
 				Call  DisablePlayerInput    ( .False )
 				Call  802C031C ( )
 				Return
+			Case == .Item:ReturnPipe
+				Switch  *GB_StoryProgress
+					Case  .Story:Ch1_MarioActivatedTrap to .Story:Ch1_BombetteJoinedParty  %To prevent leaving the cell early
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch1_StarSpritDeparted  %To prevent skipping Mr. Trooper
+							ExecWait $CantUsePipe	
+							Return
+					Case  .Story:Ch3_GotSuperBoots  to  .Story:Ch3_StarSpritDeparted
+						If *GF_MIM10_Defeated_JrTroopa == .False
+							ExecWait $CantUsePipe	
+							Return
+						EndIf
+					Case  .Story:Ch3_HeartFledFirstTunnel  to  .Story:Ch3_HeartEscapedWindyMill
+							ExecWait $CantUsePipe	
+							Return
+					Case .Story:Ch5_ReachedLavaLavaIsland to .Story:Ch5_ReturnedToToadTown
+						If *GF_MAC01_Defeated_JrTroopa4 == .False
+							ExecWait $CantUsePipe	
+							Return
+						EndIf
+					Case .Story:Ch5_RafaelLeftNest to .Story:Ch5_RafaelMovedRoot
+							ExecWait $CantUsePipe	
+							Return
+					Case .Story:Ch5_DefeatedLavaPiranha to .Story:Ch5_BeganPeachMission
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch6_SpokeWithTheSun  %To prevent skipping Jonathan
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch7_MayorMurderMystery  %It'd be awkward since the penguin prevents you from leaving
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch8_ReachedBowsersCastle  %No early jail escape
+						If *GB_KPA81_BowserDoorState == 00000001
+							ExecWait $CantUsePipe	
+							Return
+						EndIf
+				EndSwitch
+				Call     PlaySound   		( 00000163 )
+				Call  GotoMapSpecial    ( "mac_00" 00000004 00000006 )
+				Wait  80`
+				Return
 		EndSwitch
    84:  If  *Var[D]  ==  00000000 
    94:  	ExecWait  802C04F4 				%eat anim and sounds
@@ -154,6 +140,22 @@
   310:  Call  802C031C ( )
 	Return
 	End
+}
+
+#new:Script:Map  $CantUsePipe
+{
+							Call  PlaySound	( 0000021D ) %bzzt
+							Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
+							Call  ShowMessageAtScreenPos    ( $CannotUse  160`  40` )
+							Call  DisablePlayerInput    ( .False )
+							Return		
+							End
+}
+
+#string $CannotUse
+{
+	[Style Narrate]
+	You cannot use this right now.[Pause 60][End]
 }
 
 #export:Data $IsRemovalItem

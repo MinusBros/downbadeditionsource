@@ -5,11 +5,45 @@
 #define .NpcID:Boo_04               04
 
 
+@	$EntryList
+{
+	~Vec4f:Entry0 %  460.0 -420.0  630.0    0.0
+	~Vec4f:Entry1 %  250.0 -420.0   15.0  180.0
+	~Vec4f:Entry2 %  610.0 -420.0   15.0  180.0
+	~Vec4f:Entry3 %  250.0 -210.0   15.0  180.0
+	~Vec4f:Entry4 %  610.0 -210.0   15.0  180.0
+	~Vec4f:Entry5 %  270.0    0.0   15.0  180.0
+	~Vec4f:Entry6 %  630.0    0.0   15.0  180.0
+	~Vec4f:Entry7
+}
+
+@ $Header
+{
+	[EntryCount]  00000008
+}
+
 @	$Script_Main
 {
    [10]  Call  SetSpriteShading  ( .Shading:kzn_22 )
 }
 
+
+@	$Script_802411F0
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+		Call  ClearAmbientSounds    ( 000000FA )
+		If  *GB_StoryProgress  == .Story:Ch3_BowJoinedParty
+			Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
+		Else
+		0:  If  *GB_StoryProgress  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+	   10:  	Call  SetMusicTrack ( 00000000 .Song:BoosMansion 00000000 00000008 )
+	   2C:  Else
+	   34:  	Call  SetMusicTrack ( 00000000 .Song:CheerfulBoosMansion 00000000 00000008 )
+	   50:  EndIf
+		EndIf
+   68:  Return
+   70:  End
+}
 
 @	$Script_ExitDoubleDoor_80241270
 {
@@ -21,8 +55,9 @@
    4C:  Set   *Var2  ~Model:door1_2
    5C:  Set   *Var3  ~Model:door1_1
    6C:  Exec  ExitDoubleDoor
+   78:  Wait  15`
 		Call  FadeOutMusic  ( 00000000 000001F4 )
-   78:  Wait  17`
+		Wait  1`
    84:  Call  GotoMap   ( $ASCII_80245890 00000002 ) % mim_11
    98:  Wait  75`
    A4:  Return
@@ -37,8 +72,101 @@
 		Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
    E0:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:NewBlock .Item:ThunderBolt 80000000 )
   108:  Call  AssignBlockFlag   ( *GF_OBK01_NewBlock )
+		Call  MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry7 $Script_UseBluePipe ~Index:*GF_Chapter3_BluePipeB 80000000 )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_OBK01_StarPiece )
+		Call  MakeItemEntity    ( .Item:StarPoint ~Vec3d:StarPoint .ItemSpawnMode:Fixed_NeverVanish *GF_OBK01_StarPoint )
    38:  Return
    40:  End
+}
+
+
+@	$Script_Interact_80244B80
+{
+   [18]  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0061 ) % This mansion has been passed down through the year ...
+   [44]  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0062 ) % You beat Tubba Blubba! I had nightmares about him. ...
+   [70]  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0063 ) % Mario, please take care of Lady Bow! She brings th ...
+}
+
+#import EnterViaPipe.mpat
+
+@	$Script_EnterDoubleDoor_802418D4
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80241800
+   38:  	Return
+   40:  EndIf
+   48:  Exec  $Script_80241800
+   54:  Call  UseDoorSounds ( .DoorSounds:Basic )
+   64:  Call  GetEntryID    ( *Var0 )
+   74:  Switch  *Var0
+   80:  	Case  ==  ~Entry:Entry0
+   8C:  		If  *GF_OBK01_Visited  ==  .False
+   9C:  			Set   *GF_OBK01_Visited  .True
+   AC:  			Set   *GB_StoryProgress  .Story:Ch3_EnteredBoosMansion
+   BC:  		EndIf
+   C4:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+   D4:  		Set   *Var2  ~Model:door1_2
+   E4:  		Set   *Var3  ~Model:door1_1
+   F4:  		ExecWait  EnterDoubleDoor
+  100:  	Case  ==  ~Entry:Entry1
+  10C:  		Set   *Var2  ~Model:door2
+  11C:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  12C:  		ExecWait  EnterSingleDoor
+  138:  	Case  ==  ~Entry:Entry2
+  144:  		Set   *Var2  ~Model:door3
+  154:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  164:  		ExecWait  EnterSingleDoor
+  170:  	Case  ==  ~Entry:Entry3
+  17C:  		Set   *Var2  ~Model:door4
+  18C:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  19C:  		ExecWait  EnterSingleDoor
+  1A8:  	Case  ==  ~Entry:Entry4
+  1B4:  		Set   *Var2  ~Model:door5
+  1C4:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  1D4:  		ExecWait  EnterSingleDoor
+  1E0:  	Case  ==  ~Entry:Entry5
+  1EC:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+  1FC:  		Set   *Var2  ~Model:door6_1
+  20C:  		Set   *Var3  ~Model:door6_2
+  21C:  		ExecWait  EnterDoubleDoor
+  228:  	Case  ==  ~Entry:Entry6
+  234:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+  244:  		Set   *Var2  ~Model:door7_1
+  254:  		Set   *Var3  ~Model:door7_2
+  264:  		ExecWait  EnterDoubleDoor
+			Case  ==  ~Entry:Entry7
+   70:  		If  *GF_Chapter3_BluePipeB   ==  .False
+   80:  			Call  DisablePlayerInput    ( .True )
+   90:  			Call  DisablePlayerPhysics  ( .True )
+   A0:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   B8:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   D4:  			Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+   EC:  			Wait  30`
+   F8:  			Call  PlaySound ( 0000208E )
+  108:  			Set   *GF_Chapter3_BluePipeB  .True
+  118:  			Wait  30`
+  124:  			Call  SetPlayerActionState  ( .ActionState:Idle )
+  134:  			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  14C:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  168:  			Call  DisablePlayerPhysics  ( .False )
+  178:  			Call  DisablePlayerInput    ( .False )
+  188:  		EndIf
+				Set *Var[A] $Script_80241800
+				Exec $Script_EnterVerticalPipe
+				Wait 1`
+  270:  EndSwitch
+  278:  Return
+  280:  End
+}
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap     	( "dgb_00" 3 )
+	Wait     00000054 
+	Return
+	End
 }
 
 

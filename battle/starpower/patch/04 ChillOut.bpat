@@ -1,0 +1,131 @@
+
+% Generally reduce effectiveness
+
+
+@ $Script_UsePower
+{
+    0:  Call     $Function_802A1518 ( )
+    C:  ExecWait $Script_802A18F0 
+   18:  SetConst  *Var[0]  001C0001 
+   28:  ExecWait $Script_802A2020 
+   34:  Call     SetNpcAnimation 	( 00000064 001C0002 )
+   48:  Wait     00000010 
+   54:  Call     UseBattleCamPreset 	( 00000003 )
+   64:  Call     PlaySound   	( 00000244 )
+   74:  Call     InitTargetIterator 	( )
+   80:  Label    0000000A 
+   8C:  Call     ItemCheckHit 	( *Var[0] 00000000 00000000 00000000 00000000 )
+   AC:  If  *Var[0]  ==  00000006 
+   BC:  	Goto     0000000B 
+   C8:  EndIf
+   D0:  Call     $Function_802A163C ( )
+   DC:  If  *Var[0]  ==  00000001 
+   EC:  	Call     GetOwnerTarget ( *Var[A] *Var[B] )
+  100:  	Thread
+  108:  		Loop     00000005 
+  114:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  130:  			Wait     00000001 
+  13C:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.1005859] *Fixed[1.0] *Fixed[1.0] )
+  158:  			Wait     00000001 
+  164:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.2001953] *Fixed[0.9501953] *Fixed[1.0] )
+  180:  			Wait     00000001 
+  18C:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.3007812] *Fixed[0.9003906] *Fixed[1.0] )
+  1A8:  			Wait     00000001 
+  1B4:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.3505859] *Fixed[0.85058594] *Fixed[1.0] )
+  1D0:  			Wait     00000001 
+  1DC:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.3808594] *Fixed[0.80078125] *Fixed[1.0] )
+  1F8:  			Wait     00000001 
+  204:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.4003906] *Fixed[0.80078125] *Fixed[1.0] )
+  220:  			Wait     00000001 
+  22C:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.3007812] *Fixed[0.85058594] *Fixed[1.0] )
+  248:  			Wait     00000001 
+  254:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.2001953] *Fixed[0.9003906] *Fixed[1.0] )
+  270:  			Wait     00000001 
+  27C:  			Call     SetActorScaleModifier ( *Var[A] *Fixed[1.1005859] *Fixed[0.9501953] *Fixed[1.0] )
+  298:  			Wait     00000001 
+  2A4:  		EndLoop
+  2AC:  		Call     SetActorScaleModifier ( *Var[A] *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  2C8:  	EndThread
+  2D0:  EndIf
+  2D8:  Label    0000000B 
+  2E4:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  2F8:  If  *Var[0]  !=  FFFFFFFF 
+  308:  	Goto     0000000A 
+  314:  EndIf
+  31C:  Loop     0000001E 
+  328:  	Call     $Function_802A153C ( )
+  334:  	Wait     00000002 
+  340:  EndLoop
+  348:  Call     ChooseNextTarget 	( .Iter:First 00000000 )
+  35C:  Label    00000000 
+  368:  Call     SetGoalToTarget 	( .Actor:Self )
+  378:  Call     ItemCheckHit 	( *Var[0] 00000000 00000000 00000000 00000000 )
+  398:  If  *Var[0]  ==  00000006 
+  3A8:  	Goto     00000001 
+  3B4:  EndIf
+  3BC:  Call     $Function_802A163C ( )
+  3C8:  If  *Var[0]  ==  00000001 
+  3D8:  	Call     $Function_802A16F4 ( )
+  3E4:  Else
+  3EC:  	Call     PlayerDamageEnemy 	( *Var[0] 00000000 0000FFFF 00000000 00000000 00000820 )
+  410:  EndIf
+  418:  Label    00000001 
+  424:  Wait     00000005 
+  430:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  444:  If  *Var[0]  !=  FFFFFFFF 
+  454:  	Goto     00000000 
+  460:  EndIf
+  468:  Wait     00000005 
+  474:  Call     $Function_802A1528 ( )
+  480:  If  *Var[0]  ==  00000001 
+  490:  	Call     ShowMessageBox ( 0000002C 0000003C )
+  4A4:  EndIf
+  4AC:  Call     80276EFC ( )
+  4B8:  ExecWait $Script_802A222C 
+  4C4:  ExecWait $Script_802A267C 
+  4D0:  Call     $Function_802A1528 ( )
+  4DC:  If  *Var[0]  ==  00000001 
+  4EC:  	Call     WaitForMessageBoxDone ( )
+  4F8:  EndIf
+  Call $LuckyStarRefund
+  500:  Return
+  508:  End
+}
+
+  
+#new:Function $LuckyStarRefund
+{
+  PUSH        V0, RA                        % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Lucky Day
+  ADDIU       A0, R0, 171                   % id of badge (Lucky Day = 114) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  LIO         S0, $SPSubtractArguments      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  .NotEquipped
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0, RA                        % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  JR          RA                            % Return to the Script
+  NOP                                       % Nullpointer below the JR, because a JR ALWAYS reads the next line too
+}
+
+#new:Unknown $SPSubtractArguments
+{
+FFFFFFFF 00000000    
+}
+  
+/%
+Stat Change Icon IDs:
+0 atk +1
+1 atk +2
+2 atk +3
+3 atk -1
+4 atk -2
+5 atk -3
+6 def +1
+7 def +2
+8 def +3
+9 atk +0
+%/

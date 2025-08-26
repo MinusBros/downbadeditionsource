@@ -38,8 +38,8 @@
 {
 % stats
 [Index]         54b % index from ActorTable.xml
-[Level]         50`b 
-[MaxHP]         80`b %80
+[Level]         55`b 
+[MaxHP]         98`b %98
 [Coins]         1`b 
 [Flags]       00000000 
 [StatusTable] $StatusTable_Raphael 
@@ -56,7 +56,7 @@
 [PowerBounce]  3`b 
 [SpinSmash]     0`b % weight (0-4)
 % ui positions
-[Size]         50`b  50`b % width height
+[Size]         80`b  80`b % width height
 [HealthBar]     0`b   0`b % dx dy
 [StatusTurn]  -10`b  20`b % dx dy
 [StatusIcon]   10`b  20`b % dx dy
@@ -122,7 +122,7 @@
 
 #new:PartsTable $PartsTable_Raphael
 {
-00800000 01000000 002800FF $IdleAnimations_Raphael $DefenseTable_Raphael 00000000 00000000 00F60000 00000000 
+00800000 01000000 EE4800FF $IdleAnimations_Raphael $DefenseTable_Raphael 00000000 00000000 00F60000 00000000 
 }
 
 #new:IdleAnimations $IdleAnimations_Raphael
@@ -159,6 +159,7 @@
 	Call     BindIdle    	( .Actor:Self $Script_Idle_Raphael )
     Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_Raphael )
 	Call 	 SetActorVar	( .Actor:Self 00000001 00000000 ) % current phase: 0 - normal, 1 - AngryPermament, 2 - AngryTemporary
+	Call     SetActorScale 	( .Actor:Self *Fixed[1.2] *Fixed[1.2] *Fixed[1.2] )
     Return
     End
 }
@@ -194,7 +195,9 @@
   134:  		ExecWait DoBurnHit 
   140:  		SetConst  *Var[0]  00000001 
   150:  		SetConst  *Var[1]  .AnimRaphBurn 
+				Exec $EndingStinger
   160:  		ExecWait DoDeath 
+				
   16C:  		Return
   174:  	Case  ==  .Event:SpinSmashHit
   180:  		SetConst  *Var[0]  00000001 
@@ -206,7 +209,9 @@
   1D8:  		ExecWait 8029B998 
   1E4:  		SetConst  *Var[0]  00000001 
   1F4:  		SetConst  *Var[1]  .AnimRaphDead 
+				Exec $EndingStinger
   204:  		ExecWait DoDeath 
+				
   210:  		Return
   218:  	Case  ==  .Event:ShockHit
   224:  		SetConst  *Var[0]  00000001 
@@ -232,7 +237,9 @@
   3A4:  		ExecWait DoShockHit 
   3B0:  		SetConst  *Var[0]  00000001 
   3C0:  		SetConst  *Var[1]  .AnimRaphDead 
+				Exec $EndingStinger
   3D0:  		ExecWait DoDeath 
+				
   3DC:  		Return
   3E4:  	Case  ==  .Event:StarBeam
   3F0:  	CaseOR  ==  00000017
@@ -249,7 +256,9 @@
   480:  		Wait     0000000A 
   48C:  		SetConst  *Var[0]  00000001 
   49C:  		SetConst  *Var[1]  .AnimRaphDead 
+				Exec $EndingStinger
   4AC:  		ExecWait DoDeath 
+				
   4B8:  		Return
   4C0:  	Case  ==  .Event:EndFirstStrike
   4CC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
@@ -286,12 +295,24 @@
   6B0:  Return
   6B8:  End
 }
+
+#new:Script  $EndingStinger
+{
+			Thread			
+				Wait  19`
+				Call  SetMusicTrack ( 00000000 .Song:Lunar 00000001 00000008 )  %Ending stinger
+				Wait  186`
+				Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
+			EndThread
+			Return
+			End
+}
   
 #new:Script $Script_HandleEvent_RaphaelAngry
 {
     0:  Call     UseIdleAnimation 	( .Actor:Self .False )
    14:  Call     EnableIdleScript 	( .Actor:Self 00000000 )
-   28:  Call     SetActorScale 	( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   28:  Call     SetActorScale 	( .Actor:Self *Fixed[1.2] *Fixed[1.2] *Fixed[1.2] )
    44:  Call     GetLastEvent 	( .Actor:Self *Var[0] )
    58:  Switch  *Var[0] 
    64:  	CaseOR  ==  .Event:HitCombo
@@ -312,6 +333,7 @@
   134:  		ExecWait DoBurnHit 
   140:  		SetConst  *Var[0]  00000001 
   150:  		SetConst  *Var[1]  .AnimRaphBurn 
+				Exec $EndingStinger
   160:  		ExecWait DoDeath 
   16C:  		Return
   174:  	Case  ==  .Event:SpinSmashHit
@@ -324,6 +346,7 @@
   1D8:  		ExecWait 8029B998 
   1E4:  		SetConst  *Var[0]  00000001 
   1F4:  		SetConst  *Var[1]  .AnimRaphDead2 
+				Exec $EndingStinger
   204:  		ExecWait DoDeath 
   210:  		Return
   218:  	Case  ==  .Event:ShockHit
@@ -337,7 +360,7 @@
   29C:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   2B4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphDizzy2 )
   2CC:  		Call     SetGoalToHome 	( .Actor:Self )
-  2DC:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
+  2DC:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[14.0] )
   2F0:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
   308:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
   320:  		Wait     00000005 
@@ -350,6 +373,7 @@
   3A4:  		ExecWait DoShockHit 
   3B0:  		SetConst  *Var[0]  00000001 
   3C0:  		SetConst  *Var[1]  .AnimRaphDead2 
+				Exec $EndingStinger
   3D0:  		ExecWait DoDeath 
   3DC:  		Return
   3E4:  	Case  ==  .Event:StarBeam
@@ -367,13 +391,14 @@
   480:  		Wait     0000000A 
   48C:  		SetConst  *Var[0]  00000001 
   49C:  		SetConst  *Var[1]  .AnimRaphDead2 
+				Exec $EndingStinger
   4AC:  		ExecWait DoDeath 
   4B8:  		Return
   4C0:  	Case  ==  .Event:EndFirstStrike
   4CC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   4E4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun2 )
   4FC:  		Call     SetGoalToHome 	( .Actor:Self )
-  50C:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
+  50C:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[14.0] )
   520:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
   538:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
   550:  		Call     HPBarToHome 	( .Actor:Self )
@@ -549,7 +574,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 		If *Var[4] == 00000000
 			Set *Var[6] 00000006 % damage dealt to player in p1
 		Else
-			Set *Var[6] 00000008 % damage dealt to player in p2
+			Set *Var[6] 00000007 % damage dealt to player in p2
 		EndIf
 	Label 00000006
 	Call     SetGoalToTarget 	( *Var[0] )
@@ -616,7 +641,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 
 #new:PartsTable $PartsTable_Rv
 {
-00800000 01000000 001400FF $IdleAnimations_Raven $DefenseTable_Raphael 00000000 00000000 00F60000 00000000 
+00800000 01000000 E56C00FF $IdleAnimations_Raven $DefenseTable_Raphael 00000000 00000000 00F60000 00000000 
 }
 
 #new:IdleAnimations $IdleAnimations_Raven
@@ -654,7 +679,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
     Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun )
     Call     SetGoalToTarget 	( .Actor:Self )
     Call     AddGoalPos 	( .Actor:Self 00000032 00000000 00000000 )
-    Call     SetActorSpeed 	( .Actor:Self *Fixed[10.0] )
+    Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
     Call     RunToGoal   	( .Actor:Self 00000000 .False )
     Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphIdle )
     Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFF 00000000 )
@@ -725,7 +750,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   694:  		Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
   6B0:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   6C8:  		Call     SetGoalToHome 	( .Actor:Self )
-  6D8:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
+  6D8:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[14.0] )
   6EC:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
   704:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
   71C:  		Call     SetActorYaw 	( .Actor:Self 00000000 )
@@ -737,7 +762,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 				Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
 				Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun )
 				Call     SetGoalToHome 	( .Actor:Self )
-				Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
+				Call     SetActorSpeed 	( .Actor:Self *Fixed[16.0] )
 				Call     RunToGoal   	( .Actor:Self 00000000 .False )
 				Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
 				ExecWait $Script_GetAngry
@@ -768,7 +793,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   93C:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphStomp3 )
   970:  		Wait     00000001 
   998:  		Wait     00000001 
-				Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 00000008 00000020 )
+				Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 00000009 00000020 )
   EndLoop
   9A4:  EndSwitch
   9D4:  Switch  *Var[0] 
@@ -782,7 +807,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 	%			Call     JumpToGoal  	( .Actor:Self 00000010 00000000 00000001 00000000 )
 	%			Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphStomp3 )
 	%			Wait     6` 
-	%			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000A 00000020 )
+	%			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000C 00000020 )
 	%	Call     UseBattleCamPreset 	( 00000002 )
   	%	Wait     00000002  
   A58:  		Call     SetActorRotation 	( .Actor:Self 00000000 00000000 00000000 )
@@ -806,7 +831,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   BFC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   C14:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun )
     		Call     SetGoalToHome 	( .Actor:Self )
-    		Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+    		Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
     		Call     RunToGoal   	( .Actor:Self 00000000 .False )
     		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
     	EndCaseGroup
@@ -828,7 +853,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
     Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun2 )
     Call     SetGoalToTarget 	( .Actor:Self )
     Call     AddGoalPos 	( .Actor:Self 00000032 00000000 00000000 )
-    Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
+    Call     SetActorSpeed 	( .Actor:Self *Fixed[14.0] )
     Call     RunToGoal   	( .Actor:Self 00000000 .False )
     Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphIdle2 )
     Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFF 00000000 )
@@ -899,7 +924,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   694:  		Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
   6B0:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   6C8:  		Call     SetGoalToHome 	( .Actor:Self )
-  6D8:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+  6D8:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
   6EC:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
   704:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
   71C:  		Call     SetActorYaw 	( .Actor:Self 00000000 )
@@ -917,7 +942,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 				Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
 				Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun )
 				Call     SetGoalToHome 	( .Actor:Self )
-				Call     SetActorSpeed 	( .Actor:Self *Fixed[16.0] )
+				Call     SetActorSpeed 	( .Actor:Self *Fixed[18.0] )
 				Call     RunToGoal   	( .Actor:Self 00000000 .False )
 				Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
   7A0:  		Call     EnableIdleScript 	( .Actor:Self 00000001 )
@@ -941,7 +966,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   970:  		Wait     00000001 
   998:  		Wait     00000001 
   9A4:  EndSwitch
-  9AC:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000C 00000020 )
+  9AC:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000D 00000020 )
   9D4:  Switch  *Var[0] 
   9E0:  	CaseOR  ==  00000000 
   9EC:  	CaseOR  ==  00000002 
@@ -953,7 +978,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 	%			Call     JumpToGoal  	( .Actor:Self 00000010 00000000 00000001 00000000 )
 	%			Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphStomp3B )
 	%			Wait     7` 
-	%			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000A 00000020 )
+	%			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000B 00000020 )
 	%	Call     UseBattleCamPreset 	( 00000002 )
   	%	Wait     00000002  
   A58:  		Call     SetActorRotation 	( .Actor:Self 00000000 00000000 00000000 )
@@ -977,7 +1002,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   BFC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   C14:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun2 )
     		Call     SetGoalToHome 	( .Actor:Self )
-    		Call     SetActorSpeed 	( .Actor:Self *Fixed[16.0] )
+    		Call     SetActorSpeed 	( .Actor:Self *Fixed[18.0] )
     		Call     RunToGoal   	( .Actor:Self 00000000 .False )
     		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
     	EndCaseGroup

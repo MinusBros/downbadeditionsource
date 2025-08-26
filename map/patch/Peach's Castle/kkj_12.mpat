@@ -1,0 +1,104 @@
+@	$Script_Interact_80240E90
+{
+  [104]  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[8.0] )
+  [240]  	Wait  5`
+}
+
+%Add a save block to this room right before Hallway Bowser.
+
+
+@	$Script_EnterDoubleDoor_80240AD8
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+			Call  SetMusicTrack ( 00000000 .Song:BowserAttacks 00000001 00000008 )
+   38:  	Return
+   40:  EndIf
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Set   *Var2  ~Model:door1
+   38:  		Set   *Var3  ~Model:door2
+   48:  		ExecWait  EnterDoubleDoor
+   54:  	Case  ==  ~Entry:Entry1
+   60:  		Set   *Var2  ~Model:door4
+   70:  		Set   *Var3  ~Model:door3
+   80:  		ExecWait  EnterDoubleDoor
+   8C:  EndSwitch
+   94:  Return
+   9C:  End
+}
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:kkj_12 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  If  *GB_StoryProgress  ==  .Story:Ch6_BeganPeachMission % 3A
+   80:  	Call  $Function_80240034    ( 00000001 )
+   90:  	Call  MakeNpcs  ( .False $NpcGroupList_80241DF0 )
+   A4:  Else
+   AC:  	Call  EnableModel   ( ~Model:o694 .False )
+   C0:  	Call  EnableModel   ( ~Model:o695 .False )
+   D4:  EndIf
+   DC:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
+   EC:  	Call  $Function_80240000 ( )
+		    Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+   F8:  EndIf
+  100:  Call  UseDoorSounds ( .DoorSounds:Large )
+  110:  Exec  $Script_80240A58
+  11C:  Exec  $Script_EnterDoubleDoor_80240AD8
+  128:  Wait  1`
+  134:  Return
+  13C:  End
+}
+
+%Just to be extra funny, I'm going to prevent the player from fighting the final boss
+%if they're not playing on Normal or higher.
+
+@	$Script_80240A58
+{
+    0:  Bind  $Script_ExitDoubleDoor_80240910 .Trigger:WallPressA ~Collider:deilit1 00000001 00000000
+   1C:  If  *GB_StoryProgress  ==  .Story:Ch6_BeganPeachMission % 3A
+   2C:  	If  *GF_KKJ12_TrickedGuard  ==  .False
+   3C:  		Return
+   44:  	EndIf
+   4C:  EndIf
+		If *Byte_Settings_Difficulty == 0` %Casual
+			Bind  $FilthyCasual .Trigger:WallPressA ~Collider:deilit2 00000001 00000000
+		Else
+   54:  	Bind  $Script_ExitDoubleDoor_802409B4 .Trigger:WallPressA ~Collider:deilit2 00000001 00000000
+		EndIf
+   70:  Return
+   78:  End
+}
+
+@	$Script_ExitDoubleDoor_802409B4
+{
+   [68]  Wait  15`
+   [88]  Wait  70`
+}
+
+#new:Script  $FilthyCasual
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  DisablePartnerAI  ( 00000000 )
+	Call  GetCurrentPartnerID   ( *Var0 )
+	If  *Var0  ==  .Partner:Goombario % 2
+		Call  SetNpcAnimation   ( .Npc:Partner 00010010 )
+	EndIf
+	Call  ShowMessageAtScreenPos    ( 001300CE  160`  40` ) 
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 2
+				Wait  4`
+				Call  SpeakToPlayer    ( .Npc:Partner 0001000C 0001000B 00000000 001300CF ) % 	
+		EndIf
+	Call  DisablePlayerInput    ( .False )
+	Call  EnablePartnerAI ( )
+	Return
+	End
+}
