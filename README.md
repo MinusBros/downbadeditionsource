@@ -20,5 +20,7 @@ My personal recommendation for playing this game is Retroarch's Mupen core, usin
 Also if you want to watch my friends play this game, we have some series on my channel:
 
 harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
+
 Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lobsj5
+
 Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
