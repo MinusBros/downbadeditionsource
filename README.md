@@ -15,5 +15,10 @@ If anybody more knowledgeable would like to add their own badges into the game, 
 I'll also take dialogue suggestions and bug testing as well. Anything to help progress the hack along a little quicker.
 Anyways you can click the release page for the most recent version.
 
-Also if you want to watch my friend harder_dk play the game, we have a series of it on my channel. 
-https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
+My personal recommendation for playing this game is Retroarch's Mupen core, using GlideN64 with LOD mipmapping emulation and full frame rate enabled. Any emulator with these features would also work, but Retroarch is what I use to test. I can't guarantee this hack will work on others or even on real hardware. There may also be performance issues, so keep that in mind.
+
+Also if you want to watch my friends play this game, we have some series on my channel:
+
+harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
+Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lobsj5
+Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
