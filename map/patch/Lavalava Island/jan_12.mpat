@@ -1,22 +1,30 @@
 #define .NpcID:JungleGuy_00         00
 #define .NpcID:JungleGuy_01         01
 
-#import AutoSave.mpat
+
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -300.0    0.0  120.0    0.0
+	~Vec4f:Entry1 %  250.0    0.0 -120.0  180.0
+}
+
 
 @	$Script_80242044
 {
    [20]  Call  MakeItemEntity    ( .Item:BoiledEgg *Var0 00000064 *Var2 .ItemSpawnMode:Fall *GF_JAN12_PullVine_Egg2 )
 }
 
-
-@	$Script_ExitWalk_802412C0
+@	$Script_MakeEntities
 {
-   [40]  Wait  75`
-}
-
-@ $Script_ExitWalk_8024131C
-{
-   [40]  Wait  75`
+    0:  Call  MakeEntity    ( .Entity:PinkFlower ~Vec4d:Entity80242C80 80000000 )
+   24:  Call  MakeEntity    ( .Entity:BellbellPlant ~Vec4d:Entity80242CA4 80000000 )
+   48:  Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242CC8 .Item:StoneCap 80000000 )
+   70:  Call  AssignBlockFlag   ( *GF_JAN12_HiddenItem_StoneCap )
+		Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+		Call     MakeEntity  	( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 )
+   80:  Return
+   88:  End
 }
 
 
@@ -34,24 +42,40 @@
    A8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilits 7FFFFE00 )
    C0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitn 7FFFFE00 )
    D8:  Set   *Var0  $Script_80241378
-   E8:  Exec  EnterWalk
    F4:  Call  SetMusicTrack     ( 00000000 .Song:DeepJungle 00000000 00000008 )
   110:  Call  PlayAmbientSounds ( .AmbientSounds:Jungle )
-		Exec  $AutoSave
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+			Exec  $Script_80241378
+   20:  	Exec  EnterSavePoint
+   38:  	Return
+   40:  EndIf
+		Exec  EnterWalk
   120:  Return
   128:  End
 }
 
 
+@	$Script_ExitWalk_802412C0
+{
+   [40]  Wait  75`
+}
+
+@ $Script_ExitWalk_8024131C
+{
+   [40]  Wait  75`
+}
+
+
 @	$AISettings_80242DFC
 {
-    2.7 % move speed
+    2.8 % move speed
     105` % move time
     1` % wait time
-  105.0 % alert radius
+  165.0 % alert radius
    30.0
     1`
-    4.8 % chase speed
+    4.9 % chase speed
     20`
     1`
   125.0 % chase radius

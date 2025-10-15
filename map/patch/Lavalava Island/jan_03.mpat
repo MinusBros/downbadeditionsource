@@ -31,6 +31,14 @@
 	~Vec4f:Entry4 %  147.0   35.0 -129.0  180.0
 }
 
+%Add a source of Cocoa Beans
+
+@	$TreeDropList_Tree1
+{
+	00000001
+	.Item:CocoaBean ~Vec3d:Tree1_Drop1 .ItemSpawnMode:Fall_SpawnOnce 00000000 *AreaFlag[017]
+}
+
 %Replace shop owner sprite with the leader's friend
 
 @	$ShopOwnerNPC_80244AC4
@@ -42,15 +50,105 @@
 
 @	$ShopInventory_802449BC
 {
-	.Item:Xbox     		 000001F4 00230111 % A flower that burns all enemies with fireballs. At ...
-	.Item:SnowmanDoll    0000000F 00240001 % A snowman that crushes all enemies. Attack Power:  ...
-	.Item:ThunderRage    00000012 00240002 % Lightning that strikes all enemies. Attack Power:  ...
-	.Item:FrightJar      0000000A 0024002A %
-	.Item:CocoPop        0000000F 0023004E % 
-	.Item:Melon          0000000F 00230023 %
+	.Item:Xbox     		 500`     00240111 %
+	.Item:StrangeLeaf    8`       0023001F %
+	.Item:SnowmanDoll    16`      00240001 % A snowman that crushes all enemies. Attack Power:  ...
+	.Item:EarthQuake     22`      00230132 % Lightning that strikes all enemies. Attack Power:  ...
+	.Item:FrightJar      10`      0024002A %
+	.Item:CocoPop        15`      0023004E % 
+	.Item:Melon          18`      00230023 %
 	00000000 00000000 00000000
 }
 
+@   $ShopItemPositions_80244AAC
+{
+	~Short:Model:item7 ~Short:Collider:item7
+	~Short:Model:o363 ~Short:Collider:o391
+	~Short:Model:o364 ~Short:Collider:o392
+	~Short:Model:o365 ~Short:Collider:o393
+	~Short:Model:o366 ~Short:Collider:o394
+	~Short:Model:o367 ~Short:Collider:o395
+	~Short:Model:o368 ~Short:Collider:o396
+}
+
+
+%Make Yellow Yoshi kiss Mario instead of giving him Melons
+
+@	$Script_Interact_8024AFC8
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch5_StarSpritDeparted % 27
+   10:  	Call  $Function_80242F1C    ( *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 0010006C ) % Mmm...? Sniff sniff... Something smells...really g ...
+   50:  		Set   *Var0  $???_8024A5AC
+   60:  		Set   *Var1  00000004
+   70:  		ExecWait  $Script_80247714
+   7C:  		If  *Var0  <=  00000000
+   8C:  			Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 0010006E ) % What? No!? Oh, lame... Listen to my stomach growl! ...
+   AC:  		Else
+   B4:  			Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 0010006D ) % Ooh, thank you! It looks so good... Oh yeah... Her ...
+			Exec  $Script_Chuu
+  1A0:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  1BC:  	Call  SetNpcJumpscale   ( .Npc:Self *Fixed[1.0] )
+  1D0:  	Call  NpcJump0      ( .Npc:Self *Var0 *Var1 *Var2  10` )
+  1F0:  	Wait  10`
+  1FC:  	Call  802D2520      ( 00010002 00000005 00000001 00000001 00000001 00000000 )
+  220:  	Wait  35`
+  22C:  	Call  SetNpcAnimation   ( .Npc:Self 00960301 )
+  240:  	Call  NpcFacePlayer ( .Npc:Self 00000003 )
+  254:  	Call  802D2520      ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+  278:  	Wait  20`				
+  114:  		EndIf
+  11C:  		Return
+  124:  	EndIf
+  12C:  EndIf
+  134:  Switch  *GB_StoryProgress
+  140:  	Case  <  .Story:Ch5_YoshiChildrenAreMissing % E
+  14C:  		Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 00100063 ) % How are you, Mario? Hey, have you talked with the  ...
+  16C:  	Case  <  .Story:Ch5_AllYoshiChildrenRescued % 10
+  178:  		ExecWait  $Script_8024A648
+  184:  		If  *Var0  ==  00000000
+  194:  			If  *GF_JAN03_AgreedToRescueChildren  ==  .False
+  1A4:  				Call  SpeakToPlayer ( .Npc:Self 00960309 00960308 00000000 00100064 ) % The kids are gone! The only place they could have  ...
+  1C4:  			Else
+  1CC:  				Call  SpeakToPlayer ( .Npc:Self 00960309 00960308 00000000 00100065 ) % The kids are gone! The only place they could have  ...
+  1EC:  			EndIf
+  1F4:  		Else
+  1FC:  			If  *GF_JAN07_SavedYoshi  ==  .False
+  20C:  				Call  SpeakToPlayer ( .Npc:Self 00960309 00960308 00000000 00100066 ) % Where? Where are those kids?! Where could my son b ...
+  22C:  			Else
+  234:  				Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 00100067 ) % Thanks for saving my son! Really! Thanks so much!  ...
+  254:  			EndIf
+  25C:  		EndIf
+  264:  	Case  <=  .Story:Ch5_AllYoshiChildrenRescued % 10
+  270:  		Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 00100068 ) % The kids are all back! I was heartbroken thinking  ...
+  290:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  29C:  		Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 00100069 ) % The kids are all back! I was heartbroken thinking  ...
+  2BC:  	Case  <  .Story:Ch6_FlowerGateOpen % 2A
+  2C8:  		Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 0010006A ) % The eruption of Mt. Lavalava really threw me for a ...
+  2E8:  	Default
+  2F0:  		Call  SpeakToPlayer ( .Npc:Self 00960304 00960301 00000000 0010006B ) % Hello again, Mario. Great to see you! Eat anything ...
+  310:  EndSwitch
+  318:  Return
+  320:  End
+}
+
+
+#new:Script $Script_Chuu
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00960305 )
+   14:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   30:  Wait  5`
+   3C:  Add   *Var1  0000000A
+   4C:  Call  GetAngleToNPC     ( .Npc:Self *VarA )
+   60:  If  *VarA  >=  000000B4
+   70:  	Add   *Var0  00000014
+   80:  EndIf
+   88:  Call  PlayEffect        ( ~FX:Recover:LittleHeart *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   CC:  Call  PlaySoundAtNpc    ( .Npc:Self 00000214 00000000 )
+   E4:  Return
+   EC:  End
+}
 
 
 @	$Script_ToggleVis_8024EDA0
@@ -94,6 +192,7 @@
    98:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity8024EC70 80000000 )
    BC:  Call  MakeEntity    ( .Entity:ScriptSpring ~Vec4d:Entity8024EC94 80000000 )
    E0:  Call  AssignScript  ( $Script_8024EA98 )
+		Call  MakeItemEntity   ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_JAN03_StarPiece )
    F0:  Return
    F8:  End
 }
@@ -162,8 +261,11 @@
   1E4:  End
 }
 
+
 #new:Script $Script_ToMtLavaLava
 {
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0	
     0:  Call  GotoMap   ( $ASCII_BluePipe 00000003 ) % kzn_18
    14:  Wait  100`
    20:  Return

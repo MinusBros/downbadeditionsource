@@ -1,0 +1,201 @@
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]This place looks really[BR]
+old and dusty. I wonder when[BR]
+was the last time someone[BR]
+bothered to clean in here?[BR]
+[Wait][Next]
+Seeing how this is an ancient[BR]
+tomb, maybe no one has ever[BR]
+cleaned in here.[BR]
+[Wait][Next]
+That would drive my Mom insane.[BR]
+She would have this place[BR]
+cleaned up in a jiffy, though![BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:entry0 %  coordinates
+~Vec4f:entry1 %  coordinates
+}
+	
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:GoombaVillage
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000001 00000008 )
+	Exec     $Script_SandFlow
+	ExecWait $Script_MakeEntities 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+	
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity   ( .Entity:SimpleSpring ~Vec4d:spring 00000064 80000000 )
+	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:starpiece 00000011 *GF_DNJ01_StarPiece )
+	Return
+	End
+}
+
+	#new:Script $Script_SandFlow
+{
+	Call     EnableTexPanning 	( ~Model:lavamodel .True )
+	Set      *Var[0] 00000000 
+	Loop     
+		Add      *Var[0] 100`  
+		Call     802C9364 ( 00000001 00000000 00000000 *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+	
+/%	
+#new:NpcGroupList $NpcGroups_KMR_33
+00000001 $NPC_Pokey1 00050000
+00000001 $NPC_Pokey2 00050000
+00000001 $NPC_Pokey3 00050000
+00000000 00000000 00000000
+
+#new:NpcGroup $NPC_Pokey1
+00000001 $NpcSettings_Chomp {Vec3f:pokey1}
+00002C00 00000000 00000000 00000000 0000005A 
+{Items:15:DriedFruit:9:TastyTonic:1}
+{HP:20:70:2:50} {HP:30:60:2:50} {HP:50:50:2:40} {HP:80:40:2:40} {HP:100:30:2:30} {HP:None} {HP:None} {HP:None} 
+{FP:20:50:2:40} {FP:30:40:2:40} {FP:50:40:2:40} {FP:80:40:2:40} {FP:100:30:2:40} {FP:None} {FP:None} {FP:None} 
+{CoinBonus:0:1}
+{Movement:pokey1}
+00310204 00310208 00310208 00310208 00310204 00310204 0031020C 0031020C 
+00310208 00310208 00310208 00310208 00310208 00310208 00310208 00310208 
+00000001 00000000 00000000 00000000 % no tattle string
+
+#new:NpcGroup $NPC_Pokey2
+00000001 $NpcSettings_Chomp {Vec3f:pokey2}
+00002C00 00000000 00000000 00000000 0000005A 
+{Items:15:DriedFruit:9:TastyTonic:1}
+{HP:20:70:2:50} {HP:30:60:2:50} {HP:50:50:2:40} {HP:80:40:2:40} {HP:100:30:2:30} {HP:None} {HP:None} {HP:None} 
+{FP:20:50:2:40} {FP:30:40:2:40} {FP:50:40:2:40} {FP:80:40:2:40} {FP:100:30:2:40} {FP:None} {FP:None} {FP:None} 
+{CoinBonus:0:1}
+{Movement:pokey2}
+00310204 00310208 00310208 00310208 00310204 00310204 0031020C 0031020C 
+00310208 00310208 00310208 00310208 00310208 00310208 00310208 00310208 
+00000001 00000000 00000000 00000000 % no tattle string
+
+#new:NpcGroup $NPC_Pokey3
+00000001 $NpcSettings_Chomp {Vec3f:pokey3}
+00002C00 00000000 00000000 00000000 0000005A 
+{Items:15:DriedFruit:9:TastyTonic:1}
+{HP:20:70:2:50} {HP:30:60:2:50} {HP:50:50:2:40} {HP:80:40:2:40} {HP:100:30:2:30} {HP:None} {HP:None} {HP:None} 
+{FP:20:50:2:40} {FP:30:40:2:40} {FP:50:40:2:40} {FP:80:40:2:40} {FP:100:30:2:40} {FP:None} {FP:None} {FP:None} 
+{CoinBonus:0:1}
+{Movement:pokey3}
+00310204 00310208 00310208 00310208 00310204 00310204 0031020C 0031020C 
+00310208 00310208 00310208 00310208 00310208 00310208 00310208 00310208 
+00000001 00000000 00000000 00000000 % no tattle string
+
+#new:NpcSettings $NpcSettings_Chomp
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+
+
+#new:Script $Script_ChompAI
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+	 
+#new:AISettings $AISettings_Chomp
+    1.1 % move speed
+    60` % move time
+    30` % wait time
+   80.0 % alert radius
+    0.0
+    5`
+    3.1 % chase speed
+    60`
+    15`
+  500.0 % chase radius
+    0.0
+    1`
+%/
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:exit0 00000001 00000000
+	Bind     $Script_Entry2  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_00" 00000001 )
+	Wait     00000044 
+	Return
+	End	
+}
+
+	#new:Script $Script_Entry2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_08" 00000000 )
+	Wait     00000044 
+	Return
+	End	
+}

@@ -8,6 +8,8 @@
 %Replacing this move over Super Jump instead.
 %I want to keep Quake Jump.
 
+%Attack power of this move has been nerfed. Damage scales down by 1 per enemy, much like Fire Drive.
+
 % delete original data
 #delete $Function_802A1000
 #delete $???_802A10F0
@@ -30,6 +32,7 @@
 #delete $Script_802A2908
 #delete $Script_802A2A84
 
+
 @ $Script_UseMove0
 {
     ExecWait $Script_TornadoJump
@@ -41,7 +44,7 @@
 {
         Call  802694A4  ( 00000001 )
         Call  $GetStackBoost ( .Item:TornadoJump_1 1 *VarD .False )
-        %Exec  $Script_NukeTracker % nuke stylish tracker data
+        Exec  $Script_NukeTracker % nuke stylish tracker data
     0:  ExecWait  $Script_TornadoJump_ActionCommand
         % get damage to deal
         Call  $ReadAddress ( 8010F291 0 *Var1 .False .False ) % get hammer
@@ -53,7 +56,7 @@
             Case >= 2 % Ultra Boots
                 Add   *VarD  3
         EndSwitch
-        %Exec $Script_NukeTracker % nuke stylish tracker data
+        Exec $Script_NukeTracker % nuke stylish tracker data
     C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 *VarD 00000000 )
    30:  If  *Var0  ==  .HitResult:Miss % 6
    40:  	ExecWait  $Script_MissJump
@@ -90,6 +93,7 @@
   1F0:  Call  LoadActionCommand ( .ActionCommand:Jump )
   200:  Call  802A9000 % CreateActionCommandIcons
   20C:  Call  802694A4  ( .False ) % ShowActionCommandIcons
+		Call  UseBattleCamPreset    ( 00000000 )
   230:  Call  SetGoalToTarget   ( .Actor:Player )
         Thread % rotate Mario
             Call    GetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
@@ -208,7 +212,7 @@
         Call  GetActionSuccessCopy  ( *Var0 )
         Set   *VarD  *Var0
         Call  $WriteAddress ( 800DC070 0 .True 81 .False ) % actionSuccess byte
-        %Exec  $Script_InitTracker % start tracking stylish inputs
+        Exec  $Script_InitTracker % start tracking stylish inputs
         Call  UseBattleCamPreset      ( 00000002 )
         Call  MoveBattleCamOver ( 00000005 )
         Wait  15`
@@ -240,7 +244,6 @@
         Call  GetHomePos ( .Actor:Self .False *Var1 .False )
         Call  SetGoalPos ( .Actor:Self *Var0 *Var1 *Var2 )
         Call  SetActorSpeed ( .Actor:Player *Fixed[8.0] )
-		/%
         %==========
         % Stylish - 1st Move
         %==========
@@ -275,7 +278,6 @@
             Label TreadEnd
             Set *TrackInput .False
         EndThread
-		%/
         Call  SetAnimation ( .Actor:Player 00000000 .PlayerAnim:Midair )
         Call  FlyToGoal ( .Actor:Player 0 0 .Easing:Linear )
         Call  SetAnimation ( .Actor:Player 00000000 00010009 ) % land to the ground
@@ -310,7 +312,7 @@
    64:  ADD.S     F10, F10, F2
    68:  LWC1      F6, 174 (V0)
    6C:  SUB.S     F2, F0, F6
-   70:  LWC1      F4, 122 (V0) %Originally 178
+   70:  LWC1      F4, 178 (V0)
    74:  SUB.S     F0, F0, F4
    78:  DIV.S     F2, F2, F8
    7C:  ADD.S     F6, F6, F2
@@ -318,7 +320,7 @@
    84:  ADD.S     F4, F4, F0
    88:  SWC1      F10, 170 (V0)
    8C:  SWC1      F6, 174 (V0)
-   90:  SWC1      F4, 122 (V0) %Originally 178
+   90:  SWC1      F4, 178 (V0)
    94:  JR        RA
    98:  LI        V0, 2
 }
@@ -498,14 +500,6 @@
 
 #new:Script $Script_802A1130_TornadoJump
 {
-    0:  Call  SetAnimation  ( .Actor:Player 00000000 00010006 )
-   18:  Loop  00000005
-   24:  	Call  CheckButtonPress  ( ~Flags:Buttons:A *Var0 )
-   38:  	If  *Var0  ==  .True
-   48:  		BreakLoop
-   50:  	EndIf
-   58:  	Wait  1`
-   64:  EndLoop
    6C:  Return
    74:  End
 }
@@ -531,6 +525,110 @@
 
 #new:Script $Script_DoStylish_TornadoJump
 {
+    % Check if the player pressed the A button too soon or didn't press it.
+    Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
+    If *Var0 == .False
+        Wait 4
+        Goto End
+    EndIf
+    % Player pressed A at the right time
+    Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
+    % Set *Var0 .True % testing
+    If *Var0 == .True
+        % Add 1 to the stylish counter (last move only)
+        Call $ReadAddress  ( $Data_Inputs 0 *Var0 2 .False )
+        Add *Var0 1
+        Call $WriteAddress ( $Data_Inputs 0 *Var0 2 .False )
+        Set *VarA .False % this move doesn't have an SP cap
+        ExecWait $Script_DoStylishFX
+        Call $WriteAddress  ( $End[1] 0 .False .False .False ) % $End[1] = stop rotating (bool)
+        Thread % rotate mario
+            Call  SetActorRotationOffset    ( .Actor:Player 0 16` 0 )
+            Loop
+                Call    GetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
+                Add     *Var2 45` % z
+                If *Var2 > 360`
+                    Set *Var2 0
+                EndIf
+                Call    SetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
+                Call $ReadAddress  ( $End[1] 0 *Var0 .False .False )
+                If *Var0 == .True
+                    Call    SetActorRotation  ( .Actor:Player 0 0 0 )
+                    Call    SetActorRotationOffset    ( .Actor:Player 0 0 0 )
+                    BreakLoop
+                EndIf
+                Wait    1
+            EndLoop
+        EndThread
+        % Turn off tracker
+        Set *TrackInput .False
+        Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+        % move mario to home
+        Call    SetAnimation ( .Actor:Player 00000000 00010015 ) % guard
+        Call    SetActorSpeed ( .Actor:Player *Fixed[5.0] )
+        Call    SetGoalToHome ( .Actor:Self )
+        %==================
+        % 2nd stylish move
+        %==================
+        Thread
+            Wait 1
+            Exec $Script_InitTracker % start tracking stylish inputs
+            Loop % wait until player is close to home
+                Call    GetDistanceToGoal ( .Actor:Self *Var0 )
+                If *Var0 <= 40`
+                    BreakLoop
+                EndIf
+                Wait 1
+            EndLoop
+            % Check if Player pressed A too soon
+            Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
+            If *Var0 == .True
+                Wait 1
+                Goto ThreadEnd2
+            EndIf
+            % Start tracking the A button - Correct time to press A
+            Loop 3
+                % Check if player reached home
+                Call GetAnimation ( .Actor:Self 00000000 *Var0 )
+                If *Var0 != 00010015
+                    BreakLoop % Mario reached home
+                EndIf
+                Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
+                If *Var0 == .False
+                    % Timing Tutor Badge
+                    ExecWait $Script_TimingTutor % writes in var0,1,2
+                Else
+                    Wait 1
+                    Goto ThreadEnd2_2
+                EndIf
+                Wait 1
+            EndLoop
+            Label ThreadEnd2
+            Set   *TrackInput .False
+            Call  $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+            Label ThreadEnd2_2
+        EndThread
+        Call    FlyToGoal ( .Actor:Self 0 0 .Easing:Linear )
+        Call    $WriteAddress  ( $End[1] 0 .True .False .False ) % stop rotating
+        % 2nd Stylish - Check if player pressed A at the right time
+        Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
+        If *Var0 == .True
+            % Add 1 to the stylish counter (last move only)
+            Call    $ReadAddress  ( $Data_Inputs 0 *Var0 2 .False )
+            Add     *Var0 1
+            Call    $WriteAddress ( $Data_Inputs 0 *Var0 2 .False )
+            Set     *VarA .False % this move doesn't have an SP cap
+            ExecWait $Script_DoStylishFX
+            Call    SetAnimation ( .Actor:Player 00000000 .PlayerAnim:GotItem )
+            Wait    35`
+        Else
+            Call    SetAnimation ( .Actor:Player 00000000 00010002 ) % idle
+            Wait    12`
+        EndIf
+    EndIf
+    Label End
+    Set *TrackInput .False
+    Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
     Return
     End
 }

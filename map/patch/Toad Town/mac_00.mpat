@@ -63,7 +63,7 @@
 	0000000A $NpcGroup_80251124 00000000
 	00000004 $NpcGroup_8024D7F8 00000000
 	00000001 $NpcGroup_8024DFB8 00000000
-	%00000001 $NpcGroup_Salesman 00000000
+	00000001 $NpcGroup_Salesman 00000000
 	00000000 00000000 00000000
 }
 
@@ -78,55 +78,6 @@
 
 #import CountItems.mpat
 
-#new:Function $Function_CountCoins
-{
-    0:  LAH       V0, 8010F29C
-    8:  SLTI      V0, V0, 64
-    C:  BNE       V0, R0, .o1C
-   10:  LI        V0, 1
-   14:  BEQ       R0, R0, .o20
-   18:  SW        R0, 84 (A0)
-        .o1C
-   1C:  SW        V0, 84 (A0)
-        .o20
-   20:  JR        RA
-   24:  LI        V0, 2
-}
-
-#new:Function $Function_CountCoins2
-{
-    0:  LAH       V0, 8010F29C
-    8:  SLTI      V0, V0, 300`
-    C:  BNE       V0, R0, .o1C
-   10:  LI        V0, 1
-   14:  BEQ       R0, R0, .o20
-   18:  SW        R0, 84 (A0)
-        .o1C
-   1C:  SW        V0, 84 (A0)
-        .o20
-   20:  JR        RA
-   24:  LI        V0, 2
-}
-
-#new:Function $Function_TakeCoins
-{
-    0:  LA        V1, 8010F290
-    8:  LHU       V0, C (V1)
-    C:  ADDIU     V0, V0, FF9C
-   10:  SH        V0, C (V1)
-   14:  JR        RA
-   18:  LI        V0, 2
-}
-
-#new:Function $Function_TakeCoins2
-{
-    0:  LA        V1, 8010F290
-    8:  LHU       V0, C (V1)
-    C:  ADDIU     V0, V0, -300`
-   10:  SH        V0, C (V1)
-   14:  JR        RA
-   18:  LI        V0, 2
-}
 
 #new:Script $Script_Interact_Salesman
 {
@@ -142,6 +93,19 @@
 	Else
 		Call	SpeakToPlayer ( .Npc:Self 00890104 00890101 00000000 $SalesmanReplacement )
 	EndIf
+	% check if player can buy this item
+	Call	AddCoin ( 0 )
+	If  *GF_BoughtReturnPipe == .False
+		Set  *Var2  100`
+	Else
+		Set  *Var2  500`
+	EndIf
+	If *Var0 < *Var2 % Not enough money
+		Call	ContinueSpeech ( .Npc:Self 00890106 00890101 00000000 $YoureBroke )
+		Call	ShowCoinCounter ( .False )
+		Call	DisablePlayerInput ( .False )
+		Return	
+	EndIf
 	Call	SetMessageValue ( *VarB 00000000 )
 	Call  	ShowChoice    ( 001E000D ) % Yes No
 	If *Var0 != .False % No
@@ -149,26 +113,18 @@
 		Call   ContinueSpeech ( .Npc:Self 00890107 00890101 00000000 $Goodbye )
 		Call	DisablePlayerInput ( .False )
 		Return
-	Else
 	EndIf
-	ExecWait  $CountItems
-	If *Var0 == 10` %(Max inventory)
+	Call  $Function_CountItems
+	If *Var0 == .False %(Max inventory)
 		Call   ContinueSpeech ( .Npc:Self 00890106 00890101 00000000 $TooManyItems )
 		Call	ShowCoinCounter ( .False )
 		Call	DisablePlayerInput ( .False )
 		Return
 	EndIf
 	If  *GF_BoughtReturnPipe == .False
-		Call $Function_CountCoins ( )
+		Call	AddCoin ( -100` )
 	Else
-		Call $Function_CountCoins2 ( )
-	EndIf
-	Call	AddCoin ( 0 )
-	If *Var0 < *VarB
-		Call	ContinueSpeech ( .Npc:Self 00890106 00890101 00000000 $YoureBroke )
-		Call	ShowCoinCounter ( .False )
-		Call	DisablePlayerInput ( .False )
-		Return
+		Call	AddCoin ( -500` )
 	EndIf
 	ExecWait $Thanks
 	Return
@@ -178,17 +134,10 @@
 #new:Script $Thanks
 {
 		Call  EndSpeech     ( 00000000  00890101 00890101 00000000 )
-		If  *GF_BoughtReturnPipe == .False
-			Call    $Function_TakeCoins ( )
-		Else
-			Call 	$Function_TakeCoins2 ( )
-		EndIf
 		Call	ShowCoinCounter ( .False )
 		Call  SetNpcAnimation   ( 00000000 00890005 )
-		ExecWait  $Script_8024ECEC
-		Set   *Var0  .Item:ReturnPipe
-		Set   *Var1  00000000
-		Call  AddItem   ( .Item:ReturnPipe *Var1 )
+		Call	ShowGotItem ( .Item:ReturnPipe .True 00000000 )
+		Call  AddItem   ( .Item:ReturnPipe 0 )
 		Set   *GF_BoughtReturnPipe .True
 		Call  SetNpcAnimation   ( 00000000 00890001 )
 		Call	SpeakToPlayer ( .Npc:Self 00890107 00890101 00000000 $ThankYou )
@@ -282,6 +231,70 @@ Still, it's quite useful.[BR]
 
 
 
+
+
+@	$Script_Init_8024A368
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   1C:  		If  *GF_MAC00_ShyGuyChasedFromShop  ==  .False
+   2C:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:mono1 7FFFFE00 )
+   44:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:mono2 7FFFFE00 )
+   5C:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:mono3 7FFFFE00 )
+   74:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:mono4 7FFFFE00 )
+   8C:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:mono5 7FFFFE00 )
+   A4:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:mono6 7FFFFE00 )
+					Call  ModifyColliderFlags   ( 00000000 ~Collider:mono7 7FFFFE00 )
+   BC:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:dummy 7FFFFE00 )
+   D4:  			Call  SetNpcFlagBits        ( .Npc:Self 00000100 .False )
+   EC:  			Call  SetNpcFlagBits        ( .Npc:Self 00000002 .True )
+  104:  			Call  SetNpcPos ( .Npc:Self  430`  20`  -373` )
+  120:  			Call  BindNpcHit    ( .Npc:Self $Script_Hit_8024A110 )
+  134:  			Return
+  13C:  		EndIf
+  144:  EndSwitch
+  14C:  Call  RemoveNpc ( .Npc:Self )
+  15C:  Return
+  164:  End
+}
+
+
+@	$ShopInventory_8024E26C
+{
+	.Item:FrightJar      10` 0024002A % Makes a scary spirit appear and chase some enemies ...
+	.Item:SleepySheep    10` 00240026 % If it works, makes all enemies sleep for a little  ...
+	.Item:POWBlock       8`  00240027 % Flips shell enemies and inflicts 2 damage points o ...
+	.Item:FireFlower     10` 00240000 % A flower that burns all enemies with fireballs. At ...
+	.Item:TastyTonic     3`  0024000E % NEW
+	.Item:HoneySyrup     10` 00240016 % Sweet honey syrup. Restores 5 FP.
+	.Item:Mushroom       5`  00240009 % A regular Mushroom. Restores 5 HP.
+	00000000 00000000 00000000
+}
+
+@	$ShopItemPositions_8024E374
+{
+	~Short:Model:syouhin1 ~Short:Collider:mono1
+	~Short:Model:syouhin2 ~Short:Collider:mono2
+	~Short:Model:shouhin3 ~Short:Collider:mono3
+	~Short:Model:shouhin4 ~Short:Collider:mono4
+	~Short:Model:shouhin5 ~Short:Collider:mono5
+	~Short:Model:shouhin6 ~Short:Collider:mono6
+	~Short:Model:shouhin7 ~Short:Collider:mono7
+}
+
+
+
+@	$Script_Interact_802509A4
+{
+  [22C]  Call  SpeakToPlayer ( .Npc:Self 00830B04 00830B01 00000000 *Var0 ) % variable string ID
+}
+
+@	$Script_Interact_8024FECC
+{
+  [22C]  Call  SpeakToPlayer ( .Npc:Self 00830604 00830601 00000000 *Var0 ) % variable string ID
+}
+
+
 %Goombarius tries to hit on the ladies
 
 @	$Script_Interact_802504B4
@@ -360,8 +373,8 @@ Still, it's quite useful.[BR]
   410:  		Set   *Var1  00010033
   420:  		Set   *Var2  00010034
   430:  EndSwitch
-  438:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840204 00840201 00000000 *Var0 ) % variable string ID
-  458:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840004 00840001 00000000 *Var1 ) % variable string ID
+  438:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840604 00840601 00000000 *Var0 ) % variable string ID
+  458:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840704 00840701 00000000 *Var1 ) % variable string ID
   478:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840304 00840301 00000000 *Var2 ) % variable string ID
 		Call  GetCurrentPartnerID   ( *Var0 )
   540:  If  *Var0  ==  .Partner:Goombario % 2
@@ -369,11 +382,11 @@ Still, it's quite useful.[BR]
   570:  		Call  DisablePartnerAI  ( 00000000 )
   580:  		Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 00020120 ) % 
 				Call  SetNpcAnimation   ( .Npc:Partner 00010013 )
-  438:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840201 00840201 00000000 00020121 ) 
+  438:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840608 00840608 00000000 00020121 ) 
 				Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
-  458:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840001 00840001 00000000 00020121 ) 
+  458:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840708 00840708 00000000 00020121 ) 
 				Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
-  478:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840301 00840301 00000000 00020121 ) 
+  478:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840308 00840308 00000000 00020121 ) 
 				Call  SpeakToPlayer    ( .Npc:Partner 0001000B 0001000B 00000005 00020121 ) % 
   5EC:  		Call  EnablePartnerAI ( )
   600:  EndIf
@@ -381,6 +394,26 @@ Still, it's quite useful.[BR]
   4A0:  End
 }
 
+%Apparently even though I change their sprites in the editor,
+%this script ruins everything.
+
+@	$Script_Aux_80250C44
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00840600 )
+   14:  Wait  2`
+   20:  Call  SetNpcAnimation   ( .Npc:Self 00840601 )
+   34:  Return
+   3C:  End
+}
+
+@ $Script_Aux_80250C88
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00840700 )
+   14:  Wait  6`
+   20:  Call  SetNpcAnimation   ( .Npc:Self 00840701 )
+   34:  Return
+   3C:  End
+}
 
 
 
@@ -405,8 +438,6 @@ Still, it's quite useful.[BR]
    6C:  Return
    74:  End
 }
-
-
 
 
 @ $Script_80244CD4
@@ -494,8 +525,65 @@ Still, it's quite useful.[BR]
 }
 
 
+
+#new:Script  $DarknessFollow
+{
+				Call  EnableGroup   ( ~Model:darkness .True )
+		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 6 )
+		  2E8:  Thread
+					Set  *Var[0] 6
+					Set  *Var[1] 738
+					Set  *Var[2] 440
+					Set  *Var[3] 380
+					Set  *Var[4] 220
+					Set  *Var[5] 1
+					Set  *Var[6] 1
+					Set  *Var[7] 1
+					Set  *Var[8] 1
+					Set  *Var[9] 0
+					Set  *Var[A] 0
+					Set  *Var[B] 0
+					Set  *Var[C] 0
+					Exec  $Script_UpdateTexturePan_80244A70
+				EndThread
+		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 7 )
+		  2E8:  Thread
+		  2F0:  	Set   *Var0  7
+		  300:  	Set   *Var1  1438`
+		  310:  	Set   *Var2  808`
+		  320:  	Set   *Var3  710`
+		  330:  	Set   *Var4  420`
+		  340:  	Set   *Var5  00000001
+		  350:  	Set   *Var6  00000001
+		  360:  	Set   *Var7  00000001
+		  370:  	Set   *Var8  00000001
+		  380:  	Set   *Var9  00000000
+		  390:  	Set   *VarA  00000000
+		  3A0:  	Set   *VarB  00000000
+		  3B0:  	Set   *VarC  00000000
+		  3C0:  	Exec   $Script_UpdateTexturePan_80244A70
+		  3CC:  EndThread
+	Loop
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var2   1`
+		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
+		%Call  GetCamPosA    ( .Cam:Default *Var0 *Var1 )
+		%Call  RotateModel   ( ~Model:fgdarkness 000000DF *Var0 0` *Var1 )
+		Wait  1`
+	EndLoop
+	Return
+	End
+}
+
+
 @	$Script_Main
 {
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Exec  $DarknessFollow
+   88:  	Default
+				Call  EnableGroup   ( ~Model:darkness .False )
+   9C:  EndSwitch
     0:  Set   *GB_WorldLocation  .Location:ToadTown
 		Call  SetSpriteShading  ( .Shading:None )
    20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
@@ -1017,3 +1105,121 @@ FFFFFFF2 00000012 % < chapter 4 start
 02000102 00000001 00020002 02010001
 02020102 02010102 00020102 01000201
 }
+
+
+@	$NpcGroup_8024D7F8
+{
+	.NpcID:Toad_17 $NpcSettings_80245D10 ~Vec3f:NPC_Toad_17 % -496 20 218
+	00112D09 $Script_Init_8024BE90 00000000 00000000 00000085
+	~NoDrops
+	~Movement:NPC_Toad_17
+	~AnimationTable:NPC_Toad_17 % .Sprite:Toad
+	00000000 00000000 00000000 001A001C % This family man ordinarily works at Peach's Castle ...
+	%
+	% $NpcGroup_8024D7F8[1F0]
+	.NpcID:ThreeSisters_18 $NpcSettings_80245D10 ~Vec3f:NPC_ThreeSisters_18 % -566 20 267
+	00112D09 $Script_Init_8024BEB4 00000000 00000000 00000085
+	~NoDrops
+	~Movement:NPC_ThreeSisters_18
+	~AnimationTable:NPC_ThreeSisters_18 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A001D % She's the homemaker here. She's ordinarily very re ...
+	%
+	% $NpcGroup_8024D7F8[3E0]
+	.NpcID:ToadKid_19 $NpcSettings_80245D10 ~Vec3f:NPC_ToadKid_19 % -508 20 324
+	00112D09 $Script_Init_8024BED8 00000000 00000000 00000139
+	~NoDrops
+	~Movement:NPC_ToadKid_19
+	~AnimationTable:NPC_ToadKid_19 % .Sprite:ToadKid
+	00000000 00000000 00000000 001A001E % He's one of the Toad kids. He likes his father so  ...
+	%
+	% $NpcGroup_8024D7F8[5D0]
+	.NpcID:ToadKid_20 $NpcSettings_80245D10 ~Vec3f:NPC_ToadKid_20 % -480 20 329
+	00112D09 $Script_Init_8024BEFC 00000000 00000000 00000139
+	~NoDrops
+	~Movement:NPC_ToadKid_20
+	~AnimationTable:NPC_ToadKid_20 % .Sprite:ToadKid
+	00000000 00000000 00000000 001A001F % He's a Toad kid who wants to be really powerful. H ...
+}
+
+@	$NpcGroup_80251124
+{
+	.NpcID:Toad_07 $NpcSettings_8024EC90 ~Vec3f:NPC_Toad_07 % -150 0 -275
+	00112D09 $Script_Init_80250EE4 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_07
+	~AnimationTable:NPC_Toad_07 % .Sprite:Toad
+	00000000 00000000 00000000 001A0013 % This Toad is always standing in front of the gate. ...
+	%
+	% $NpcGroup_80251124[1F0]
+	.NpcID:Toad_08 $NpcSettings_8024EB90 ~Vec3f:NPC_Toad_08 % 219 0 -45
+	00012D09 $Script_Init_80250F5C 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_08
+	~AnimationTable:NPC_Toad_08 % .Sprite:Toad
+	00000000 00000000 00000000 001A0014 % This Toad always stands in front of the shop. He k ...
+	%
+	% $NpcGroup_80251124[3E0]
+	.NpcID:Toad_09 $NpcSettings_8024EC38 ~Vec3f:NPC_Toad_09 % -290 0 -120
+	00012D09 $Script_Init_80250F80 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_09
+	~AnimationTable:NPC_Toad_09 % .Sprite:Toad
+	00000000 00000000 00000000 001A0015 % This Toad is always very excited about whatever ne ...
+	%
+	% $NpcGroup_80251124[5D0]
+	.NpcID:Toad_10 $NpcSettings_8024EC90 ~Vec3f:NPC_Toad_10 % -40 0 61
+	00412D09 $Script_Init_80250FA4 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Toad_10
+	~AnimationTable:NPC_Toad_10 % .Sprite:Toad
+	00000000 00000000 00000000 001A0016 % This Toad claims that he and his girl are in love. ...
+	%
+	% $NpcGroup_80251124[7C0]
+	.NpcID:ThreeSisters_11 $NpcSettings_8024EC90 ~Vec3f:NPC_ThreeSisters_11 % -15 0 60
+	00412D09 $Script_Init_80250FC8 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ThreeSisters_11
+	~AnimationTable:NPC_ThreeSisters_11 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0017 % Those Toads are in love. They're so in love, they  ...
+	%
+	% $NpcGroup_80251124[9B0]
+	.NpcID:ThreeSisters_12 $NpcSettings_8024EC90 ~Vec3f:NPC_ThreeSisters_12 % 426 20 268
+	00012D09 $Script_Init_80251000 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_ThreeSisters_12
+	~AnimationTable:NPC_ThreeSisters_12 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0018 % She is the oldest of these three Toad sisters. App ...
+	%
+	% $NpcGroup_80251124[BA0]
+	.NpcID:ThreeSisters_13 $NpcSettings_8024EC90 ~Vec3f:NPC_ThreeSisters_13 % 381 20 326
+	00012D09 $Script_Init_80251038 00000000 00000000 000000B4
+	~NoDrops
+	~Movement:NPC_ThreeSisters_13
+	~AnimationTable:NPC_ThreeSisters_13 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0019 % She is the second oldest of these three Toad siste ...
+	%
+	% $NpcGroup_80251124[D90]
+	.NpcID:ThreeSisters_14 $NpcSettings_8024EC90 ~Vec3f:NPC_ThreeSisters_14 % 476 20 326
+	00012D09 $Script_Init_80251070 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_ThreeSisters_14
+	~AnimationTable:NPC_ThreeSisters_14 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A001A % She is the youngest of these three Toad sisters. A ...
+	%
+	% $NpcGroup_80251124[F80]
+	.NpcID:Toad_15 $NpcSettings_8024EC90 ~Vec3f:NPC_Toad_15 % 424 20 -85
+	00012D09 $Script_Init_802510A8 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_15
+	~AnimationTable:NPC_Toad_15 % .Sprite:Toad
+	00000000 00000000 00000000 001A001B % He doesn't seem to have any particular reason to b ...
+	%
+	% $NpcGroup_80251124[1170]
+	.NpcID:Toad_16 $NpcSettings_8024EC90 ~Vec3f:NPC_Toad_16 % 373 0 22
+	00012D09 $Script_Init_80251100 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_16
+	~AnimationTable:NPC_Toad_16 % .Sprite:Toad
+	00000000 00000000 00000000 001A0020 % This Toad has tried his skills at the Dojo. That t ...
+}
+

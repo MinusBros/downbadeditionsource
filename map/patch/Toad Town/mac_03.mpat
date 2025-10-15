@@ -31,10 +31,179 @@
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
 				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
    38:  	Default
-   40:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
    4C:  EndSwitch
    54:  Return
    5C:  End
+}
+
+
+@	$Script_Interact_8024A410
+{
+    0:  If  *GF_MAC03_BombedRock  ==  .False
+   10:  	Set   *Var0  00050061
+   20:  	Set   *Var1  00050062
+   30:  	Set   *Var2  00050063
+   40:  Else
+   48:  	Set   *Var0  00050064
+   58:  	Set   *Var1  00050065
+   68:  	Set   *Var2  00050066
+   78:  EndIf
+   80:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_07 00840804 00840801 00000000 *Var0 ) % variable string ID
+   A0:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_08 00840804 00840801 00000000 *Var1 ) % variable string ID
+   C0:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_09 00840804 00840801 00000000 *Var2 ) % variable string ID
+   E0:  Return
+   E8:  End
+}
+
+
+@	$Script_8024F4F8
+{
+    0:  SetGroup  00000000
+    C:  Call  SetNpcSpeed   ( .NpcID:Toad_10 *Fixed[8.0] )
+   20:  Call  SetNpcAnimation   ( .NpcID:Toad_10 00830503 )
+   34:  Call  NpcMoveTo     ( .NpcID:Toad_10  157`  -310`  0` )
+   50:  Call  SetNpcAnimation   ( .NpcID:Toad_10 00830501 )
+   64:  Wait  5`
+   70:  Call  SpeakToPlayer ( .NpcID:Toad_10 00830505 00830501 00000000 00050053 ) % I love Li'l-Oinks! Love 'em! You... You want to le ...
+   90:  Call  ShowChoice    ( 001E000D ) % Yes No
+   A0:  If  *Var0  ==  00000000
+   B0:  	Set   *Var0  00050056
+   C0:  Else
+   C8:  	Set   *Var0  00050055
+   D8:  EndIf
+   E0:  Call  ContinueSpeech    ( .NpcID:Toad_10 00830504 00830501 00000000 *Var0 ) % variable string ID
+  100:  Wait  10`
+  10C:  Set   *MapFlag[08]  .True
+  11C:  Call  SetNpcAnimation   ( .NpcID:Toad_10 00830503 )
+  130:  Call  NpcMoveTo ( .NpcID:Toad_10  220`  -160`  0` )
+  14C:  Call  SetNpcAnimation   ( .NpcID:Toad_10 00830501 )
+  160:  Return
+  168:  End
+}
+
+
+@	$Script_Interact_80249950
+{
+  [1BC]  Call  SpeakToPlayer ( .NpcID:Toad_02 00831008 00831001 00000000 *Var0 ) % variable string ID
+}
+
+
+@	 $Script_Main
+{
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Exec  $DarknessFollow
+   88:  	Default
+				Call  EnableGroup   ( ~Model:darkness .False )
+   9C:  EndSwitch
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *AreaFlag[020]  .False
+   94:  Set   *AreaFlag[021]  .False
+   A4:  Set   *AreaFlag[022]  .False
+   B4:  Set   *AreaFlag[023]  .False
+   C4:  Set   *AreaFlag[024]  .False
+   D4:  Set   *AreaFlag[025]  .False
+   E4:  Call  MakeNpcs  ( .False $NpcGroupList_8024DCBC )
+   F8:  Exec  $Script_MakeEntities
+  104:  Exec  $Script_8024EBB0
+  110:  Call  GetDemoState      ( *Var0 )
+  120:  If  *Var0  ==  00000000
+  130:  	Exec  $Script_80250918
+  13C:  EndIf
+  144:  ExecWait  $Script_80246388
+  150:  Thread
+  158:  	Set   *VarF  00000000
+  168:  	Label  A
+  174:  	Add   *VarF  00000001
+  184:  	Call  $Function_802402E0 ( )
+  190:  	Call  RotateModel   ( ~Model:o148 *Var0 00000000 00000000 FFFFFFFF )
+  1B0:  	Call  RotateModel   ( ~Model:o147 *Var1 00000000 00000000 FFFFFFFF )
+  1D0:  	Wait  10`
+  1DC:  	Goto  A
+  1E8:  EndThread
+  1F0:  Call  GetDemoState  ( *Var0 )
+  200:  If  *Var0  !=  00000000
+  210:  	ExecWait  $Script_8025136C
+  21C:  	Return
+  224:  EndIf
+  22C:  Exec  $Script_802428F0
+  238:  Exec  $Script_80243880
+  244:  Exec  $Script_EnterWalk_802437CC
+  250:  Set   *GF_MAC01_RowfBadgesChosen  .False
+  260:  Wait  1`
+  26C:  Return
+  274:  End
+}
+
+#new:Script  $DarknessFollow
+{
+				Call  EnableGroup   ( ~Model:darkness .True )
+		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 3 )
+		  2E8:  Thread
+					Set  *Var[0] 3
+					Set  *Var[1] 738
+					Set  *Var[2] 440
+					Set  *Var[3] 380
+					Set  *Var[4] 220
+					Set  *Var[5] 1
+					Set  *Var[6] 1
+					Set  *Var[7] 1
+					Set  *Var[8] 1
+					Set  *Var[9] 0
+					Set  *Var[A] 0
+					Set  *Var[B] 0
+					Set  *Var[C] 0
+					Exec  $Script_UpdateTexturePan_80244360
+				EndThread
+		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 4 )
+		  2E8:  Thread
+		  2F0:  	Set   *Var0  4
+		  300:  	Set   *Var1  1438`
+		  310:  	Set   *Var2  808`
+		  320:  	Set   *Var3  710`
+		  330:  	Set   *Var4  420`
+		  340:  	Set   *Var5  00000001
+		  350:  	Set   *Var6  00000001
+		  360:  	Set   *Var7  00000001
+		  370:  	Set   *Var8  00000001
+		  380:  	Set   *Var9  00000000
+		  390:  	Set   *VarA  00000000
+		  3A0:  	Set   *VarB  00000000
+		  3B0:  	Set   *VarC  00000000
+		  3C0:  	Exec  $Script_UpdateTexturePan_80244360
+		  3CC:  EndThread
+	Loop
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var2   -70`
+		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
+		Wait 1`
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_UpdateTexturePan_80244360
+{
+    0:  SetGroup  00000000
+    C:  If  *Var5  ==  00000001
+   1C:  	If  *Var6  ==  00000001
+   2C:  		If  *Var7  ==  00000001
+   3C:  			If  *Var8  ==  00000001
+   4C:  				Call  $Function_802402E0_TexturePan ( )
+   58:  				Return
+   60:  			EndIf
+   68:  		EndIf
+   70:  	EndIf
+   78:  EndIf
+   80:  Call  $Function_80240404 ( )
+   8C:  Return
+   94:  End
 }
 
 
@@ -716,4 +885,239 @@ FFFFFFF2 00000012 % < chapter 4 start
 	~Movement:NPC_Toad_22
 	~AnimationTable:NPC_Toad_22 % .Sprite:Toad
 	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+
+#new:Function $Function_802402E0_TexturePan
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  LW        V1, A8 (S0)
+   14:  LW        V0, 88 (S0)
+   18:  ADDU      V1, V1, V0
+   1C:  BGEZ      V1, .o30
+   20:  SW        V1, A8 (S0)
+   24:  LUI       V0, 2
+   28:  BEQ       R0, R0, .o40
+   2C:  ADDU      V0, V1, V0
+        .o30
+   30:  LUI       A0, 2
+   34:  SLT       V0, A0, V1
+   38:  BEQ       V0, R0, .o44
+   3C:  SUBU      V0, V1, A0
+        .o40
+   40:  SW        V0, A8 (S0)
+        .o44
+   44:  LW        V1, AC (S0)
+   48:  LW        V0, 8C (S0)
+   4C:  ADDU      V1, V1, V0
+   50:  BGEZ      V1, .o64
+   54:  SW        V1, AC (S0)
+   58:  LUI       V0, 2
+   5C:  BEQ       R0, R0, .o74
+   60:  ADDU      V0, V1, V0
+        .o64
+   64:  LUI       A0, 2
+   68:  SLT       V0, A0, V1
+   6C:  BEQ       V0, R0, .o78
+   70:  SUBU      V0, V1, A0
+        .o74
+   74:  SW        V0, AC (S0)
+        .o78
+   78:  LW        V1, B0 (S0)
+   7C:  LW        V0, 90 (S0)
+   80:  ADDU      V1, V1, V0
+   84:  BGEZ      V1, .o98
+   88:  SW        V1, B0 (S0)
+   8C:  LUI       V0, 2
+   90:  BEQ       R0, R0, .oA8
+   94:  ADDU      V0, V1, V0
+        .o98
+   98:  LUI       A0, 2
+   9C:  SLT       V0, A0, V1
+   A0:  BEQ       V0, R0, .oAC
+   A4:  SUBU      V0, V1, A0
+        .oA8
+   A8:  SW        V0, B0 (S0)
+        .oAC
+   AC:  LW        V1, B4 (S0)
+   B0:  LW        V0, 94 (S0)
+   B4:  ADDU      V1, V1, V0
+   B8:  BGEZ      V1, .oCC
+   BC:  SW        V1, B4 (S0)
+   C0:  LUI       V0, 2
+   C4:  BEQ       R0, R0, .oDC
+   C8:  ADDU      V0, V1, V0
+        .oCC
+   CC:  LUI       A0, 2
+   D0:  SLT       V0, A0, V1
+   D4:  BEQ       V0, R0, .oE0
+   D8:  SUBU      V0, V1, A0
+        .oDC
+   DC:  SW        V0, B4 (S0)
+        .oE0
+   E0:  LW        A0, 84 (S0)
+   E4:  JAL       ~Func:set_main_pan_u
+   E8:  LW        A1, A8 (S0)
+   EC:  LW        A0, 84 (S0)
+   F0:  JAL       ~Func:set_main_pan_v
+   F4:  LW        A1, AC (S0)
+   F8:  LW        A0, 84 (S0)
+   FC:  JAL       ~Func:set_aux_pan_u
+  100:  LW        A1, B0 (S0)
+  104:  LW        A0, 84 (S0)
+  108:  JAL       ~Func:set_aux_pan_v
+  10C:  LW        A1, B4 (S0)
+  110:  LW        RA, 14 (SP)
+  114:  LW        S0, 10 (SP)
+  118:  CLEAR     V0
+  11C:  JR        RA
+  120:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80240404
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  BEQ       A1, R0, .o24
+   10:  SW        RA, 14 (SP)
+   14:  SW        R0, 70 (S0)
+   18:  SW        R0, 74 (S0)
+   1C:  SW        R0, 78 (S0)
+   20:  SW        R0, 7C (S0)
+        .o24
+   24:  LW        V0, 70 (S0)
+   28:  BNE       V0, R0, .o64
+   2C:  NOP
+   30:  LW        V1, A8 (S0)
+   34:  LW        V0, 88 (S0)
+   38:  ADDU      V1, V1, V0
+   3C:  BGEZ      V1, .o50
+   40:  SW        V1, A8 (S0)
+   44:  LUI       V0, 2
+   48:  BEQ       R0, R0, .o60
+   4C:  ADDU      V0, V1, V0
+        .o50
+   50:  LUI       A0, 2
+   54:  SLT       V0, A0, V1
+   58:  BEQ       V0, R0, .o64
+   5C:  SUBU      V0, V1, A0
+        .o60
+   60:  SW        V0, A8 (S0)
+        .o64
+   64:  LW        V0, 74 (S0)
+   68:  BNE       V0, R0, .oA4
+   6C:  NOP
+   70:  LW        V1, AC (S0)
+   74:  LW        V0, 8C (S0)
+   78:  ADDU      V1, V1, V0
+   7C:  BGEZ      V1, .o90
+   80:  SW        V1, AC (S0)
+   84:  LUI       V0, 2
+   88:  BEQ       R0, R0, .oA0
+   8C:  ADDU      V0, V1, V0
+        .o90
+   90:  LUI       A0, 2
+   94:  SLT       V0, A0, V1
+   98:  BEQ       V0, R0, .oA4
+   9C:  SUBU      V0, V1, A0
+        .oA0
+   A0:  SW        V0, AC (S0)
+        .oA4
+   A4:  LW        V0, 78 (S0)
+   A8:  BNE       V0, R0, .oE4
+   AC:  NOP
+   B0:  LW        V1, B0 (S0)
+   B4:  LW        V0, 90 (S0)
+   B8:  ADDU      V1, V1, V0
+   BC:  BGEZ      V1, .oD0
+   C0:  SW        V1, B0 (S0)
+   C4:  LUI       V0, 2
+   C8:  BEQ       R0, R0, .oE0
+   CC:  ADDU      V0, V1, V0
+        .oD0
+   D0:  LUI       A0, 2
+   D4:  SLT       V0, A0, V1
+   D8:  BEQ       V0, R0, .oE4
+   DC:  SUBU      V0, V1, A0
+        .oE0
+   E0:  SW        V0, B0 (S0)
+        .oE4
+   E4:  LW        V0, 7C (S0)
+   E8:  BNE       V0, R0, .o124
+   EC:  NOP
+   F0:  LW        V1, B4 (S0)
+   F4:  LW        V0, 94 (S0)
+   F8:  ADDU      V1, V1, V0
+   FC:  BGEZ      V1, .o110
+  100:  SW        V1, B4 (S0)
+  104:  LUI       V0, 2
+  108:  BEQ       R0, R0, .o120
+  10C:  ADDU      V0, V1, V0
+        .o110
+  110:  LUI       A0, 2
+  114:  SLT       V0, A0, V1
+  118:  BEQ       V0, R0, .o124
+  11C:  SUBU      V0, V1, A0
+        .o120
+  120:  SW        V0, B4 (S0)
+        .o124
+  124:  LW        A0, 84 (S0)
+  128:  JAL       ~Func:set_main_pan_u
+  12C:  LW        A1, A8 (S0)
+  130:  LW        A0, 84 (S0)
+  134:  JAL       ~Func:set_main_pan_v
+  138:  LW        A1, AC (S0)
+  13C:  LW        A0, 84 (S0)
+  140:  JAL       ~Func:set_aux_pan_u
+  144:  LW        A1, B0 (S0)
+  148:  LW        A0, 84 (S0)
+  14C:  JAL       ~Func:set_aux_pan_v
+  150:  LW        A1, B4 (S0)
+  154:  LW        V0, 70 (S0)
+  158:  LW        V1, 78 (S0)
+  15C:  LW        A0, 98 (S0)
+  160:  ADDIU     V0, V0, 1
+  164:  SW        V0, 70 (S0)
+  168:  LW        V0, 74 (S0)
+  16C:  ADDIU     V1, V1, 1
+  170:  SW        V1, 78 (S0)
+  174:  LW        V1, 70 (S0)
+  178:  ADDIU     V0, V0, 1
+  17C:  SW        V0, 74 (S0)
+  180:  LW        V0, 7C (S0)
+  184:  SLT       V1, V1, A0
+  188:  ADDIU     V0, V0, 1
+  18C:  BNE       V1, R0, .o198
+  190:  SW        V0, 7C (S0)
+  194:  SW        R0, 70 (S0)
+        .o198
+  198:  LW        V0, 74 (S0)
+  19C:  LW        V1, 9C (S0)
+  1A0:  SLT       V0, V0, V1
+  1A4:  BEQL      V0, R0, .o1AC
+  1A8:  SW        R0, 74 (S0)
+        .o1AC
+  1AC:  LW        V0, 78 (S0)
+  1B0:  LW        V1, A0 (S0)
+  1B4:  SLT       V0, V0, V1
+  1B8:  BEQL      V0, R0, .o1C0
+  1BC:  SW        R0, 78 (S0)
+        .o1C0
+  1C0:  LW        V0, 7C (S0)
+  1C4:  LW        V1, A4 (S0)
+  1C8:  SLT       V0, V0, V1
+  1CC:  BEQL      V0, R0, .o1D4
+  1D0:  SW        R0, 7C (S0)
+        .o1D4
+  1D4:  LW        RA, 14 (SP)
+  1D8:  LW        S0, 10 (SP)
+  1DC:  CLEAR     V0
+  1E0:  JR        RA
+  1E4:  ADDIU     SP, SP, 18
 }

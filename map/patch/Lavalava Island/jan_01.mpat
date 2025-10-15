@@ -1,3 +1,9 @@
+#define .NpcID:Kolorado_00          00
+#define .NpcID:Fuzzy_01             01
+#define .NpcID:Fuzzy_02             02
+#define .NpcID:Fuzzy_03             03
+#define .NpcID:Fuzzy_04             04
+
 %Add Save Block functionality so the player
 %doesn't have to walk as far if they die
 %to Jr. Troopa.
@@ -83,4 +89,93 @@
   354:  Call  $Function_8024030C ( )
   360:  Return
   368:  End
+}
+
+
+
+@	$Script_Idle_80241BCC
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00B6000B )
+   14:  Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   2C:  Loop
+   38:  	Wait  1`
+   44:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   5C:  	If  *Var0  >  FFFFFDA8
+   6C:  		BreakLoop
+   74:  	EndIf
+   7C:  EndLoop
+   84:  Call  DisablePlayerInput        ( .True )
+   94:  Call  ShowMessageAtScreenPos    ( 0010000D  320`  60` ) % Yaaaaaaargh! Help, I say! Heeeeeelp!
+   AC:  Call  PlaySoundAtPlayer ( 00000262 00000000 )
+   C0:  Call  ShowEmote ( .NpcID:Kolorado_00 .Emote:Exclamation  0`  25` .False  0`  0`  0`  0` )
+   F0:  Call  PlaySoundAtNpc    ( .Npc:Partner 00000262 00000000 )
+  108:  Call  ShowEmote ( .Npc:Partner .Emote:Exclamation  0`  25` .True  0`  0`  0`  0` )
+  138:  Wait  25`
+		Call  GetCurrentPartnerID   ( *Var0 )
+  540:  If  *Var0  ==  .Partner:Goombario % 2
+  570:  		Call  DisablePartnerAI  ( 00000000 )
+   				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 0010012F ) % Goombarius quip
+  5EC:  		Call  EnablePartnerAI ( )
+  600:  EndIf
+  144:  Call  DisablePlayerInput        ( .False )
+  154:  Label  0
+  160:  Call  GetSelfVar        ( 00000000 *Var0 )
+  174:  Switch  *Var0
+  180:  	Case  ==  00000000
+  18C:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  1A4:  		If  *Var0  >  000001AE
+  1B4:  			Call  GetCurrentPartner ( *Var0 )
+  1C4:  			If  *Var0  !=  00000000
+  1D4:  				Call  802D2B6C ( )
+  1E0:  			EndIf
+  1E8:  			Call  DisablePlayerInput    ( .True )
+  1F8:  			Call  RemoveNpc     ( .NpcID:Fuzzy_01 )
+  208:  			Call  ShowMessageAtScreenPos    ( 00100010  0`  60` ) % Yaaah! Get off! Aaaaaah!!
+  220:  			Call  InterpPlayerYaw       (  270`  4` )
+  234:  			Call  SetNpcAnimation       ( .Npc:Self 00B60007 )
+  248:  			Call  NpcMoveTo     ( .Npc:Self  250`  90`  5` )
+  264:  			Call  802CF56C      ( 00000002 )
+  274:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  28C:  			Set   *Var3  *Var0
+  29C:  			Add   *Var3  FFFFFFCE
+  2AC:  			Call  SetNpcSpeed   ( .Npc:Self *Fixed[5.0] )
+  2C0:  			Call  NpcMoveTo     ( .Npc:Self *Var3 *Var2  0` )
+  2DC:  			Add   *Var0  *Var3
+  2EC:  			Div   *Var0  00000002
+  2FC:  			Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+  318:  			Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  334:  			Call  SetCamDistance        ( .Cam:Default  300` )
+  348:  			Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-7.0] )
+  360:  			Call  SetCamSpeed   ( .Cam:Default *Fixed[5.0] )
+  374:  			Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  38C:  			Call  $Function_80241154 ( )
+  398:  			Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  3AC:  			Wait  10`
+  3B8:  			Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 00100011 ) % Dear me! I barely got away... That was rather rude ...
+  3D8:  			Set   *GB_StoryProgress  .Story:Ch5_KoloradoEscapedFuzzies
+  3E8:  			ExecWait  $Script_80241AB4
+  3F4:  			Call  DisablePlayerInput    ( .False )
+  404:  		EndIf
+  40C:  	Case  ==  00000001
+  418:  		SetGroup  00000000
+  424:  		Call  SetTimeFreezeMode ( 00000001 )
+  434:  		Call  802D2C14  ( 00000001 )
+  444:  		Wait  10`
+  450:  		Call  SpeakToPlayer     ( .Npc:Self 00B60009 00B60001 00000000 0010000F ) % Phew... You saved me! Many thanks, old chum. Well, ...
+  470:  		Set   *GF_JAN01_SavedKolorado  .True
+  480:  		Call  SetSelfVar        ( 00000000 00000002 )
+  494:  		Set   *GB_StoryProgress  .Story:Ch5_KoloradoEscapedFuzzies
+  4A4:  		ExecWait  $Script_80241AB4
+  4B0:  		Call  802D2C14  ( 00000000 )
+  4C0:  		Call  SetTimeFreezeMode ( 00000000 )
+  4D0:  		SetGroup  0000000B
+  4DC:  		Call  DisablePlayerInput    ( .False )
+  4EC:  EndSwitch
+  4F4:  Call  GetSelfVar    ( 00000000 *Var0 )
+  508:  If  *Var0  !=  00000003
+  518:  	Wait  1`
+  524:  	Goto  0
+  530:  EndIf
+  538:  Return
+  540:  End
 }

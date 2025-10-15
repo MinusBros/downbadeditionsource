@@ -75,8 +75,18 @@
    78:  	ExecWait $Script_802A1BEC 
    84:  	Return
    8C:  EndIf
-   94:  Set  *Var[1]  *Var[E] 
-   A4:  ExecWait $Script_802A1630 
+   94:  Set   *Var1  *VarE
+   A4:  ExecWait $Script_802A1630  %Summon item
+		%%%%%%%%%%%%%%%%%%%%%%
+		%TTYD64 scripts%
+		%%%%%%%%%%%%%%%%%%%%%%
+        ExecWait  $NewItemsScripts_GetNewScript
+        If *Var7 == .True % other item script was called.
+				Return
+		EndIf
+		%%%%%%%%%%%%%%%%%%%%%%
+		%Dark Star Edition scripts%
+		%%%%%%%%%%%%%%%%%%%%%%
    B0:  If  *Var[D]  ==  00000000 
    C0:  	ExecWait $Script_802A1AFC 
    CC:  Else
@@ -153,7 +163,16 @@
   2F8:  EndIf
 		Call     GetMenuSelection 	( *Var[0] *Var[1] *Var[2] )
 		Call	 $Function_GetArbitraryByte ( *VarF $ItemCostReductionData[2] )
-		%Call	 $Function_GetCurseState ( *Var7 )
+		Switch *Var[1]
+			%Have to delay the status stuff to not interrupt this script too early?
+			CaseOR == 00000089
+			CaseOR == 00000099
+				Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
+				Add *Var6 10`
+				Call	 $Function_DebuffEffectGold ( )
+				Call $Function_ResetStatus ( )
+			EndCaseGroup
+		EndSwitch
 		Label 1
   300:  If  *Var[F]  ==  00000000 
   310:  	Wait     0000000A 
@@ -171,7 +190,6 @@
   3CC:  End
 }
   
-
 
 
 
@@ -386,7 +404,41 @@
 	ORI 	V0, R0, 2
 }
 
+#new:Function $Function_DualityShake
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	LB		A1, 223 (A0) %str
+	SUB		A1, R0, A1
+	SB		A1, 223 (A0) %str
+	LB		A1, 225 (A0) %str
+	SUB		A1, R0, A1
+	SB		A1, 225 (A0) %str
+	LI		A0, $ItemCostReductionData
+	LB		A1, 0 (A0)
+	SUB		A1, R0, A1
+	SB		A1, 0 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
 
+#new:Function $Function_DualityShakeNull
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	SB		R0, 223 (A0) %str
+	SB		R0, 225 (A0) %str
+	LI		A0, $ItemCostReductionData
+	SB		R0, 0 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+/%
 #new:Function $Function_SetThreeAtk
 {
 	PUSH	RA, A0, A1
@@ -415,6 +467,167 @@
 	ORI 	V0, R0, 2
 }
 
+#new:Function $Function_SetKoopaLeaf
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 2
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetKoopaTea
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetKoopasta
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFC
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 1
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetGoomnut
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 223 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetNuttyCake
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 223 (A0) %str
+	ADDIU	A1, R0, 4
+	SB		A1, 224 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetIcedPotato
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFB
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 2
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetLemonCandy
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 223 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetLimeCandy
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetHoneyCandy
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 223 (A0) %str
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %dur
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetFrozenFries
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, 0003
+	SB		A1, 223 (A0) %chill str
+	ADDI	A1, R0, FFFB
+	SB		A1, 225 (A0) %defdown str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %chill dur
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetPotatoSalad
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, 0001
+	SB		A1, 223 (A0) %chill str
+	ADDI	A1, R0, FFFD
+	SB		A1, 225 (A0) %defdown str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %chill dur
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
 
 
 #new:Function $Function_SetAtkDef
@@ -433,6 +646,322 @@
 	ORI 	V0, R0, 2
 }
 
+#new:Function $Function_SetDarkLeaf
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 223 (A0) %str
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %dur
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetDarkShroom
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFD
+	SB		A1, 223 (A0) %str
+	ADDI	A1, R0, 0003
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 224 (A0) %dur
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+%/
+
+#new:Function $Function_SetDarkCake
+{
+	PUSH	RA, A0, A1, A2, A3
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFE
+	SB		A1, 223 (A0) %str
+	SB		A1, 225 (A0) %str
+	%Get turns
+	LI		A2, 8010F520
+	LB		A3, 0 (A2)
+	SH		R0, 0 (A2)	
+	%ADDIU	A1, R0, 3
+	COPY	A1, A3
+	SB		A1, 224 (A0) %dur
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1, A2, A3
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+/%
+#new:Function $Function_SetRedBerry
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 223 (A0) %str
+	ADDIU	A1, R0, 4
+	SB		A1, 224 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetBlueBerry
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFF
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 4
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+%/
+
+#new:Function $Function_ElectrifyMario
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A1, B
+   18:  SW        RA, 14 (SP)
+   %1C:  LW        A2, 84 (V0)
+		ORI 	  A2, R0, 2
+   20:  JAL       ~Func:inflict_status
+   24:  COPY      A0, S0
+   28:  SB        R0, 21C (S0)
+   2C:  LW        RA, 14 (SP)
+   30:  LW        S0, 10 (SP)
+   34:  LI        V0, 2
+   38:  JR        RA
+   3C:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_ElectrifyMario1
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A1, B
+   18:  SW        RA, 14 (SP)
+   %1C:  LW        A2, 84 (V0)
+		ORI 	  A2, R0, 3
+   20:  JAL       ~Func:inflict_status
+   24:  COPY      A0, S0
+   28:  SB        R0, 21C (S0)
+   2C:  LW        RA, 14 (SP)
+   30:  LW        S0, 10 (SP)
+   34:  LI        V0, 2
+   38:  JR        RA
+   3C:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_ElectrifyMario2
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A1, B
+   18:  SW        RA, 14 (SP)
+   %1C:  LW        A2, 84 (V0)
+		ORI 	  A2, R0, 4
+   20:  JAL       ~Func:inflict_status
+   24:  COPY      A0, S0
+   28:  SB        R0, 21C (S0)
+   2C:  LW        RA, 14 (SP)
+   30:  LW        S0, 10 (SP)
+   34:  LI        V0, 2
+   38:  JR        RA
+   3C:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SetBubbleBerry
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+		%
+		ADDI	A1, R0, 0002
+		SB		A1, 223 (S0) %str
+		SB		A1, 225 (S0) %str
+		ADDIU	A1, R0, 3
+		SB		A1, 224 (S0) %dur
+		SB		A1, 226 (S0) %dur
+		%
+   14:  LI        A1, E
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   %20:  LW        A2, 84 (V0)
+		ORI		  A2, R0, 1
+   24:  LW        S1, 1F4 (S0)
+   28:  JAL       ~Func:inflict_status
+   2C:  COPY      A0, S0
+   30:  SB        R0, 21C (S0)
+   34:  LW        V1, 0 (S1)
+   38:  ORI       V1, V1, 100
+   3C:  SW        V1, 0 (S1)
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  LI        V0, 2
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_SetBubbleBerry2
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+		%
+		ADDI	A1, R0, 0002
+		SB		A1, 223 (S0) %str
+		SB		A1, 225 (S0) %str
+		ADDIU	A1, R0, 3
+		SB		A1, 224 (S0) %dur
+		SB		A1, 226 (S0) %dur
+		%
+   14:  LI        A1, E
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   %20:  LW        A2, 84 (V0)
+		ORI		  A2, R0, 2
+   24:  LW        S1, 1F4 (S0)
+   28:  JAL       ~Func:inflict_status
+   2C:  COPY      A0, S0
+   30:  SB        R0, 21C (S0)
+   34:  LW        V1, 0 (S1)
+   38:  ORI       V1, V1, 100
+   3C:  SW        V1, 0 (S1)
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  LI        V0, 2
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 20
+}
+
+#new:Function $EnableAutoBlock2
+{
+	LAB 	V0, $BattlePerks[2]
+	ADDIU 	V0, V0, 2
+	SAB 	V0, $BattlePerks[2]
+	JR RA
+	ADDIU	V0, R0, 2
+}
+
+/%
+#new:Function $Function_SetBlandMeal
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, 2
+	SB		A1, 0 (A0)
+	LI 		A1, 2
+	SB		A1, 1 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetYummyMeal
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, 2
+	SB		A1, 0 (A0)
+	LI 		A1, 3
+	SB		A1, 1 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetDeluxeFeast
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, 2
+	SB		A1, 0 (A0)
+	LI 		A1, 4
+	SB		A1, 1 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetSpecialShake
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, 3
+	SB		A1, 0 (A0)
+	LI 		A1, 3
+	SB		A1, 1 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetBigCookie
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, 5
+	SB		A1, 0 (A0)
+	LI 		A1, 2
+	SB		A1, 1 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+
+#new:Function $Function_SetShroomSteak
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, 2
+	SB		A1, 0 (A0)
+	LI 		A1, 3
+	SB		A1, 1 (A0)
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $Function_SetSalt
+{
+	PUSH	RA, A0, A1
+	LIO		A0, 800DC070
+	LW		A0, D8 (A0) %where player actor struct is
+	ADDI	A1, R0, FFFD
+	SB		A1, 225 (A0) %str
+	ADDIU	A1, R0, 3
+	SB		A1, 226 (A0) %dur
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+%/
 
 
 #new:Function $Function_SetChill %( strength, turncount )
@@ -508,9 +1037,6 @@ POP RA, A0, A1, S0, S1, S2
 JR	RA
 ADDIU	V0, R0, 2
 }
-
-
-
 
 
 %set var5, var6, var7 to correct position

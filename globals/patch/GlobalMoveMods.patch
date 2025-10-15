@@ -1,4 +1,19 @@
 
+%There may be more functions
+%Probably not (double checked)
+
+%Other programming is done in the kaiden hook above
+
+%Used to determine if flower power should be active 
+%Should also check if FP = max as an alternative to this token
+#export:Data $FlowerPowerBool
+{
+00000000
+}
+
+
+
+
 %Chill out observations
 %Lines that check chill out strength (This is what determines when the arrow is first displayed?)
 %	AP + 223
@@ -131,3 +146,156 @@ ADDU 	S0, S0, V0
 	J 		80264E2C
 	SB		R0, 224 (S1)
 }
+
+
+
+
+%hard to change this stuff because of all the branches everywhere
+%Calculating defdown in damagetarget
+%80277810
+%BNEZ	V0, 80277854 	%this leads to yet another hook in NewGamePlus.patch
+@Hook 1A60F0
+{
+	%Check branch
+	PUSH	S0, S1, S2
+	BNE 	V0, R0, .dobranch
+	NOP
+	BEQ		R0, R0, .nobranch
+	NOP
+	.dobranch
+	POP		S0, S1, S2
+	J		80277854
+	NOP
+	.nobranch
+	LB		S0, 226 (S3)	%Defdown dur
+	BEQ		S0, R0, .nodur
+	ORI		S1, R0, 0
+	LB		S1, 225 (S3)	%Defdown str	
+	.nodur	
+	LB		V0, 222 (S3)
+	SUB		V0, V0, S1
+	POP		S0, S1, S2
+	J 		80277818
+	NOP
+}
+
+%8026F3DC
+%Checks value and sets flags if you have atk up / def up etc
+%Unclear purpose
+
+%80277818
+%LB		V0, 222 (S3)
+%rewritten above
+@Function 1A60F8
+{
+	NOP
+}
+
+
+
+
+
+
+
+%Add new HP text
+
+%Pretty straightforward
+%just load a different pointer instead of the regular FP text pointer
+
+#new:Data $Icon_HPText
+{ ~RasterFile:CI-4:HPText.png }
+
+#new:Data $Palette_HPText
+{ ~PaletteFile:CI-4:HPText.png }
+
+#new:Data $Palette_HPTextDark
+{ ~PaletteFile:CI-4:HPTextdark.png }
+
+
+#new:Data $IconScript_HPText {
+	00000008 
+	00000013 00000010 00000008
+	00000004 
+	00000002 0000003C $Icon_HPText $Palette_HPText
+	00000003 
+	00000000
+}
+
+#new:Data $IconScript_HPTextDark {
+	00000008 
+	00000013 00000010 00000008
+	00000004 
+	00000002 0000003C $Icon_HPText $Palette_HPTextDark
+	00000003 
+	00000000
+}
+
+
+
+%Coins
+%You pay coins
+%Track this for greed stone + flower coins
+%used to be Data_CoinMoveCount
+#export:Data $Data_TurnsSinceUsedCoins
+{
+	00000000
+}
+
+
+
+
+%costs start 10x fp cost
+%each time it doubles
+%How many times can you use moves?
+%1 fp = 10 * 128 (2^7) 		(7 times)
+%2 fp = 20 * 64 (2^6)		(6 times)
+%3 fp = 30 * 64 (2^6)		(6 times)
+%4 fp = 40 * 32 (2^5)		(5 times)
+%5 fp = 					(4 times)
+%6 fp =						(4 times)
+%7 fp = 					(3 times)
+%...
+%13 fp =					(2 times)
+%...
+%25 fp = 					(1 time)
+
+#new:Data $Icon_CoinText
+{ ~RasterFile:CI-4:CoinText.png }
+
+#new:Data $Palette_CoinText
+{ ~PaletteFile:CI-4:CoinText.png }
+
+#new:Data $Palette_CoinTextDark
+{ ~PaletteFile:CI-4:CoinTextdark.png }
+
+
+#new:Data $IconScript_CoinText {
+	00000008 
+	00000013 00000010 00000008
+	00000004 
+	00000002 0000003C $Icon_CoinText $Palette_CoinText
+	00000003 
+	00000000
+}
+
+#new:Data $IconScript_CoinTextDark {
+	00000008 
+	00000013 00000010 00000008
+	00000004 
+	00000002 0000003C $Icon_CoinText $Palette_CoinTextDark
+	00000003 
+	00000000
+}
+
+
+
+%Palette format
+%around 800FC2E0
+%Uses RGBA format (0-31) (5 bits per color, but alpha gets 1 bit)
+
+%Probably something the GPU uses and so breakpoints can't find what uses this
+
+%Black FP text palette
+%(only some of the non-black colors are used)
+%FFFE 2949 6B59 8C61 A527 BDED D6B3 0001
+%0001 0001 0001 0001 0001 0001 0001 0001

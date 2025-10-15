@@ -208,7 +208,28 @@
 
 #new:DefenseTable $DefenseTable_8022DA38_THREE
 {
-.Element:Normal 00000003
+.Element:Normal 00000006
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_ParryJump
+{
+.Element:Normal 00000006
+.Element:Jump 00000063
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_ParryHammer
+{
+.Element:Normal 00000006
+.Element:Hammer 00000063
+.Element:End
+}
+
+
+#new:DefenseTable $DefenseTable_8022DA38_Resting
+{
+.Element:Normal 00000000
 .Element:End
 }
 
@@ -258,6 +279,8 @@
    98:  Call     SetActorVar 	( .Actor:Self 00000005 00000000 ) % what attack to use
    98:  Call     SetActorVar 	( .Actor:Self 00000006 00000000 ) % what attack to use
 		Call     SetActorVar 	( .Actor:Self 00000007 00000000 ) % savestate detection flag
+		Call  	 SetPartEventBits  ( .Actor:Self 00000001 00040000 .True )
+		Set      *GB_EnemyDefense  2`
 		ExecWait $PushTimestamp
 		%Call	 $Function_PushTimestamp ( )					  % set this up immediately
 		Call     SetActorVar 	( .Actor:Self 00000008 00000000 ) % Final combo trigger
@@ -270,8 +293,8 @@
 
 #new:Script $Script_Idle_8022DC34_THREE
 {
-    0:  Return
-    8:  End
+    Return
+    End
 }
 
 #new:Script $Script_8022DC44_THREE
@@ -395,7 +418,7 @@
 
 #string $Perish
 {
-[STYLE:RIGHT][Size 48][Down 4][Shake]¡[Right 2]¿[Right 4]-[Right 2]![Right 2]![BR] %This in actuality is 死ねー！！ which means Diiieee!! in Japanese.
+[STYLE:RIGHT][Size 48][Down 4][Shake]¡[Right 2]¿[Right 4]-[Right 2]![Right 2]![BR] %This in actuality is 死ねー！！ (Shine!!) which means Die!! in Japanese.
 [WAIT][END] 
 }
 
@@ -429,8 +452,8 @@ continue any further.[BR]
 #string $Rest
 {
 [STYLE:RIGHT][SizeJitter][PrintRising]...cough hack cough...[BR]
-[/fx][/fx]I need to rest.[PAUSE:0A] Curse this weak[BR]
-body! I must keep fighting![BR]
+[/fx][/fx]You are a lucky man.[PAUSE:0A] I will recuperate[BR]
+my powers for now...
 [WAIT][END]	
 }
 	
@@ -488,6 +511,8 @@ body! I must keep fighting![BR]
 			Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_Rest )
 			Call     SetActorVar 	( .Actor:Self 00000004 00000001 )
 			Call     SetActorVar 	( .Actor:Self 00000009 00000001 )
+			Call  SetPartEventBits  ( .Actor:Self 00000001 00040000 .False )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8022DA38_Resting )
 			Goto 00000001
 		EndIf
 	EndIf
@@ -497,6 +522,8 @@ body! I must keep fighting![BR]
 			Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_Rest )
 			Call     SetActorVar 	( .Actor:Self 00000004 00000002 )
 			Call     SetActorVar 	( .Actor:Self 00000009 00000001 )
+			Call  SetPartEventBits  ( .Actor:Self 00000001 00040000 .False )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8022DA38_Resting )
 			Goto 00000001
 		EndIf
 	EndIf
@@ -506,6 +533,8 @@ body! I must keep fighting![BR]
 			Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_Rest )
 			Call     SetActorVar 	( .Actor:Self 00000004 00000003 )
 			Call     SetActorVar 	( .Actor:Self 00000009 00000001 )
+			Call  SetPartEventBits  ( .Actor:Self 00000001 00040000 .False )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8022DA38_Resting )
 			Goto 00000001
 		EndIf
 	EndIf
@@ -515,11 +544,15 @@ body! I must keep fighting![BR]
 			Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_Rest )
 			Call     SetActorVar 	( .Actor:Self 00000004 00000004 )
 			Call     SetActorVar 	( .Actor:Self 00000009 00000001 )
+			Call  SetPartEventBits  ( .Actor:Self 00000001 00040000 .False )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8022DA38_Resting )
 			Goto 00000001
 		EndIf
 	EndIf
 	% When he isn't exhausted, he will hit like a freight train moving at warp 7 into a collapsing star
 	Label 6
+			Call  SetPartEventBits  ( .Actor:Self 00000001 00040000 .True )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8022DA38_THREE )
 	Call     GetActorVar 	( .Actor:Self 00000005 *Var[2] ) % what move to use?
 	Switch *Var[2]
 		Case == 0`
@@ -541,6 +574,10 @@ body! I must keep fighting![BR]
 	EndSwitch
 	ExecWait $Script_SaveStateCheck
 	%If you used a save state, time to die!
+	Call  RandInt   ( 00000001 *Var0 )
+	If  *Var0  == 1`
+		ExecWait  $StanceChange
+	EndIf
 	Label 1
 	Call     GetActorVar 	( .Actor:Self 00000007 *Var[2] ) % what move to use?
 	If *Var2 != 0
@@ -663,6 +700,7 @@ body! I must keep fighting![BR]
   514:  			Call     ActorSpeak  	( $TimesUp .Actor:Self 00000001 00A20032 00A2002E ) % Kwaaaaa! Behold my fury, Mario!!
 					Wait     0000000A
 					ExecWait $Script_FirstDashAttack
+					ExecWait $StanceChange
   534:  		EndIf
   53C:  	Case  ==  .Phase:EnemyBegin
   548:  		Call     GetStatusFlags ( .Actor:Self *Var[0] )
@@ -683,7 +721,19 @@ body! I must keep fighting![BR]
   5B4:  		If  *Var[0]  <=  *Var[1] 
   5C4:  			Call     UseBattleCamPreset 	( 00000002 )
   5D4:  			Call     MoveBattleCamOver 	( 0000000A )
-  5E4:  			Call     ActorSpeak  	( $CutYouDown .Actor:Self 00000001 00A20032 00A2002E ) % Now...it is time I stopped being so merciful.
+   94:    			Call  RandInt   ( 4` *Var0 )
+   AC:      Switch  *Var[0] 
+	   B8:  	Case  ==  00000000 
+	   C4:  		Call     ActorSpeak  	( $CutYouDown .Actor:Self 00000001 00A20032 00A2002E ) % Now...it is time I stopped being so merciful.
+	   E4:  	Case  ==  00000001 
+	   F0:  		Call     ActorSpeak  	( $CutYouDown2 .Actor:Self 00000001 00A20032 00A2002E )
+	  110:  	Case  ==  00000002 
+	  11C:  		Call     ActorSpeak  	( $CutYouDown3 .Actor:Self 00000001 00A20032 00A2002E )   
+	  110:  	Case  ==  00000003 
+	  11C:  		Call     ActorSpeak  	( $CutYouDown4 .Actor:Self 00000001 00A20032 00A2002E )
+	  110:  	Case  ==  00000004 
+	  11C:  		Call     ActorSpeak  	( $CutYouDown5 .Actor:Self 00000001 00A20032 00A2002E ) 
+			EndSwitch
   604:  			BreakCase
   60C:  		EndIf
   614:  		Call     GetPlayerHP 	( *Var[0] )
@@ -700,6 +750,41 @@ body! I must keep fighting![BR]
   6BC:  End
 }
 
+
+
+
+#new:Script  $StanceChange
+{
+    0:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   14:  Call     EnableIdleScript 	( .Actor:Self 00000000 )
+		If  *GB_EnemyDefense == 0`
+			Set *GB_EnemyDefense 1`
+			Call     SetAnimation 	( .Actor:Self 00000001 00A20035 )
+			Call  PlaySoundAtActor  ( .Actor:Self 000003EE )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_ParryHammer )
+			Wait  35`
+		Else
+			Set *GB_EnemyDefense 0`
+			Call     SetAnimation 	( .Actor:Self 00000001 00A20036 )
+			Call  PlaySoundAtActor  ( .Actor:Self 000003ED )
+			Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_ParryJump )
+			Wait  45`
+		EndIf
+		ExecWait  $StanceChangeMessage
+  68C:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  6A0:  Call     UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+
+
+#new:Script $StanceChangeMessage
+{
+	Call  ActorSpeak        ( 001F0066 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return
+	End
+}
+
 #string $BattleStart
 {
 [STYLE:RIGHT][PrintRising]I am lord of the dojo.[BR]
@@ -712,7 +797,7 @@ Now witness my power![BR]
 
 #string $TimesUp
 {
-[STYLE:RIGHT][PrintRising]Don't hold anything back,[BR]
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]Don't hold anything back,[BR]
 Mario-san![BR]
 [Pause 5]No objections, I presume?[BR]
 [WAIT][END]  
@@ -720,16 +805,49 @@ Mario-san![BR]
 
 #string $CutYouDown
 {
-[STYLE:RIGHT][PrintRising]A foolish man knows when to[BR]
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]A foolish man knows when to[BR]
 give up![BR]
 [Pause 10]A noble man knows when to keep[BR]
 fighting![BR]
 [WAIT][END]
 }
 
+#string $CutYouDown2
+{
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]To the promised land![BR]
+Prepare to fall by my hand![BR]
+[WAIT][END]
+}
+
+#string $CutYouDown3
+{
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]The failed protector of the[BR]
+Mushroom Kingdom![BR]
+[Pause 10]Must I take your life yet again?[BR]
+[WAIT][END]
+}
+
+#string $CutYouDown4
+{
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]You fear who you are because[BR]
+you lack courage![BR]
+[Pause 15]Regulate your passion and win,[BR]
+Mario-san![BR]
+[WAIT][END]
+}
+
+#string $CutYouDown5
+{
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]The apex of this universe is[BR]
+begging for our destruction![BR]
+[Pause 20]There can only be one man[BR]
+and one god![BR]
+[WAIT][END]
+}
+
 #string $YouCannotWin
 {
-[STYLE:RIGHT][PrintRising]Look at you, backed into a[BR]
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]Look at you, backed into a[BR]
 corner. This will be the final[BR]
 blow![BR]
 [WAIT][END] 
@@ -737,12 +855,24 @@ blow![BR]
 
 #string $Thisistogo
 {
-[STYLE:RIGHT][SaveColor][Color:32][Down 8][Size 34][Shake][Speed delay=5 chars=1][CustomVoice soundIDs=0x2018,0x2018]Ultra Instinct![RestoreColor]
+[STYLE:RIGHT][SaveColor][Color:32][Down 8][Size 34][Shake][Speed delay=5 chars=1][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50][Pause 3]Ultra Instinct![RestoreColor]
 [WAIT][END] 
 }
  
 #new:Script $Script_HandleEvent_80231408_THREE
 {
+		Call  GetLastElement    ( *VarE )
+		If  *GB_EnemyDefense  == 0`
+			If  *VarE  &  00000080  %Jump
+				ExecWait  $Superguard
+				Return
+			EndIf
+		Else
+			If  *VarE  &  00000040 %Hammer
+				ExecWait  $Superguard
+				Return
+			EndIf
+		EndIf
     0:  ExecWait $Script_8022DC44_THREE 
     C:  Call     GetStatusFlags ( .Actor:Self *Var[0] )
    20:  If  *Var[0]  &  00351000 
@@ -786,6 +916,92 @@ blow![BR]
   358:  Return
   360:  End
 }
+
+
+#new:Script  $Superguard
+{
+    0:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   14:  Call     EnableIdleScript 	( .Actor:Self 00000000 )
+		Call     SetAnimation 	( .Actor:Self 00000001 00A2003E )
+    Call    PlaySoundAtActor ( .Actor:Self 0237 )
+    Call    $PlayTextPopup ( 3 )
+    Loop 2
+        Call    MakeLerp    	( 0 360` 3 .Easing:Linear )
+        Loop     
+            Call     UpdateLerp
+            Call     SetActorRotation  ( .Actor:Self 0 *Var0 0 )
+            Wait     1
+            If  *Var1  ==  .False
+                BreakLoop
+            EndIf
+        EndLoop
+    EndLoop
+    % End
+    Call    MakeLerp    	( 0 180` 4 .Easing:Linear )
+    Loop     
+        Call     UpdateLerp
+        Call     SetActorRotation  ( .Actor:Self 0 *Var0 0 )
+        Wait     1
+        If  *Var1  ==  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    %
+    Call    MakeLerp    	( -180` 0 7 .Easing:Linear )
+    Loop     
+        Call     UpdateLerp
+        Call     SetActorRotation  ( .Actor:Self 0 *Var0 0 )
+        Wait     1
+        If  *Var1  ==  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Call  SetActorRotation  ( .Actor:Self 0 0 0 )
+    Wait  5
+  68C:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  6A0:  Call     UseIdleAnimation 	( .Actor:Self .True )	
+	Return
+	End
+}
+
+#new:Function $PlayTextPopup
+{
+    ADDIU	SP, SP, -28
+    SW	    S1, 001C (SP)
+    COPY    S1, A0
+    SW	    S0, 0018 (SP)
+    SW	    RA, 0020 (SP)
+    % load actorID
+    JAL     ~Func:get_actor
+    LW      A0, 148 (S1) % load selfID
+    COPY    S0, V0 % S0 = $actor data
+    LIF     F2, 2.0 % text height
+    LW      A0, C (S1)
+    LW      A0, 0 (A0) % load arg0
+    LWC1	F4, 0148 (S0) % y pos
+    LWC1	F0, 014C (S0) % z pos
+    ADD.S	F4, F4, F2
+    SWC1	F0, 0010 (SP)
+    LW	    A2, 0144 (S0) % x pos
+    MFC1	A3, F4
+    JAL	    802667F0
+    COPY    A1, S0
+    SW	    R0, 0084 (S1) % set var0 as zero
+    LBU	    V0, 0210 (S0) % load status debuff
+    ADDIU	V0, V0, FFFD % -3
+    SLTIU	V0, V0, 0006 % check if status is >=9 basically
+    BEQ	    V0, R0, .End
+    ADDIU	V0, R0, 0001
+    SW	    V0, 0084 (S1) % set var0 as true
+    .End
+    LW	    RA, 0020 (SP)
+    LW	    S1, 001C (SP)
+    LW	    S0, 0018 (SP)
+    ADDIU	V0, R0, 0002
+    JR	    RA
+    ADDIU	SP, SP, 28
+}
+
 
 
 %longer charge anim
@@ -1541,7 +1757,7 @@ blow![BR]
 			EndThread
 			Call	PlaySoundAtActor	( .Actor:Self 000002CD )
 			Wait	8
-			Call	FlyToGoal		( .Actor:Self 00000005 00000000 00000000 )
+			Call	FlyToGoal		( .Actor:Self 00000003 00000000 00000000 )
 			Wait	2
 		EndIf
   3B4:  Call     PlaySoundAtActor 	( .Actor:Self 000003ED )

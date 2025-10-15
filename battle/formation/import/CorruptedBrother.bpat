@@ -205,10 +205,10 @@
 [PowerBounce]   3`b 
 [SpinSmash]     0`b % weight (0-4)
 % ui positions
-[Size]         32`b  32`b % width height
+[Size]         32`b  42`b % width height
 [HealthBar]     0`b   0`b % dx dy
-[StatusTurn]  -10`b  20`b % dx dy
-[StatusIcon]   10`b  20`b % dx dy
+[StatusTurn]  -15`b  32`b % dx dy
+[StatusIcon]    5`b  32`b % dx dy
 }
 
 %Only jumps, hammers and star powers work on
@@ -217,7 +217,7 @@
 %do 2 extra damage.
 
 #new:DefenseTable $DefenseTable_80219610_00 {
-.Element:Normal 00000016
+.Element:Normal 69`
 .Element:Fire   00000063
 .Element:Water   00000063
 .Element:Ice   00000016
@@ -260,7 +260,7 @@
 }
 
 #new:PartsTable $PartsTable_802196C8_00 {
-00800000 01000000 001400FF $IdleAnimations_80219714_00 $DefenseTable_80219610_00 00000000 00000000 04E00000 00000000 
+00800000 01000000 F92000FF $IdleAnimations_80219714_00 $DefenseTable_80219610_00 00000000 00000000 04E00000 00000000 
 }
 
 #new:IdleAnimations $IdleAnimations_80219714_00 {
@@ -335,6 +335,9 @@
   250:  		SetConst  *Var0  00000001 
   260:  		SetConst  *Var1  .AnimPain 
   288:  		ExecWait  $ShockHit
+				Call  EnableActorBlur       ( .Actor:Self FFFFFFFF )
+  C68:  		Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[1.0] )
+				Wait  2`
   294:  		Call  SetActorSpeed ( .Actor:Self *Fixed[12.0] )
   2A8:  		Set   *Var1  .AnimRun
   378:  	Case  ==  .Event:ShockDeath % 26
@@ -487,12 +490,12 @@
   91C:  		Call  JumpToGoal    ( .Actor:Self  18` .False .True .False )
   998:  		Wait  1`
   9A4:  EndSwitch
-  9AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 0000000A 00000020 )
-		Wait  2`
 		Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
 		If  *Var0  ==  00000000 
 				Call  GetActorHP    ( .Actor:Self *Var0 )
 				If  *Var0  <=  00000080 
+  9AC:  			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
+					Wait  2`
   7E0:  		Call  SetGoalToTarget       ( .Actor:Self )
   7F0:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.6] )
   804:  		Thread
@@ -516,8 +519,10 @@
   44C:  		EndThread
   91C:  		Call  JumpToGoal    ( .Actor:Self  18` .False .True .False )
   998:  		Wait  1`
-  9AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 0000000C 00000020 )
-		Call  SetAnimation  ( .Actor:Self 00000001 .AnimJumpMiddle )
+  9AC:  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 0000000C 00000020 )
+				Call  SetAnimation  ( .Actor:Self 00000001 .AnimJumpMiddle )
+					Else
+						Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 0000000A 00000020 )
 				EndIf
 		EndIf
   9F8:  		Call  UseBattleCamPreset    ( 00000002 )
@@ -535,10 +540,11 @@
   C2C:  		Call  SetGoalToHome ( .Actor:Self )
   C3C:  		Call  SetActorSpeed ( .Actor:Self *Fixed[12.0] )
   C50:  		Call  RunToGoal     ( .Actor:Self  0` .False )
+				Call  EnableActorBlur       ( .Actor:Self FFFFFFFF )
   C68:  		Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[1.0] )
+				Wait  2`
   C90:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   CA4:  Call  UseIdleAnimation  ( .Actor:Self .True )
-		Call  EnableActorBlur       ( .Actor:Self FFFFFFFF )
   CB8:  Return
   CC0:  End
 }

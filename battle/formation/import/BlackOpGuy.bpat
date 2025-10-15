@@ -3,7 +3,7 @@
 #new:Actor $BlackOpGuy {
 % stats
 [Index]        64b 
-[Level]        28`b 
+[Level]        30`b 
 [MaxHP]        15`b 
 [Coins]         3`b 
 [Flags]       00000000 
@@ -462,6 +462,7 @@
    A8:  	Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_8022744C_10 )
    C0:  	Call  SetAnimation      ( .Actor:Self 00000001 003F0502 )
    D8:  EndIf
+		Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
    E0:  Return
    E8:  End
 }
@@ -978,7 +979,13 @@
   120:  	EndChildThread
   128:  	Call  SetPartPos        ( .Actor:Self 00000003  0`  50`  0` )
   148:  	Call  SetPartFlagBits   ( .Actor:Self 00000003 00000001 .False )
-  164:  	Call  SetAnimation      ( .Actor:Self 00000001 003F051B )
+  2D4:  	Wait  3`
+			Call  SetAnimation  ( .Actor:Self 00000001 003F051B )
+			Wait  4`
+  2CC:  Thread
+			Wait  14`
+			Call  SetAnimation  ( .Actor:Self 00000001 003F051D )
+  2F8:  EndThread
   17C:  	Goto  64
   188:  EndIf
   190:  ChildThread
@@ -995,16 +1002,9 @@
   240:  Add   *Var1  00000017 
   250:  Sub   *Var2  00000002 
   260:  Call  SetPartPos    ( .Actor:Self 00000003 *Var0 *Var1 *Var2 )
-  280:  Call  SetAnimation  ( .Actor:Self 00000001 003F051D )
   298:  Wait  4`
   2A4:  Call  SetPartFlagBits   ( .Actor:Self 00000003 00000001 .False )
   2C0:  Label  64
-  2CC:  Thread
-  2D4:  	Wait  5`
-  2E0:  	Call  SetAnimation  ( .Actor:Self 00000001 003F0513 )
-			Wait  8`
-			Call  SetAnimation  ( .Actor:Self 00000001 003F0503 )
-  2F8:  EndThread
   300:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
   314:  If  *Var0  &  ~Flags:StatusFlags:Shrink % 80000
   324:  	Call  SetPartScale  ( .Actor:Self 00000003 *Fixed[0.4] *Fixed[0.4] *Fixed[0.4] )
@@ -1074,6 +1074,40 @@
   870:  End
 }
 
+
+
+#new:Script $Script_GoInvisible
+{
+  26C:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+  280:  Call  UseBattleCamPreset    ( 0000000E )
+  290:  Call  BattleCamTargetActor  ( .Actor:Self )
+  2A0:  Call  MoveBattleCamOver (  15` )
+  2B0:  Wait  15`
+		Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  3A4:  		Sub   *Var0  00000006 
+  3B4:  		Add   *Var1  0000000C 
+  3C4:  		Sub   *Var2  00000002 
+  3D4:  		Call  PlayEffect    ( ~FX:RadialFlowOut:WhiteWaves *Var0 *Var1 *Var2 *Fixed[0.12] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  660:  Thread
+  668:  	Wait  10`
+  674:  	Call  PlaySoundAtActor  ( .Actor:Self 000002DB )
+  688:  EndThread
+  690:  Thread
+  698:  	Call  8026BF48      ( 00000001 )
+  6A8:  	Call  VanishActor   ( .Actor:Self 00000001 )
+  6BC:  	Call  8026BF48      ( 00000000 )
+  6CC:  EndThread
+  6D4:  Call  WaitForBuffDone ( )
+  6E0:  Call  UseBattleCamPreset    ( 00000002 )
+  6F0:  Wait  10`
+  708:  Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  71C:  Call  UseIdleAnimation      ( .Actor:Self .True )
+		Return
+		End
+}
+
+
+
 #new:Script $Script_TakeTurn_802293DC_10 {
     0:  Call  GetBattlePhase    ( *Var0 )
    10:  If  *Var0  ==  00000001 
@@ -1081,6 +1115,15 @@
    38:  	Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_8022744C_10 )
    50:  	Call  SetAnimation      ( .Actor:Self 00000001 003F0502 )
    68:  EndIf
+  A2C:  Call  RandInt       ( 100` *Var6 )
+  A40:  If  *Var6  <  35`
+			Call  GetActorVar   ( .Actor:Self 00000008 *Var7 )
+			If *Var7  == 0`
+				Call  SetActorVar   ( .Actor:Self 00000008 1` )
+				ExecWait  $Script_GoInvisible
+				Return
+			EndIf
+		EndIf
    70:  Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
    88:  Switch  *Var0 
    94:  	Case  ==  00000000 

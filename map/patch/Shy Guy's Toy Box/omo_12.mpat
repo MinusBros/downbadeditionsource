@@ -20,13 +20,121 @@
 
 @	$Script_80240BA0
 {
-  [100]  Wait  15`
-  [264]  Call  SetNpcSpeed   ( .NpcID:BigLanternGhost_00 *Fixed[6.0] )
-  [31C]  Wait  2`
-  [338]  Wait  10`
-  [34C]  	Wait  15`
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  SetPlayerPos  (  70`  20`  0` )
+   28:  Call  ShowMessageAtScreenPos    ( 000F004E  160`  40` ) % Wee hee hee hee... Someone... has come... Someone  ...
+   40:  Call  SetNpcPos     ( .NpcID:BigLanternGhost_00  -150`  0`  20` )
+   5C:  Call  UseSettingsFrom       ( .Cam:Default  -150`  0`  20` )
+   78:  Call  SetPanTarget  ( .Cam:Default  -150`  0`  20` )
+   94:  Call  SetCamDistance        ( .Cam:Default *Fixed[350.0] )
+   A8:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-9.0] )
+   C0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   D4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   EC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  100:  Wait  14`
+  10C:  Call  GetNpcPos     ( .NpcID:BigLanternGhost_00 *Var2 *Var3 *Var4 )
+  128:  Add   *Var2  00000020
+  138:  Add   *Var3  0000000A
+  148:  Call  MakeLerp      ( 000000FF 00000064 0000003C .Easing:Linear )
+  164:  Label  0
+  170:  Call  UpdateLerp ( )
+  17C:  Call  $Function_80240314    ( *Var2 *Var3 *Var4 *Var0 )
+  198:  Wait  1`
+  1A4:  If  *Var1  ==  00000001
+  1B4:  	Goto  0
+  1C0:  EndIf
+  1C8:  Call  SpeakToPlayer ( .NpcID:BigLanternGhost_00 006D0005 006D0001 00000000 000F004F ) % Wee hee hee... Oh... Could it be...? Wee hee hee h ...
+  1E8:  Call  SetPanTarget  ( .Cam:Default  50`  0`  20` )
+  204:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.4] )
+  218:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  230:  Set   *AreaByte[1]  00000001
+  240:  Set   *AreaByte[2]  FFFFFFE4
+  250:  Call  SetNpcAnimation   ( .NpcID:BigLanternGhost_00 006D0006 )
+  264:  Call  SetNpcSpeed   ( .NpcID:BigLanternGhost_00 *Fixed[6.9] )
+  278:  Call  NpcMoveTo     ( .NpcID:BigLanternGhost_00  0`  20`  0` )
+  294:  Call  SetNpcAnimation   ( .NpcID:BigLanternGhost_00 006D0001 )
+  2A8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  2BC:  Call  SpeakToPlayer ( .NpcID:BigLanternGhost_00 006D0005 006D0001 00000000 000F0050 ) % Looks like you're mine, Mario! Wee hee... I won't  ...
+  2DC:  Thread
+  2E4:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[0.5] )
+  300:  EndThread
+  308:  Call  SetNpcAnimation       ( .NpcID:BigLanternGhost_00 006D000F )
+  31C:  Wait  2`
+  328:  Call  SetPlayerAnimation    ( 0008000A )
+  338:  Wait  8`
+  344:  Thread
+  34C:  	Wait  20`
+  358:  	Set   *AreaByte[1]  00000004
+  368:  EndThread
+		Call $SetFlagCarryOverworldMusicToBattle()
+		Call  SetMusicTrack ( 00000000 .Song:Kazuya 00000002 00000008 )
+  370:  Call  SetNpcVar ( .NpcID:BigLanternGhost_00 00000000 00000001 )
+  388:  Return
+  390:  End
 }
 
+
+@	$Script_Defeat_80241EE0
+{
+    0:  Wait  1`
+    C:  Call  GetBattleOutcome  ( *Var0 )
+   1C:  Switch  *Var0
+   28:  	Case  ==  .Outcome:PlayerWon % 0
+				Call  SetMusicTrack ( 00000000 .Song:CreepyToybox 00000000 00000008 )
+   34:  		Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+   48:  		Set   *AreaByte[1]  00000000
+   58:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   74:  		Call  $Function_80240314    ( *Var0 *Var1 *Var2 00000064 )
+   90:  		Thread
+   98:  			Set   *MapFlag[00]  .False
+   A8:  			Call  SpeakToPlayer ( .NpcID:BigLanternGhost_00 006D0008 006D0008 00000000 000F0054 ) % Nooooooooo!!
+   C8:  			Set   *MapFlag[00]  .True
+   D8:  		EndThread
+   E0:  		Thread
+   E8:  			Wait  15`
+   F4:  			Call  SetNpcJumpscale   ( .NpcID:BigLanternGhost_02 *Fixed[1.0] )
+  108:  			Call  SetNpcPos ( .NpcID:BigLanternGhost_02  0`  0`  20` )
+  124:  			Call  NpcJump0  ( .NpcID:BigLanternGhost_02  0`  0`  20`  10` )
+  144:  			Call  SetNpcPos ( .NpcID:BigLanternGhost_03  0`  0`  20` )
+  160:  		EndThread
+  168:  		Call  SetNpcAnimation   ( .Npc:Self 006D0007 )
+  17C:  		Call  SetNpcSpeed       ( .Npc:Self *Fixed[10.0] )
+  190:  		Call  NpcMoveTo ( .Npc:Self  400`  0`  0` )
+  1AC:  		Label  0
+  1B8:  		If  *MapFlag[00]  ==  .False
+  1C8:  			Wait  1`
+  1D4:  			Goto  0
+  1E0:  		EndIf
+  1E8:  		Call  GetNpcPos ( .NpcID:BigLanternGhost_02 *Var3 *Var4 *Var5 )
+  204:  		SubF  *Var3  *Var0
+  214:  		SubF  *Var4  *Var1
+  224:  		SubF  *Var5  *Var2
+  234:  		DivF  *Var3  *Fixed[60.0]
+  244:  		DivF  *Var4  *Fixed[60.0]
+  254:  		DivF  *Var5  *Fixed[60.0]
+  264:  		SetF  *Var6  *Fixed[2.1669922]
+  274:  		SetF  *Var7  *Fixed[100.0]
+  284:  		Loop  0000003C
+  290:  			AddF  *Var0  *Var3
+  2A0:  			AddF  *Var1  *Var4
+  2B0:  			AddF  *Var2  *Var5
+  2C0:  			AddF  *Var7  *Var6
+  2D0:  			Call  $Function_80240314    ( *Var0 *Var1 *Var2 *Var7 )
+  2EC:  			Wait  1`
+  2F8:  		EndLoop
+  300:  		Set   *AreaByte[1]  00000003
+  310:  		Set   *AreaByte[2]  00000066
+  320:  		Wait  1`
+  32C:  		Call  SetNpcVar ( .NpcID:BigLanternGhost_02 00000000 00000001 )
+  344:  		Set   *GB_StoryProgress  .Story:Ch4_DefeatedLanternGhost
+  354:  		Call  DisablePlayerInput    ( .False )
+  364:  		Call  RemoveNpc ( .Npc:Self )
+  374:  	Case  ==  .Outcome:PlayerLost % 1
+  380:  	Case  ==  .Outcome:PlayerFled % 2
+  38C:  EndSwitch
+  394:  Return
+  39C:  End
+}
 
 @	$Script_Idle_80241E60
 {
@@ -45,9 +153,11 @@
    5C:  				BreakLoop
    64:  			EndIf
    6C:  		EndLoop
+				Call $ClearFlagCarryOverworldMusicToBattle()
    74:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
    90:  	EndThread
    98:  Else
+			Call $ClearFlagCarryOverworldMusicToBattle()
    A0:  	Call  SetMusicTrack ( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
    			Thread
 				Wait  30`

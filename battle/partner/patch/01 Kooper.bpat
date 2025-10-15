@@ -239,6 +239,26 @@
 }
 
 
+%Give Kooper 1 defense to regular enemy attacks
+@	$DefenseTable_8023846C
+{
+	.Element:Normal 00000001
+	.Element:Fire   00000000
+	.Element:End
+}
+
+
+@	$Script_80238E38
+{
+   [C8]  Call  JumpToGoal    ( .Actor:Partner  15` .False .True .False )
+  [114]  Call  JumpToGoal    ( .Actor:Partner  5` .False .False .True )
+  [160]  Call  JumpToGoal    ( .Actor:Partner  3` .False .False .True )
+  [190]  Call  JumpToGoal    ( .Actor:Partner  2` .False .False .True )
+  [1C8]  Wait  3`
+  [1E4]  Call  SetActorSpeed ( .Actor:Partner *Fixed[14.0] )
+}
+
+
 
 %first strike
 @ $Script_8023C754
@@ -525,19 +545,6 @@
 
 
 
-@	$Script_8023AA38
-{
-   [78]  Call  SetActorSpeed ( .Actor:Partner *Fixed[13.0] )
-  [11C]  Wait  7`
-  [688]  	Wait  10`
-  [6DC]  	Call  SetActorSpeed ( .Actor:Partner *Fixed[22.0] )
-  [B5C]  Wait  5`
-  [B8C]  Wait  5`
-  [BC0]  Call  SetActorSpeed ( .Actor:Partner *Fixed[18.0] )
-}
-
-
-
 
 
 @	$Script_8023B660
@@ -557,12 +564,193 @@
 
 %Make Power Shell viable.
 %5 damage at Ultra Rank.
+%Rebranded as Ice Shell
 
 @	$Script_80239E7C
 {
-   [74]  		Set   *VarE  00000002
-   [A0]  		Set   *VarE  00000003
-   [B0]  		Set   *VarF  00000005
-  [100]  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
-  [1A4]  Wait  5`
+    0:  Call  LoadActionCommand ( .ActionCommand:Smash )
+   10:  Call  802A9000 ( )
+   1C:  Call  GetActorLevel     ( .Actor:Partner *Var0 )
+   30:  Switch  *Var0
+   3C:  	Case  ==  00000000
+   48:  		Set   *VarE  00000001
+   58:  		Set   *VarF  00000002
+   68:  	Case  ==  00000001
+   74:  		Set   *VarE  00000002
+   84:  		Set   *VarF  00000003
+   94:  	Case  ==  00000002
+   A0:  		Set   *VarE  00000003
+   B0:  		Set   *VarF  00000005
+   C0:  EndSwitch
+   C8:  Call  InitTargetIterator ( )
+   D4:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   F0:  Add   *Var0  0000001E
+		Call  PlaySoundAtActor  ( .Actor:Partner 0000035D )
+  100:  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+  114:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0006 )
+  12C:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  148:  Call  RunToGoal     ( .Actor:Partner  0` .False )
+  160:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A0004 )
+  178:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000E )
+  190:  Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  1A4:  Wait  10`
+  3FD:  Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+		Thread
+			Loop  16`
+  400:  		Call  PlayEffect    ( ~FX:EmitterVolume:Snowflakes *Var0 *Var1 *Var2 00000014 FFFFFFEC *Fixed[1.0] 00000005 0000001E 00000000 00000000 00000000 00000000 )
+				Wait  2`
+			EndLoop
+		EndThread
+  1B0:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  1C8:  Loop  0000001E
+  1D4:  	Wait  1`
+  1E0:  	Call  CheckButtonDown   ( ~Flags:Buttons:40000 *Var0 )
+  1F4:  	If  *Var0  !=  .False
+  204:  		BreakLoop
+  20C:  	EndIf
+  214:  EndLoop
+  21C:  Call  UseBattleCamPreset    ( 0000003B )
+  22C:  Call  802A9258  ( 00000000 0000002F 00000003 )
+  244:  Call  SetActionResult   ( 00000000 )
+  254:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000A000A )
+  26C:  Call  PlaySoundAtActor  ( .Actor:Partner 0000200C )
+  280:  Set   *Var9  00000000
+  290:  Set   *Var1  00000000
+  2A0:  Loop  00000032
+  2AC:  	Wait  1`
+  2B8:  	Switch  *Var9
+  2C4:  		Case  <  00000014
+  2D0:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  2E8:  		Case  ==  00000014
+  2F4:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  310:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  354:  		Case  <  0000001E
+  360:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+  378:  		Case  ==  0000001E
+  384:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  3A0:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  3E4:  		Case  <  00000028
+  3F0:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+  408:  		Case  ==  00000028
+  414:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  430:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  474:  		Case  <  00000032
+  480:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+  498:  		Case  ==  00000032
+  4A4:  			Call  GetActorPos   ( .Actor:Partner *Var4 *Var5 *Var6 )
+  4C0:  			Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var4 *Var5 *Var6 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
+  504:  	EndSwitch
+  50C:  	Add   *Var9  00000001
+  51C:  	Call  GetActionResult   ( *Var0 )
+  52C:  	If  *Var0  !=  00000000
+  53C:  		If  *Var1  !=  00000001
+  54C:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  564:  			Set   *Var1  00000001
+  574:  		EndIf
+  57C:  	EndIf
+  584:  	Call  CheckButtonDown   ( ~Flags:Buttons:40000 *Var0 )
+  598:  	If  *Var0  ==  .False
+  5A8:  		BreakLoop
+  5B0:  	EndIf
+  5B8:  EndLoop
+  5C0:  Label  0
+  5CC:  Wait  1`
+  5D8:  Set   *VarA  *Fixed[8.0]
+  5E8:  Switch  *Var9
+  5F4:  	Case  <  00000014
+  600:  		Set   *VarA  *Fixed[10.0]
+  610:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000A )
+  628:  	Case  <  0000001E
+  634:  		Set   *VarA  *Fixed[12.0]
+  644:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000B )
+  65C:  	Case  <  00000028
+  668:  		Set   *VarA  *Fixed[14.0]
+  678:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000C )
+  690:  	Case  <  00000032
+  69C:  		Set   *VarA  *Fixed[16.0]
+  6AC:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000A000D )
+  6C4:  EndSwitch
+  6CC:  Add   *Var9  00000001
+  6DC:  Call  GetActionSuccess  ( *Var0 )
+  6EC:  If  *Var0  ==  00000000
+  6FC:  	Goto  0
+  708:  EndIf
+		Call  StopSound ( 0000035D )
+  710:  Call  SetActorVar       ( .Actor:Self 00000000 00000000 )
+  728:  Call  PlaySoundAtActor  ( .Actor:Partner 0000200B )
+  73C:  Call  UseBattleCamPreset    ( 00000003 )
+  74C:  Call  MoveBattleCamOver (  15` )
+  75C:  Set   *VarB  00000104
+  76C:  DivF  *VarB  *VarA
+  77C:  Thread
+  784:  	Call  AddActorDecoration    ( .Actor:Self 00000000 00000001 .Decoration:GreySmokeTrail )
+  7A0:  	Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+  7BC:  	Add   *Var0  00000104
+  7CC:  	Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  7E8:  	Call  SetActorSpeed ( .Actor:Partner *VarA )
+  7FC:  	Call  SetActorSounds        ( .Actor:Partner .ActorSound:Walk 00000000 00000000 )
+  818:  	Call  RunToGoal     ( .Actor:Partner  0` )
+  82C:  	Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+  844:  	Call  RemoveActorDecoration ( .Actor:Self 00000000 00000001 )
+  85C:  EndThread
+  864:  Set   *Flag[00]  .False
+  874:  Label  A
+  880:  Wait  1`
+  88C:  Call  SetGoalToTarget   ( .Actor:Partner )
+  89C:  Call  GetGoalPos        ( .Actor:Partner *Var0 *Var1 *Var2 )
+  8B8:  Call  GetActorPos       ( .Actor:Partner *Var3 *Var4 *Var5 )
+  8D4:  If  *Var0  >  *Var3
+  8E4:  	Goto  A
+  8F0:  EndIf
+  8F8:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000  2` 00000010 )
+  91C:  If  *Var0  ==  .HitResult:Miss % 6
+  92C:  	Goto  C
+  938:  EndIf
+  940:  If  *Flag[00]  ==  .False
+  950:  	Call  GetActionCommandResult    ( *Var0 )
+  960:  	Switch  *Var0
+  96C:  		Case  >  00000000
+  978:  			Call  UseBattleCamPreset    ( 00000004 )
+  988:  		Default
+  990:  			Call  UseBattleCamPreset    ( 00000033 )
+  9A0:  	EndSwitch
+  9A8:  EndIf
+  9B0:  Set   *Flag[00]  .True
+  9C0:  Call  GetActionCommandResult    ( *Var0 )
+  9D0:  Switch  *Var0
+  9DC:  	Case  >  00000000
+  9E8:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoOtherDamagePopups|Ice 0000009F 00000000 *VarF 00000070 )
+  A0C:  	Default
+  A14:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoOtherDamagePopups|Ice 0000009F 00000000 *VarE 00000030 )
+  A38:  EndSwitch
+  A40:  Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  A54:  Label  C
+  A60:  Call  ChooseNextTarget  ( .Iter:Next *Var2 )
+  A74:  If  *Var2  !=  FFFFFFFF
+  A84:  	Goto  A
+  A90:  EndIf
+  A98:  If  *Flag[00]  ==  .False
+  AA8:  	Call  GetActionCommandResult    ( *Var0 )
+  AB8:  	Switch  *Var0
+  AC4:  		Case  >  00000000
+  AD0:  			Call  UseBattleCamPreset    ( 00000004 )
+  AE0:  		Default
+  AE8:  			Call  UseBattleCamPreset    ( 00000033 )
+  AF8:  	EndSwitch
+  B00:  EndIf
+  B08:  Label  B
+  B14:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+  B2C:  If  *Var0  ==  00000000
+  B3C:  	Wait  1`
+  B48:  	Goto  B
+  B54:  EndIf
+  B5C:  Call  GetActionCommandResult    ( *Var0 )
+  B6C:  Switch  *Var0
+  B78:  	Case  >  00000000
+  B84:  		ExecWait  $Script_80239084
+  B90:  	Default
+  B98:  		ExecWait  $Script_80238E38
+  BA4:  EndSwitch
+  BAC:  Return
+  BB4:  End
 }

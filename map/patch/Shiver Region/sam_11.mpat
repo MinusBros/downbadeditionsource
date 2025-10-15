@@ -14,6 +14,36 @@
 #define .NpcID:WorldParakarry_16    10
 #define .NpcID:ChuckQuizmo_17       11
 
+
+
+
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_SAM11_UnlockedDoor  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80244CF8 80000000 )
+   34:  	Call  AssignScript  ( $Script_80244CBC )
+   44:  	Set   *MapVar[6]  *Var0
+   54:  EndIf
+   5C:  Thread
+   64:  	Call  $Function_80240754 ( )
+   70:  EndThread
+   78:  Call  MakeEntity        ( .Entity:ScriptSpring ~Vec4d:Entity80244D60 80000000 )
+   9C:  Call  AssignScript      ( $Script_80244B14 )
+   AC:  Call  SetEntityCullMode ( 00000001 )
+   BC:  Set   *MapFlag[00]  .False
+   CC:  Bind  $Script_80243EB4 .Trigger:FloorTouch ~Collider:o570 00000001 00000000
+   E8:  Bind  $Script_802442D8 .Trigger:FloorTouch ~Collider:g_yuki2 00000001 00000000
+  104:  Call  MakeItemEntity    ( .Item:WarehouseKey ~Vec3d:Item80244DEC 00000000 *GF_SAM11_Item_WarehouseKey )
+		Call  MakeItemEntity   ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_JAN00_StarPiece )
+  128:  Return
+  130:  End
+}
+
+
+
+
 @	$Script_Interact_80247878
 {
     0:  Switch  *GB_StoryProgress
@@ -81,7 +111,7 @@
   5B0:  	Call  802CFD30  ( FFFFFFFF 00000007 *Var0 00000000 00000000 00000000 )
   5D4:  	Wait  1`
   5E0:  EndLoop
-		Call  NpcMoveTo ( .Npc:Self  -215`  -1245`  0` )
+		Call  SetNpcPos ( .Npc:Self  -217`  -1000`  -38` )
   418:  Wait  25`				
   %454:  		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
   %46C:  		Call  SetNpcAnimation   ( .Npc:Self 00D10002 )
@@ -105,6 +135,85 @@
   5E4:  Return
   5EC:  End
 }
+
+
+
+
+@	$Script_ToggleVis_802439A0
+{
+    0:  Switch  *Var0
+    C:  	Case  ==  00000000
+				Thread
+					Wait  45`
+					Call  802D5FA4  ( 00000004 )
+				EndThread
+   18:  		Set   *AreaFlag[001]  .False
+   28:  		Call  SetGroupEnabled   ( ~Model:s_naiso 00000001 )
+   3C:  	Case  ==  00000003
+   48:  		Set   *AreaFlag[001]  .True
+   58:  		Call  SetGroupEnabled   ( ~Model:s_naiso 00000000 )
+				Call  802D5FA4  ( 00000007 )
+   6C:  EndSwitch
+   74:  Return
+   7C:  End
+}
+
+
+@	$Script_ToggleVis_80243490
+{
+    0:  Switch  *Var0
+    C:  	Case  ==  00000000
+				Thread
+					Wait  45`
+					Call  802D5FA4  ( 00000004 )
+				EndThread
+   18:  		Set   *AreaFlag[001]  .False
+   28:  		Call  SetGroupEnabled   ( ~Model:g_naiso 00000001 )
+   3C:  		If  *GB_StoryProgress  <  .Story:Ch7_SpokeWithHerringway % 41
+   4C:  		Else
+   54:  			Call  EnableModel   ( ~Model:ana .False )
+   68:  		EndIf
+   70:  	Case  ==  00000002
+   7C:  		If  *GB_StoryProgress  ==  .Story:Ch7_SpokeWithHerringway % 41
+   8C:  			If  *GF_SAM11_LeftHerringwaysHouse  ==  .False
+   9C:  				Thread
+   A4:  					Wait  30`
+   B0:  					Call  MakeLerp  ( 00000000 000000FF 00000014 .Easing:Linear )
+   CC:  					Loop
+   D8:  						Call  UpdateLerp ( )
+   E4:  						Call  802CFD30  ( 00000002 00000007 *Var0 00000000 00000000 00000000 )
+  108:  						Wait  1`
+  114:  						If  *Var1  ==  00000000
+  124:  							BreakLoop
+  12C:  						EndIf
+  134:  					EndLoop
+  13C:  					Wait  10`
+  148:  					Call  SetNpcAnimation   ( .NpcID:Herringway_02 00D10002 )
+  15C:  					Call  PlayerFaceNpc     ( .NpcID:Herringway_02 .False )
+  170:  					Call  NpcMoveTo ( .NpcID:Herringway_02  -500`  0`  50` )
+  18C:  					Call  SetNpcFlagBits    ( .NpcID:Herringway_02 00000200 .False )
+  1A4:  					Call  SetNpcPos ( .NpcID:Herringway_02  0`  -1000`  0` )
+  1C0:  				EndThread
+  1C8:  			EndIf
+  1D0:  		EndIf
+  1D8:  	Case  ==  00000003
+				Call  802D5FA4  ( 00000007 )
+  1E4:  		Set   *AreaFlag[001]  .True
+  1F4:  		Call  SetGroupEnabled   ( ~Model:g_naiso 00000000 )
+  208:  		Call  EnableModel       ( ~Model:gn_dan1 .True )
+  21C:  		If  *GB_StoryProgress  ==  .Story:Ch7_SpokeWithHerringway % 41
+  22C:  			If  *GF_SAM11_LeftHerringwaysHouse  ==  .False
+  23C:  				Thread
+  244:  				EndThread
+  24C:  				Set   *GF_SAM11_LeftHerringwaysHouse  .True
+  25C:  			EndIf
+  264:  		EndIf
+  26C:  EndSwitch
+  274:  Return
+  27C:  End
+}
+
+
 
 
 % ====================================================

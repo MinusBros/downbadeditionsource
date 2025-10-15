@@ -125,7 +125,7 @@ CLEAR   S3
 % S3 = amount of fp to give
 JAL     ~Func:rand_int
 ORI     A0, R0, 100`
-SLTIU   A0, V0, 33` % 33% to give 1fp per pity badge
+SLTIU   A0, V0, 100`
 ADDU    S3, S3, A0
 ADDIU   S2, S2, 1
 SLTU    A0, S2, S0
@@ -392,6 +392,65 @@ FFFFFFFF 000000E0
 
 
 
+% Power Plus P, Power Rush P & Mega Rush P
+% It also has part of the code of P-Down, D-Up P & P-Up, D-Down P and HP Drain P
+%
+% Plus attack buffs/debuffs from extraData
+%
+% From ~Func:calc_partner_damage_enemy
+@Hook 1AD298 % 8027E9B8
+{
+    PUSH    S0, T0, R0, R0, R0, A1, A2, A3
+    % Bow's Smack
+    %
+    % Check DamageType:00000001 
+    %
+    % S1=battleStatus
+    LH	    S0, 017E (S4) % load attack damage
+    % Check if the IgnoreDefense was used, needed by Bow Smack & Fan Smack.
+    %
+    % Check if current partner is Bow
+    LABU    A0, 8010F2A2 % partnerID
+    ORI     A1, R0, 9 % .Partner:Bow
+    BNE     A0, A1, .CheckBadges
+    CLEAR   V1
+    % check if current mode is super bow
+    CLEAR   A0
+    LIO     A1, *GameMode
+    JAL     ~Func:get_variable
+    RESERVED
+    CLEAR   V1
+    ORI     A1, R0, 1 % Super Bow
+    BEQ     V0, A1, .CheckBadges
+    NOP
+    LW      A0, 188 (S1) % currentAttackElement
+    LUI     A1, 0800 % IgnoreDefense
+    AND     A0, A0, A1
+    BEQ     A0, R0, .CheckBadges
+    NOP
+    %RESERVED
+    .CheckBadges
+    %===============
+    % Power Plus P
+    %===============
+    JAL     $IsBadgeActivated_Stack
+    ORI     A0, R0, 018C % .Item:PowerPlusP
+    ADDU    S0, S0, V0
+    .CheckBuffs
+    % New statuses
+    JAL     $GetActorExtraBattleData_Pointer
+    ORI     A0, R0, 0100 % .Actor:Partner
+    BEQ     V0, R0, .End
+    NOP
+    .End
+    % pop
+    COPY    A0, S0
+    POP     S0, T0, R0, R0, R0, A1, A2, A3
+    % restore vanilla code
+    LAW     V0, 800DC070
+    J       8027E9CC
+    LW	    T0, 0018 (SP)
+}
 
 
 

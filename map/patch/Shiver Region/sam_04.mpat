@@ -1,11 +1,24 @@
+#define .NpcID:Penguin_00           00
+#define .NpcID:Penguin_01           01
+#define .NpcID:Penguin_02           02
+#define .NpcID:Penguin_03           03
+#define .NpcID:Penguin_04           04
+#define .NpcID:Penguin_05           05
+#define .NpcID:Penguin_06           06
+#define .Npc:Cody           07
+
+#delete  $Script_80240780
+
 @	$Script_MakeEntities
 {
    [6C]  Call  MakeItemEntity    ( .Item:HustleDrink ~Vec3d:Item802451BC .ItemSpawnMode:Fixed_NeverVanish *GF_SAM04_Item_RepelGel )
 }
 
+#import AutoSave.mpat
 
 @	$Script_Main
 {
+		
 		Call $ClearFlagCarryOverworldMusicToBattle()
     0:  Set   *GB_WorldLocation  .Location:ShiverSnowfield
    10:  Call  SetSpriteShading  ( .Shading:None )
@@ -14,8 +27,9 @@
    5C:  Call  SetCamEnabled     ( .Cam:Default .True )
    70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    84:  Call  MakeNpcs  ( .False $NpcGroupList_80245120 )
+		Call  EnableModel   ( ~Model:darkness .False )
+		Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000000 00000008 )
    98:  ExecWait  $Script_MakeEntities
-   A4:  ExecWait  $Script_80240780
    B0:  Call  PlayEffect        ( ~FX:Snowfall 00000028 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
    F4:  Call  ModifyColliderFlags   ( 00000003 ~Collider:ground 00000008 )
   10C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deilie 00000008 )
@@ -40,7 +54,489 @@
   2BC:  Bind  $Script_ShakeTree_80240CE4 .Trigger:WallHammer ~Collider:miki6 00000001 00000000
   2D8:  Bind  $Script_ShakeTree_80240CE4 .Trigger:PointBomb $TriggerCoord_8024170C 00000001 00000000
   2F4:  Exec  $Script_EnterWalk_80240928
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  If  *Var0  >  ~Entry:Entry3
+			Exec	$Script_802408C4
+		EndIf
   300:  Wait  1`
+		If    *GF_SAM04_CodyDefeated == .False
+			If    *GB_StoryProgress  ==  .Story:Ch7_GotSnowmanBucket
+				Wait  1`
+				
+				Call  FadeOutMusic  ( 00000000 000001F4 )
+				Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+				Call  MakeNpcs  ( .False $NpcGroupList_Cody )
+				Call  SetSpriteShading   ( .Shading:tik_20 )
+				Exec  $Script_SetupTexturePan
+				Call  $Function_SetupFog
+				Call  EnableModel   ( ~Model:darkness .True )
+				Exec  $CheckPos
+				Exec  $AutoSave 
+				Wait  1`
+			EndIf
+		EndIf
   30C:  Return
   314:  End
 }
+
+
+
+@	$Script_Init_802442F0
+{
+   14:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_802440E4 )
+   28:  Call  SetNpcFlagBits    ( .Npc:Self 10000002 .True )
+   40:  Call  EnableNpcShadow   ( .Npc:Self .False )
+		If    *GF_SAM04_CodyDefeated == .False
+			If    *GB_StoryProgress  ==  .Story:Ch7_GotSnowmanBucket		
+    0:  		Return
+			EndIf
+		EndIf
+		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80244064 )
+   54:  Return
+   5C:  End
+}
+
+
+#new:Script $Script_Init_Cody
+{
+		Call  BindNpcIdle   ( .Npc:Self $Script_Cody_Idle )
+		Call  BindNpcDefeat     ( .Npc:Self $Script_Cody_Defeat )
+		Call  SetNpcPos ( .Npc:Self 0` 0` -115` )
+   C0:  Return
+   C8:  End
+}
+
+#new:Script  $CheckPos
+{
+		Loop
+   1C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 ) 
+		If  *Var0  >  -100`
+			If *Var0 <  100`
+				If  *Var2  <  23`
+				   Call  DisablePlayerInput    ( .True )
+				   Call  SpeakToPlayer     ( .Npc:Cody 00560502 00560501 00000000 00120182 )
+				   Wait  5`
+				   Set   *GF_SAM04_CodyDefeated  .True
+				   Call  SetNpcVar ( .Npc:Cody 00000000 00000001 )
+	   50:  	   Return
+				EndIf
+			EndIf
+		EndIf
+		Call  NpcFacePlayer ( .Npc:Cody 00000004 )
+		Wait  1`
+		EndLoop
+		Return
+		End
+}
+
+#new:Script  $Script_Cody_Idle
+{
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Wait  10`
+   70:  Call  GetNpcPos      ( .Npc:Cody *Var0 *Var1 *Var2 )
+   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+   C0:  Call  SetCamDistance    ( .Cam:Default  400` )
+   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
+  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  118:  Call  DisablePlayerInput    ( .False )
+		Call  StartBossBattle   ( .Song:Kazuya )	
+		Return
+		End
+}
+
+#new:Script  $Script_Cody_Defeat
+{
+	Thread
+		Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+		Wait  60`
+		Call  ClearAmbientSounds    ( 000000FA )
+		Call  GotoMap   ( "sam_04" 00000005 )
+		Exec  $Script_802408C4
+	EndThread
+	Wait  1`
+	Call  DoNpcDefeat ( )
+	Return
+	End
+}
+
+
+#new:NpcSettings $NpcSettings_Cody
+{
+	00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+#new:NpcGroup $NpcGroup_Cody
+{
+	.Npc:Cody $NpcSettings_Cody ~Vec3f:Cody
+	00640D0D $Script_Init_Cody 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:Cody
+	~AnimationTable:Cody
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_Cody
+{
+	00000001 $NpcGroup_Cody 1E010000
+	00000000 00000000 00000000
+}
+
+
+
+@	$Script_ExitWalk_802407B0
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+		Call  ClearAmbientSounds    ( 000000FA )
+   2C:  Call  GotoMap   ( $ASCII_802451F0 00000001 ) % sam_03
+   40:  Wait  60`
+   4C:  Return
+   54:  End
+}
+
+@ $Script_ExitWalk_8024080C
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+		Call  ClearAmbientSounds    ( 000000FA )
+   2C:  Call  GotoMap   ( $ASCII_802451F8 00000000 ) % sam_05
+   40:  Wait  60`
+   4C:  Return
+   54:  End
+}
+
+@ $Script_ExitWalk_80240868
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
+   20:  Exec  ExitWalk
+		Call  ClearAmbientSounds    ( 000000FA )
+   2C:  Call  GotoMap   ( $ASCII_80245200 00000000 ) % sam_07
+   40:  Wait  60`
+   4C:  Return
+   54:  End
+}
+
+
+
+
+
+#new:Script $Script_TexturePan_Update
+{
+    SetGroup  00000000
+    If  *Var[5]  ==  00000001
+        If  *Var[6]  ==  00000001
+            If  *Var[7]  ==  00000001
+                If  *Var[8]  ==  00000001
+                    Call  $Function_TexturePan_Simple ( )
+                    Return
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+    Call  $Function_TexturePan_Complex ( )
+    Return
+    End
+}
+
+#new:Function $Function_TexturePan_Simple
+{
+    ADDIU       SP, SP, FFE8
+    SW          S0, 10 (SP)
+    COPY        S0, A0
+    SW          RA, 14 (SP)
+    LW          V1, A8 (S0)
+    LW          V0, 88 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o30
+    SW          V1, A8 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o40
+    ADDU        V0, V1, V0
+    .o30
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o44
+    SUBU        V0, V1, A0
+    .o40
+    SW          V0, A8 (S0)
+    .o44
+    LW          V1, AC (S0)
+    LW          V0, 8C (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o64
+    SW          V1, AC (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o74
+    ADDU        V0, V1, V0
+    .o64
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o78
+    SUBU        V0, V1, A0
+    .o74
+    SW          V0, AC (S0)
+    .o78
+    LW          V1, B0 (S0)
+    LW          V0, 90 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o98
+    SW          V1, B0 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oA8
+    ADDU        V0, V1, V0
+    .o98
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oAC
+    SUBU        V0, V1, A0
+    .oA8
+    SW          V0, B0 (S0)
+    .oAC
+    LW          V1, B4 (S0)
+    LW          V0, 94 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .oCC
+    SW          V1, B4 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oDC
+    ADDU        V0, V1, V0
+    .oCC
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oE0
+    SUBU        V0, V1, A0
+    .oDC
+    SW          V0, B4 (S0)
+    .oE0
+    LW          A0, 84 (S0)
+    JAL         8011BC1C
+    LW          A1, A8 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC34
+    LW          A1, AC (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC4C
+    LW          A1, B0 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC64
+    LW          A1, B4 (S0)
+    LW          RA, 14 (SP)
+    LW          S0, 10 (SP)
+    CLEAR       V0
+    JR          RA
+    ADDIU       SP, SP, 18
+}
+
+#new:Function $Function_TexturePan_Complex
+{
+    ADDIU       SP, SP, FFE8
+    SW          S0, 10 (SP)
+    COPY        S0, A0
+    BEQ         A1, R0, .o24
+    SW          RA, 14 (SP)
+    SW          R0, 70 (S0)
+    SW          R0, 74 (S0)
+    SW          R0, 78 (S0)
+    SW          R0, 7C (S0)
+    .o24
+    LW          V0, 70 (S0)
+    BNE         V0, R0, .o64
+    NOP
+    LW          V1, A8 (S0)
+    LW          V0, 88 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o50
+    SW          V1, A8 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o60
+    ADDU        V0, V1, V0
+    .o50
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o64
+    SUBU        V0, V1, A0
+    .o60
+    SW          V0, A8 (S0)
+    .o64
+    LW          V0, 74 (S0)
+    BNE         V0, R0, .oA4
+    NOP
+    LW          V1, AC (S0)
+    LW          V0, 8C (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o90
+    SW          V1, AC (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oA0
+    ADDU        V0, V1, V0
+    .o90
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oA4
+    SUBU        V0, V1, A0
+    .oA0
+    SW          V0, AC (S0)
+    .oA4
+    LW          V0, 78 (S0)
+    BNE         V0, R0, .oE4
+    NOP
+    LW          V1, B0 (S0)
+    LW          V0, 90 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .oD0
+    SW          V1, B0 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oE0
+    ADDU        V0, V1, V0
+    .oD0
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oE4
+    SUBU        V0, V1, A0
+    .oE0
+    SW          V0, B0 (S0)
+    .oE4
+    LW          V0, 7C (S0)
+    BNE         V0, R0, .o124
+    NOP
+    LW          V1, B4 (S0)
+    LW          V0, 94 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o110
+    SW          V1, B4 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o120
+    ADDU        V0, V1, V0
+    .o110
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o124
+    SUBU        V0, V1, A0
+    .o120
+    SW          V0, B4 (S0)
+    .o124
+    LW          A0, 84 (S0)
+    JAL         8011BC1C
+    LW          A1, A8 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC34
+    LW          A1, AC (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC4C
+    LW          A1, B0 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC64
+    LW          A1, B4 (S0)
+    LW          V0, 70 (S0)
+    LW          V1, 78 (S0)
+    LW          A0, 98 (S0)
+    ADDIU       V0, V0, 1
+    SW          V0, 70 (S0)
+    LW          V0, 74 (S0)
+    ADDIU       V1, V1, 1
+    SW          V1, 78 (S0)
+    LW          V1, 70 (S0)
+    ADDIU       V0, V0, 1
+    SW          V0, 74 (S0)
+    LW          V0, 7C (S0)
+    SLT         V1, V1, A0
+    ADDIU       V0, V0, 1
+    BNE         V1, R0, .o198
+    SW          V0, 7C (S0)
+    SW          R0, 70 (S0)
+    .o198
+    LW          V0, 74 (S0)
+    LW          V1, 9C (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1AC
+    SW          R0, 74 (S0)
+    .o1AC
+    LW          V0, 78 (S0)
+    LW          V1, A0 (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1C0
+    SW          R0, 78 (S0)
+    .o1C0
+    LW          V0, 7C (S0)
+    LW          V1, A4 (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1D4
+    SW          R0, 7C (S0)
+    .o1D4
+    LW          RA, 14 (SP)
+    LW          S0, 10 (SP)
+    CLEAR       V0
+    JR          RA
+    ADDIU       SP, SP, 18
+}
+
+
+
+
+
+#new:Script $Script_SetupTexturePan
+{
+	Call     802C9000 	( ~Model:ki1 0 )
+	Call     802C9000 	( ~Model:ki3 0 )
+	Call     802C9000 	( ~Model:ki4 0 )
+	Call     802C9000 	( ~Model:ki5 0 )
+	Call     802C9000 	( ~Model:ki6 0 )
+	Call     802C9000 	( ~Model:miki1 0 )
+	Call     802C9000 	( ~Model:miki3 0 )
+	Call     802C9000 	( ~Model:miki4 0 )
+	Call     802C9000 	( ~Model:mili5 0 )
+	Call     802C9000 	( ~Model:miki2 0 )
+	Call     802C9000 	( ~Model:miki6 0 )
+	Call     802C9000 	( ~Model:ki2_3 0 )
+	Call     802C9000 	( ~Model:ki2_2 0 )
+	Call     802C9000 	( ~Model:ki2_1 0 )
+	Thread
+		Set  *Var[0] 0
+		Set  *Var[1] 14A
+		Set  *Var[2] 0
+		Set  *Var[3] 123
+		Set  *Var[4] 0
+		Set  *Var[5] 1
+		Set  *Var[6] 0
+		Set  *Var[7] 1
+		Set  *Var[8] 0
+		Set  *Var[9] 0
+		Set  *Var[A] 0
+		Set  *Var[B] 0
+		Set  *Var[C] 0
+		Exec $Script_TexturePan_Update
+	EndThread
+	Return
+	End
+}
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3B6
+	JAL       8011BB74
+	ADDIU     A1, R0, 3D4
+	ADDIU     A0, R0, 0
+	ADDIU     A1, R0, 0
+	ADDIU     A2, R0, A
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+

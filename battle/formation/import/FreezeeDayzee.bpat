@@ -3,7 +3,7 @@
 #new:Actor $FreezeeDayzee {
 % stats
 [Index]        67b 
-[Level]        31`b 
+[Level]        35`b 
 [MaxHP]        16`b 
 [Coins]         2`b 
 [Flags]       00000000 
@@ -298,6 +298,7 @@
   668:  		ExecWait  $Script_8021D94C_18 
   674:  	EndCaseGroup
   67C:  EndSwitch
+		Call  EnableIdleScript  ( .Actor:Self 00000001 )
   684:  Call  UseIdleAnimation  ( .Actor:Self .True )
   698:  Return
   6A0:  End
@@ -306,8 +307,11 @@
 #new:Script $Script_Crazee_RunAway_18 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    44:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  UseBattleCamPreset    ( 0000003F )
    4C:  Call  BattleCamTargetActor  ( .Actor:Self )
+   5C:  Call  MoveBattleCamOver (  20` )
+   6C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
    AC:  Call  SetAnimation      ( .Actor:Self 00000001 00480903 )
    C4:  Wait  5`
    D0:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
@@ -320,11 +324,6 @@
   174:  Call  SetAnimation      ( .Actor:Self 00000001 00480904 )
   18C:  Call  SetActorSpeed     ( .Actor:Self *Fixed[12.0] )
   1E4:  Call  EnableActorBlur   ( .Actor:Self 00000000 )
-   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-   3C:  Call  UseBattleCamPreset    ( 0000003F )
-   4C:  Call  BattleCamTargetActor  ( .Actor:Self )
-   5C:  Call  MoveBattleCamOver (  20` )
-   6C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
    84:  Call  SetAnimation      ( .Actor:Self 00000001 00480905 )
    B0:  Call  SetGoalToTarget   ( .Actor:Self )
    C0:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
@@ -373,7 +372,13 @@
   4A8:  EndThread
   4B0:  Call  SetActorSounds    ( .Actor:Self .ActorSound:Walk 000020BA 000003B4 )
   4CC:  Call  SetActorSounds    ( .Actor:Self .ActorSound:WalkIncrement 0000000A 00000000 )
-  4E8:  Call  SetActorSpeed     ( .Actor:Self *Fixed[16.0] )
+  A2C:  Call  RandInt       ( 00000064 *Var8 )
+  A40:  If  *Var8  <  00000032 
+			Call  SetAnimation      ( .Actor:Self 00000001 00480904 )
+			Call  SetActorSpeed     ( .Actor:Self *Fixed[16.0] )
+		Else 
+			Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] )
+  A88:  EndIf	
   514:  Call  SetGoalToTarget   ( .Actor:Self )
   524:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
   540:  Add   *Var0  0000000A 
@@ -413,16 +418,12 @@
   6AC:  Call  SetAnimation      ( .Actor:Self 00000001 00480903 )
   6C4:  Wait  4`
   6D0:  Call  SetActorSpeed     ( .Actor:Self *Fixed[16.0] )
-  60C:  Switch  *VarF
-  618:  	CaseOR  ==  .HitResult:Hit % 0
-  624:  	CaseOR  ==  .HitResult:QuakeImmune % 2
   630:  		Call  UseBattleCamPreset    ( 00000002 )
   640:  		Call  MoveBattleCamOver     (  10` )
   650:  		Wait  5`
   65C:  		Call  YieldTurn ( )
-  668:  		ExecWait  $Script_8021D94C_18
-  674:  	EndCaseGroup
-  67C:  EndSwitch
+  668:  		ExecWait  $Script_8021D94C_18 
+		Call  EnableIdleScript  ( .Actor:Self 00000001 )
   684:  Call  UseIdleAnimation  ( .Actor:Self .True )
   698:  Return
   6A0:  End

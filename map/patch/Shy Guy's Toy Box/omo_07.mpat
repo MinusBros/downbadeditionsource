@@ -59,11 +59,88 @@
 }
 
 
+
+#import AutoSave.mpat
+
 @	$Script_Idle_80244834
 {
-   [C8]  	Call  SpeakToPlayer ( .NpcID:Fuzzy_05 00290218 00290201 00000000 000F003C ) % !!!!!!!! Meeeoork! Mario! This'll be fun!
+    0:  Label  0
+    C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		If  *Var0  >  940`
+			If  *GF_OMO_Autosave1 == .False
+				Exec  $AutoSave
+				Set  *GF_OMO_Autosave1 .True
+			EndIf
+		EndIf
+   24:  If  *Var0  <  000003DE
+   34:  	Wait  1`
+   40:  	Goto  0
+   4C:  EndIf
+   54:  Call  DisablePlayerInput    ( .True )
+   64:  Call  $Function_80242E70 ( )
+   70:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   8C:  Call  SetCamProperties      ( .Cam:Default *Fixed[5.0] *Var0 *Var1 *Var2  300` *Fixed[13.0] *Fixed[-9.5] )
+   B8:  If  *GB_OMO_PeachChoice2  ==  00000000
+   C8:  	Call  SpeakToPlayer ( .NpcID:Fuzzy_05 00290218 00290201 00000000 000F003C ) % !!!!!!!! Meeeoork! Mario! This'll be fun!
+   E8:  Else
+   F0:  	Call  SpeakToPlayer ( .NpcID:HammerBros_06 005A000A 005A0002 00000000 000F003D ) % Nyuck yuck yuck... What took you so long, Mario? R ...
+  110:  EndIf
+  118:  Thread
+  120:  	Call  $Function_80242E8C ( )
+  12C:  	Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  140:  EndThread
+  148:  Call  DisablePlayerInput    ( .False )
+  158:  Call  StartBossBattle       ( .Song:SpecialBattle )
+  168:  Return
+  170:  End
 }
 
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShyGuysToybox
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  If  *GF_OMO07_SpawnedPeachChoice2  ==  .False
+   80:  	Call  MakeNpcs  ( .True $NpcGroupList_80245DCC )
+   94:  Else
+   9C:  	If  *GF_OMO07_Item_ThunderRage  ==  .False
+   AC:  		Switch  *GB_OMO_PeachChoice2
+   B8:  			Case  ==  00000000
+   C4:  				Call  MakeNpcs  ( .True $NpcGroupList_80245CB8 )
+   D8:  			Case  ==  00000001
+   E4:  				Call  MakeNpcs  ( .True $NpcGroupList_80245D18 )
+   F8:  			Case  ==  00000002
+  104:  				Call  MakeNpcs  ( .True $NpcGroupList_80245D78 )
+  118:  				Call  MakeItemEntity    ( .Item:ThunderRage ~Vec3d:Item80243560 .ItemSpawnMode:Fixed_NeverVanish *GF_OMO07_Item_ThunderRage )
+  13C:  		EndSwitch
+  144:  	Else
+  14C:  		Call  MakeNpcs  ( .True $NpcGroupList_80245D78 )
+  160:  	EndIf
+  168:  EndIf
+  170:  ExecWait  $Script_MakeEntities
+  17C:  ExecWait  $Script_8024389C
+  188:  ExecWait  $Script_80243350
+  194:  Exec  $Script_80243E50
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+			Exec $Script_8024341C
+   38:  	Return
+   40:  EndIf
+  1A0:  If  *GF_OMO07_SpawnedPeachChoice2  ==  .False
+  1B0:  	Exec  $Script_80246734
+  1BC:  	Wait  2`
+  1C8:  Else
+  1D0:  	Set   *Var0  $Script_8024341C
+  1E0:  	Exec  EnterWalk
+  1EC:  	Wait  1`
+  1F8:  EndIf
+  200:  Return
+  208:  End
+}
 
 %Now Bombshell Koopa
 @	 $NpcGroup_802452EC

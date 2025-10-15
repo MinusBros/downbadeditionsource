@@ -664,21 +664,79 @@
 
 
 %Jr Troopa now only goes down to 70 HP instead of 20.
+%Fixed to make him lose 20 on all difficulties, not just Normal.
+
 
 @	$Script_NextTurn_80229B38
 {
-   [DC]  			Wait  10`
-  [108]  			Wait  5`
-  [1A8]  			Wait  5`
-  [204]  			If  *Var0  >  00000046
-  [228]  			Call  SetAnimation  ( .Actor:Self 00000002 00210019 )
-  [240]  			Wait  8`
-  [270]  				Wait  8`
-  [294]  				Wait  8`
-  [330]  			Wait  15`
-  [35C]  			Wait  5`
-  [3AC]  			Wait  10`
-  [448]  			Wait  4`
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetBattlePhase    ( *Var0 )
+   38:  Switch  *Var0
+   44:  	Case  ==  0000000A
+   50:  		Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   68:  		If  *Var0  ==  00000000
+   78:  			Call  SetActorVar       ( .Actor:Self 00000000 00000001 )
+   90:  			Wait  8`
+   9C:  			Call  UseBattleCamPreset    ( 0000000E )
+   AC:  			Call  BattleCamTargetActor  ( .Actor:Self )
+   BC:  			Call  SetBattleCamOffsetZ   (  35` )
+   CC:  			Call  MoveBattleCamOver (  30` )
+   DC:  			Wait  8`
+   E8:  			Call  ActorSpeak        ( 000700B8 .Actor:Self 00000002 00210005 00210005 ) % Wheeze wheeze wheeze... Here it comes! You... you' ...
+  108:  			Wait  4`
+  114:  			Call  SetActorFlagBits  ( .Actor:Self 00001000 .True )
+  12C:  			Call  8026D940  ( FFFFFF81 FFFFFFEC 00000028 )
+  144:  			Call  8027D2D8  ( FFFFFF81 )
+  154:  			Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  170:  			Set   *Var0  00000073
+  180:  			Set   *Var1  00000096
+  190:  			Call  $Function_802189DC    ( *Var0 *Var1 *VarA )
+  1A8:  			Wait  10`
+					Call  GetEnemyMaxHP     ( .Actor:Self *Var0 )
+  1C8:  			Loop  20`
+	  1D4:  			Sub   *Var0  00000001
+	  1E4:  			Call  SetEnemyHP        ( .Actor:Self *Var0 )
+	  1F8:  			Wait  1`
+					EndLoop
+  228:  			Call  SetAnimation  ( .Actor:Self 00000002 00210019 )
+  240:  			Wait  8`
+  24C:  			Loop  00000002
+  258:  				Call  SetActorFlagBits  ( .Actor:Self 00001000 .False )
+  270:  				Wait  8`
+  27C:  				Call  SetActorFlagBits  ( .Actor:Self 00001000 .True )
+  294:  				Wait  8`
+  2A0:  			EndLoop
+  2A8:  			Call  ActorSpeak    ( 000700B9 .Actor:Self 00000002 00210013 00210013 ) % Gasp! Oh, no!! All that swimming! My HP is almost  ...
+  2C8:  			Call  SetActorFlagBits  ( .Actor:Self 00001000 .False )
+  2E0:  			Call  $Function_80218AA4    ( *VarA )
+  2F0:  			Call  8027D32C      ( FFFFFF81 )
+  300:  			Call  8026D940      ( FFFFFF81 00000000 00000000 )
+  318:  			Call  SetAnimation  ( .Actor:Self 00000002 00210005 )
+  330:  			Wait  15`
+  33C:  			Call  ActorSpeak    ( 000700BA .Actor:Self 00000002 00210016 00210003 ) % Well, I'll make up for my low HP by using my new s ...
+  35C:  			Wait  5`
+  368:  			ExecWait  $Script_802281B4
+  374:  			Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
+  390:  			Call  SetPartFlagBits   ( .Actor:Self 00000001 00000001 .False )
+  3AC:  			Wait  8`
+  3B8:  			Call  SetGoalToHome ( .Actor:Self )
+  3C8:  			Call  AddGoalPos    ( .Actor:Self  40`  80`  0` )
+  3E4:  			Call  FlyToGoal     ( .Actor:Self  15`  0` .Easing:Linear )
+  400:  			Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  41C:  			Call  ForceHomePos  ( .Actor:Self *Var0 *Var1 *Var2 )
+  438:  			Call  HPBarToHome   ( .Actor:Self )
+  448:  			Wait  6`
+  454:  			Call  ActorSpeak    ( 000700BB .Actor:Self 00000001 0023000F 00230003 ) % I know all of your fighting patterns now, Mario. S ...
+  474:  			Wait  4`
+  480:  			ExecWait  $Script_80228574
+  48C:  		EndIf
+  494:  	Case  ==  0000000C
+  4A0:  EndSwitch
+  4A8:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  4BC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  4D0:  Return
+  4D8:  End
 }
 
 %Jr Troopa attacks multiple times like previous encounters.

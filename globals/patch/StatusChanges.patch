@@ -1,48 +1,750 @@
-%Status changes
-%Every time you status an enemy, they get 50% more resistant to everything
+%Dark Star Edition code wasn't working the way I wanted to, so use the Master Quest code instead
 
 
-%209 + actor pointer is set up at a different place
+%%% This overhauls status-granting effects to always hit the enemy, but only up to twice a battle. (once for bosses)
+%%% TODO: CHECK DIZZY ATTACK - also POWER SHOCK gauge - also DIZZY SHELL gauge? anything that uses a gauge
+%%% TODO: CHECK LEE's CLONES
+%%% TODO: RESET AIR LIFT CHANCES
 
+%%% PART ONE - SETTING THE STATUS TRACKER
+%%% Actor Var [F] is repurposed for this. If you overwrite Actor Var [F], there may be unexpected results. Not many enemies do that, though. And most that do are immune.
 
-
-%80265FF4 = place where status ID is set
-
-%Let's see if 209 + actor pointer works
-%It is uninitialized data so yes
-
-@Hook 1948D0
+%802653A4 + 400 = 802657A4
+%802657A4 - 800D1720 = 194084
+@Hook 194084 
 {
-	PUSH	V0, V1
-	LAW		V1, 800DC148
-	BEQ		S0, V1 .skip	%make sure mario is not affected by the status change
-	NOP
-	LB		V0, 209 (S0)
-	ADDIU	V0, V0, 1
-	SB		V0, 209 (S0)
-	.skip
-	%is this 1 turn dizzy or 1 turn shrink?
-	%S1 = status ID
-	%S2 = status turns
-	LI		V0, 1
-	BNE		S2, V0, .notlow	%check this one first
-	NOP
-	LI		V0, 4
-	BEQ		S1, V0, .islow
-	NOP
-	LI		V0, A
-	BEQ		S1, V0, .islow
-	NOP
-	BEQ		R0, R0, .notlow
-	NOP
-	.islow
-	LI		S2, 2
-	.notlow
-	POP		V0, V1
-	%hooked over
-	SLTI	V0, V0, A	%Restrict status turncount to be below 9
-	J		80265FF8
-	SB		S1, 210 (S0) %Store status ID
+	%for reference: Actor variables are in Actor+88, 8C, 90, 94, 98, ... C4
+	%actor struct is in S1 as we go into this
+	LBU		V0, 1E (S4) 	%read in power bounce variable
+	SLTI	V0, V0, 4		%check for boss (PB == 3) 
+	BEQ		V0, R0, .store 	%if not a boss, only delay slot is run
+	ADDIU	V0, R0, 202 	%delay slot - run in all circumstances. normal value
+	ADDIU	V0, R0, 101 	%jumped over if not a boss. boss stat tracker value
+	.store
+	SW		V0, C4 (S1) 	%store value in ActorVar[F] - actor init script WILL overwrite this if it uses ActorVar[F]. That's fine.
+	LW		V0, C (S3)	 	%these two instructions were overwritten by our hook. we run them before returning.
+ 	J 		802657AC				%802653A4 + 400 + 8 => return to where we left off
+ 	SW		V0, 88 (S1)		%second overwritten instruction - we can put it in the delay slot. Sets actor var 1, loaded by first instruction.
+}
+ 
+ 
+ %%% PART TWO - OVERRIDING STATUS CHANCE MECHANICS
+ %%% All we really have to do here is set the chance to 100% if it's nonzero, and 0% otherwise.
+ 
+ %placing MANUAL hooks at 80265E98+34, 48 = 80265ECC / 80265EE0
+ 
+ %80265ECC - 800D1720 = 1947AC
+ %80265EE0 - 800D1720 = 1947C0
+ 
+ 
+@Function 1947AC
+{
+	J 		$Function_FixStatusChance
+ 	COPY 	V0, A2 %this line was in the original source, but it was clobbered by the 'hook'
+}
+
+ @Function 1947C0
+{
+	J 		$Function_FixStatusChance
+ 	COPY 	V0, A2
+}
+ 
+ #new:Function $Function_FixStatusChance
+{
+	%when we arrive, V0 will have the set status chance
+ 	BNEL 	V0, R0, .done
+ 	ADDIU	V0, R0, 64		%set it to 100% if it's nonzero at all
+ 	.done 
+ 	JR RA					%we now return you to before GetStatusChance was called
+ 	NOP
+}
+ 
+ 
+
+ 
+ %%% PART THREE - ACTUALLY CHECK THE BYTE (AND DECREMENT IT)
+ %%% Both of these sections hook into the actual status infliction function. This part needs to:
+ %%% Check for a status that's not on the list - LET IT THROUGH
+ %%% Check for actor = Mario/Partner - LET IT THROUGH
+ %%% Check for target's AV[F] - BLOCK IT
+ %%% In this order.
+ 
+ % so we need to talk a bit about how ActuallyInflictStatus WORKS. The status ID is read, and used as an index to this jump table:
+% $JumpTable_8029D5E0
+% $Function_80265F40[2F8] $Function_80265F40[2F8] $Function_80265F40[2F8] $Function_80265F40[40] 
+% $Function_80265F40[40] $Function_80265F40[40] $Function_80265F40[40] $Function_80265F40[40] 
+% $Function_80265F40[40] $Function_80265F40[40] $Function_80265F40[40] $Function_80265F40[1F8] 
+% $Function_80265F40[24C] $Function_80265F40[280] $Function_80265F40[2B8] 
+
+%decoded, that's: 
+%0-2 = 2F8: return 1 (failure, I think)
+%3-A = 40: all go through the same script, which runs through to another jump table:
+%3-A are mystery, Dizzy, Paralysis, Sleep, Freeze, Stop, Poison, Shrink, in that order.
+
+% $JumpTable_8029D620
+% $Function_80265F40[1A4] $Function_80265F40[190] $Function_80265F40[170] $Function_80265F40[150] 
+% $Function_80265F40[EC] $Function_80265F40[2F8] $Function_80265F40[1C4] $Function_80265F40[1E4] 
+
+% We can ignore this second jump table, because it only routes to functions that handle animations.
+ 
+% back at the first jump table, the remaining statuses go here: - but that isn't really important for what we want to do. 
+% B (Static) = 1F8 
+% C (Stone) = 24C
+% D (Partner KO) = 280
+% E (Invis) = 2B8
+ 
+% So we already have a jump table that jumps to areas of this routine. The simplest way is to override the calls to $Function_80265F40[40] with our own jump target.
+% Once it's there, we go through a series of checks:
+% We don't actually need to check status ID because we're limited to the ones listed above - 3-A. We can customize the jump table further to JUST hook the ones we really wanna look at, anyway.
+% Check actor ID. If < 200, jump to $Function_80265F40[40], which runs normally.
+% Check ActorVar[F]. If 0, jump to $Function_80265F40[2F8], which bails out.
+% If we got this far, subtract 101 from ActorVar[F] and store it again.
+% And then jump to $Function_80265F40[40], which runs normally.
+
+@Data 001CBED0  %the table starts at 001CBEC0 (8029D5E0), but we don't care about the first four words - only the next seven.
+{
+	$Function_StatusCheck
+	$Function_StatusCheck
+	$Function_StatusCheck
+	$Function_StatusCheck
+	$Function_StatusCheck
+	$Function_StatusCheck
+	$Function_StatusCheck
+}
+ 
+  #new:Function $Function_StatusCheck
+{
+	LH		V0, 192 (S0)	%S0 = actor struct - +192 is actor ID
+	SLTI  	V0, V0, 0200	%if this is not aimed at an enemy, we're good to go!
+	BNE		V0, R0, .statusOK
+	LW		V0, C4 (S0)		%now S0 has ActorVar[F]
+	BEQ		V0, R0, .statusNOPE
+ 	%if we're doing separate status checks, we might want to AND chunks of S0, or LBs from it depending on circumstances.
+ 	%right now we just subtract 101.
+ 	ADDIU	V0, V0, FEFF    % AVF -= 101
+ 	SW		V0, C4 (S0)		%store ActorVar[F] back
+ 	%now we fall through
+ 	.statusOK
+ 	J		80265F80 		%80265F40[40]	%80265F40 + 40 = 80265F80
+ 	NOP
+ 	.statusNOPE
+ 	J		8026623C 		%80265F40[2FC]	%80265F40 + 2FC = 8026623C
+ 	CLEAR	V0				%indicate status failure
+}
+ 
+ %%% PART FOUR - COPYSTATUS
+ %%% This is mostly an issue for transferring status eligibility to the new enemy (for Duplighost transformations and such.). One LH, one SH. Simple hook.
+ 
+ %8027DCBC + 6C = 8027DD28
+ %8027DD28 - 800D1720 = 1AC608
+@Hook 1AC608			 %set actor var F to 0202 to ensure all status procs land during carryover
+{
+	ADDIU	A1, R0, 202
+	SW		A1, C4 (S0)  %S0 = target actor
+	LB		A1, 210 (S1) %clobbered by hook - run these lines anyway
+	J 		8027DD30	 %8027DCBC+74
+	LB		A2, 211 (S1)
+}
+   	
+ 
+ %8027DCBC + BC = 8027DD78
+ %8027DD78 - 800D1720 = 1AC658
+@Hook 1AC658
+{
+	SB		R0, 21C (S1)	 %these two lines were clobbered by hook - run them	
+	SB		R0, 21C (S0)
+	LW		V0, C4 (S1)		 %get source actor var F
+	J 		8027DD80		 %8027DCBC+C4
+	SW		V0, C4 (S0)		 %copy it to target (V0 is overwritten by return code so it's safe to use)
+}
+%%% PART FIVE - GRAPHICAL FIX
+%%% The return code of 80265F40 is overwritten by the duration in 80266B78+14C. This causes status animations to display even when the status wasn't inflicted. Let's fix that.
+
+%80266B78+14C = 80266CC4
+%80266CC4 - 800D1720 = 1955A4
+@Function 1955A4
+{
+	NOP 						%that's all it takes!
+}
+
+%%% PART SIX - TURN COUNT MADNESS
+%%% So it turns out the devs were lazy doofuses and, instead of checking if an enemy's turn resist + status source turn inflict was 0 or less, just checked if the resist was -3 or more to determine invulnerability. This works great until you want to resist a short status and have it actually not inflict.
+
+%Original code:
+% 104:  BEQ			R0, R0, .o110
+%  108:  ADDIU		S1, V0, 3			%but we add 3 before bailing (?!)
+
+%195458 + 104 = 19555C
+%80266B78+104 = 80266C7C
+%the above two lines will get clobbered and I'M FINE WITH THAT
+%V0 has result of GetStatusTurns
+%S1 will hold status summed duration
+%S3 has battle struct
+@Hook 19555C
+{
+	LB			S1, 195 (S3) %instead, load actual computed status duration
+	J			80266C88	 %and go back - 80266B78+110
+	ADDU		S1, V0, S1 	 %but not before adding actual result of GetStatusTurns to it!!!
+		%now it'll have the right value, thanks awfully IntSys
+		%I shouldn't have had to do this
+		%"...and the other 90% of the code takes the other 90% of the time"
 }
 
 
+%%% PART SEVEN - STATUSES DO STUFF
+%%% So we had an idea. What if Dizzy, Sleep, Stop, Paralyze, and Freeze weren't all clones of each other? So we're setting out to make each status different.
+%%% To start: DIZZY does not prevent enemies (or Mario) from attacking, but they will always miss.
+%%% SLEEP will wear off if the sleeper is attacked.
+%%% STOP is an unadorned stop. No surprises here.
+%%% we haven't changed the others (yet)
+
+% dizzy enemies get a turn
+@Function 175C94 %00175B8C+108
+{
+	CLEAR V1
+}
+
+@Function 171A64 %001718C0+1A4
+{
+	LBU			V0, 210 (S0)   %1A4:  LB			V0, 210 (S0)		%LBU to V0
+  	BEQ			V0, R0, 58 %.o204  %1A8:  LBU			V1, 210 (S0)		%branch if 0
+  	SW			A0, 0 (S0)	   %1AC:  BEQ			V0, R0, .o204		% (store)
+  	ADDIU		V0, V0, FFFC   %1B0:  SW			A0, 0 (S0)			%sub 4 from statusID
+  	BEQ			V0, R0, 14 %.o1CC  %1B4:  ADDIU			V0, V1, FFFD		%branch if 0 (short)
+  	SLTIU		V0, V0, 5	   %1B8:  SLTIU			V0, V0, 6			%SLTIU with 5
+  %1BC:  BEQ			V0, R0, .o1CC	%then check if it's < 9, and...							
+  %1C0:  LUI			V0, 1
+  %1C4:  OR			V0, A0, V0		%well, if so, set the flag again. (this halts enemy turn)
+  %1C8:  SW			V0, 0 (S0)
+  %.o1cc
+
+	%note that it's +addr from the delay slot
+	%NOT in num of instructions, just what you'd add to the PC
+}
+
+%statuses affecting / not
+%03 (mystery) : 0011
+%05 (para)	  : 0101
+%06 (sleep)	  : 0110
+%07 (freeze)  : 0111
+%08 (stop) 	  : 1000
+
+%00 (normal)  : 0000
+%04 (dizzy)   : 0100
+%09 (poison)  : 1001
+%0A (shrink)  : 1010
+
+% dizzy mario gets a turn
+@Hook 17103C %00170904+738
+{
+	%prev line = LB			V0, 210 (S1)
+	BEQ		V0, R0, .noStatuses
+	ADDIU	AT, R0, 4
+	BEQ 	V0, AT, .noStun
+	SLTI	V0, V0, 9
+	BEQ		V0, R0, .noStun
+	ADDIU	V0, R0, 1 %redundant - could be replaced with NOP here as this is guaranteed to be 0
+	%but SR won't let me put a pseudoinstruction in a delay slot :P
+	SAW		V0, 8029F254	%stores 'stunned' bool
+	%SAW is a two-instruction pseudo, the first of which is a load to AT, so it's fine (I think)
+	.noStun
+	J		80242774	%80242024+750
+	NOP
+	.noStatuses
+	J		802427DC	%80242024+7B8
+	NOP
+}
+
+@Function 41A60C %41A5A8+64
+{
+%there's a second check for dizzy Mario in the battle menu - disable it
+	CLEAR A0
+}
+
+
+/% original code = 
+  734:  LB			V0, 210 (S1)	%now for all the other statuses
+738:  BEQ			V0, R0, .o7B8
+73C:  SLTI		V0, V0, 9		%if status ID >= 9 (< impl. mystery, dizzy, para, sleep, frozen, stop), branch
+  740:  BEQ			V0, R0, .o750	%status IDs over 9: poison (9), shrink (A), static (B), stone (C), partner KO (D), invis (E)
+  744:  ADDIU		V0, R0, 1															
+  748:  SAW			V0, 8029F254	%put 1 into this bool  (implies stunning status)
+  %/
+
+%and can block
+
+@Hook 1A6250  %001A5D0C+544   %8027742C
+{
+	LB			V0, 210 (S3)	
+	BEQ			V0, R0, .allowBlock
+	ADDIU		AT, R0, 4
+	BEQ			V0, AT, .allowBlock
+	SLTI		V0, V0, 9
+	BNE			V0, R0, .skipBlock
+	NOP
+	.allowBlock
+	J 			80277984 %8027742C+558
+	NOP
+	.skipBlock
+	J 			80277A80 %8027742C+654
+	NOP 
+}
+
+/% orig code
+  544:  LB			V0, 210 (S3)
+  548:  BEQ			V0, R0, .o558	%HOOK THIS TO SKIP 4 (dizzy) - similar patern as to the other one
+  54C:  SLTI		V0, V0, 9
+  550:  BNE			V0, R0, .o654	%if we are stunned, jump over block
+  554:  NOP
+%/
+
+
+%enemy test returns 'lucky' if enemy is dizzy (target must be Mario or partner)
+	%make sure lucky anim for partner works properly! (currently we just send 'miss' instead)
+	%alternately, dizzied enemies always attack mario if attacking (not currently the case)
+	
+%this also clears Cloud Nine	
+	
+@Function 1A5BE0		%001A5AD8 + 108	%partner will not skip the evade check
+{
+	NOP
+}
+
+%fn starts at 802771F8
+
+@Function 1A5BF4  %001A5AD8 + 11C
+{
+	%we have 0xB4 (ish) in terms of space, let's get to it
+	%V0, V1, and A1 are safe to use
+	%A0 starts with source actor ID (player/partner)
+	%S0 has target actor handle
+	%S1 will store result code but it's pushed into V0 before return
+	%S2 has battle struct
+	%must check if source actor is 000 or 100 else farskip
+		%00
+	BEQ		A0, R0, .ok		 
+	ADDIU	V0, R0, 100
+	BNE		A0, V0, .noEvade
+	.ok
+	LW		V1, 18 (SP) %source actor handle
+	LBU 	A0, 210 (V1) %source actor status
+	ADDIU 	V0, R0, 4	 %dizzy
+	BNE		V0, A0, .noEvade
+	ADDIU	V0, R0, 100		%partner actor ID
+	BEQL	A0, V0, .evade	%if we get here, enemy is dizzy. check if partner
+		ADDIU V0, R0, 6			%if partner, send 'miss'
+	ADDIU	V0, R0, 5		%if we get here, target is player. send lucky.
+	.evade
+	J 		80277410		%to top fn return (.o218)
+	NOP
+	.noEvade
+	J		802773D4		%to top fn static/stone check (.o1DC)
+	ADDIU	V0, R0, 6		%as S1 was unchanged, this ensures we won't return early and will fall through to static/stone check
+	%total space used = 0x3C
+}
+
+% 'lucky' turns into 'miss'
+
+@Function 18F470 %0018F450+20
+{
+	ADDIU		A0, R0, 1	%indicates effect variant - had '2' which becomes 'LUCKY' - now has '1' which becomes 'MISS'
+}
+
+/% this only affects Mario. If you want to affect partners:
+% • you'll need to change partner-targeted attacks to trigger lucky
+% you may need to change it so that the lucky event (event 37) is broadcast to partners in the damage calc code 
+% once that's done, you can modify each partner's handle event scripts to listen for lucky
+% don't forget that Bow's script will need some special cases - don't pop 'MISS' when she's outta sight! 
+% may also need to handle that in the damage calc code
+% anyway, you can then play the sound, change the anim if you can come up with one, and run the 'LUCKY' anim script (80260B70) except with actor pointer changed to partner actor ptr
+
+% alternately, you might be able to short circuit it by having each partner-targeted attack trigger a generic 'PartnerLucky' script without going through the event handler code. A kludge, but it means you won't have to patch the event handling system (probably do this)
+% the script would play the sound, set anims if not statused, and pop the 
+LUCKY anim script (modified for partner)
+%/
+
+%how we're going to handle Truth Stomp: TS gets the 'magic' element set - only to the check, not to the damage. the check casts 'miss' as normal if it's miss due to invis, but DOESN'T POP THE ANIMATION. otherwise, animation goes off.
+
+%code that does the anim for an actual AoN Miss:
+/% 1320:  LW			T0, 24 (SP)
+ 1324:  BEQ			T0, R0, .o1344		%this had the All or Nothing check value - fished out of the stack
+ 1328:  ADDIU		A0, R0, 1			%effect ID
+ 132C:  LWC1		F0, 14 (S2)			%Z		%note that S2 = T0+C - target pos (S2 is mario actor struct +C)
+ 1330:  SWC1		F0, 10 (SP)			%target Z
+ 1334:  LW			A2, C (S2)			%target X
+ 1338:  LW			A3, 10 (S2)			%target Y
+ 133C:  JAL			$Function_802667F0	%A0 = 1 ('MISS') %'play effect' of some kind
+ 1340:  COPY		A1, S3				%target actor struct%/
+
+@Hook 1A00A4  %001A0034+70 %80271754+70
+{
+	%S4 has Mario's actor struct
+	%S3 has target actor
+	LW			A0, 7C (S1)		%sprite event flags
+	ANDI		V0, A0, 20		%illusory
+	BNE			V0, R0,	.definitelyMiss
+	LB			V0, 210 (S4)	%is Mario dizzy?
+	ADDIU		V1, R0, 4
+	BEQ			V1, V0, .definitelyMiss
+	%now check for quake-only	
+	ANDI		V0, A0, 800		%A0 still has event flags
+   	BEQ			V0, R0, .skipQO		
+   	LW			V0, 188 (S2)
+   	ANDI		V0, V0, 800			%if SE flag 800 (Quake-only) is set and attack element is 800 (Quake), then don't return 6 (miss)
+   	BEQ			V0, R0, .definitelyMiss	%if bit is not set, it's a miss!
+   	.skipQO
+   	%now we check for the maybe miss
+   	LB			V1, 218 (S3)		%target actor invis
+   	ADDIU		V0, R0, E
+   	BNE			V0, V1, .noMiss		%if none of the checks have passed, we hit
+   	.definitelyMiss	%if we didn't branch, now we do the animation... maybe.
+   	LW			V0, 188 (S2)	%get element flags again
+   	ANDI		V0, V0, 10		%magiiiiiiic
+   	BNE			V0, R0, .missNoAnim
+   	% if we have the magic flag set, we don't pop the decal. But otherwise we do.
+    ADDIU		A0, R0, 1			%effect ID
+    %fortunately stack slots 10 and 14 are already free in this context
+    LWC1		F0, 20 (S4)
+    SWC1		F0, 10 (SP)			%target Z
+    LW			A2, 18 (S4)			%target X
+ 	LW			A3, 1C (S4)			%target Y
+    JAL			802667F0			%play 'MISS' effect
+    COPY		A1, S3				%target actor struct
+   	JAL			~Func:sfx_play_sound	%play 'miss' sound.
+   	ADDIU		A0, R0, 3FC
+   	.missNoAnim
+   	J			80271924	%return pt  (80271754+1D0)
+   	ADDIU		V0, R0, 6	%result code
+   	.noMiss
+   	J 			80271804	%check for static/stone  (80271754+B0)
+   	NOP  					%is cleanup needed?
+   	
+}
+	/% original code:
+	   70:  LW			A0, 7C (S1)			%(target) sprite event flags - HOOK HERE
+   74:  ANDI		V0, A0, 20			%illusory
+   78:  BNE			V0, R0, .o1D0			%return miss
+   7C:  ADDIU		V0, R0, 6
+   80:  LB			V1, 218 (S3)		%target actor invis
+   84:  ADDIU		V0, R0, E
+   88:  BEQ			V1, V0, .oA8		%if set: return 6
+   8C:  ANDI		V0, A0, 800
+   90:  BEQ			V0, R0, .oB0		%if SE flag 800 not set, skip this next bit
+   94:  NOP
+   98:  LW			V0, 188 (S2)
+   9C:  ANDI		V0, V0, 800			%if SE flag 800 (Quake-only) is set and attack element is 800 (Quake), then don't return 6 (miss)
+   A0:  BNE			V0, R0, .oB0
+   A4:  NOP
+        .oA8
+   A8:  BEQ			R0, R0, .o1D0
+   AC:  ADDIU		V0, R0, 6
+	%/
+	
+%we're also adding the 'MISS' anim in when a partner misses, even though partners can't get dizzy
+%001AC85C --> 8027DF7C
+@Hook 1AC8E0 	%001AC85C + 84
+{
+	BNE			V0, R0, .defMissP
+	ADDIU		V0, R0, E
+	LB			V1, 218 (S3)	%target invisibility
+	BEQ			V1, V0, .defMissP
+	NOP
+	%at this point we jump back to the fn if no miss has occurred.
+	J	8027E018		%8027DF7C+9C
+	NOP 
+	.defMissP
+	%this is EXACTLY the same as it is for player, since the same regalloc is used.
+	ADDIU		A0, R0, 1			%effect ID
+    %fortunately stack slots 10 and 14 are already free in this context
+    LWC1		F0, 20 (S4)
+    SWC1		F0, 10 (SP)			%target Z
+    LW			A2, 18 (S4)			%target X
+ 	LW			A3, 1C (S4)			%target Y
+    JAL			802667F0			%play 'MISS' effect
+    COPY		A1, S3				%target actor struct
+   	JAL			~Func:sfx_play_sound	%play 'miss' sound.
+   	ADDIU		A0, R0, 3FC
+   	%now let's get out of here
+	J	8027E308 		%8027DF7C+38C
+		ADDIU		V0, R0, 6
+}
+
+%orig code:
+/% 84:  BNE			V0, R0, .o38C		%JUMP POINT
+   88:  ADDIU		V0, R0, 6		%return with 'miss' coding
+   8C:  LB			V1, 218 (S3)	%target invisibility
+   90:  ADDIU		V0, R0, E
+   94:  BEQ			V1, V0, .o38C
+   98:  ADDIU		V0, R0, 6		%return with 'miss' coding
+   9C:  LW			V0, 188 (S1)		%REJOIN POINT
+   %/
+	
+	
+% TODO: enemies still don't act properly yet (FIXED)
+% nor does Mario	
+	
+% mario test returns, uhhhhhhhh (is lucky a thing? if not, do 'transparent') when dizzy  **OK??**
+	%find a way to do 'miss' like AoN if Mario misses due to dizzy **OK??**
+	%heck, just make it so ANY miss pops the thing, it looks cool **OK??**
+	
+	%TODO: enable block when dizzy (TO TEST)
+	
+	% Truth Stomp SHOULD NOT break this - have it test 'is mario dizzy' flags manually and then manually do hit animation  **OK??**
+	
+	%see if we can pop the anim when a partner attacks, too. Do they use CheckPlayerHit, or...? **OK??**
+
+	
+	%BUT if an item is used, then we don't want that to be the case
+		%it looks like ItemCheckHit is fine - won't be altered
+		
+	%Incidentally: does this mean Dusty Hammers/Coconuts pierce? they don't call ItemCheckHit at all!
+	
+	
+%TODO: edit tonic/refresh/soda text to indicate curing all status
+%and status inflict messages **OK**
+
+% and now for making enemies and Mario wake up early when asleep
+
+@Hook 1AB610 %001AB594+7C %8027CCB4+7C
+{
+	%this should check if the target actor is asleep and if the source element is sleep
+	%if so, it should strip the element.
+	 LW			V1, 0 (S0)		%get source element - in original code
+	 ANDI		A1, V1, 1000 	%AND with 1000 (sleep) %A1 is safe to use - it'll be overwritten
+	 BEQ		A1, R0, .return %if not sleep element, we certainly don't need to do the rest of this
+	 NOP
+	 PUSH		A0, V1, RA %get_actor will clobber stuff - A0 holds script context
+	 %A1 is overwritten after landing and A2 is mostly unused in fn. V1 is our return value. V0 is overwritten by next get_variable call so it's fine
+	 JAL		80269D6C		%~Func:get_actor	%result in V0
+	 LH			A0, 428 (S2) 	%S2 has source actor handle - +428 is target actorID
+	 POP		A0, V1, RA
+	 %now target actor handle is in V0
+	 LB			A1, 210 (V0)
+	 ADDIU		A2, R0, 6
+	 BEQL		A1, A2, .return
+	 	CLEAR V1	%if target actor is asleep, clear sleep element from the attack
+	 .return
+	 J			8027CD38 %+84
+	 ADDIU		S0, S0, 4	%advance arg pointer - in original code
+}
+
+@Hook 1A6368 %001A5D0C+65C    %001A5D0C --> 8027742C
+{
+	%this should check if the target actor is asleep. If the target is, it should strip that actor's sleep.
+	%question: are there any actors that react after a hit, normally?
+	%sadly because of the way the event dispatch system works (it starts a script, which ticks on the next FRAME) they will react as if wake is immediate
+	%we can't work around this
+	%S3 has actor, V0 and A0 are free
+	LB		V0, 210 (S3)
+	ADDIU	A0, R0, 6 %sleep
+	BNE		V0, A0, .done
+	LW		V0, 0 (S8)	%getting battle flags - in original code
+	SH		R0, 210 (S3)	%now clear debuff status and counter
+	SH		R0, 216 (S3)	%clears 210-11 (debuff) and 216-17 (marker/partner stun)
+	%clearing actor marker... I think
+	LW		A0, 440 (S3)
+	LW		A0, C (A0)
+	SW		R0, 3C (A0)	
+	/%call to clear status anim uses V0, V1, A0, RA (but A0 is free)
+	PUSH      V0, V1, RA
+	JAL       80047898
+	LH        A0, 436 (S3)
+	POP		  V0, V1, RA
+	%/
+	.done
+	J 		80277A90  %8027742C+664
+	ANDI	V0, V0, 20	%checking battle flag - in original code
+}
+
+%now we have to do the same thing for player, enemy, and item, but with an additional HitCombo check 
+
+%PLAYER
+@Hook 1A0C50 %1A0224+A2C	 %001A0224 --> 80271944  %man, damage calc fns have been hooked SO MANY TIMES by now
+{
+	%new: we need to check battle flags - ensure Hit, not HitCombo
+	LAW		V0, 800DC070
+	ANDI	V0, V0, 20
+	BEQL	V0, R0, .done
+		LHU		V0, 1FC (S3)	%in original code
+	%V0 and V1 are free, as we set them in the code the hook overwrote
+	LB		V0, 210 (S3)
+	ADDIU	V1, R0, 6 %sleep
+	BNE		V0, V1, .done
+		LHU		V0, 1FC (S3)	%in original code
+	SH		R0, 210 (S3)	%now clear debuff status and counter
+	SH		R0, 216 (S3)	%clears 210-11 (debuff) and 216-17 (marker/partner stun)
+	%clearing actor marker... I think
+	LW		V1, 440 (S3)
+	LW		V1, C (V1)
+	SW		R0, 3C (V1)	
+	/%call to clear status anim uses V0, V1, A0, RA (but V1 is overwritten just below)
+	PUSH      V0, A0, RA
+	JAL       80047898
+	LH        A0, 436 (S3)
+	POP		  V0, A0, RA
+	%/
+	.done
+	J 		80272378  %80271944+A34
+		LHU		V1, 1FA (S3)	%in original code
+}
+
+%a note on technical limitations:
+%we're making it so that the wake lands only at the end of a combo if damage is done to handle status re-infliction properly and also certain 'attacks' from player and partner that do no damage (usually status infliction but also some others)
+%however, if player or partner jumps on (etc) a sleeping electrified enemy, and does damage but their combo is interrupted by the elec, there will be no wake. Sorry. I can't get the damage value back out later on to confirm.
+
+%PARTNER
+@Hook 1AD3DC %001ACC08+7D4	%001ACC08 --> 8027E328
+{
+	%this is literally the same code (but with a different return address)
+	LAW		V0, 800DC070
+	ANDI	V0, V0, 20
+	BEQL	V0, R0, .done
+		LHU		V0, 1FC (S3)	%in original code
+	%V0 and V1 are still free
+	LB		V0, 210 (S3)
+	ADDIU	V1, R0, 6 %sleep
+	BNE		V0, V1, .done
+		LHU		V0, 1FC (S3)	%in original code
+	SH		R0, 210 (S3)	%now clear debuff status and counter
+	SH		R0, 216 (S3)	%clears 210-11 (debuff) and 216-17 (marker/partner stun)
+	%clearing actor marker... I think
+	LW		V1, 440 (S3)
+	LW		V1, C (V1)
+	SW		R0, 3C (V1)	
+	/%call to clear status anim uses V0, V1, A0, RA (but V1 is overwritten just below)
+	PUSH      V0, A0, RA
+	JAL       80047898
+	LH        A0, 436 (S3)
+	POP		  V0, A0, RA
+	%/
+	.done
+	J 		8027EB04  %8027E328+7DC
+		LHU		V1, 1FA (S3)	%in original code
+}
+
+%ITEM (also handles things like Star Storm and various misc. incl. Iron Bonk)
+
+@Hook 180324	%17FFC8+35C	%0017FFC8 --> 802516E8
+{
+	%this is literally the same code (but with a different return address)
+	LAW		V0, 800DC070
+	ANDI	V0, V0, 20			%check for hit
+	BEQL	V0, R0, .done
+		LHU		V0, 1FC (S3)	%in original code
+	%V0 and V1 are still free
+	LB		V0, 210 (S3)
+	ADDIU	V1, R0, 6 %sleep
+	BNE		V0, V1, .done
+		LHU		V0, 1FC (S3)	%in original code
+	SH		R0, 210 (S3)	%now clear debuff status and counter
+	SH		R0, 216 (S3)	%clears 210-11 (debuff) and 216-17 (marker/partner stun)
+	%clearing actor marker... I think
+	LW		V1, 440 (S3)
+	LW		V1, C (V1)
+	SW		R0, 3C (V1)	
+	%call to clear status anim uses V0, V1, A0, RA (but V1 is overwritten just below)
+	PUSH      V0, A0, RA
+	JAL       80047898
+	LH        A0, 436 (S3)
+	POP		  V0, A0, RA
+	.done
+	J 		80251A4C  %802516E8+364
+		LHU		V1, 1FA (S3)	%in original code
+}
+
+
+%%% PART EIGHT - DIZZY ATTACK
+%%% We want Dizzy Attack to ignore the status counter... sort of. It will formally reset it to '1 use remaining'. Also, since Dizzy now has a de facto 1 turn 'softening' we want to increase the duration a turn.
+
+%We override the address of the function call used to make the actor dizzy, in lieu of hooking it.
+@Data 1B79C0 %001B795C+64
+{
+$Function_NeoDizzy
+}
+ 
+ %this function is a revised and expanded version of the function that applies dizzy from Script_DoDizzyAttack.
+#new:Function $Function_NeoDizzy
+{
+    	PUSH 		RA, S0
+    8:  JAL			80269D6C	%~Func:get_actor
+    C:  LW			A0, 148 (A0)
+   10:  COPY		A0, V0
+   		COPY 		S0, A0
+   14:  ADDIU		A1, R0, 4
+   18:  CLEAR		A2
+   1C:  JAL			80266CF0	%~Func:inflict_status_set_duration
+   20:  ADDIU		A3, R0, 2 %duration updated to account for Dizzy's new properties
+   24:  JAL			8026777C	%$Function_8026777C %some sort of animation thing
+   28:  NOP
+   		LI			V0, 101
+		SW			V0, C4 (S0) 	%store value in ActorVar[F]
+   		POP			RA, S0
+   		JR			RA
+   		LI			V0, 2 
+}
+
+%%% PART NINE - SHRINK
+%%% We want Shrink to round up. This is as simple as a pair of one line patches in the player and enemy battle functions.
+
+%%% PLAYER
+
+@Function 1A0B34 %1A0224+910
+{
+   ADDIU		V0, S0, 1				
+}
+
+@Function 1A6194 %1A5D0C + 488
+{
+	ADDIU		V0, S0, 1
+}
+
+%%% PART TEN - PARALYSIS ON SHOCKHIT
+%%% When Mario takes electricity damage, we want to AfflictActor him with paralysis.
+% We hook a convenient script call in the middle, and replace it with our own script.
+
+@Data 1B4380
+{
+	$AfflictParaWrapper
+}
+
+#new:Script:Battle $AfflictParaWrapper
+{
+	ExecWait  802988F0 %in original script
+	Call  GetPlayerHP ( *Var[0] )
+	If *Var[0] > 0
+		Call  $IsBadgeEquippedScriptVer (35 *Var[0]) %35 = jr. emblem
+		If *Var[0] == 0`
+			Call  AfflictActor  ( .Actor:Player .Status:Paralyze 00000001 )
+		EndIf
+	EndIf
+	Return
+	End
+}
+
+
+
+
+%Stone cap makes stuff not work
+%80277D74
+@Hook 1A6654
+{
+	PUSH	RA, S0, S1, S2, S3
+	LAW		S0, 800DC148
+	LB		S1, 214 (S0)
+	BEQ		S1, R0, .no
+	NOP
+	.yes
+	POP		RA, S0, S1, S2, S3
+	J		80277D7C
+	ORI		V0, R0, 1
+	.no
+	POP		RA, S0, S1, S2, S3
+	J		80277D7C
+	ORI		V0, R0, 0
+}
+
+%force 100%
+@Function 1A666C
+{
+	SLTI	V0, V0, 65
+}

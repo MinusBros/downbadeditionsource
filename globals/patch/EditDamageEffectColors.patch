@@ -1,0 +1,209 @@
+%Ported from Dark Star, but I'm going to be only having one colour so it doesn't look vanilla.
+%Don't call based on curse state
+
+#export:Data $DamageEffectFlag
+{
+	00000000
+}
+
+#export:Data $DamageEffect2Flag
+{
+	00000000
+}
+
+#export:Data $DamageEffectPointer %note that this can become stale pretty quickly, but never when there is no damage effect
+{
+	00000000
+}
+
+#export:Data $DamageEffectPalettePointer %special data
+{
+	$IntTable_DefaultColors
+}
+
+#export:Data $DamageEffectBonusPointer
+{
+	$IntTable_DefaultStyleTable
+}
+
+%34F4C0
+#export:Function $FindDamageEffectPalettePointer
+{
+	PUSH	S0, S1, S2, S3, RA
+	%JAL		$GetCurseState
+	NOP
+	COPY	S0, V0
+	LI		S1, 0
+	BEQ		S0, S1, .normal
+	%LI		S1, 1
+	%BEQ		S0, S1, .red
+	%LI		S1, 2	
+	%BEQ		S0, S1, .gold
+	%LI		S1, 3
+	%BEQ		S0, S1, .cyan
+	%LI		S1, 4	
+	%BEQ		S0, S1, .green
+	%LI		S1, 5	
+	%BEQ		S0, S1, .purple
+	%LI		S1, 6	
+	%BEQ		S0, S1, .white
+	NOP
+	.normal
+	LI		S3, $IntTable_DefaultColors
+	BEQ		R0, R0, .end
+	NOP
+	.end
+	SAW		S3, $DamageEffectPalettePointer
+	POP		S0, S1, S2, S3, RA
+	JR		RA
+	NOP
+}
+
+#export:Function $FindDamageEffectBonusCode
+{
+	PUSH	S0, S1, S2, S3, RA
+	%JAL		$GetCurseState
+	NOP
+	COPY	S0, V0
+	LI		S1, 0
+	BEQ		S0, S1, .normal
+	NOP
+	.normal
+	LI		S3, $IntTable_DefaultStyleTable
+	BEQ		R0, R0, .end
+	NOP
+	.end
+	SAW		S3, $DamageEffectBonusPointer
+	POP		S0, S1, S2, S3, RA
+	JR		RA
+	NOP
+}
+
+#export:Function $SetDamageEffectColorWithTable
+{
+	PUSH	RA, S0, S1, S2
+	LAW		S0, $DamageEffectPointer		%<-- will cause problems if invalid pointer			%The stuff around here doesn't seem to affect anything
+	LUI		S1, 8000
+	AND		S1, S0, S1
+	BEQ		S1, R0, .end
+	NOP
+	%try to fix it for normal effect
+	LAW		S0, $DamageEffectPointer
+	LI		S1, $IntTable_DefaultColors
+	BEQ		S0, S1, .end
+	NOP
+	%Initialize loop
+	ADDI	S0, S0, 1C0C		%Start at 1C0C + pointer
+	LW		S1, 0 (S0)
+	LW		S2, 0 (A0)
+	BEQ		S1, S2, .end
+	NOP
+	.looptop
+	LW		S1, 0 (A0)
+	BEQ		S1, R0, .end
+	NOP	
+	SW		S1, 0 (S0)
+	ADDI	S0, S0, 10
+	ADDI	A0, A0, 4
+	BEQ		R0, R0, .looptop
+	NOP
+	.end
+	JPOP	RA, S0, S1, S2
+}
+
+#export:Function $SetDamageEffectBonusCodeWithTable
+{
+	PUSH	RA, S0, S1, S2
+	%try to fix it for normal effect
+	LAW		S0, $DamageEffectBonusPointer
+	LI		S1, $IntTable_DefaultStyleTable
+	BEQ		S0, S1, .end
+	NOP	
+	%
+	LI		S0, E003CCF8		%Constant pointer!
+	LW		S1, 0 (S0)
+	LW		S2, 0 (A0)
+	BEQ		S1, S2, .end
+	NOP
+	.looptop
+	LW		S1, 0 (A0)
+	BEQ		S1, R0, .end
+	NOP	
+	SW		S1, 0 (S0)
+	ADDI	S0, S0, 4
+	ADDI	A0, A0, 4
+	BEQ		R0, R0, .looptop
+	NOP
+	.end
+	JPOP	RA, S0, S1, S2
+}
+
+#new:Data $IntTable_DefaultColors
+{
+	00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF		%Star colors (weird)
+	000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF		%Number colors 
+	000000FF 000000FF 000000FF 000000FF
+	00000000
+}
+
+#new:Data $IntTable_RedColors
+{
+	00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF		%Star colors (weird)
+	000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF		%Number colors 
+	000000FF 000000FF 000000FF 000000FF
+	00000000
+}
+
+#new:Data $IntTable_GoldColors
+{
+	0080F0FF 0080F0FF 0080F0FF 0080F0FF 0080F0FF 0080F0FF 0080F0FF 0080F0FF		%Star colors (weird)
+	FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF		%Number colors 
+	FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+	00000000
+}
+
+#new:Data $IntTable_CyanColors
+{
+	FF0000FF FF0000FF FF0000FF FF0000FF FF0000FF FF0000FF FF0000FF FF0000FF		%Star colors (weird)
+	FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF		%Number colors 
+	FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+	00000000
+}
+
+#new:Data $IntTable_GreenColors
+{
+	00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF		%Star colors (weird)
+	000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF		%Number colors 
+	000000FF 000000FF 000000FF 000000FF
+	00000000
+}
+
+#new:Data $IntTable_PurpleColors
+{
+	00FF00FF 00FF00FF 00FF00FF 00FF00FF 00FF00FF 00FF00FF 00FF00FF 00FF00FF		%Star colors (weird)
+	800080FF 800080FF 800080FF 800080FF 800080FF 800080FF 800080FF 800080FF		%Number colors 
+	800080FF 800080FF 800080FF 800080FF
+	00000000
+}
+
+#new:Data $IntTable_WhiteColors
+{
+	00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF 00FFFFFF		%Star colors (weird)
+	000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF 000000FF		%Number colors 
+	000000FF 000000FF 000000FF 000000FF
+	00000000
+}
+
+#new:Data $IntTable_DefaultStyleTable
+{
+	FEACACFE ACD5FEB4 9AD5B4FE B4B4FEB4 DDFEB4FE FEB4FED5 B4FEB4D5 FEB4FEFE
+	B4FED5AC
+	00000000
+}
+
+#new:Data $IntTable_WhiteStyleTable
+{
+	FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+	FFFFFFFF
+	00000000
+}

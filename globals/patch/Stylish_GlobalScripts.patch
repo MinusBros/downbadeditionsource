@@ -1,0 +1,88 @@
+/% When patching partners' scripts sometimes you run out of data to put all Stylish stuff
+
+This file has all those script that I couldn't place because I run out of
+space. %/
+
+
+%===========
+% Sushie
+%===========
+
+% Tydal Wave's GoBackToHome plus Stylish Move
+#new:Script:Battle $Script_TydalWave_GoBackToHome
+{
+    % Tidal Wave - Stylish Move
+    Thread
+        Wait 10`
+        Call $ReadAddress ( $Data_Inputs 0 *Var1 .False .False )
+        If *Var1 == .False % The A button wasn't still pressed
+            Loop 4 % 4 frames
+                % Timing Tutor Badge
+                ExecWait $Script_TimingTutor % writes in var0,1,2
+                Call $ReadAddress ( $Data_Inputs 0 *Var1 .False .False )
+                % Set *Var1 .True % testing
+                If *Var1 == .True
+                    Set   *TrackInput .False % turn off tracker
+                    % Add 1 to the stylish counter (last move only)
+                    Call $ReadAddress  ( $Data_Inputs 0 *Var1 2 .False )
+                    Add *Var1 1
+                    Call $WriteAddress ( $Data_Inputs 0 *Var1 2 .False )
+                    Set *VarA .False % this move doesn't have an SP cap
+                    ExecWait $Script_DoStylishFX
+                    BreakLoop
+                EndIf
+                Wait 1
+            EndLoop
+        Else % A button was pressed to soon, don't do stylish
+            Set   *TrackInput .False % turn off tracker
+            Call  $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+        EndIf
+    EndIf
+    EndThread
+    Call  JumpToGoal    ( .Actor:Partner 00000014 .False .True .False )
+    Call $ReadAddress ( $Data_Inputs 0 *Var1 .False .False )
+    If *Var1 == .True
+        %=====================
+        % Sushie Jump
+        % Rotate Sushie
+        Call PlaySoundAtActor ( .Actor:Self 2034 ) % Jump
+        Thread
+            Call  SetActorRotationOffset    ( .Actor:Self 0 12` 0 )
+            SetTimescale *Fixed[3.0]
+            Call    MakeLerp    	( 0 -180` 8 .Easing:Linear )
+            Loop     
+                Call     UpdateLerp
+                Call     SetActorRotation  ( .Actor:Self 0 0 *Var0 )
+                Wait     1
+                If  *Var1  ==  .False
+                    BreakLoop
+                EndIf
+            EndLoop
+            % 2
+            Call    MakeLerp    	( 180` 0 8 .Easing:Linear )
+            Loop     
+                Call     UpdateLerp
+                Call     SetActorRotation  ( .Actor:Self 0 0 *Var0 )
+                Wait     1
+                If  *Var1  ==  .False
+                    BreakLoop
+                EndIf
+            EndLoop
+            SetTimescale *Fixed[1.0]
+            Call  SetActorRotation  ( .Actor:Self 0 0 0 )
+            Call  SetActorRotationOffset    ( .Actor:Self 0 9 0 )
+        EndThread
+        Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+        % Do Jump
+        Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+        Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.2] )
+        Call  JumpToGoal    ( .Actor:Self 20` .False .False .False )
+    EndIf
+    Set   *TrackInput .False % turn off tracker
+    Call  $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
+    Call  JumpToGoal    ( .Actor:Partner 0000000A .False .True .False )
+    Return
+    End
+}
+
+#export $Script_TydalWave_GoBackToHome

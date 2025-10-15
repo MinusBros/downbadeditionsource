@@ -127,9 +127,10 @@
    D8:  Call  SetNpcAnimationSpeed  ( 00000000 *Fixed[2.0] )
    EC:  Call  SetNpcSpeed       ( 00000000 *Fixed[11.0] )
   100:  Call  NpcMoveTo ( 00000000  70`  0`  0` )
-  7A1:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+		Wait  1`
+  7A1:  Call  GetNpcPos     ( 00000000 *Var0 *Var1 *Var2 )
   7A2:  Call  PlayEffect    ( ~FX:Explosion2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  7B1:  Call  PlaySoundAtActor  ( .Actor:Self 000034E )
+  7B1:  Call  PlaySoundAtActor  ( .Actor:Self 0000034E )
   7B2:  Wait  2`
   11C:  Call  PlaySoundAtNpc    ( 00000000 000000E8 00000000 )
   134:  Call  SetNpcAnimationSpeed  ( 00000000 *Fixed[1.0] )
@@ -257,7 +258,7 @@
   418:  EndSwitch
   420:  Wait  11`
   42C:  Call  SetGoalToTarget   ( .Actor:Self )
-  43C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:50` 00000009 00000020 )
+  43C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:50` 0000000B 00000020 )
   464:  Set   *VarF  *Var0
   474:  Switch  *VarF
   480:  	CaseOR  ==  .HitResult:Hit % 0
@@ -288,18 +289,24 @@
    [30]  	Wait  6`
    [94]  	Wait  29`
    [FC]  Wait  11`
+  [108]  Call  SetAnimation      ( .Actor:Self 00000001 0079010E )
   [120]  Wait  9`
   [140]  Wait  43`
+  [14C]  Call  SetAnimation      ( .Actor:Self 00000001 00790108 )
   [164]  Call  GetPartOffset     ( .Actor:Self 00000001 *Var0 *Var1 *Var2 )
   [184]  Sub   *Var0  00000055
   [194]  Set   *Var1  FFFFFFF6
   [228]  Wait  11`
   [23C]  	Wait  23`
+  [31C]  		Call  SetAnimation  ( .Actor:Self 00000001 00790107 )
+  [340]  		Call  SetAnimation  ( .Actor:Self 00000001 00790104 )
   [3C8]  		Wait  4`
   [424]  Wait  15`
-  [440]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:50` 0000000A 00000020 )
+  [440]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:50` 0000000C 00000020 )
   [468]  Wait  6`
+  [4A8]  Call  SetAnimation      ( .Actor:Self 00000001 00790107 )
   [4C0]  Wait  4`
+  [4CC]  Call  SetAnimation      ( .Actor:Self 00000001 00790104 )
 }
 
 
@@ -315,7 +322,7 @@
 
 @	$LavaBud
 {
-	[MaxHP]         15`b
+	[MaxHP]         18`b
 }
 
 
@@ -441,7 +448,7 @@
   538:  Call  SetGoalToTarget   ( *Var5 )
   548:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
   55C:  Call  SetGoalToTarget   ( .Actor:Self )
-  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 00000006 00000020 )
+  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 00000007 00000020 )
   594:  Switch  *Var9
   5A0:  	CaseOR  ==  .HitResult:Hit % 0
   5AC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -552,7 +559,7 @@
   538:  Call  SetGoalToTarget   ( *Var5 )
   548:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
   55C:  Call  SetGoalToTarget   ( .Actor:Self )
-  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 00000007 00000020 )
+  56C:  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire 0000FFFF 00000000 00000008 00000020 )
   594:  Switch  *Var9
   5A0:  	CaseOR  ==  .HitResult:Hit % 0
   5AC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -589,6 +596,30 @@
   7A4:  End
 }
 
+@	$PetitPiranha
+{
+	[MaxHP]         5`b
+}
+
+%Remove it setting its HP to 1.
+@	 $Script_Init_80224048
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_802246F4 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_802240A8 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_802240DC )
+   50:  Return
+   58:  End
+}
+
+@	$DefenseTable_80223F24
+{
+	.Element:Normal 00000000
+	.Element:Water  00000002
+	.Element:Ice    00000001
+	.Element:Fire   00000063
+	.Element:Blast  00000000
+	.Element:End
+}
 
 %Spawning Petit Piranhas
 %I never realized how slow
@@ -604,6 +635,7 @@
   [28C]  Wait  26`
   [4C4]  	Call  SetActorSpeed ( *Var5 *Fixed[8.0] )
   [584]  	Call  SetActorSpeed ( *Var5 *Fixed[10.0] )
+  [77C]  Call  EnemyDamageTarget ( .Actor:Self *Var9 ~Flags:DamageType:Fire|Unblockable 0000FFFF 00000000 *Var8 00000020 )
 }
 
 
@@ -1012,7 +1044,7 @@
  13CC:  	Call  OverrideBattleDmaDest ( $End[9230] )
  13DC:  	Call  LoadBattleDmaData     ( 00000000 )
  13EC:  	Call  PlayModelAnimation    ( 00000000 $End[9230] )
- 1400:  	Call  SetAnimation  ( .Actor:Self 00000001 0079000E )
+ 1400:  	Call  SetAnimation  ( .Actor:Self 00000001 0079010E )
  1418:  	Wait  5`
  1424:  	Call  OverrideBattleDmaDest ( $End[3230] )
  1434:  	Call  LoadBattleDmaData     ( 0000001F )
@@ -1072,7 +1104,7 @@
  17F0:  		EndIf
  17F8:  		Wait  121`
  1804:  		Call  PlaySoundAtActor  ( .Actor:Self 000003CD )
- 1818:  		Call  SetAnimation      ( .Actor:Self 00000001 0079000A )
+ 1818:  		Call  SetAnimation      ( .Actor:Self 00000001 0079010A )
  1830:  		Call  OverrideBattleDmaDest ( $End[9230] )
  1840:  		Call  LoadBattleDmaData ( 0000000B )
  1850:  		Call  PlayModelAnimation    ( 00000000 $End[9230] )
@@ -1213,4 +1245,97 @@
  2120:  EndIf
  2128:  Return
  2130:  End
+}
+
+
+
+
+
+
+@	$Script_BeforeBattle_8022A36C
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetCamBGColor ( .Cam:Battle  0`  0`  0` )
+   2C:  Set   *Var0  00000011
+   3C:  Set   *Var1  00000000
+   4C:  Exec  $Script_8022A040
+   58:  Set   *Var0  0000000F
+   68:  Set   *Var1  00000001
+   78:  Exec  $Script_8022A040
+   84:  Set   *Var0  0000000A
+   94:  Set   *Var1  00000002
+   A4:  Exec  $Script_8022A10C
+   B0:  Set   *Var0  0000000B
+   C0:  Set   *Var1  00000003
+   D0:  Exec  $Script_8022A10C
+   DC:  Set   *Var0  0000001A
+   EC:  Set   *Var1  00000004
+   FC:  Exec  $Script_8022A10C
+  108:  Set   *Var0  0000001B
+  118:  Set   *Var1  00000005
+  128:  Exec  $Script_8022A10C
+   2C:  Set   *Var0  0000005B
+   3C:  Set   *Var1  00000000
+   4C:  Exec  $Script_8022A040
+  134:  Call  EnableModel   ( ~Model:kzn_bt05:p00 .False )
+  148:  Call  EnableModel   ( ~Model:kzn_bt05:p01 .False )
+  15C:  Call  EnableModel   ( ~Model:kzn_bt05:p02 .False )
+  170:  Call  EnableModel   ( ~Model:kzn_bt05:p03 .False )
+  184:  Call  EnableModel   ( ~Model:kzn_bt05:p04 .False )
+  198:  Call  EnableModel   ( ~Model:kzn_bt05:p05 .False )
+  1AC:  Call  EnableModel   ( ~Model:kzn_bt05:p06 .False )
+  1C0:  Call  EnableModel   ( ~Model:kzn_bt05:p07 .False )
+  1D4:  Call  EnableModel   ( ~Model:kzn_bt05:p08 .False )
+  1E8:  Call  EnableModel   ( ~Model:kzn_bt05:p09 .False )
+  1FC:  Call  EnableModel   ( ~Model:kzn_bt05:p10 .False )
+  210:  Call  EnableModel   ( ~Model:kzn_bt05:p11 .False )
+  224:  Call  EnableModel   ( ~Model:kzn_bt05:p12 .False )
+  238:  Call  EnableModel   ( ~Model:kzn_bt05:q00 .False )
+  24C:  Call  EnableModel   ( ~Model:kzn_bt05:q01 .False )
+  260:  Call  EnableModel   ( ~Model:kzn_bt05:q02 .False )
+  274:  Call  EnableModel   ( ~Model:kzn_bt05:q03 .False )
+  288:  Call  EnableModel   ( ~Model:kzn_bt05:q04 .False )
+  29C:  Call  EnableModel   ( ~Model:kzn_bt05:q05 .False )
+  2B0:  Call  EnableModel   ( ~Model:kzn_bt05:q06 .False )
+  2C4:  Call  EnableModel   ( ~Model:kzn_bt05:q07 .False )
+  2D8:  Call  EnableModel   ( ~Model:kzn_bt05:q08 .False )
+  2EC:  Call  EnableModel   ( ~Model:kzn_bt05:q09 .False )
+  300:  Call  EnableModel   ( ~Model:kzn_bt05:q10 .False )
+  314:  Call  EnableModel   ( ~Model:kzn_bt05:q11 .False )
+  328:  Call  EnableModel   ( ~Model:kzn_bt05:q12 .False )
+  33C:  Call  EnableModel   ( ~Model:kzn_bt05:r00 .False )
+  350:  Call  EnableModel   ( ~Model:kzn_bt05:r01 .False )
+  364:  Call  EnableModel   ( ~Model:kzn_bt05:r02 .False )
+  378:  Call  EnableModel   ( ~Model:kzn_bt05:r03 .False )
+  38C:  Call  EnableModel   ( ~Model:kzn_bt05:r04 .False )
+  3A0:  Call  EnableModel   ( ~Model:kzn_bt05:r05 .False )
+  3B4:  Call  EnableModel   ( ~Model:kzn_bt05:r06 .False )
+  3C8:  Call  EnableModel   ( ~Model:kzn_bt05:r07 .False )
+  3DC:  Call  EnableModel   ( ~Model:kzn_bt05:r08 .False )
+  3F0:  Call  EnableModel   ( ~Model:kzn_bt05:r09 .False )
+  404:  Call  EnableModel   ( ~Model:kzn_bt05:r10 .False )
+  418:  Call  EnableModel   ( ~Model:kzn_bt05:r11 .False )
+  42C:  Call  EnableModel   ( ~Model:kzn_bt05:r12 .False )
+  440:  Call  EnableModel   ( ~Model:kzn_bt05:s01 .False )
+  454:  Call  EnableModel   ( ~Model:kzn_bt05:s02 .False )
+  468:  Call  EnableModel   ( ~Model:kzn_bt05:s03 .False )
+  47C:  Call  EnableModel   ( ~Model:kzn_bt05:s04 .False )
+  490:  Call  EnableModel   ( ~Model:kzn_bt05:s05 .False )
+  4A4:  Call  EnableModel   ( ~Model:kzn_bt05:s06 .False )
+  4B8:  Call  EnableModel   ( ~Model:kzn_bt05:s07 .False )
+  4CC:  Call  EnableModel   ( ~Model:kzn_bt05:s08 .False )
+  4E0:  Call  EnableModel   ( ~Model:kzn_bt05:s09 .False )
+  4F4:  Call  EnableModel   ( ~Model:kzn_bt05:h01 .False )
+  508:  Call  EnableModel   ( ~Model:kzn_bt05:h02 .False )
+  51C:  Call  EnableModel   ( ~Model:kzn_bt05:h03 .False )
+  530:  Call  EnableModel   ( ~Model:kzn_bt05:h04 .False )
+  544:  Call  EnableModel   ( ~Model:kzn_bt05:h05 .False )
+  558:  Call  EnableModel   ( ~Model:kzn_bt05:h06 .False )
+  56C:  Call  EnableModel   ( ~Model:kzn_bt05:h07 .False )
+  580:  Call  EnableModel   ( ~Model:kzn_bt05:h08 .False )
+  594:  Call  EnableModel   ( ~Model:kzn_bt05:h09 .False )
+  5A8:  Call  EnableModel   ( ~Model:kzn_bt05:h10 .False )
+  5BC:  Call  EnableModel   ( ~Model:kzn_bt05:h11 .False )
+  5D0:  Return
+  5D8:  End
 }

@@ -1,0 +1,238 @@
+% Automatically dumped from section 1D
+
+#new:Actor $Culex {
+% stats
+[Index]        39b 
+[Level]       140`b 
+[MaxHP]       240`b 
+[Coins]         0`b 
+[Flags]       00000000 
+[StatusTable] $StatusTable_Culex 
+% ai
+[PartsCount]    1`s 
+[PartsTable]  $PartsTable_Culex
+[Script]      $Script_Init_Culex
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]   3`b 
+[SpinSmash]     0`b % weight (0-4)
+% ui positions
+[Size]         60`b  52`b % width height
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -22`b  32`b % dx dy
+[StatusIcon]    1`b  44`b % dx dy
+}
+
+
+#new:IdleAnimations $IdleAnimations_Culex {
+.Status:Normal    00EE0000
+.Status:End
+}
+
+#new:DefenseTable $DefenseTable_Culex {
+.Element:Normal 00000000
+.Element:Cosmic 00000063
+.Element:End
+}
+
+#new:StatusTable $StatusTable_Culex {
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep       5`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy       5`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze    5`
+.Status:Shrink      5`
+.Status:Stop        5`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod      0`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod      0`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod   0`
+.Status:ShrinkTurnMod     0`
+.Status:StopTurnMod       0`
+.Status:End
+}
+
+#new:PartsTable $PartsTable_Culex{
+00800000 01000000 F13200FF $IdleAnimations_Culex $DefenseTable_Culex 00000008 00000000 03F20000 00000000 
+}
+
+#new:Script $Script_Init_Culex{
+    0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   18:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   30:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   48:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   60:  Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_Culex )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_Culex )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_Culex )
+		Call  SetPartAlpha  ( .Actor:Self 1` 0` )
+		Call  BindNextTurn  ( .Actor:Self $StartofBattle )
+   3C:  Return
+   44:  End
+}
+
+#new:Script $Script_Idle_Culex {
+  100:  Return
+  108:  End
+}
+
+
+
+#new:Script $Script_TakeTurn_Culex {
+   C8:  Return
+   D0:  End
+}
+
+
+
+#new:Script $StartofBattle {
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetBattlePhase    ( *Var0 )
+   38:  Switch  *Var0 
+   44:  	Case  ==  0000000A 
+   50:  		Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
+   68:  		If  *Var0  !&  00000001 
+   78:  			ConstOR  *Var0 00000001 
+   88:  			Call  SetActorVar       ( .Actor:Self 00000002 *Var0 )
+		   B8:  	Loop  17` 
+		   C4:  		Add   *Var0  15` 
+		   D4:  		Call  SetPartAlpha  ( .Actor:Self 00000001 *Var0 )
+		   EC:  		Wait  1`
+		   F8:  	EndLoop
+					
+  108:  		EndIf
+  110:  	Case  ==  0000000C 
+  11C:  	Case  ==  0000000B 
+  128:  	Case  ==  0000000A 
+  134:  EndSwitch
+  13C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  150:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  164:  Return
+  16C:  End
+}
+
+
+
+#new:Script $Script_HandleEvent_Culex {
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   3C:  Switch  *Var0 
+   48:  	CaseOR  ==  .Event:HitCombo % 9
+   54:  	CaseOR  ==  .Event:Hit % A
+   60:  		SetConst  *Var0  00000001 
+   70:  		SetConst  *Var1  00EE0000 
+   80:  		ExecWait  DoNormalHit 
+   8C:  	EndCaseGroup
+   94:  	Case  ==  .Event:BurnHit % E
+   A0:  		SetConst  *Var0  00000001 
+   B0:  		SetConst  *Var1  00EE0000 
+   C0:  		SetConst  *Var2  00EE0000 
+   D0:  		ExecWait  DoBurnHit 
+   DC:  	Case  ==  .Event:BurnDeath % 24
+   E8:  		SetConst  *Var0  00000001 
+   F8:  		SetConst  *Var1  00EE0000 
+  108:  		SetConst  *Var2  00EE0000 
+  118:  		ExecWait  DoBurnHit 
+  124:  		SetConst  *Var0  00000001 
+  134:  		SetConst  *Var1  00EE0000 
+  144:  		ExecWait  DoDeath 
+  150:  		Return
+  158:  	Case  ==  .Event:SpinSmashHit % B
+  164:  		SetConst  *Var0  00000001 
+  174:  		SetConst  *Var1  00EE0000 
+  184:  		ExecWait  DoSpinSmashHit 
+  190:  	Case  ==  .Event:SpinSmashDeath % 21
+  19C:  		SetConst  *Var0  00000001 
+  1AC:  		SetConst  *Var1  00EE0000 
+  1BC:  		ExecWait  DoSpinSmashHit 
+  1C8:  		SetConst  *Var0  00000001 
+  1D8:  		SetConst  *Var1  00EE0000 
+  1E8:  		ExecWait  DoDeath 
+  1F4:  		Return
+  1FC:  	Case  ==  .Event:ShockHit % 2F
+  208:  		SetConst  *Var0  00000001 
+  218:  		SetConst  *Var1  00EE0000 
+  228:  		ExecWait  DoShockHit 
+  254:  	Case  ==  .Event:ShockDeath % 26
+  260:  		SetConst  *Var0  00000001 
+  270:  		SetConst  *Var1  00EE0000 
+  280:  		ExecWait  DoShockHit 
+  28C:  		SetConst  *Var0  00000001 
+  29C:  		SetConst  *Var1  00EE0000 
+  2AC:  		ExecWait  DoDeath 
+  2B8:  		Return
+  2C0:  	CaseOR  ==  00000017 % 17
+  2CC:  	CaseOR  ==  .Event:Immune % 19
+  2D8:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  2E4:  		SetConst  *Var0  00000001 
+  2F4:  		SetConst  *Var1  00EE0000 
+  304:  		ExecWait  DoImmune 
+  310:  	EndCaseGroup
+  318:  	Case  ==  .Event:Death % 20
+  324:  		SetConst  *Var0  00000001 
+  334:  		SetConst  *Var1  00EE0000 
+  344:  		ExecWait  DoNormalHit 
+  350:  		Wait  10`
+  35C:  		SetConst  *Var0  00000001 
+  36C:  		SetConst  *Var1  00EE0000 
+  37C:  		ExecWait  DoDeath 
+  388:  		Return
+  390:  	Case  ==  .Event:RecoverStatus % 31
+  39C:  		SetConst  *Var0  00000001 
+  3AC:  		SetConst  *Var1  00EE0000 
+  3BC:  		ExecWait  DoRecover 
+  4A8:  	Case  ==  0000001D % Star Beam
+  4B4:  		Call  GetStatusFlags    ( .Actor:Self *Var3 )
+  4C8:  		If  *Var3  !&  ~Flags:StatusFlags:Shrink % 80000
+  4D8:  			Set   *Var3  0000003C 
+  4E8:  			Set   *Var4  00000061 
+  4F8:  		Else
+  500:  			Set   *Var3  00000018 
+  510:  			Set   *Var4  00000027 
+  520:  		EndIf
+  528:  		Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  544:  		Add   *Var1  *Var3 
+  554:  		Call  PlayEffect        ( ~FX:EnergyWaveOut:Grey *Var0 *Var1 *Var2 *Fixed[1.5] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  5B0:  		Wait  30`
+  5BC:  		Call  UseBattleCamPreset    ( 00000013 )
+  608:  		Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+  620:  		Call  SetBattleCamZoom  (  420` )
+  630:  		Call  SetBattleCamOffsetZ   (  0` )
+  640:  		Call  MoveBattleCamOver (  30` )
+  650:  		Wait  30`
+  3C8:  	Case  ==  .Event:ScareAway % 39
+  3D4:  		SetConst  *Var0  00000001 
+  3E4:  		SetConst  *Var1  00EE0000 
+  3F4:  		SetConst  *Var2  00EE0000 
+  404:  		ExecWait  DoScareAway 
+  410:  		Return
+  418:  	Case  ==  .Event:BeginAirLift % 3A
+  424:  		SetConst  *Var0  00000001 
+  434:  		SetConst  *Var1  00EE0000 
+  444:  		ExecWait  DoAirLift 
+  450:  	Case  ==  .Event:BlowAway % 16
+  45C:  		SetConst  *Var0  00000001 
+  46C:  		SetConst  *Var1  00EE0000 
+  47C:  		ExecWait  DoBlowAway 
+  488:  		Return
+  490:  	Default
+  498:  EndSwitch
+  4A0:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  4B4:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  4C8:  Return
+  4D0:  End
+}

@@ -1,0 +1,132 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000004 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]This tomb is huge! Now there are[BR]
+even multiple paths. Do you think[BR]
+we'll ever find our way back?[BR]
+[Wait][Next]
+I think the faint scent of[BR]
+fresh air getting stronger[BR]
+will lead us.[BR]
+[Wait][Next]
+Seriously, how can you stand the[BR]
+stench down here!? Does that[BR]
+mustache trap odors before they[BR]
+reach your nose?[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+	
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1
+~Vec4f:Entry2
+~Vec4f:Entry3
+}
+
+#new:Script_Main $Script_Main
+{
+	%Set      *WorldMapLocation 0000000A % sets the location on the pause screen map
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000001 00000008 )
+	If  *GF_DNJ02_OpenEntrance  ==  00000001 
+		Call     ModifyColliderFlags 	( 00000000 ~Collider:nahfam 7FFFFE00 )
+		Set *Var[2] -1000`
+		Call	TranslateModel	( ~Model:barsdown 00000000 *Var[2] 00000000 )
+	Else
+		Set *Var[2] -1000`
+		Call	TranslateModel	( ~Model:barsup 00000000 *Var[2] 00000000 )
+	EndIf
+		ExecWait $Script_CreateEntities
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+		Wait	1
+	Return
+	End
+}
+ 
+ #new:Script $Script_CreateEntities
+{
+ Call     MakeItemEntity ( .Item:DriedShroom   ~Vec3d:ultrashroom 00000011 *GF_DNJ08_Item1 ) % 
+ Call     MakeItemEntity ( .Item:TruthStomp ~Vec3d:supershroom 00000011 *GF_DNJ08_Item2 ) % Put Truth Stomp here cuz idk where else to put it
+ Call     MakeItemEntity ( .Item:DriedShroom   ~Vec3d:mushroom 00000011 *GF_DNJ08_Item3 )    %
+ Return
+ End
+}
+ 
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit0 00000001 00000000
+	Bind     $Script_Exit3  .Trigger:FloorAbove ~Collider:exit3 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_08" 00000001 )
+	Wait     00000044 
+	Return
+	End	
+}
+	
+	
+	#new:Script $Script_Exit3
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000003 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_08" 00000001 )  %Change later
+	Wait     00000044 
+	Return
+	End	
+}

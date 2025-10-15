@@ -1,0 +1,270 @@
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 00000000
+	[EntryList]  $EntryList
+	[EntryCount] 1
+    [MapTattle]  $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:DryDryOutpost
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True )
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	ExecWait  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	If *GF_DRO04_Rope == .False
+		Bind  $Script_Rope .Trigger:FloorJump ~Collider:rope 00000001 00000000
+	Else
+		Wait  1`
+	EndIf
+    Call  MakeItemEntity ( .Item:StarPiece ~Vec3d:ItemPos .ItemSpawnMode:Fixed_NeverVanish *GF_DRO04_Item )
+	Return
+	End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeEntity    ( .Entity:ScriptSpring ~Vec4d:Spring 80000000 )
+	Call  AssignScript    ( $Script_Exit0 )
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Call  SetMusicTrack ( 00000000 .Song:DryDryOutpost 00000000 00000008 )
+	Call  ClearAmbientSounds ( 250` )
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	If  *MapFlag[00]  ==  .True
+        Return
+    EndIf
+	Call  DisablePlayerInput    ( .True )
+	Call  DisablePlayerPhysics  ( .True )
+	Call  SetPlayerActionState  ( .ActionState:Launch )
+	Wait  1`
+	Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+	Call  PlayerJump            ( ~Vec3d:Exit0 30` )
+    Thread
+        Wait  1
+        Call  GotoMap   ( "dro_02" 4 )
+	EndThread
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call	GetEntryID ( *Var0 )
+	If *Var0 == ~Entry:Entry0 % Spring
+		ExecWait $Script_EnterMap_Spring
+		Exec $Script_CreateExitTriggers
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap_Spring
+{
+    Set   *MapFlag[00] .True
+    Call  DisablePlayerInput    ( .True )
+    Call  SetPlayerActionState  ( .ActionState:Falling )
+    Call  802D2484
+    Call  SetPlayerActionState  ( .ActionState:Launch )
+    Call  SetPlayerJumpscale    ( *Fixed[1.5] )
+    Call  PlayerJump    ( ~Vec3d:JumpPos_Entry0  16` )
+    Call  SetPlayerAnimation    ( 00010002 )
+    Call  DisablePlayerInput    ( .False )
+    Set   *MapFlag[00] .False
+    Return
+    End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+    %Bind  	$Script_Exit1 .Trigger:FloorTouch ~Collider:Exit0 00000001 00000000
+	Return
+	End
+}
+
+
+%%%
+
+#new:Script $Script_Rope
+{
+    Unbind
+    Set *Var0 0 % index
+    Set *Var1 ~Model:rope
+    Set *MapFlag[01] .True
+    Exec $Script_PullRope
+    Return
+    End
+}
+
+#new:Script $Script_PullRope
+{
+    Set     *Var5 *Var0
+    Set     *Var6 *Var1
+    % check if player is using watt
+    Call    $ReadBitFlag ( 8010EFCC .False 3 0 *Var0 ) % PlayerFlags2(0x03)(bit0=Show Hidden Blocks (using watt))
+    If *Var0 == .True
+        Call    $WriteAddress ( 802BE304 2 00000002 .False .False ) % Watt.wscr's data
+        Wait    1
+    EndIf
+    SetGroup 0
+    SuspendAll 2
+    Call    DisablePartnerAI ( 0 )
+    Call    SetPlayerActionState ( .ActionState:StepDown )
+    Call    DisablePlayerInput ( .True )
+    Call    DisablePlayerPhysics ( .True )
+    Call    InterpPlayerYaw ( 90` 0 )
+    Call    SetPlayerAnimation ( 00010002 )
+    Call    SetPlayerAnimation ( 00080005 )
+    Call    GetModelCenter ( *Var6 )
+    Add     *Var0 4 % x
+    Sub     *Var1 88` % y
+    Add     *Var2 5 % z
+    Call    SetPlayerPos ( *Var0 *Var1 *Var2 )
+    Wait    3
+    % rope animation - start
+    Call    PlaySound ( 20C2 )
+    Call    MakeLerp ( 0 -4` 4 .Easing:Linear )
+    Loop
+        Call    UpdateLerp
+        Set     *Var3 *Var0
+        Set     *Var4 *Var1
+        Call    TranslateModel ( *Var6 0 *Var3 0 )
+        Call    GetModelCenter ( *Var6 )
+        Add     *Var0 4 % x
+        Sub     *Var1 88` % y
+        Add     *Var2 5 % z
+        Call    SetPlayerPos ( *Var0 *Var1 *Var2 )
+        Wait    1
+        If *Var4 == .False
+            BreakLoop
+        EndIf
+    EndLoop
+    %
+    Call    MakeLerp ( -4 0 4 .Easing:Linear )
+    Loop
+        Call    UpdateLerp
+        Set     *Var3 *Var0
+        Set     *Var4 *Var1
+        Call    TranslateModel ( *Var6 0 *Var3 0 )
+        Call    GetModelCenter ( *Var6 )
+        Add     *Var0 4 % x
+        Sub     *Var1 88` % y
+        Add     *Var2 5 % z
+        Call    SetPlayerPos ( *Var0 *Var1 *Var2 )
+        Wait    1
+        If *Var4 == .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Wait    2
+    % rope animation - down
+    Thread
+        Wait    5
+        Call    PlaySound ( 0152 ) % switch
+    EndThread
+    Call    MakeLerp ( 0 -20` 25` .Easing:Linear )
+    Loop
+        Call    UpdateLerp
+        Set     *Var3 *Var0
+        Set     *Var4 *Var1
+        Call    TranslateModel ( *Var6 0 *Var3 0 )
+        Call    GetModelCenter ( *Var6 )
+        Add     *Var0 4 % x
+        Sub     *Var1 88` % y
+        Add     *Var2 5 % z
+        Call    SetPlayerPos ( *Var0 *Var1 *Var2 )
+        Wait    1
+        If *Var4 == .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Wait    1
+    % player falls
+    Call    SetPlayerAnimation ( 00010002 )
+    Call    SetPlayerAnimation ( .PlayerAnim:Midair )
+    Call    DisablePlayerPhysics ( .False )
+	Thread
+		% rope animation - up
+		Call    PlaySound ( 2089 )
+		Call    MakeLerp ( -20 7 5 .Easing:Linear )
+		Loop
+			Call    UpdateLerp
+			Set     *Var3 *Var0
+			Set     *Var4 *Var1
+			Call    TranslateModel ( *Var6 0 *Var3 0 )
+			Wait    1
+			If *Var4 == .False
+				BreakLoop
+			EndIf
+		EndLoop
+		%
+		Call    MakeLerp ( 7 0 6 .Easing:Linear )
+		Loop
+			Call    UpdateLerp
+			Set     *Var3 *Var0
+			Set     *Var4 *Var1
+			Call    TranslateModel ( *Var6 0 *Var3 0 )
+			Wait    1
+			If *Var4 == .False
+				BreakLoop
+			EndIf
+		EndLoop
+	EndThread
+	% show pipe
+    Wait    10`
+	Call    UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+    Call    SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+    Call    PanToTarget   ( .Cam:Default 00000000 00000001 )
+	Wait	30`
+    Call    PlaySound ( 000B )
+	ResumeAll 2
+	Set		*GF_DRO04_Rope .True
+    Call    DisablePlayerInput ( .False )
+    Call    EnablePartnerAI
+    Return
+    End
+}
+
+
+%%%
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $String_Tattle
+JR        RA
+RESERVED
+}
+
+#string $String_Tattle
+{
+[Style Tattle][EnableCDownNext]
+Cool place they got here.[BR]
+[Pause 10]With a little touch-up and[BR]
+some babes, maybe it can[BR]
+become Goombarius's place.[BR]
+[wait][Next]
+Actually, I dunno.[BR]
+[Pause 10]I already got a suite.[BR]
+My room's way better than[BR]
+this dump.
+[Wait][End]
+}

@@ -6,6 +6,21 @@
    [10]  Call  SetSpriteShading  ( .Shading:mim_12 )
 }
 
+@	$Script_802404A0
+{
+		If  *GB_StoryProgress  ==  .Story:Ch3_BowJoinedParty
+			Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
+			Return
+		EndIf
+    0:  If  *GB_StoryProgress  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   10:  	Call  SetMusicTrack ( 00000000 .Song:BoosMansion 00000000 00000008 )
+   2C:  Else
+   34:  	Call  SetMusicTrack ( 00000000 .Song:CheerfulBoosMansion 00000000 00000008 )
+   50:  EndIf
+   58:  Return
+   60:  End
+}
+
 #import SwapToGoombarius.mpat
 
 @	$Script_80240990
@@ -248,18 +263,18 @@
 	Call  ShowEmote ( .Npc:Partner .Emote:Question  0`  60` .False  0`  0`  0`  0` )
 	EndThread
 	Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[2.0] )
-	Wait  60`
+	Wait  50`
 	Call  SetNpcJumpscale   ( .Npc:Broozer *Fixed[0.25] )
 	Call  NpcJump1  ( .Npc:Broozer  50`  0`  190` 0000000C )
-	Call  ResetCam  ( .Cam:Default *Fixed[1.5] )
-	Call  StopSound ( 00000433 )
 	Thread
+		Call  ResetCam  ( .Cam:Default *Fixed[1.5] )
+		Call  StopSound ( 00000433 )
+	EndThread
     Call  PlaySoundAtNpc    ( .Npc:Broozer 0000208B 00000000 )
     Call  PlaySoundAtNpc    ( .Npc:Broozer 000020A0 00000000 )
 	Call  InterpPlayerYaw   (  270`  0` )
 	Call  SetPlayerJumpscale    ( *Fixed[0.5] )
     Call  PlayerJump1   ( -50` 0` 190`  0000000C )
-	EndThread
 	Wait  30`
 	Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000000 .Npc:Broozer 000E0107 ) %This is Tyrant.
 	Call  SpeakToPlayer ( .Npc:Partner 0005000B 0005000B 00000000 000E0108 ) %He's coming for you.
@@ -300,6 +315,8 @@
    D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
    EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
   100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+		Call  $SetFlagCarryOverworldMusicToBattle()
+		Call  SetMusicTrack ( 00000000 .Song:Kazuya 00000002 00000008 )
 	    Call  StartBossBattle   ( .Song:Kazuya )
 		Return
 		End
@@ -311,11 +328,13 @@
    10:  Switch  *Var0
    1C:  	Case  ==  .Outcome:PlayerWon % 0
 				Thread
+					Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
 					Call  SetNpcPos     ( .Npc:Broozer 50` 0` 190` )
 					Call  SetNpcAnimation   ( .Npc:Broozer 00EC0005 )
 					Call  ResetCam  ( .Cam:Default *Fixed[1.5] )
-					Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
+					
 				EndThread
+				Call $ClearFlagCarryOverworldMusicToBattle()
 				Wait  40`
 				Call  GetCurrentPartnerID   ( *Var0 )
 				If  *Var0  ==  .Partner:Bow

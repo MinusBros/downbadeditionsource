@@ -1,3 +1,6 @@
+%Now renamed to Cleanse
+%Heals 7 and now cures KO status on Partners
+
 @	$Script_UsePower
 {
     0:  ExecWait  $Script_802A1A70
@@ -27,6 +30,18 @@
   1A8:  Call  802D7520      ( *Var0 *Var1 *Var2 00000007 )
   1C4:  Call  $Function_802A1840    ( 00000007 )
   1D4:  Call  $Function_802A1894    ( 00000007 )
+   BC:  		Call  GetStatusFlags    ( .Actor:Partner *Var0 )
+   D0:  		If  *Var0  &  ~Flags:StatusFlags:KO % 1000000
+  380:  			Call  GetActorPos       ( .Actor:Partner *Var0 *Var1 *Var2 )
+  39C:  			Add   *Var1  00000019
+  3AC:  			Call  802D7520  ( *Var0 *Var1 *Var2 *VarB )
+ 3C8:  				If  *VarB  >  00000000
+  3D8:  				Call  $Function_CurePartner    ( *VarB )
+  3E8:  			EndIf
+					Call  $Function_CurePartner2  ( 00000100 )
+  3FC:  			Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+  418:  			Call  802D75D8      ( *Var0 *Var1 *Var2 *VarB )
+				EndIf
   1E4:  Call  $Function_802A17D4 ( )
   1F0:  Wait  15`
   1FC:  Call  80276EFC ( )
@@ -35,6 +50,96 @@
 		Return
 		End
 }
+
+#new:Function $Function_CurePartner
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  LAW       S0, 800DC14C
+   10:  SW        RA, 14 (SP)
+   14:  LB        V0, 217 (S0)
+   18:  LW        A1, C (A0)
+   1C:  BEQ       V0, R0, .o7C
+   20:  LI        V0, 2
+   24:  LW        A1, 0 (A1)
+   28:  JAL       ~Func:get_variable
+   2C:  NOP
+   30:  LBU       V1, 217 (S0)
+   34:  SUBU      V1, V1, V0
+   38:  SB        V1, 217 (S0)
+   3C:  SLL       V1, V1, 18
+   40:  BLTZL     V1, .o48
+   44:  SB        R0, 217 (S0)
+        .o48
+   48:  LB        V1, 217 (S0)
+   4C:  BLEZ      V1, .o64
+   50:  LI        A0, 34
+   54:  LW        V0, 440 (S0)
+   58:  LW        V0, C (V0)
+   5C:  BEQ       R0, R0, .o78
+   60:  SW        V1, 3C (V0)
+        .o64
+   64:  JAL       ~Func:dispatch_event_partner
+   68:  SB        R0, 216 (S0)
+   6C:  LW        V0, 440 (S0)
+   70:  LW        V0, C (V0)
+   74:  SW        R0, 3C (V0)
+        .o78
+   78:  LI        V0, 2
+        .o7C
+   7C:  LW        RA, 14 (SP)
+   80:  LW        S0, 10 (SP)
+   84:  JR        RA
+   88:  ADDIU     SP, SP, 18
+}
+
+
+
+#new:Function $Function_CurePartner2
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        RA, 18 (SP)
+    8:  SW        S1, 14 (SP)
+    C:  SW        S0, 10 (SP)
+   10:  LW        V0, C (A0)
+   14:  JAL       ~Func:get_variable
+   18:  LW        A1, 0 (V0)
+   1C:  JAL       ~Func:get_actor
+   20:  COPY      A0, V0
+   24:  COPY      S0, V0
+   28:  LHU       V0, 192 (S0)
+   2C:  LB        V1, 210 (S0)
+   30:  BEQ       V1, R0, .o48
+   34:  ANDI      S1, V0, 700
+   38:  LH        A0, 436 (S0)
+   3C:  SB        R0, 211 (S0)
+   40:  JAL       ~Func:remove_status_1
+   44:  SB        R0, 210 (S0)
+        .o48
+   48:  LB        V0, 216 (S0)
+   4C:  BEQ       V0, R0, .o80
+   50:  NOP
+   54:  SB        R0, 217 (S0)
+   58:  BEQ       S1, R0, .o74
+   5C:  SB        R0, 216 (S0)
+   60:  LI        V0, 100
+   64:  BNE       S1, V0, .o74
+   68:  NOP
+   6C:  JAL       ~Func:dispatch_event_partner
+   70:  LI        A0, 31
+        .o74
+   74:  LW        V0, 440 (S0)
+   78:  LW        V0, C (V0)
+   7C:  SW        R0, 3C (V0)
+        .o80
+   80:  LW        RA, 18 (SP)
+   84:  LW        S1, 14 (SP)
+   88:  LW        S0, 10 (SP)
+   8C:  LI        V0, 2
+   90:  JR        RA
+   94:  ADDIU     SP, SP, 20
+}
+
 	
 #new:Function $LuckyStarRefund
 {

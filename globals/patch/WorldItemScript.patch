@@ -1,0 +1,209 @@
+%World item usage script
+%Gets dmaed at 802C05CC / 32579C
+
+
+@Data 32579C
+{
+	00000046 00000001 $NewGlobalItemScript
+	00000002 00000000
+	00000001 00000000
+}
+
+%Map script?
+%Var A is set very early on, maybe even before the first script command?
+#new:Script:Map $NewGlobalItemScript
+{
+		Call 	$Function_SetArbitraryByte  ( 00000000 $IsRemovalItem )
+    0:  SetGroup  00000000 
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Call  GetCurrentPartner     ( *Var[0] )
+   2C:  If  *Var[0]  !=  00000000 
+   3C:  	Call  802D2B6C ( )						%sets 4 flag on 8010EFC8
+   48:  	Wait  20`
+   54:  EndIf
+   5C:  Call  802C02E4 ( )
+   68:  Call  802C0358  ( *Var[A] )			%get item as varA? (Also sets varB and varC to HP and FP heal) (sets VarD too as eat/drink boolean?)		(when is VarF set? looks like a "negative heal" thing)
+		Set *Var9 *VarA
+   78:  ExecWait  802C0410 					%item anim
+		Set *VarA *Var9
+		Switch *VarA									
+			Case == .Item:StarCake
+				If  *Var[D]  ==  00000000 
+					ExecWait  802C04F4 				%eat anim and sounds
+				Else
+					ExecWait  802C0560 				%drink anim and sounds
+				EndIf								%post animations
+				If  *Var[F]  ==  00000001 
+					Call  SetPlayerAnimation    ( .PlayerAnim:StickOutTongue )
+				EndIf
+				Call 	$Function_AddSP ( 00000400 )
+				If  *Var[F]  ==  00000000 
+					Wait  10`
+					Call  SetPlayerAnimation    ( .PlayerAnim:ThumbsUp )
+					Wait  30`
+				Else
+					Wait  30`
+				EndIf
+				Call  SetPlayerAnimation    ( 00010002 )
+				Wait  20`
+				Call  802C03E8 ( )
+				Call  DisablePlayerInput    ( .False )
+				Call  802C031C ( )
+				Return
+			Case == .Item:ReturnPipe
+				Switch  *GB_StoryProgress
+					Case  .Story:Ch1_MarioActivatedTrap to .Story:Ch1_BombetteJoinedParty  %To prevent leaving the cell early
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch1_StarSpritDeparted  %To prevent skipping Mr. Trooper
+							ExecWait $CantUsePipe	
+							Return
+					Case  .Story:Ch3_GotSuperBoots  to  .Story:Ch3_StarSpritDeparted
+						If *GF_MIM10_Defeated_JrTroopa == .False
+							ExecWait $CantUsePipe	
+							Return
+						EndIf
+					Case  .Story:Ch3_HeartFledFirstTunnel  to  .Story:Ch3_HeartEscapedWindyMill
+							ExecWait $CantUsePipe	
+							Return
+					Case .Story:Ch5_ReachedLavaLavaIsland to .Story:Ch5_ReturnedToToadTown
+						If *GF_MAC01_Defeated_JrTroopa4 == .False
+							ExecWait $CantUsePipe	
+							Return
+						EndIf
+					Case .Story:Ch5_RafaelLeftNest to .Story:Ch5_RafaelMovedRoot
+							ExecWait $CantUsePipe	
+							Return
+					Case .Story:Ch5_DefeatedLavaPiranha to .Story:Ch5_BeganPeachMission
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch6_SpokeWithTheSun  %To prevent skipping Jonathan
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch7_MayorMurderMystery  %It'd be awkward since the penguin prevents you from leaving
+							ExecWait $CantUsePipe	
+							Return
+					Case  ==  .Story:Ch8_ReachedBowsersCastle  %No early jail escape
+						If *GB_KPA81_BowserDoorState == 00000001
+							ExecWait $CantUsePipe	
+							Return
+						EndIf
+				EndSwitch
+				Call     PlaySound   		( 00000163 )
+			    %Call  802C03E8 ( ) %This removes it from Mario's inventory, so no.
+			    Call  DisablePlayerInput    ( .False )
+			    Call  802C031C ( ) %Not having this prevents Mario from picking up items and coins.
+				Call  GotoMapSpecial    ( "mac_00" 00000004 00000006 )
+				Wait  90`
+				Return
+		EndSwitch
+   84:  If  *Var[D]  ==  00000000 
+   94:  	ExecWait  802C04F4 				%eat anim and sounds
+   A0:  Else
+   A8:  	ExecWait  802C0560 				%drink anim and sounds
+   B4:  EndIf								%post animations
+   BC:  If  *Var[F]  ==  00000001 
+   CC:  	Call  SetPlayerAnimation    ( .PlayerAnim:StickOutTongue )
+   DC:  EndIf
+   E4:  If  *Var[B]  >  00000000 
+   F4:  	Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+  10C:  	Add   *Var[0]  00000000 
+  11C:  	Add   *Var[1]  00000023 
+  12C:  	Call  802C00AC      ( *Var[0] *Var[1] *Var[2] *Var[B] )
+  148:  EndIf
+  150:  If  *Var[C]  >  00000000 
+  160:  	Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+  178:  	Add   *Var[0]  00000014 
+  188:  	Add   *Var[1]  00000019 
+  198:  	Call  802C016C      ( *Var[0] *Var[1] *Var[2] *Var[C] )
+  1B4:  EndIf
+  1BC:  Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+  1D4:  Add   *Var[1]  00000019 
+  1E4:  Call  802D7520      ( *Var[0] *Var[1] *Var[2] *Var[B] )
+  200:  If  *Var[B]  !=  00000000 
+  210:  	Call  802C022C  ( *Var[B] )			%HP heal
+  220:  EndIf
+  228:  If  *Var[C]  !=  00000000 
+  238:  	Call  802C0288  ( *Var[C] )			%FP heal
+  248:  EndIf
+		Call  $Function_EnforceFPLimit ( )
+  250:  If  *Var[F]  ==  00000000 
+  260:  	Wait  10`
+  26C:  	Call  SetPlayerAnimation    ( .PlayerAnim:ThumbsUp )
+  27C:  	Wait  30`
+  288:  Else
+  290:  	Wait  30`
+  29C:  EndIf
+  2A4:  Call  GetPlayerPos  ( *Var[0] *Var[1] *Var[2] )
+  2BC:  Call  802D75D8  ( *Var[0] *Var[1] *Var[2] *Var[B] )
+  2D8:  Call  SetPlayerAnimation    ( 00010002 )
+  2E8:  Wait  20`
+  2F4:  Call  802C03E8 ( )
+  300:  Call  DisablePlayerInput    ( .False )
+  310:  Call  802C031C ( )
+	Return
+	End
+}
+
+#new:Script:Map  $CantUsePipe
+{
+							Call  PlaySound	( 0000021D ) %bzzt
+							Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
+							Call  ShowMessageAtScreenPos    ( $CannotUse  160`  40` )
+							Call  DisablePlayerInput    ( .False )
+							Return		
+							End
+}
+
+#string $CannotUse
+{
+	[Style Narrate]
+	You cannot use this right now.[Pause 60][End]
+}
+
+#export:Data $IsRemovalItem
+{
+	00000000
+}
+
+#new:Function $Function_EnforceFPLimit
+{
+	LI		A0, 8010F290
+	LB		A1, 5 (A0)
+	LB		A2, 6 (A0)	
+	BLT		A1, A2, .end
+	NOP
+	COPY	A1, A2
+	SAB		A2, 8010F295
+	.end
+	JR		RA
+	NOP
+}
+
+
+
+%Function 802C03E8
+%	Removes the item (Removal happens after the script executes!) (3255B8)
+
+#new:Data $ReplaceItem
+{
+	00000000
+}
+
+@Hook 3255D0
+{
+	PUSH	A0, A1, A2
+	LAW		A0, $ReplaceItem
+	BEQ		A0, R0, .nostore
+	NOP
+	%storing at 8010F444 is always safe because there must be at least 1 open slot since 1 item was removed
+	SAB		A0, 8010F444
+	.nostore
+	POP		A0, A1, A2	
+	ADDI	SP, SP, 18
+	JR		RA				%overwrote a JR RA so no need for normal jump
+	NOP
+}
+
+%Fully dmaed starting...
+%3251D0

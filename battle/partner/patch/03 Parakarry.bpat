@@ -1,3 +1,14 @@
+%Parakarius will heal 1 FP when using Sky Dive, like in Dark Star Edition as of DBE 0.9.6
+
+
+%Give Parakarius 1 defense to regular enemy attacks
+@	$DefenseTable_8023984C
+{
+	.Element:Normal 00000001
+	.Element:Fire   00000000
+	.Element:End
+}
+
 @	$Script_8023A0A0
 {
    [24]  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
@@ -16,16 +27,107 @@
   [138]  Call  SetActorSpeed ( .Actor:Partner *Fixed[16.0] )
 }
 
-@	$Script_8023A4D4
+
+
+@ $Script_8023A4D4
 {
-   [C4]  Call  SetActorSpeed ( .Actor:Partner *Fixed[10.0] )
-  [10C]  Wait  1`
-  [1B4]  	Wait  1`
-  [360]  	Wait  6`
-  [390]  	Call  SetActorSpeed ( .Actor:Partner *Fixed[15.0] )
+    0:  Call  EnableIdleScript  ( .Actor:Partner 00000000 )
+   14:  Call  UseIdleAnimation  ( .Actor:Partner .False )
+   28:  Call  LoadActionCommand ( .ActionCommand:Jump )
+   38:  Call  802A9000 ( )
+   44:  Call  8026919C      ( $???_8023A4B4 )
+   54:  Call  UseBattleCamPreset    ( 00000034 )
+   64:  Call  BattleCamTargetActor  ( .Actor:Self )
+   74:  Call  InitTargetIterator ( )
+   80:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0003 )
+   98:  Call  SetGoalToTarget   ( .Actor:Partner )
+   A8:  Call  AddGoalPos    ( .Actor:Partner FFFFFFEC 00000000 00000000 )
+   C4:  Call  SetActorSpeed ( .Actor:Partner *Fixed[10.0] )
+   D8:  Call  FlyToGoal     ( .Actor:Partner 00000000 FFFFFFF6 .Easing:CosInOut )
+   F4:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0000 )
+  10C:  Wait  1`
+  118:  Call  802A9120      ( 00000020 00000003 )
+  12C:  Call  PlaySoundAtActor  ( .Actor:Partner 00002004 )
+  140:  Call  UseBattleCamPreset    ( 00000034 )
+  150:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0014 )
+  168:  Call  AddGoalPos    ( .Actor:Partner 00000000 0000000A 00000000 )
+  184:  Call  FlyToGoal     ( .Actor:Partner 00000005 00000000 .Easing:Linear )
+  1A0:  Wait  1`
+  1AC:  ChildThread
+  1B4:  	Wait  3`
+  1C0:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0004 )
+  1D8:  EndChildThread
+  1E0:  Call  UseBattleCamPreset    ( 00000034 )
+  1F0:  Call  AddGoalPos        ( .Actor:Partner FFFFFFE6 00000019 00000000 )
+  20C:  Call  FlyToGoal ( .Actor:Partner 00000014 FFFFFFEC .Easing:QuarticOut )
+  228:  Call  PlaySoundAtActor  ( .Actor:Partner 00002005 )
+  23C:  Call  EnableActorBlur   ( .Actor:Partner 00000001 )
+  250:  Call  SetGoalToTarget   ( .Actor:Partner )
+  260:  Call  AddGoalPos        ( .Actor:Partner FFFFFFF6 00000000 00000000 )
+  27C:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000C0005 )
+  294:  Call  FlyToGoal ( .Actor:Partner 00000005 00000000 .Easing:Linear )
+  2B0:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000 00000001 00000010 )
+  2D4:  If  *Var0  ==  .HitResult:Miss % 6
+  2E4:  	ChildThread
+  2EC:  		Wait  5`
+  2F8:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0001 )
+  310:  	EndChildThread
+  318:  	Call  SetGoalToTarget   ( .Actor:Partner )
+  328:  	Call  AddGoalPos    ( .Actor:Partner 00000028 0000000A 00000000 )
+  344:  	Call  FlyToGoal     ( .Actor:Partner 0000000A FFFFFFEC .Easing:QuadraticOut )
+  360:  	Wait  15`
+  36C:  	Call  EnableActorBlur   ( .Actor:Partner 00000000 )
+  380:  	Call  SetGoalToHome ( .Actor:Partner )
+  390:  	Call  SetActorSpeed ( .Actor:Partner *Fixed[16.0] )
+  3A4:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0003 )
+  3BC:  	Call  FlyToGoal     ( .Actor:Partner 00000000 FFFFFFFB .Easing:Linear )
+  3D8:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0002 )
+  3F0:  	Return
+  3F8:  EndIf
+  400:  Call  EnableActorBlur   ( .Actor:Partner 00000000 )
+  414:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0006 )
+  42C:  Wait  2`
+  438:  Call  GetActionCommandResult    ( *Var0 )
+  448:  Switch  *Var0
+  454:  	Case  >  00000000
+  460:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000004 00000000 *VarF 00000070 )
+				If *VarF > 2`
+					%Recover some FP
+					Set  	*VarC 1
+					Call 	$Function_FPHeal ( *VarC )
+					Call	GetActorPos ( .Actor:Partner *Var4 *Var5 *Var6 )
+					Add		*Var4 10
+					Add		*Var5 12
+					Call	PlayEffect ( 00000040 00000001 *Var4 *Var5 *Var6 *VarC 00000000 00000000 00000000 00000000 00000000 00000000 )				
+				EndIf
+  484:  	Default
+  48C:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000004 00000000 *VarE 00000030 )
+  4B0:  EndSwitch
+  4B8:  Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
+  4CC:  Switch  *Var0
+  4D8:  	CaseOR  ==  .HitResult:Hit % 0
+  4E4:  	CaseOR  ==  00000002 % 2
+  4F0:  		SetConst  *VarA  000C0017
+  500:  		ExecWait  $Script_8023A30C
+  50C:  	EndCaseGroup
+  514:  	CaseOR  ==  00000001 % 1
+  520:  	CaseOR  ==  00000003 % 3
+  52C:  		SetConst  *VarA  000C0005
+  53C:  		ExecWait  $Script_8023A164
+  548:  	EndCaseGroup
+  550:  EndSwitch
+  558:  Call  EnableIdleScript  ( .Actor:Partner 00000001 )
+  56C:  Call  UseIdleAnimation  ( .Actor:Partner .True )
+  580:  Return
+  588:  End
 }
 
 @	$Script_8023AA64
 {
    [2C]  Wait  5`
+  [15C]  		Call  FlyToGoal ( .Actor:Partner  3`  0` .Easing:Linear )
+  [210]  		Call  FlyToGoal ( .Actor:Partner  3`  0` 00000064 )
+  [2C4]  		Call  FlyToGoal ( .Actor:Partner  3`  0` .Easing:Linear )
+  [378]  		Call  FlyToGoal ( .Actor:Partner  3`  0` .Easing:Linear )
+  [3D4]  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Throw 0000009F 00000000 *VarF 00000070 )
 }

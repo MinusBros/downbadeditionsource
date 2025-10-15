@@ -1,6 +1,26 @@
 SetVisible
 SetTileSize     ( .IconSize:24x24 )
 Loop
-	SetIcon         ( 60` ~ImageIcon:item/anim/heart_piece )
+	op_15           ( 00000000 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_0 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_1 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_4 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_5 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_6 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_7 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_8 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_9 )
+	RandomRestart   ( 100` 70` )
+	op_15           ( 00000001 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_0 )
+	SetIcon         ( 2` ~ImageIcon:item/anim/bigcoin_1 )
+	SetIcon         ( 1` ~ImageIcon:item/anim/bigcoin_2 )
+	SetIcon         ( 1` ~ImageIcon:item/anim/bigcoin_3 )
+	SetIcon         ( 2` ~ImageIcon:item/anim/bigcoin_4 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_5 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_6 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_7 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_8 )
+	SetIcon         ( 3` ~ImageIcon:item/anim/bigcoin_9 )
 Restart
 End

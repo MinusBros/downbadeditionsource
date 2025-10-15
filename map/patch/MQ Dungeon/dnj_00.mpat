@@ -1,0 +1,213 @@
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]To think this tomb was here the[BR]
+whole time! I would have totally[BR]
+ignored Mom and checked this out.[BR]
+[Wait][Next]
+[Pause 16]Okay, please don't tell[BR]
+her I said that. But you have to[BR]
+admit, this place is pretty cool.[BR]
+[Wait][Next]
+I bet this place would scare the[BR]
+pants off Goombaria, though.[BR]
+[Pause 16]If Goombas wore pants.[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1
+}
+
+#new:Script_Main $Script_Main
+{
+	%Set      *WorldMapLocation 0000000A % sets the location on the pause screen map
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+		Wait	1
+	Exec  $MusicDistance
+	Return
+	End
+/%
+	 
+#new:NpcGroupList $NpcGroups_KMR_33
+00000001 $NPC_Ember  00040000
+00000002 $NPC_Ember2 00040000
+00000000 00000000 00000000
+
+#new:NpcGroup $NPC_Ember
+00000001 $NpcSettings_Chomp {Vec3f:ember1}
+00000D00 00000000 00000000 00000000 0000005A 
+{Items:5:ShootingStar:A}
+{HP:20:70:2:50} {HP:30:60:2:50} {HP:50:50:2:40} {HP:80:40:2:40} {HP:100:30:2:30} {HP:None} {HP:None} {HP:None} 
+{FP:20:50:2:40} {FP:30:40:2:40} {FP:50:40:2:40} {FP:80:40:2:40} {FP:100:30:2:40} {FP:None} {FP:None} {FP:None} 
+{CoinBonus:1:4}
+{Movement:ember1}
+00460C01 00460C02 00460C03 00460C03 00460C01 00460C01 00460C07 00460C07 
+00460C04 00460C01 00460C01 00460C01 00460C01 00460C01 00460C01 00460C01 
+00000002 00000000 00000000 00000000 % no tattle string
+
+#new:NpcGroup $NPC_Ember2
+00000002 $NpcSettings_Chomp {Vec3f:ember2}
+00000D00 00000000 00000000 00000000 0000005A 
+{Items:5:ShootingStar:A}
+{HP:20:70:2:50} {HP:30:60:2:50} {HP:50:50:2:40} {HP:80:40:2:40} {HP:100:30:2:30} {HP:None} {HP:None} {HP:None} 
+{FP:20:50:2:40} {FP:30:40:2:40} {FP:50:40:2:40} {FP:80:40:2:40} {FP:100:30:2:40} {FP:None} {FP:None} {FP:None} 
+{CoinBonus:1:4}
+{Movement:ember2}
+00460C01 00460C02 00460C03 00460C03 00460C01 00460C01 00460C07 00460C07 
+00460C04 00460C01 00460C01 00460C01 00460C01 00460C01 00460C01 00460C01 
+00000002 00000000 00000000 00000000 % no tattle string
+
+#new:NpcSettings $NpcSettings_Chomp
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+
+
+#new:Script $Script_ChompAI
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+	 
+#new:AISettings $AISettings_Chomp
+    2.2 % move speed
+    40` % move time
+    60` % wait time
+   80.0 % alert radius
+    0.0
+    5`
+    4.0 % chase speed
+    60`
+    15`
+  150.0 % chase radius
+    0.0
+    1`
+
+%/
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:Entry0 00000001 00000000
+	Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:Entry1 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_37" 00000001 )
+	Wait     00000044 
+	Return
+	End	
+}
+	
+	#new:Script $Script_Exit1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_01" 00000000 )
+	Wait     00000044 
+	Return
+	End	
+}
+
+
+#new:Script  $MusicDistance
+{
+	Call  GetEntryID        ( *Var0 )
+    If  *Var0  ==  ~Entry:Entry0
+   A4:  Label  A
+   B0:  Wait  1`
+   BC:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   D4:  If  *Var2  >  215`
+			Call  FadeOutMusic  ( 00000000 000001F4 )
+  120:  	Wait  1`
+  12C:  	Goto  14
+  138:  EndIf
+  140:  Goto  A
+  14C:  Label  14
+  158:  Wait  1`
+  188:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+  1A0:  If  *Var2  <  140`
+				Thread
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000001 )
+								Wait  18`
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000002 )
+								Wait  18`	
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000003 )
+								Wait  18`								
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000004 )
+								Wait  18`
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000005 )
+								Wait  18`
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000006 )
+								Wait  18`
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000007 )
+								Wait  18`
+				Call  SetMusicTrack ( 00000000 .Song:Alone 00000001 00000008 )	
+				Wait  30`
+				Call  802D5FA4  ( 00000006 )
+				EndThread			
+  1DC:  	Wait  1`
+  1E8:  	Goto  A
+  1F4:  EndIf
+  1FC:  Goto  14
+    EndIf
+	Return
+	End
+}
+
+	

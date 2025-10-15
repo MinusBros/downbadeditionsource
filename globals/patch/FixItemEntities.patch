@@ -1,0 +1,444 @@
+%Make some items actually work
+
+%Important functions
+%(See 8010F6D0 - Rendering.wscr)
+
+%801313F4
+%A0 = type
+%A1,A2,A3 = spawn position?
+%Uses stack pointer arguments?
+
+%80131DD4 / $Function_item_entity_update
+%A0 is the item struct pointer
+%A1 = an important world struct pointer (?) (80074024)
+
+
+%Item struct
+
+%00 = (??? byte) render mode? 
+%01 = (byte) sprite width? (may cause sprite glitching) (may cause sprite to disappear)
+%02 = (byte) physics flags?? 
+%08,0C,10 = (vector3) position (Note that items get destroyed if their y position is way out of bounds)
+%14 = (word) some pointer read every frame
+%19 = (half) item type (This determines behavior when picked up)
+%		This value can be different from the visual sprite shown
+%		Badges will use the item entity sprite instead of their own sprite, which can explain the fake super deep focus in bowsers castle?
+%		the game checks every frame if it is type 157, 156, or 159 (156 = heart, 159 = star point, 157 = coin (crashes if you try to set a different item entity to have this type))
+%1B = (byte) spawn type
+%1C = (unsigned byte) can't interact while above 0
+%1D = (??? byte) messes with visibility
+%2E = (byte?) this counter goes down every frame but resets after reaching 0
+%49 = (byte) reset to 1E every frame
+
+%ram data structures say that the item struct is only 5C bytes long, but these values do actually do stuff
+%80,84,88 = (vector3?) shadow position (x,y,z)
+%		Shadow position is edited every time real position is changed
+%8C,90,94 = (vector3?) shadow width scale (x,y,z) (note that shadows can go up walls) (Y scale has no noticable effect)
+
+
+
+%noteworthy observation: All item IDs are below 0xE0
+
+
+%surprisingly simple
+%the game checks the object ID to see if it is below 0xDB, which is the first ID of the duplicate jelly shrooms
+%however it also subtracts from the item ID before checking, which means items with IDs below 0x10 do not work either
+%change this to see if item ID is below 0xE0
+
+
+/%
+%allows IDs 	10 - DF
+%  F60:  SLTIU     V0, V0, CB
+@Function CB8B0
+{
+	SLTIU V0, V0, CF
+}
+%/
+
+
+%80134250 + DC4
+%	80135014
+
+%version 2
+%allow IDs 7 - E0
+
+%  F5C:  ADDIU     V0, V1, FFF0
+%  F60:  SLTIU     V0, V0, CB
+/%
+@Function CB8AC
+{
+	ADDIU     V0, V1, FFF9	%-10 to -7
+	SLTIU 	  V0, V0, D9
+}
+%/
+%801351AC
+%Fix the badge limit
+
+%18 past the first patch
+%no! need to change how this works so it doesn't treat coins as badges
+/%
+@Function CB8C4
+{
+	SLTIU 	  V0, V0, 90		%75 -> 76 (Now I have to change it to 90)	(16F - 155 = 1A)
+}
+%/
+
+%Range = 0-76 (0x155 is 0x75) and then (0x16E+)
+%75 = 155
+%8E	= 16E
+/%
+@Hook CB8C0
+{
+	ANDI	V0, V0, FFFF
+	PUSH	T0
+	COPY	T0, V0
+	SLTIU 	V0, V0, 76		%75 -> 76 
+	BNE		V0, R0, .end	%= 1
+	NOP
+	%Now check for above 8D
+	SLTIU 	V0, T0, 8E		%below 8E => 1
+	SLTIU	V0, V0, 1		%1 -> 0, 0 -> 1
+	.end
+	POP		T0
+	J		801351C8
+	NOP
+}
+%/
+
+/%
+%It doesn't seem like I have to modify these two also?
+
+%  128:  ADDIU     V0, V1, FFF0
+%  12C:  SLTIU     V0, V0, CB
+
+%  DC4:  ADDIU     V0, V1, FFF0			%Subtract 15 (IDs 0-15 become negative)
+%		...
+%  DCC:  SLTIU     V0, V0, CB			%Check item ID (only allow IDs 10 - DB normally)
+%/
+
+
+
+%No drops at 999 coins
+@Hook 1AB50
+{
+	LH		V0, C (S2)
+	LHU		V1, C (S2) 
+	LI		V1, 999`
+	BEQ		V0, V1, .modifiedend
+	NOP
+	LH		V0, C (S2)
+	LHU		V1, C (S2) 
+	J		8003F758
+	NOP
+	.modifiedend
+	COPY	V0, R0
+	LHU		V1, C (S2) 
+	J		8003F758
+	NOP
+}
+
+
+%Now add platinum coins worth 10 coins
+%so that the game doesn't try to create a crashing number of coins
+
+
+%Address notes
+%800488BC = heart spawn (multiple times)
+%80048AFC = flower spawn (multiple times)
+%Note that the game checks for heart finder and flower finder a bit above those function calls
+
+%80048CB0 = coin spawn (multiple times)
+%Note that the game checks Pay Off, and Money Money first
+
+
+%Around that code
+%S1 = coins to spawn
+
+%Money Money causes coin value to double
+%Pay Off increases coin value by (value at 800B0F1C?) / 2
+%	(Pay Off also resets this value)
+
+%Coin count is capped at 20
+
+%Flags are read from a pointer at 98 + SP
+%If flag 0080 0000 is active, no coins (*may also stop heart and flower spawns?)
+
+%80048C60 = Skip spawning coins if count is 0
+%80048D00 = loop if more coins should be spawned
+
+%Uses FP to determine angle in the spawning circle
+%	(it spawns coins in positions based on this)
+%S2 = current coin
+%S1 = coin count (to spawn)
+
+
+%80048280 = Spawning things on enemy death
+%coins, hearts, flowers, items?
+
+
+
+%Dummy this out for now until I can get curses working.
+/%
+
+
+%Quality of life: Enemies will completely stop spawning coins when you are at 999 coins
+%	2 new changes: Curses affect coin drops, but coin drops are doubled from normal values too
+@Hook 24000
+{
+PUSH	RA, T0, T1, T2, T3, A0, A1, A2, A3, S0
+%
+.yesmult
+COPY	A0, S1
+JAL		$CurseMultiply
+NOP
+COPY	S1, V0
+.nomult
+%
+%
+ADD		S1, S1, S1					%Double coin count
+LAH 	V0, 8010F29C %coin coint
+SLTI	V0, V0, 3E7  %999 coins
+BNE		V0, R0, .end
+NOP
+ADDIU	S1, R0, 0	 %set coin drop value to 0
+.end
+POP		RA, T0, T1, T2, T3, A0, A1, A2, A3, S0
+%hooked over the check for money money, add it back here
+JAL	800E9D48
+ADDIU	A0, R0, 10 		%(Money Money ID value)
+J		80048C08
+NOP
+}
+
+
+%/
+
+%Hooked over
+%JAL	800E9D48
+%ADDIU	A0, R0, 10 		(Money Money ID value)
+
+
+
+
+%Blue coin time
+
+%checking if item interacted with is a coin
+%Change this to check for original coins and new coins
+%80135214
+%BEQ	V1, V0, 801353EC
+%SLTI	V0, V1, 0158
+
+@Hook CB914
+{
+%Branch only if V0 == V1 (load values into V0)
+%Then load 1 if the value is below 159 (instead of 158)
+%ADDIU	V0, R0, 157			%already done before the hook
+BEQ		V0, V1 .yesbranch
+NOP
+ADDIU	V0, R0, 158
+BEQ		V0, V1 .yesbranch
+NOP
+BEQ		R0, R0, .nobranch
+NOP
+.yesbranch
+J		801353EC %Yes branch
+SLTI	V0, V1, 0159
+.nobranch
+J		8013521C %No branch
+SLTI	V0, V1, 0159
+}
+
+%adding the number to your coin count
+%801353EC
+%LHU	V0, C (S3)
+%ADDIU 	V0, V0, 1
+@Hook CBAEC
+{
+%Use value of V1 to check against 157 vs 158
+ADDIU	V0, R0, 158
+BEQ		V0, V1, .bigcoin
+NOP
+.normalcoin
+LHU		V0, C (S3)
+ADDIU 	V0, V0, 1
+BEQ		R0, R0, .end
+NOP
+.bigcoin
+LHU		V0, C (S3)
+ADDIU 	V0, V0, 5
+.end
+J		801353F4
+NOP		
+}
+
+%after hook
+%SH		V0, C (S3)
+
+
+%Increase max coin limit to 80 (use blue coins to prevent crashing)
+%80 coins should spawn 20 entities
+%15 blue coins = 75, 5 yellow coins = 5
+%75 + 5 = 80
+@Function 24010
+{
+SLTI		V0, S1, 81`
+}
+%80048C10
+%SLTI		V0, S1, 15
+
+@Function 24018
+{
+ADDIU		V0, S1, 80`
+}
+%80048C18
+%ADDIU		V0, S1, 14
+
+
+%Normally, the game uses a giant non-key item list at 802431A8 to check if items in normal inventory are not key items because this game is stupid
+%Let's remove this stupid check
+
+%actually this might not be as useless as expected
+%this might break actual item list restrictions
+
+%not sure how to rewrite branch instructions
+/%
+@Function 204FEC %802D670C 
+{
+	ORI		A0, V0, 0
+}
+%/
+
+
+%No flower frops when at 0/0
+/%
+  680:  LW        T0, 20 (SP)
+  684:  LH        V1, 72 (S0)
+  
+  jump to 8D4
+	
+  function
+  23680 --> 80048280
+%/
+
+@Hook 23D00
+{
+	%do check
+	BEQ		V1, R0, .doskip
+	NOP
+	LW      T0, 20 (SP)
+	LH      V1, 72 (S0)	
+	.normal
+	J		80048908
+	NOP
+	.doskip
+	LW      T0, 20 (SP)
+	LH      V1, 72 (S0)	
+	J	 	80048B54
+	NOP
+}
+
+
+
+%The logic
+%Coin count <= 15 => no blue coins
+%16 to 35 => blue coins until yellow count <= 10
+%36 to 80 => blue coins until yellow count <= 5
+
+%first byte is blue count, second is yellow
+#new:Data $CoinSpawnHelper
+{
+00000000
+}
+
+%80048C84
+@Hook 24080
+{
+PUSH	V0, V1, T0
+SLTI	V0, S1, 10
+BNE		V0, R0, .lt15
+NOP
+SLTI	V0, S1, 23
+BNE		V0, R0, .loop1
+NOP
+BEQ		R0, R0, .loop2
+NOP
+%<= 15
+.lt15
+LIO		V1, $CoinSpawnHelper
+SB		R0, 0 (V1)
+SB		S1, 1 (V1)
+BEQ		R0, R0, .postloop
+NOP
+%16 to 35
+.loop1
+DADDU	V0, R0, R0
+.loop1b
+ADDI	S1, S1, FFFB		%-5 yellow coins
+ADDI	V0, V0, 1			%+1 blue coin
+SLTI	T0, S1, B
+BEQ		T0, R0, .loop1b
+NOP
+LIO		V1, $CoinSpawnHelper
+SB		V0, 0 (V1)
+SB		S1, 1 (V1)
+BEQ		R0, R0, .postloop
+NOP
+%36 to 80
+.loop2
+DADDU	V0, R0, R0
+.loop2b
+ADDI	S1, S1, FFFB		%-5 yellow coins
+ADDI	V0, V0, 1			%+1 blue coin
+SLTI	T0, S1, B
+BEQ		T0, R0, .loop2b
+NOP
+LIO		V1, $CoinSpawnHelper
+SB		V0, 0 (V1)
+SB		S1, 1 (V1)
+.postloop
+LIO		V1, $CoinSpawnHelper
+LB		V0, 0 (V1)
+LB		S1, 1 (V1)
+ADD		S1, S1, V0
+POP		V0, V1, T0	
+SUBU	V0, V0, V1		%hooked over
+J		80048C8C
+SLL		S0, V0, 3		%hooked over
+}
+%S1 = total coin count (yellow and blue)
+%S2 = coin spawn index (zero indexed, so it stops 1 short of S1)
+
+%Note that S1 is capped to a value at 2C + SP with some weird math
+%80048C5C
+%Skip it for now
+@Function 2405C
+{
+	NOP
+}
+
+
+%80048CA8
+%Set A0 to correct value
+
+@Hook 240A8
+{
+%There are some functions that use stack arguments, so I have to be careful here
+ADDI	SP, SP, -100
+SW		V0, 4 (SP)
+SW		V1, 8 (SP)
+%PUSH	V0, V1
+LAB		V1, $CoinSpawnHelper	%blue coin count
+SLT		V0, S2, V1
+BEQ		V0, R0, .end
+ORI		A0, R0, 157		%Yellow coin
+ORI		A0, R0, 158		%Blue coin
+.end
+%POP		V0, V1
+LW		V0, 4 (SP)
+LW		V1, 8 (SP)
+ADDI	SP, SP, 100
+SW		V0, 18 (SP)		%hooked over
+J		80048CB0
+SW		R0, 1C (SP)		%hooked over
+}
+

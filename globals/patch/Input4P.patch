@@ -1,0 +1,148 @@
+
+/%
+    Usage examples:
+    .Player1[.Hold[.A]] % player 1 is holding A (at least 2 frames)
+    .Player2[.StickX]   % player 2 stickX value (signed byte)
+    .Player3[.Status]   % check for errors
+%/
+
+#reserve 140 $Input
+
+% players
+#define .Player1        0
+#define .Player2        50
+#define .Player3        A0
+#define .Player4        F0
+
+% input fields
+#define .DownBits       00
+#define .PrevBits       04
+#define .HoldBits       08
+#define .PressBits      0C
+#define .ReleaseBits    10
+% bytes 14-17 unused
+#define .StickX         18
+#define .StickY         19
+#define .Status         1A
+% bytes 1B-1F unused
+#define .Hold           20  % use in conjuction with button code
+#define .Press          30  % use in conjuction with button code
+#define .Release        40  % use in conjuction with button code
+
+% button codes
+#define .A          0   % 8000
+#define .B          1   % 4000
+#define .Z          2   % 2000
+#define .Start      3   % 1000
+#define .D-up       4   % 0800
+#define .D-down     5   % 0400
+#define .D-left     6   % 0200
+#define .D-right    7   % 0100
+#define .L          8   % 0020
+#define .R          9   % 0010
+#define .C-up       A   % 0008
+#define .C-down     B   % 0004
+#define .C-left     C   % 0002
+#define .C-right    D   % 0001
+
+#new:Data $ButtonMask
+{
+    8000 4000 2000 1000 0800 0400 0200 0100
+    0020 0010 0008 0004 0002 0001
+}
+
+% PollInput4P
+@Hook 3CB0 % 800288B0 in update_input
+{
+    LIO     A1, 800B1D68
+    JAL     $ReadPlayerInput
+    ADDIU   A0, R0, .Player1
+
+    LIO     A1, 800B1D6E
+    JAL     $ReadPlayerInput
+    ADDIU   A0, R0, .Player2
+
+    LIO     A1, 800B1D74
+    JAL     $ReadPlayerInput
+    ADDIU   A0, R0, .Player3
+
+    LIO     A1, 800B1D7A
+    JAL     $ReadPlayerInput
+    ADDIU   A0, R0, .Player4
+
+    % continue with original input recording code
+    COPY    A0, S1
+    JAL     8005F650
+    CLEAR   A1
+    J       800288BC
+    NOP
+}
+
+#new:Function $ReadPlayerInput
+% A0 = buffer pos
+% A1 = OSContPad*
+{
+    PUSH        S0, S1, S2
+    #DEF        S0, *Buffer
+    #DEF        S1, *OSContPad
+    LIO         V0, $Input
+    DADDU       *Buffer, A0, V0
+    COPY        *OSContPad, A1
+    LBU         V0, 2 (*OSContPad)
+    SB          V0, .StickX (*Buffer)
+    LBU         V0, 3 (*OSContPad)
+    SB          V0, .StickY (*Buffer)
+    LBU         V0, 4 (*OSContPad)
+    SB          V0, .Status (*Buffer)
+    % copy old bit mask
+    LW          V1, .DownBits (*Buffer)
+    SW          V1, .PrevBits (*Buffer)
+    % get bit masks
+    LHU         V0, 0 (*OSContPad)
+    SW          V0, .DownBits (*Buffer)
+    AND         A1, V0, V1
+    SW          A1, .HoldBits (*Buffer)
+    XOR         A1, V0, V1
+    AND         V0, V0, A1
+    AND         V1, V1, A1
+    SW          V0, .PressBits (*Buffer)
+    SW          V1, .ReleaseBits (*Buffer)
+    % get discrete input flags
+    #UNDEF      S1
+    #DEF        S1, *Mask
+    LIO         *Mask, $ButtonMask
+    % check press masks
+    LOOP        S2 = 0,14`
+        LW          A1, .HoldBits (*Buffer)
+        LW          A2, .PressBits (*Buffer)
+        LW          A3, .ReleaseBits (*Buffer)
+        LW          V1, 0 (*Mask)
+        AND         A1, A1, V1
+        AND         A2, A2, V1
+        AND         A3, A3, V1
+        ADDIU       V1, R0, 1
+        %
+        ADDIU       V0, *Buffer, .Hold
+        DADDU       V0, S2, V0
+        BEQL        A1, R0, 8
+        SB          R0, 0 (V0)
+        SB          V1, 0, (V0)
+        %
+        ADDIU       V0, *Buffer, .Press
+        DADDU       V0, S2, V0
+        BEQL        A2, R0, 8
+        SB          R0, 0 (V0)
+        SB          V1, 0, (V0)
+        %
+        ADDIU       V0, *Buffer, .Release
+        DADDU       V0, S2, V0
+        BEQL        A3, R0, 8
+        SB          R0, 0 (V0)
+        SB          V1, 0, (V0)
+        %
+        ADDIU       *Mask, *Mask, 4
+    ENDLOOP
+    #UNDEF  All
+    JPOP    S0, S1, S2
+}
+

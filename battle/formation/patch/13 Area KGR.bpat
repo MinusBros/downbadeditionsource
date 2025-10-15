@@ -19,7 +19,7 @@
 	.Status:Dizzy      20`
 	.Status:Fear        0`
 	.Status:Static      0`
-	.Status:Paralyze    0`
+	.Status:Paralyze   30`
 	.Status:Shrink     40`
 	.Status:Stop       50`
 	.Status:DefaultTurnMod    0`
@@ -29,7 +29,7 @@
 	.Status:DizzyTurnMod     -2`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod   0`
+	.Status:ParalyzeTurnMod  -1`
 	.Status:ShrinkTurnMod    -1`
 	.Status:StopTurnMod      -2`
 	.Status:End
@@ -71,7 +71,7 @@
   [370]  			Wait  3`
   [410]  		Wait  10`
   [554]  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.8] )
-  [5F4]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 00000000 00000008 00000020 )
+  [5F4]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 00000000 00000009 00000020 )
   [638]  Wait  1`
 }
 
@@ -86,7 +86,7 @@
   [460]  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.9] )
   [4E8]  		Wait  8`
   [688]  Wait  1`
-  [694]  Call  EnemyDamageTarget     ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 00000000 00000007 00000020 )
+  [694]  Call  EnemyDamageTarget     ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 00000000 00000008 00000020 )
   [A04]  			Wait  4`
   [AE0]  			Wait  4`
   [B88]  			Wait  15`
@@ -95,19 +95,10 @@
 
 
 
-%Heal Fuzzipede
-
-@	$Script_8021C004
-{
-   [58]  Wait  8`
-   [7C]  Wait  12`
-   [DC]  	Wait  15`
-}
-
 
 
 %Every now and then, Fuzzipede will heal
-%for 6 HP instead of 4.
+%for 7 HP instead of 5.
 
 #new:Script $Script_BigHeal
 {
@@ -129,9 +120,48 @@
    FC:  EndThread
   104:  Thread
   10C:  	Call  8026BF48  ( 00000001 )
-  11C:  	Call  HealActor ( .Actor:Self 00000006 .False )
+  11C:  	Call  HealActor ( .Actor:Self 00000007 .False )
   134:  	Call  8026BF48  ( 00000000 )
   144:  EndThread
+  158:  Call  UseBattleCamPreset    ( 00000002 )
+  168:  Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  17C:  Call  UseIdleAnimation      ( .Actor:Self .True )
+  190:  Return
+  198:  End
+}
+
+%Randomly roll between 4 and 5 HP.
+
+@	 $Script_8021C004
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  UseBattleCamPreset    ( 0000000E )
+   38:  Call  BattleCamTargetActor  ( .Actor:Self )
+   48:  Call  MoveBattleCamOver (  20` )
+   58:  Wait  5`
+   64:  Call  SetAnimation      ( .Actor:Self 00000001 00410012 )
+   7C:  Wait  8`
+   88:  Call  SetAnimation      ( .Actor:Self 00000001 00410004 )
+   A0:  Thread
+   A8:  	Wait  5`
+   B4:  	Call  PlaySoundAtActor  ( .Actor:Self 0000206D )
+   C8:  	Call  PlaySoundAtActor  ( .Actor:Self 00000214 )
+   DC:  	Wait  16`
+   E8:  	Call  PlaySoundAtActor  ( .Actor:Self 0000025C )
+   FC:  EndThread
+  104:  Thread
+  10C:  	Call  8026BF48  ( 00000001 )
+   EC:  Call  RandInt   ( 000003E8 *Var0 )
+  100:  If  *Var0  <  000001F4
+			Call  HealActor ( .Actor:Self 00000005 .False )
+		Else
+			Call  HealActor ( .Actor:Self 00000004 .False )
+  11C:  EndIf
+  11C:  	
+  134:  	Call  8026BF48  ( 00000000 )
+  144:  EndThread
+  14C:  Call  WaitForBuffDone ( )
   158:  Call  UseBattleCamPreset    ( 00000002 )
   168:  Call  EnableIdleScript      ( .Actor:Self 00000001 )
   17C:  Call  UseIdleAnimation      ( .Actor:Self .True )
@@ -154,7 +184,6 @@
    94:  			Call  RandInt   ( 000003E8 *Var0 )
    A8:  			If  *Var0  <  000001F4
    B8:  				ExecWait  $Script_BigHeal
-   B9:					ExecWait  $Script_8021C004
    C4:  				Return
    CC:  			EndIf
    D4:  		EndIf
@@ -176,4 +205,64 @@
   16C:  EndIf
   174:  Return
   17C:  End
+}
+
+
+@	$Script_BeforeBattle_8021D3B4
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetCamBGColor     ( .Cam:Battle  0`  0`  0` )
+   2C:  Thread
+   34:  	Set   *Var0  00000013
+   44:  	Exec  $Script_8021D010
+   50:  	Wait  4`
+   5C:  	Set   *Var0  00000014
+   6C:  	Exec  $Script_8021D010
+   78:  	Wait  4`
+   84:  	Set   *Var0  00000015
+   94:  	Exec  $Script_8021D010
+   A0:  	Wait  4`
+   AC:  	Set   *Var0  00000016
+   BC:  	Exec  $Script_8021D010
+   C8:  EndThread
+   D0:  Thread
+   D8:  	Set   *Var0  0000000E
+   E8:  	Exec  $Script_8021D010
+   F4:  	Wait  4`
+  100:  	Set   *Var0  0000000F
+  110:  	Exec  $Script_8021D010
+  11C:  	Wait  4`
+  128:  	Set   *Var0  00000010
+  138:  	Exec  $Script_8021D010
+  144:  	Wait  4`
+  150:  	Set   *Var0  00000011
+  160:  	Exec  $Script_8021D010
+  16C:  	Wait  4`
+  178:  	Set   *Var0  00000012
+  188:  	Exec  $Script_8021D010
+  194:  EndThread
+  19C:  Set   *Var0  0000000B
+  1AC:  Exec  $Script_8021D010
+  1B8:  Set   *Var0  0000000C
+  1C8:  Exec  $Script_8021D010
+		
+  1D4:  Return
+  1DC:  End
+}
+
+#new:Script $Script_TexPanner1
+{
+    0:  Set   *VarA  *Var1
+   10:  Call  SetTexPanner  ( *Var0 *Var1 )
+   24:  Set   *Var0  00000000
+   34:  Set   *Var1  00000000
+   44:  Loop
+   50:  	Call  SetTexPanOffset   ( *VarA 00000000 *Var0 00000000 )
+   6C:  	Call  SetTexPanOffset   ( *VarA 00000001 *Var1 00000000 )
+   88:  	Sub   *Var0  FFFFFED4
+   98:  	Sub   *Var1  FFFFFE0C
+   A8:  	Wait  1`
+   B4:  EndLoop
+   BC:  Return
+   C4:  End
 }

@@ -1,4 +1,11 @@
-%I have basically infinite globals space so I'll just put food scripts here lol
+%I have basically infinite globals space so I'll just put food scripts here lol -- ShadeBlade
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Dark Star Edition Item Scripts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 #export:Script:Battle $Script_SpecialFood
 {
 	Set *FoodByteAux 0`
@@ -19,6 +26,7 @@
 		CaseOR == .Item:ShroomCake
 		CaseOR == .Item:SuperShroomCake
 		CaseOR == .Item:UltraShroomCake
+		CaseOR == .Item:DayzeeSyrup %New item
 				Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
 				Add *Var6 10`
 				Set *Var0 AE
@@ -110,7 +118,76 @@
 				Call	 $Function_DebuffEffectUnified ( )				
 			EndIf
 			Goto 1
-		EndCaseGroup		
+		EndCaseGroup
+		Case == .Item:BlueBerry %blue
+			Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
+			Add *Var6 10`
+			Set *Var0 B1
+			Set *Var1 B1
+			Set *Var2 FF
+			Call	 $Function_DebuffEffectUnified ( )			
+			Call 	 $Function_SetDefdown 	( FFFFFFFF 00000003 )
+		Case == .Item:RedBerry %red
+			Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
+			Add *Var6 10`
+			Set *Var0 FF
+			Set *Var1 B1
+			Set *Var2 B1
+			Call	 $Function_DebuffEffectUnified ( )			
+			Call 	 $Function_SetChill 	( FFFFFFFF 00000003 )
+		Case == .Item:YellowBerry %yellow
+			Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+			Set   *Var3  00000014
+			Call  MultiplyByActorScale  ( *Var3 )
+			Add   *Var1  *Var3
+			SetF  *Var3  *Fixed[1.0]
+			Call  MultiplyByActorScale  ( *Var3 )
+			Call  PlayEffect    ( ~FX:SnakingStatic *Var0 *Var1 *Var2 *Var3 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  PlaySound     ( 00000379 )
+			Call	 $Function_GetArbitraryByte ( *VarF $ItemCostReductionData[2] )
+			Switch *VarF
+				Case == 2`
+					Call  $Function_ElectrifyMario2 ( )	%4
+				Case == 1`
+					Call  $Function_ElectrifyMario1 ( )	%3
+				Default
+					Call  $Function_ElectrifyMario ( )	%2
+			EndSwitch
+		Case == .Item:BubbleBerry %bubble
+			Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+			Add   *Var1  00000014
+			Call  PlayEffect    ( ~FX:RadialFlowIn:WhiteWaves *Var0 *Var1 *Var2 *Fixed[1.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  PlaySoundAtActor  ( .Actor:Player 00000376 )
+			Call	 $Function_GetArbitraryByte ( *VarF $ItemCostReductionData[2] )
+			Switch *VarF
+				Case == 2`
+					Call	$Function_SetBubbleBerry2 ( )	%2		
+				Case == 1`
+					Call	$Function_SetBubbleBerry ( )	%1
+				Default
+					Call	$Function_SetBubbleBerry ( )	%1
+			EndSwitch		
+		Case == .Item:TarukajaGem % 17F
+			Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
+			Add *Var6 10`
+			Set *Var0 FF
+			Set *Var1 B1
+			Set *Var2 B1
+			Call	 $Function_DebuffEffectUnified ( )			
+			Call 	 $Function_SetChill 	( FFFFFFFD 00000003 )
+			Call  PlaySoundAtActor  ( .Actor:Player 0000208E )		
+		Case == .Item:RakukajaGem % 180
+			Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
+			Add *Var6 10`
+			Set *Var0 B1
+			Set *Var1 B1
+			Set *Var2 FF
+			Call	 $Function_DebuffEffectUnified ( )			
+			Call 	 $Function_SetDefdown 	( FFFFFFFD 00000003 )
+			Call  PlaySoundAtActor  ( .Actor:Player 00002035 )
+	%%%%%%%%%%%%%%%%%%%%%%%%
+	%    Endofitemscript   %
+	%%%%%%%%%%%%%%%%%%%%%%%%
 	EndSwitch
 	Set *VarF 0`
 	Return
@@ -119,6 +196,798 @@
 	Return
 	End
 }
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%TTYD64 Item scripts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% Var9 = itemID
+#export:Script:Battle $NewItemsScripts_GetNewScript
+{
+    Switch *Var9
+        CaseOR == .Item:PointSwap %
+            ExecWait    $UseItem_StatusItem_SingleTarget
+            Set *Var7 .True
+        EndCaseGroup
+        CaseOR == .Item:EarthQuake % 190
+            ExecWait    $UseItem_OffensiveItem_MultiTarget
+            Set *Var7 .True
+        EndCaseGroup 
+        CaseOR == .Item:CoconutBomb % 191
+        CaseOR == .Item:Xbox % DC
+        CaseOR == .Item:TarundaGem % 181
+        CaseOR == .Item:RakundaGem % 182
+            ExecWait    $UseItem_OffensiveItem_SingleTarget
+            Set *Var7 .True
+        EndCaseGroup
+        Default
+            Set *Var7 .False
+    EndSwitch
+    Return
+    End
+}
+
+
+
+
+
+#new:Script:Battle $UseItem_StatusItem_SingleTarget
+{
+    Call  $GetItemFlags ( *Var9 *Var1 *Var2 )
+    If *Var1 & 0080 % Food or Drink
+        If *Var1 & 0100 % Use drink animation
+            ExecWait  $BattleScript_DrinkItem
+        Else
+            ExecWait  $BattleScript_EatItem
+        EndIf
+    EndIf
+    Call  GetOwnerID ( *Var0 )
+    If *Var0 < .Actor:Enemy0 % Only player team
+        Call  InitTargetIterator
+    EndIf
+    Call  GetOwnerTarget ( *Var4 .False )
+    % check if target is KO'd
+    Set *VarF .False
+    Call GetStatusFlags ( *Var4 *Var0 )
+    If  *Var0  &  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
+        Set *VarF .True
+    EndIf
+    Switch *Var9
+        Case == .Item:PointSwap % 17B
+            If *Var4 >= .Actor:Enemy0 % Enemies can't use this item
+                Return
+            EndIf
+            If  *VarF  ==  .False
+                Switch *Var4
+                    Case == .Actor:Player
+                        Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+                EndSwitch
+            EndIf
+            Call    GetActorPos ( *Var4 *Var0 *Var1 *Var2 )
+            Sub     *Var0 37` % x
+            Add     *Var1 60` % y
+            Add     *Var2 2 % z
+            Call    PlayEffect ( ~FX:Recover:HP *Var0 *Var1 *Var2 *Var5 .False .False .False .False .False .False .False .False )
+            Call    $ReadAddress ( *VarF 2 *Var3 C .False ) % fxData
+            Set     *VarB *VarF
+            Call    GetOwnerTarget ( *Var6 .False )
+            If *Var6 == .Actor:Player
+                Call    $ReadAddress ( 8010F290 0 *Var5 2 .False ) % current HP
+            EndIf
+            Call    $WriteAddress ( *Var3 2 *Var5 40 .False ) % amount inside fx
+            %
+            Call    GetActorPos ( *Var4 *Var0 *Var1 *Var2 )
+            Add     *Var0 37` % x
+            Add     *Var1 60` % y
+            Add     *Var2 -2 % z
+            Call    PlayEffect ( ~FX:Recover:FP *Var0 *Var1 *Var2 *Var5 .False .False .False .False .False .False .False .False )
+            Call    $ReadAddress ( *VarF 2 *Var4 C .False ) % fxData
+            Set     *VarC *VarF
+            Call    $ReadAddress ( 8010F290 0 *Var5 5 .False ) % current FP
+            Call    $WriteAddress ( *Var4 2 *Var5 40 .False ) % amount inside fx
+            Set *VarE .False % FXs killed (bool)
+            ChildThread % Freeze FXs
+                Loop
+                    % HP
+                    Call    $WriteAddress ( *Var3 2 28` 2C .False ) % fxTimeLeft
+                    Call    $WriteAddress ( *Var3 2 0 5C .False ) % animationOffsetSpeedY
+                    % FP
+                    Call    $WriteAddress ( *Var4 2 28` 2C .False ) % fxTimeLeft
+                    Call    $WriteAddress ( *Var4 2 0 5C .False ) % animationOffsetSpeedY
+                    If *VarE == .True
+                        BreakLoop
+                    EndIf
+                    Wait    1
+                EndLoop
+            EndChildThread
+            % unfade FXs
+            Call    $WriteAddress ( *Var3 2 0 70 .False ) % opacity
+            Call    $WriteAddress ( *Var4 2 0 70 .False ) % opacity
+            Loop
+                % HP
+                Call    $ReadAddress ( *Var3 2 *Var5 70 .False )
+                Add *Var5 10 % speed
+                If *Var5 > FF % max opacity
+                    Call    $WriteAddress ( *Var3 2 FF 70 .False )
+                    Call    $WriteAddress ( *Var4 2 FF 70 .False )
+                    BreakLoop
+                EndIf
+                Call    $WriteAddress ( *Var3 2 *Var5 70 .False )
+                Call    $WriteAddress ( *Var4 2 *Var5 70 .False )
+                Wait    1
+            EndLoop
+            Wait    15`
+            % var3=heartFX data
+            % var4=flowerFX data
+            Set *Var7 15`
+            Set *Var8 *Var7
+            Loop *Var7 % Move FXs
+                Call    $ReadAddressFloat ( *Var3 2 *Var5 4 .False ) % fxPosX
+                AddF    *Var5 5 % speed
+                Call    $WriteAddressFloat ( *Var3 2 *Var5 4 .False )
+                % FP
+                Call    $ReadAddressFloat ( *Var4 2 *Var5 4 .False ) % fxPosX
+                SubF    *Var5 5 % speed
+                Call    $WriteAddressFloat ( *Var4 2 *Var5 4 .False )
+                If *Var7 == 7 % half loops
+                    % swap amounts inside the hearth and the flower
+                    Call    $ReadAddress ( *Var3 2 *Var8 40 .False ) % amount inside heart
+                    Call    $ReadAddress ( *Var4 2 *Var9 40 .False ) % amount inside fp
+                    Call    $WriteAddress ( *Var3 2 *Var9 40 .False ) % hp
+                    Call    $WriteAddress ( *Var4 2 *Var8 40 .False ) % fp
+                    Call    PlaySound ( 000F )
+                EndIf
+                Wait    1
+            EndLoop
+            Wait    10`
+            % Make FXs dissapear
+            Loop
+                % HP
+                Call    $ReadAddress ( *Var3 2 *Var5 70 .False )
+                Sub *Var5 10 % speed
+                If *Var5 <= 0
+                    Set     *VarE .True % FXs killed (bool)
+                    Call    RemoveEffect ( *VarB )
+                    Call    RemoveEffect ( *VarC )
+                    BreakLoop
+                EndIf
+                Call    $WriteAddress ( *Var3 2 *Var5 70 .False )
+                Call    $WriteAddress ( *Var4 2 *Var5 70 .False )
+                Wait    1
+            EndLoop
+            % get HP
+            Call    GetOwnerTarget ( *Var0 .False )
+            If *Var0 == .Actor:Player
+                Call    $ReadAddress ( 8010F290 0 *Var1 2 .False ) % current HP
+            EndIf
+            Call    $ReadAddress ( 8010F290 0 *Var2 5 .False ) % current FP
+            % Set new HP & FP
+                % HP ===========
+                Call    $ReadAddress ( 8010F290 0 *Var3 3 .False ) % max HP
+                If *Var2 > *Var3 % don't overflow HP
+                    Set *Var2 *Var3
+                EndIf
+                Call    $WriteAddress ( 8010F290 0 *Var2 2 .False ) % new HP
+                % FP ===========
+                Call    $ReadAddress ( 8010F290 0 *Var3 6 .False ) % max FP
+                If *Var1 > *Var3 % don't overflow FP
+                    Set *Var1 *Var3
+                EndIf
+                Call    $WriteAddress ( 8010F290 0 *Var1 5 .False ) % new FP
+            Wait    15`
+            Call    UseBattleCamPreset    ( 00000002 )
+	EndSwitch
+	ExecWait $ReturnToHomeMario
+    Return
+    End
+}
+
+
+
+
+#new:Script:Battle $UseItem_OffensiveItem_SingleTarget
+{
+    Call  GetOwnerID ( *Var0 )
+    If *Var0 < .Actor:Enemy0 % Only player team
+        Call  InitTargetIterator
+    EndIf
+    Switch *Var9
+        CaseOR == .Item:CoconutBomb % 1A8
+		CaseOR == .Item:Xbox % DC
+		CaseOR == .Item:TarundaGem % 181
+		CaseOR == .Item:RakundaGem % 182
+            % throw animation
+            Call  GetOwnerID ( *Var7 )
+            Switch *Var7
+                Case == .Actor:Player
+                    Call  UseBattleCamPreset    ( 00000003 )
+                    Call  MoveBattleCamOver     ( 0000000F )
+                    Call  SetAnimation  ( .Actor:Player 00000000 00010016 )
+                Default % Enemies
+                    Call  UseBattleCamPreset    ( 00000002 )
+                    Call  MoveBattleCamOver     ( 0000000F )
+            EndSwitch
+            Call  PlaySound ( 000003FA )
+            Wait  3`
+            Switch *Var9
+                Case == .Item:CoconutBomb % 1A8
+                    Call  CreateVirtualEntity       ( *VarA $EntityModelScript_CoconutBomb )
+				Case == .Item:Xbox %
+					Call  CreateVirtualEntity       ( *VarA $EntityModelScript_Xbox )
+                Case == .Item:TarundaGem % 181
+                    Call  CreateVirtualEntity       ( *VarA $EntityModelScript_TarundaGem )
+                Case == .Item:RakundaGem % 182
+                    Call  CreateVirtualEntity       ( *VarA $EntityModelScript_RakundaGem )
+            EndSwitch
+            Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+            Add   *Var0  00000014
+            Add   *Var1  0000002A
+            Add   *Var2  00000005
+            Call  SetVirtualEntityPosition  ( *VarA *Var0 *Var1 *Var2 )
+            Call  GetOwnerID ( *Var0 )
+            If *Var0 < .Actor:Enemy0 % Only player team
+                Call  InitTargetIterator
+            EndIf
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+            Thread
+                Set   *Var0  00000000
+                Loop  00000012
+                    Add   *Var0  0000003C
+                    Call  SetVirtualEntityRotation  ( *VarA 00000000 00000000 *Var0 )
+                    Wait  1`
+                EndLoop
+            EndThread
+            Call  SetVirtualEntityJumpGravity   ( *VarA *Fixed[1.0] )
+            Add   *Var2  00000005
+            Call  VirtualEntityJumpTo   ( *VarA *Var0 *Var1 *Var2 00000012 )
+            Call  DeleteVirtualEntity   ( *VarA )
+            Call  PlaySound ( 00002010 )
+            Call  $Function_802A123C_Projectile    ( *Var0 *Var1 *Var2 )
+            Thread
+                Call  StartRumble   ( 00000005 )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.75] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000005 *Fixed[1.5] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000004 *Fixed[1.2] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.45] )
+            EndThread
+            Switch *Var9
+                CaseOR == .Item:CoconutBomb % 
+                CaseOR == .Item:Xbox % 
+				CaseOR == .Item:TarundaGem
+				CaseOR == .Item:RakundaGem
+                    Call  ItemCheckHit      ( *Var0 ~Flags:DamageType:NoContact 00000000 *Var0 00000000 )
+                    If  *Var0  ==  .HitResult:Miss % 6
+                        Wait    1
+                        Goto    TI1
+                    EndIf
+			EndSwitch
+            Call  GetItemPower      ( *Var9 *Var0 *Var1 )
+            Switch  *Var9
+                Case == .Item:Xbox % Does anywhere from 6-12 damage with minimal dizzy chance
+					Call  RandInt       ( 6` *Var0 )
+					Add  *Var0 6`
+                    Call  ItemDamageEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Unblockable ~DebuffType:Dizzy:2:50` *Var0 00000020 )
+                Case == .Item:CoconutBomb
+                    Call  ItemDamageEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Fire|Blast|Unblockable 00000000 *Var0 00000020 )
+				Case == .Item:TarundaGem
+					Call     $Function_CheckChill ( ) %0 = immune to chill out
+					If  *Var[0]  ==  00000001 
+						Call  $Function_ChillTarget ( )
+						Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+						Call  $Function_ChillWaveEffect    ( *Var0 *Var1 *Var2 )
+					EndIf  
+				Case == .Item:RakundaGem
+					Call     $Function_CheckDefenseDown ( ) %0 = immune to def down
+					If  *Var[0]  ==  00000001 
+						Call     $Function_DefenseDownTarget ( )
+						Call     GetGoalPos        ( .Actor:Self *Var5 *Var6 *Var7 )
+						Call	 $Function_DebuffEffectDefDown ( )				
+					EndIf
+            EndSwitch
+            Label TI1
+        EndCaseGroup
+    EndSwitch
+    ExecWait  $ReturnToHomeMario
+    Return
+    End
+}
+
+
+
+#new:Script:Battle $UseItem_OffensiveItem_MultiTarget
+{
+    Call  GetOwnerID ( *Var0 )
+    If *Var0 < .Actor:Enemy0 % Only player team
+        Call  InitTargetIterator
+    EndIf
+    Switch *Var9
+        Case == .Item:EarthQuake % 190
+            Call  UseBattleCamPreset    ( 00000002 ) % reset camera
+            Call  MoveBattleCamOver ( 25` )
+            Call  StartRumble   ( 00000004 )
+            Call  PlaySoundAtActor ( .Actor:Self 0060 )
+            Call  ShakeCam  ( .Cam:Battle 00000000 5 *Fixed[0.2] )
+            Thread % dust FXs
+                Call  GetActorPos ( .Actor:Player *Var0 *Var1 *Var2 )
+                Add   *Var1 150` % y
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 20` .False .False .False .False .False .False .False .False )
+                Wait  3
+                Add   *Var0 22 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 25` .False .False .False .False .False .False .False .False )
+                Wait  6
+                Add   *Var0 22 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 20` .False .False .False .False .False .False .False .False )
+                Wait  4
+                Add   *Var0 22 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 30` .False .False .False .False .False .False .False .False )
+                Wait  7
+                Add   *Var0 32 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 15` .False .False .False .False .False .False .False .False )
+                Wait  3
+                Add   *Var0 22 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 25` .False .False .False .False .False .False .False .False )
+                Wait  6
+                Add   *Var0 22 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 20` .False .False .False .False .False .False .False .False )
+                Wait  4
+                Add   *Var0 22 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 25` .False .False .False .False .False .False .False .False )
+                Wait  7
+                Add   *Var0 32 % x
+                Call  PlayEffect  ( ~FX:Dust:HeavyRain *Var0 *Var1 *Var2 20` .False .False .False .False .False .False .False .False )
+            EndThread
+            Call  ShakeCam  ( .Cam:Battle 00000000 5 *Fixed[0.4] )
+            Call  ShakeCam  ( .Cam:Battle 00000000 10` *Fixed[0.6] )
+            Call  ShakeCam  ( .Cam:Battle 00000000 15` *Fixed[2.0] )
+            Call  StopSound ( 0060 )
+            Call  PlaySoundAtActor ( .Actor:Self 00DD )
+            Thread
+                Call  StartRumble   ( 00000004 )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[1.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[3.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[6.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[5.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[4.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[3.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[2.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[1.0] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.5] )
+                Call  ShakeCam  ( .Cam:Battle 00000000 00000002 *Fixed[0.2] )
+            EndThread
+            % Hit targets
+            Label EQ0
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  ItemCheckHit      ( *Var0 ~Flags:DamageType:NoContact 00000000 *Var0 00000000 )
+            If  *Var0  ==  .HitResult:Miss % 6
+                Goto  EQ1
+            EndIf
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  GetItemPower      ( .Item:EarthQuake *Var0 *Var1 )
+            Call  ItemDamageEnemy   ( *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|NoOtherDamagePopups|Unblockable|Quake 00000000 *Var0 00000020 )
+            Label  EQ1
+            Call  GetOwnerID ( *Var2 )
+            If *Var2 >= .Actor:Enemy0 % Enemies
+                % check if partner has been already attacked
+                Call GetOwnerTarget ( *Var0 *Var1 )
+                % Check if Player has a partner available
+            Else % Player team
+                Call  ChooseNextTarget  ( .Iter:Next *Var0 )
+                If  *Var0  !=  FFFFFFFF
+                    Goto  EQ0
+                EndIf
+            EndIf
+            Call  GetOwnerTarget        ( *Var7 .False )
+            Call  GetOwnerID ( *Var4 ) % The actor didn't used the item on himself?
+            If *Var7 != *Var4
+                Call  UseIdleAnimation  ( *Var7 .False )
+            EndIf
+            Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+            Wait  30`
+    EndSwitch
+	ExecWait  $ReturnToHomeMario
+    Return
+    End
+}
+
+
+
+
+
+%Port these over too for convenience sake
+
+#new:Script:Battle $BattleScript_EatItem
+{
+    Call  GetOwnerTarget ( *Var3 .False )
+    % check if target is KO'd
+    Call GetStatusFlags ( *Var3 *Var0 )
+    If  *Var0  &  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
+        Return
+    EndIf
+    If *Var3 == .Actor:Player
+        % Check if Mario has already used his turn
+        Call    $ReadBitFlag ( 800DC077 .False .False 1 *Var0 )
+        If *Var0 == .True % Mario has used his turn
+            Call    $WriteBitFlag ( 800DC077 .False .False 1 .False ) % set Mario turn as "unused"
+            Call    $WriteAddress ( $MarioTurn 0 .True .False .False )
+        Else
+            Call    $WriteAddress ( $MarioTurn 0 .False .False .False )
+        EndIf
+        Thread
+            Loop  00000004 
+                Call  PlaySoundAtActor  ( .Actor:Player 00002095 )
+                Wait  10`
+            EndLoop
+        EndThread
+        Call  GetOwnerID ( *Var4 ) % The actor isn't healing himself?
+        If *Var3 != *Var4
+            Call  UseIdleAnimation  ( *Var3 .False )
+        EndIf
+        Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:Eat )
+        Wait  45`
+        Call  GetOwnerID ( *Var4 ) % The actor isn't healing himself?
+        If *Var3 != *Var4
+            Call  UseIdleAnimation  ( *Var3 .True )
+        EndIf
+    Return
+    End
+}
+
+#new:Script:Battle $BattleScript_DrinkItem
+{
+    Call  GetOwnerTarget ( *Var3 .False )
+    % check if target is KO'd
+    Call GetStatusFlags ( *Var3 *Var0 )
+    If  *Var0  &  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
+        Return
+    EndIf
+    If *Var3 == .Actor:Player
+        % Check if Mario has already used his turn
+        Call    $ReadBitFlag ( 800DC077 .False .False 1 *Var0 )
+        If *Var0 == .True % Mario has used his turn
+            Call    $WriteBitFlag ( 800DC077 .False .False 1 .False ) % set Mario turn as "unused"
+            Call    $WriteAddress ( $MarioTurn 0 .True .False .False )
+        Else
+            Call    $WriteAddress ( $MarioTurn 0 .False .False .False )
+        EndIf
+        Thread
+            Loop  00000004 
+                Call  PlaySoundAtActor  ( .Actor:Player 00002095 )
+                Wait  10`
+            EndLoop
+        EndThread
+        Call  GetOwnerID ( *Var4 ) % The actor isn't healing himself?
+        If *Var3 != *Var4
+            Call  UseIdleAnimation  ( *Var3 .False )
+        EndIf
+        Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:Drink )
+        Wait  45`
+        Call  GetOwnerID ( *Var4 ) % The actor isn't healing himself?
+        If *Var3 != *Var4
+            Call  UseIdleAnimation  ( *Var3 .True )
+        EndIf
+    EndIf
+    Return
+    End
+}
+
+#new:Data $MarioTurn
+{ 00 }
+
+%Might not need the partner, but keep it here just in case
+#new:Data $PartnerTurn
+{ 00 }
+
+
+
+#new:Script:Battle $ReturnToHomeMario
+{
+    Call  UseIdleAnimation  ( .Actor:Player .False )
+    Call  SetGoalToHome     ( .Actor:Player )
+    Call  SetActorSpeed     ( .Actor:Player *Fixed[12.0] )
+    Call  SetAnimation      ( .Actor:Player 00000000 00010005 )
+    Call  PlayerRunToGoal   ( 00000000 )
+    Call  SetAnimation      ( .Actor:Player 00000000 00010002 )
+    Call  UseIdleAnimation  ( .Actor:Player .True )
+	Return
+	End
+}
+
+
+
+
+
+%==============================
+% Throw projectile items code
+%==============================
+
+#new:Data $Image_CoconutBomb
+{ ~RasterFile:CI-4:battle_items/a_coconutbomb.png }
+
+#new:Data $Palette_CoconutBomb
+{ ~PaletteFile:CI-4:battle_items/a_coconutbomb.png }
+
+#new:Data $Image_TarundaGem
+{ ~RasterFile:CI-4:battle_items/a_TarundaGem.png }
+
+#new:Data $Palette_TarundaGem
+{ ~PaletteFile:CI-4:battle_items/a_TarundaGem.png }
+
+#new:Data $Image_RakundaGem
+{ ~RasterFile:CI-4:battle_items/a_RakundaGem.png }
+
+#new:Data $Palette_RakundaGem
+{ ~PaletteFile:CI-4:battle_items/a_RakundaGem.png }
+
+#new:Data $Image_Xbox
+{ ~RasterFile:CI-4:battle_items/Xbox.png }
+
+#new:Data $Palette_Xbox
+{ ~PaletteFile:CI-4:battle_items/Xbox.png }
+
+#new:VertexTable $VertexTable_802A2150
+{
+	%    X        Y        Z                 U        V         R   G   B   A     pos
+	   -16`s    -16`s      0`s    0000s       0`s      0`s      00b 00b 00b FFb   %  0
+	    15`s    -16`s      0`s    0000s    1024`s      0`s      00b 00b 00b FFb   %  1
+	    15`s     15`s      0`s    0000s    1024`s   1024`s      00b 00b 00b FFb   %  2
+	   -16`s     15`s      0`s    0000s       0`s   1024`s      00b 00b 00b FFb   %  3
+}
+
+#new:DisplayList $DisplayList_CoconutBomb
+{
+	G_RDPPIPESYNC
+	G_TEXTURE        (G_TX_RENDERTILE, 0.999985, 0.999985, 0, true)
+	G_SETCOMBINE     (G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0, ...
+	                  G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0)
+	G_SetOtherMode_H (G_MDSFT_TEXTPERSP, 1)
+	G_SetOtherMode_H (G_MDSFT_TEXTDETAIL, G_TD_CLAMP)
+	G_SetOtherMode_H (G_MDSFT_TEXTLOD, G_TL_TILE)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_NONE)
+	G_SetOtherMode_H (G_MDSFT_TEXTFILT, G_TF_AVERAGE)
+	G_SetOtherMode_H (G_MDSFT_TEXTCONV, G_TC_FILT)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_RGBA16)
+	G_SETIMG         (RGBA-16, 1`, $Palette_CoconutBomb )
+	G_RDPTILESYNC
+	G_SETTILE        (G_TX_LOADTILE, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0) % invalid format (0:0)
+	G_RDPLOADSYNC
+	G_LOADTLUT       (G_TX_LOADTILE, 16`)
+	G_RDPPIPESYNC
+	G_SETIMG         (CI-8, 16`, $Image_CoconutBomb )
+	G_SETTILE        (G_TX_LOADTILE, CI-8, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_RDPLOADSYNC
+	G_LOADTILE       (G_TX_LOADTILE, 0.000000, 0.000000, 15.500000, 31.000000)
+	G_RDPPIPESYNC
+	G_SETTILE        (G_TX_RENDERTILE, CI-4, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_SETTILESIZE    (G_TX_RENDERTILE, 0, 0, 32`, 32`)
+	G_GEOMETRYMODE   (Clear, G_LIGHTING)
+	G_GEOMETRYMODE   (Clear, G_SHADING_SMOOTH)
+	G_VTX            ( $VertexTable_802A2150 , 4`, 0)
+	G_TRI1           ( 0`,  1`,  2`)
+	G_TRI1           ( 0`,  2`,  3`)
+	G_RDPPIPESYNC
+	G_ENDDL
+}
+
+
+#new:DisplayList $DisplayList_Xbox
+{
+	G_RDPPIPESYNC
+	G_TEXTURE        (G_TX_RENDERTILE, 0.999985, 0.999985, 0, true)
+	G_SETCOMBINE     (G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0, ...
+	                  G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0)
+	G_SetOtherMode_H (G_MDSFT_TEXTPERSP, 1)
+	G_SetOtherMode_H (G_MDSFT_TEXTDETAIL, G_TD_CLAMP)
+	G_SetOtherMode_H (G_MDSFT_TEXTLOD, G_TL_TILE)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_NONE)
+	G_SetOtherMode_H (G_MDSFT_TEXTFILT, G_TF_AVERAGE)
+	G_SetOtherMode_H (G_MDSFT_TEXTCONV, G_TC_FILT)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_RGBA16)
+	G_SETIMG         (RGBA-16, 1`, $Palette_Xbox )
+	G_RDPTILESYNC
+	G_SETTILE        (G_TX_LOADTILE, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0) % invalid format (0:0)
+	G_RDPLOADSYNC
+	G_LOADTLUT       (G_TX_LOADTILE, 16`)
+	G_RDPPIPESYNC
+	G_SETIMG         (CI-8, 16`, $Image_Xbox )
+	G_SETTILE        (G_TX_LOADTILE, CI-8, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_RDPLOADSYNC
+	G_LOADTILE       (G_TX_LOADTILE, 0.000000, 0.000000, 15.500000, 31.000000)
+	G_RDPPIPESYNC
+	G_SETTILE        (G_TX_RENDERTILE, CI-4, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_SETTILESIZE    (G_TX_RENDERTILE, 0, 0, 32`, 32`)
+	G_GEOMETRYMODE   (Clear, G_LIGHTING)
+	G_GEOMETRYMODE   (Clear, G_SHADING_SMOOTH)
+	G_VTX            ( $VertexTable_802A2150 , 4`, 0)
+	G_TRI1           ( 0`,  1`,  2`)
+	G_TRI1           ( 0`,  2`,  3`)
+	G_RDPPIPESYNC
+	G_ENDDL
+}
+
+
+#new:DisplayList $DisplayList_TarundaGem
+{
+	G_RDPPIPESYNC
+	G_TEXTURE        (G_TX_RENDERTILE, 0.999985, 0.999985, 0, true)
+	G_SETCOMBINE     (G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0, ...
+	                  G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0)
+	G_SetOtherMode_H (G_MDSFT_TEXTPERSP, 1)
+	G_SetOtherMode_H (G_MDSFT_TEXTDETAIL, G_TD_CLAMP)
+	G_SetOtherMode_H (G_MDSFT_TEXTLOD, G_TL_TILE)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_NONE)
+	G_SetOtherMode_H (G_MDSFT_TEXTFILT, G_TF_AVERAGE)
+	G_SetOtherMode_H (G_MDSFT_TEXTCONV, G_TC_FILT)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_RGBA16)
+	G_SETIMG         (RGBA-16, 1`, $Palette_TarundaGem )
+	G_RDPTILESYNC
+	G_SETTILE        (G_TX_LOADTILE, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0) % invalid format (0:0)
+	G_RDPLOADSYNC
+	G_LOADTLUT       (G_TX_LOADTILE, 16`)
+	G_RDPPIPESYNC
+	G_SETIMG         (CI-8, 16`, $Image_TarundaGem )
+	G_SETTILE        (G_TX_LOADTILE, CI-8, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_RDPLOADSYNC
+	G_LOADTILE       (G_TX_LOADTILE, 0.000000, 0.000000, 15.500000, 31.000000)
+	G_RDPPIPESYNC
+	G_SETTILE        (G_TX_RENDERTILE, CI-4, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_SETTILESIZE    (G_TX_RENDERTILE, 0, 0, 32`, 32`)
+	G_GEOMETRYMODE   (Clear, G_LIGHTING)
+	G_GEOMETRYMODE   (Clear, G_SHADING_SMOOTH)
+	G_VTX            ( $VertexTable_802A2150 , 4`, 0)
+	G_TRI1           ( 0`,  1`,  2`)
+	G_TRI1           ( 0`,  2`,  3`)
+	G_RDPPIPESYNC
+	G_ENDDL
+}
+
+
+#new:DisplayList $DisplayList_RakundaGem
+{
+	G_RDPPIPESYNC
+	G_TEXTURE        (G_TX_RENDERTILE, 0.999985, 0.999985, 0, true)
+	G_SETCOMBINE     (G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0, ...
+	                  G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_TEXEL0, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_TEXEL0)
+	G_SetOtherMode_H (G_MDSFT_TEXTPERSP, 1)
+	G_SetOtherMode_H (G_MDSFT_TEXTDETAIL, G_TD_CLAMP)
+	G_SetOtherMode_H (G_MDSFT_TEXTLOD, G_TL_TILE)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_NONE)
+	G_SetOtherMode_H (G_MDSFT_TEXTFILT, G_TF_AVERAGE)
+	G_SetOtherMode_H (G_MDSFT_TEXTCONV, G_TC_FILT)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_RGBA16)
+	G_SETIMG         (RGBA-16, 1`, $Palette_RakundaGem )
+	G_RDPTILESYNC
+	G_SETTILE        (G_TX_LOADTILE, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0) % invalid format (0:0)
+	G_RDPLOADSYNC
+	G_LOADTLUT       (G_TX_LOADTILE, 16`)
+	G_RDPPIPESYNC
+	G_SETIMG         (CI-8, 16`, $Image_RakundaGem )
+	G_SETTILE        (G_TX_LOADTILE, CI-8, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_RDPLOADSYNC
+	G_LOADTILE       (G_TX_LOADTILE, 0.000000, 0.000000, 15.500000, 31.000000)
+	G_RDPPIPESYNC
+	G_SETTILE        (G_TX_RENDERTILE, CI-4, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+	G_SETTILESIZE    (G_TX_RENDERTILE, 0, 0, 32`, 32`)
+	G_GEOMETRYMODE   (Clear, G_LIGHTING)
+	G_GEOMETRYMODE   (Clear, G_SHADING_SMOOTH)
+	G_VTX            ( $VertexTable_802A2150 , 4`, 0)
+	G_TRI1           ( 0`,  1`,  2`)
+	G_TRI1           ( 0`,  2`,  3`)
+	G_RDPPIPESYNC
+	G_ENDDL
+}
+
+#new:EntityModelScript $EntityModelScript_CoconutBomb
+{
+	SetRenderMode   ( .RenderMode:AlphaTest )
+	SetDisplayList  ( 2` $DisplayList_CoconutBomb )
+	Restart
+}
+
+#new:EntityModelScript $EntityModelScript_Xbox
+{
+	SetRenderMode   ( .RenderMode:AlphaTest )
+	SetDisplayList  ( 2` $DisplayList_Xbox )
+	Restart
+}
+
+#new:EntityModelScript $EntityModelScript_TarundaGem
+{
+	SetRenderMode   ( .RenderMode:AlphaTest )
+	SetDisplayList  ( 2` $DisplayList_TarundaGem )
+	Restart
+}
+
+#new:EntityModelScript $EntityModelScript_RakundaGem
+{
+	SetRenderMode   ( .RenderMode:AlphaTest )
+	SetDisplayList  ( 2` $DisplayList_RakundaGem )
+	Restart
+}
+
+
+
+
+
+
+
+
+#new:Function $Function_802A123C_Projectile
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F22, 28 (SP)
+   1C:  SDC1      F20, 20 (SP)
+   20:  LW        S0, C (S1)
+   24:  LW        A1, 0 (S0)
+   28:  JAL       ~Func:get_variable
+   2C:  ADDIU     S0, S0, 4
+   30:  LW        A1, 0 (S0)
+   34:  ADDIU     S0, S0, 4
+   38:  COPY      A0, S1
+   3C:  JAL       ~Func:get_variable
+   40:  COPY      S2, V0
+   44:  COPY      A0, S1
+   48:  LW        A1, 0 (S0)
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      S0, V0
+   54:  MTC1      S2, F22
+   58:  NOP
+   5C:  CVT.S.W   F22, F22
+   60:  MTC1      V0, F20
+   64:  NOP
+   68:  CVT.S.W   F20, F20
+   6C:  MTC1      S0, F0
+   70:  NOP
+   74:  CVT.S.W   F0, F0
+   78:  MFC1      A1, F22
+   7C:  MFC1      A3, F20
+   80:  MFC1      A2, F0
+   84:  JAL       ~Func:playFX_17
+   88:  CLEAR     A0
+   8C:  ADDIU     S0, S0, 14
+   90:  MTC1      S0, F0
+   94:  NOP
+   98:  CVT.S.W   F0, F0
+   9C:  MFC1      A1, F22
+   A0:  MFC1      A3, F20
+   A4:  MFC1      A2, F0
+   A8:  JAL       ~Func:playFX_19
+   AC:  CLEAR     A0
+   B0:  LW        RA, 1C (SP)
+   B4:  LW        S2, 18 (SP)
+   B8:  LW        S1, 14 (SP)
+   BC:  LW        S0, 10 (SP)
+   C0:  LDC1      F22, 28 (SP)
+   C4:  LDC1      F20, 20 (SP)
+   C8:  LI        V0, 2
+   CC:  JR        RA
+   D0:  ADDIU     SP, SP, 30
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%DARK STAR EDITION FUNCTIONS BELOW%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %set var5, var6, var7 to correct position
 #new:Function $Function_DebuffEffectPink
@@ -395,6 +1264,20 @@ ADDIU	V0, R0, 2
 	SAB		R0, $EternalCostIncreases
 	POP		RA, A0, A1, S0
 	JR		RA
+	ORI 	V0, R0, 2
+}
+
+#new:Function $AntiHustleDrink
+{
+	PUSH 	RA, S0
+	LIO 	A0, 800DC070
+	SB		R0, 8B (A0) %hustle drink value
+	%but also...
+	LAB		S0, $EternalCostIncreases
+	ADDI	S0, S0, 1
+	SAB		S0, $EternalCostIncreases
+	POP 	RA, S0
+	JR 		RA
 	ORI 	V0, R0, 2
 }
 
@@ -1105,6 +1988,69 @@ ADDIU	V0, R0, 2
 	ORI 	V0, R0, 2
 }
 %/
+
+#new:Function $Function_SetSugar
+{
+	PUSH	RA, A0, A1
+	LI		A0, $ItemCostReductionData
+	LI 		A1, FFFB		%-5
+	SB		A1, 0 (A0)
+	LI 		A1, 3
+	SB		A1, 1 (A0)	
+	%Now apply hustle?
+	LAB		  V0, $AntiHustleToken
+	BEQ		  V0, R0, .noHustleA
+	ADDIU     V0, R0, 2
+	%hustle is set - store to battle perks
+	.yeshustle
+	ADDIU     V0, R0, 2
+	SAB		  V0, $BattlePerks[1]
+	POP		RA, A0, A1
+	JR		  RA
+	ADDIU     V0, R0, 2		
+	%hustle is not set? - store in the regular place
+	.noHustleA
+	LAB     V0, 800DC0FB	%hustle tracker
+	BNE		V0, R0, .yeshustle
+	NOP
+	LI		V0, 2
+	SAB     V0, 800DC0FB	%hustle tracker
+	LI		V0, 1
+	SAB		V0, $AntiHustleToken
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
+
+
+
+#new:Function $Function_SetHustle
+{
+	PUSH	RA, A0, A1
+	%Now apply hustle?
+	LAB		  V0, $AntiHustleToken
+	BEQ		  V0, R0, .noHustleA
+	ADDIU     V0, R0, 2
+	%hustle is set - store to battle perks
+	.yeshustle
+	ADDIU     V0, R0, 2
+	SAB		  V0, $BattlePerks[1]
+	POP		RA, A0, A1
+	JR		  RA
+	ADDIU     V0, R0, 2		
+	%hustle is not set? - store in the regular place
+	.noHustleA
+	LAB     V0, 800DC0FB	%hustle tracker
+	BNE		V0, R0, .yeshustle
+	NOP
+	LI		V0, 2
+	SAB     V0, 800DC0FB	%hustle tracker
+	LI		V0, 1
+	SAB		V0, $AntiHustleToken
+	POP		RA, A0, A1
+	JR		RA
+	ORI 	V0, R0, 2
+}
 
 
 
@@ -1899,4 +2845,526 @@ ADDIU	V0, R0, 2
 		POP		  RA, S0, S1, S2
    80:  JR        RA
 		NOP
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%more blue than Frigid Stomp
+
+%uses 3 vars for positions
+#new:Function $Function_ChillWaveEffect
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 24 (SP)
+   10:  SW        S2, 20 (SP)
+   14:  SW        S0, 18 (SP)
+   18:  LW        S0, C (S1)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  LW        A1, 0 (S0)
+   2C:  ADDIU     S0, S0, 4
+   30:  COPY      A0, S1
+   34:  JAL       ~Func:get_variable
+   38:  COPY      S2, V0
+   3C:  COPY      A0, S1
+   40:  LW        A1, 0 (S0)
+   44:  JAL       ~Func:get_variable
+   48:  COPY      S0, V0
+   4C:  LW        V1, AC (S1)
+   50:  BNE       V1, R0, .o90
+   54:  CLEAR     A0
+   58:  MTC1      S2, F0
+   5C:  NOP
+   60:  CVT.S.W   F0, F0
+   64:  MFC1      A1, F0
+   68:  MTC1      S0, F0
+   6C:  NOP
+   70:  CVT.S.W   F0, F0
+   74:  MFC1      A2, F0
+   78:  MTC1      V0, F0
+   7C:  NOP
+   80:  CVT.S.W   F0, F0
+   84:  MFC1      A3, F0
+   88:  BEQ       R0, R0, .oC0
+   8C:  LI        A0, 1
+        .o90
+   90:  MTC1      S2, F0
+   94:  NOP
+   98:  CVT.S.W   F0, F0
+   9C:  MFC1      A1, F0
+   A0:  MTC1      S0, F0
+   A4:  NOP
+   A8:  CVT.S.W   F0, F0
+   AC:  MFC1      A2, F0
+   B0:  MTC1      V0, F0
+   B4:  NOP
+   B8:  CVT.S.W   F0, F0
+   BC:  MFC1      A3, F0
+        .oC0
+   C0:  JAL       80070B50
+   C4:  SW        R0, 10 (SP)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, 00			%R
+		SB			A1, 50 (V1)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, 60			%G
+		SB			A1, 51 (V1)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, FF			%B
+		SB			A1, 52 (V1)
+		LW			A0, C (V0)
+		ADDIU		V1, R0, D0			%R 2
+		SB			V1, 53 (A0)
+		LW			A0, C (V0)
+		ADDIU		V1, R0, DC			%G 2
+		SB			V1, 54 (A0)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, FF			%B 2
+		SB			A1, 55 (V1)		
+   C8:  LW        RA, 24 (SP)
+   CC:  LW        S2, 20 (SP)
+   D0:  LW        S1, 1C (SP)
+   D4:  LW        S0, 18 (SP)
+   D8:  LI        V0, 2
+   DC:  JR        RA
+   E0:  ADDIU     SP, SP, 28
+}
+
+
+
+
+%set var5, var6, var7 to correct position
+#new:Function $Function_DebuffEffectDefDown
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  COPY      V0, A0
+    8:  SW        RA, 10 (SP)
+    C:  LWC1      F0, 98 (V0)				%84 (var0) -> 98 (var5)
+   10:  CVT.S.W   F0, F0
+   14:  MFC1      A1, F0
+   18:  LWC1      F0, 9C (V0)
+   1C:  CVT.S.W   F0, F0
+   20:  MFC1      A2, F0
+   24:  LWC1      F0, A0 (V0)
+   28:  CVT.S.W   F0, F0
+   2C:  MFC1      A3, F0
+   30:  JAL       80070AF0
+   34:  ADDIU     A0, R0, 2   
+   38:  LW        A0, C (V0)
+		ADDIU     V1, R0, 64  
+   40:  SB        V1, 38 (A0)						%color byte 1?
+   44:  LW        A0, C (V0)
+		ADDIU     V1, R0, B2
+   4C:  SB        V1, 39 (A0)						%color byte 2?
+   50:  LW        V1, C (V0)
+		ADDIU     A0, R0, 6A
+   54:  SB        A0, 3A (V1)						%color byte 3?
+   58:  LW        A0, C (V0)
+		ADDIU     V1, R0, 0
+   60:  SB        V1, 3B (A0)						%color byte 4? (unused?)
+   64:  LW        A0, C (V0)
+		%ADDIU     V1, R0, 0  
+   6C:  SB        V1, 3C (A0)						%color byte 5?
+   70:  LW        V1, C (V0)
+   74:  SB        R0, 3D (V1)						%color byte 6?
+   78:  LW        RA, 10 (SP)
+   7C:  ADDIU     V0, R0, 2   						%return 2
+   80:  JR        RA
+   84:  ADDIU     SP, SP, 18
+}
+
+
+
+
+
+
+#new:Function $Function_CheckChill %chill out fails against targets with certain flags
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S2, 18 (SP)
+    8:  COPY		S2, A0
+    C:  SW			RA, 1C (SP)
+   10:  SW			S1, 14 (SP)
+   14:  SW			S0, 10 (SP)
+   18:  JAL			80269D6C  %~Func:get_actor
+   1C:  LW			A0, 148 (S2)
+   20:  COPY		S0, V0
+   24:  JAL			80269D6C  %~Func:get_actor
+   28:  LH			A0, 428 (S0)
+   2C:  COPY		S1, V0
+   30:  LB			A1, 426 (S0)
+   34:  JAL			8026445C  %~Func:get_actor_part
+   38:  COPY		A0, S1
+   3C:  SW			R0, 84 (S2)
+		%Ensure that chill out is not already enabled
+		LB			T0, 224 (S1)	%duration
+		SLTI		T0, T0, 1
+		BEQ			T0, R0, .oA0
+		NOP
+   40:  LW			S1, 0 (S1)		%Actor flags
+   44:  COPY		V1, V0			%Part pointer
+   48:  ANDI		V0, S1, 4000 	%check flag 4000 (target only)
+   4C:  BNE			V0, R0, .oA0
+   50:  ADDIU		V0, R0, 2
+   54:  LUI			V0, 40			%check flag 400000 (not targettable)
+   58:  AND			V0, S1, V0
+   5C:  BNE			V0, R0, .oA0
+   60:  ADDIU		V0, R0, 2
+   64:  ANDI		V0, S1, 2000	%check flag 2000 (???)
+   68:  BNE			V0, R0, .oA0
+   6C:  ADDIU		V0, R0, 2
+   70:  LW			V1, 7C (V1)		%Part event flags
+   74:  LUI			V0, 4			%check flag 40000 (normal star rod)
+   78:  AND			V0, V1, V0
+   7C:  BNE			V0, R0, .oA0
+   80:  ADDIU		V0, R0, 2
+   84:  LUI			V0, 8			%check flag 80000 (final star rod)
+   88:  AND			V0, V1, V0
+   8C:  BNE			V0, R0, .oA0
+   90:  ADDIU		V0, R0, 2
+   94:  ADDIU		V0, R0, 1
+   98:  SW			V0, 84 (S2)		%Store 1 into Var0 (used by checker functions later)
+   9C:  ADDIU		V0, R0, 2
+        .oA0
+		ADDIU		V0, R0, 2
+   A0:  LW			RA, 1C (SP)
+   A4:  LW			S2, 18 (SP)
+   A8:  LW			S1, 14 (SP)
+   AC:  LW			S0, 10 (SP)
+   B0:  JR			RA
+   B4:  ADDIU		SP, SP, 20
+}
+
+#new:Function $Function_ChillTarget
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 1C (SP)
+    8:  SW			S0, 18 (SP)
+    C:  JAL			80269D6C  %~Func:get_actor
+   10:  LW			A0, 148 (A0)
+   14:  COPY		S0, V0
+   18:  JAL			80269D6C  %~Func:get_actor
+   1C:  LH			A0, 428 (S0)
+   20:  LB			A1, 426 (S0)
+   24:  COPY		S0, V0
+   28:  JAL			8026445C  %~Func:get_actor_part
+   2C:  COPY		A0, S0
+   30:  LW			V1, 0 (S0)
+   34:  COPY		A0, V0
+   38:  ANDI		V0, V1, 4000 %star rod flag
+   3C:  BNE			V0, R0, .o1E4
+   40:  ADDIU		V0, R0, 2
+   44:  LUI			V0, 40
+   48:  AND			V0, V1, V0
+   4C:  BEQ			V0, R0, .o5C
+   50:  ANDI		V0, V1, 2000
+   54:  BEQ			R0, R0, .o1E4
+   58:  ADDIU		V0, R0, 2
+        .o5C
+   5C:  BNE			V0, R0, .o1E4
+   60:  ADDIU		V0, R0, 2
+   64:  LW			V1, 7C (A0)
+   68:  LUI			V0, 4
+   6C:  AND			V0, V1, V0
+   70:  BNE			V0, R0, .o1E4
+   74:  ADDIU		V0, R0, 2
+   78:  LUI			V0, 8
+   7C:  AND			V0, V1, V0
+   80:  BNE			V0, R0, .o1E4
+   84:  ADDIU		V0, R0, 2
+   88:  COPY		A0, S0
+   8C:  CLEAR		A1
+   90:  ADDIU		A2, R0, A
+   94:  ADDIU		V0, R0, 3		%duration?
+   98:  SB			V0, 224 (S0)
+   9C:  ADDIU		V0, R0, 3		%attack reduction
+   %A0:  JAL			802788F8						this event is already called, so don't do this!
+   A4:  SB			V0, 223 (S0)
+   A8:  LH			V0, 150 (S0)
+   AC:  LWC1		F0, 144 (S0)
+   B0:  LW			V1, 0 (S0)
+   B4:  MTC1		V0, F2
+   B8:  NOP
+   BC:  CVT.S.W		F2, F2
+   C0:  LBU			V0, 190 (S0)
+   C4:  ADD.S		F0, F0, F2
+   C8:  SRL			V0, V0, 1
+   CC:  MTC1		V0, F2
+   D0:  NOP
+   D4:  CVT.S.W		F2, F2
+   D8:  ANDI		V0, V1, 800
+   DC:  BEQ			V0, R0, .o114
+   E0:  ADD.S		F4, F0, F2
+   E4:  LH			V0, 152 (S0)
+   E8:  LWC1		F0, 148 (S0)
+   EC:  MTC1		V0, F2
+   F0:  NOP
+   F4:  CVT.S.W		F2, F2
+   F8:  LBU			V0, 191 (S0)
+   FC:  ADD.S		F0, F0, F2
+  100:  MTC1		V0, F2
+  104:  NOP
+  108:  CVT.S.W		F2, F2
+  10C:  BEQ			R0, R0, .o180
+  110:  SUB.S		F0, F0, F2
+        .o114
+  114:  ANDI		V0, V1, 8000
+  118:  BNE			V0, R0, .o150
+  11C:  NOP
+  120:  LH			V0, 152 (S0)
+  124:  LWC1		F0, 148 (S0)
+  128:  MTC1		V0, F2
+  12C:  NOP
+  130:  CVT.S.W		F2, F2
+  134:  LBU			V0, 191 (S0)
+  138:  ADD.S		F0, F0, F2
+  13C:  MTC1		V0, F2
+  140:  NOP
+  144:  CVT.S.W		F2, F2
+  148:  BEQ			R0, R0, .o180
+  14C:  ADD.S		F0, F2, F0
+        .o150
+  150:  LH			V0, 152 (S0)
+  154:  LWC1		F2, 148 (S0)
+  158:  MTC1		V0, F0
+  15C:  NOP
+  160:  CVT.S.W		F0, F0
+  164:  LBU			V0, 191 (S0)
+  168:  ADD.S		F2, F2, F0
+  16C:  SLL			V0, V0, 1
+  170:  MTC1		V0, F0
+  174:  NOP
+  178:  CVT.S.W		F0, F0
+  17C:  ADD.S		F0, F2, F0
+        .o180
+  180:  LH			V0, 154 (S0)
+  184:  MFC1		A2, F0
+  188:  LWC1		F0, 14C (S0)
+  18C:  MTC1		V0, F2
+  190:  NOP
+  194:  CVT.S.W		F2, F2
+  198:  ADD.S		F0, F0, F2
+  19C:  LIF			F2, 5.0
+  1A4:  ADDIU		A0, R0, 1		%damage icon (5 -> 3)
+  1A8:  ADD.S		F0, F0, F2
+  1AC:  MFC1		A1, F4
+  1B0:  LIF			F4, 1.0
+  1B8:  MFC1		A3, F0
+  1BC:  ADDIU		V0, R0, 3C
+  1C0:  SW			V0, 14 (SP)
+  1C4:  JAL			800718D0
+  1C8:  SWC1		F4, 10 (SP)
+  1CC:  JAL			~Func:sfx_play_sound
+  1D0:  ADDIU		A0, R0, 2106
+  1D4:  ADDIU		V0, R0, 2
+  1D8:  ADDIU		V1, R0, 1
+  %1DC:  SAW			V1, 0
+        .o1E4
+  1E4:  LW			RA, 1C (SP)
+  1E8:  LW			S0, 18 (SP)
+  1EC:  JR			RA
+  1F0:  ADDIU		SP, SP, 20
+}
+
+
+#new:Function $Function_CheckDefenseDown %chill out fails against targets with certain flags
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			S2, 18 (SP)
+    8:  COPY		S2, A0
+    C:  SW			RA, 1C (SP)
+   10:  SW			S1, 14 (SP)
+   14:  SW			S0, 10 (SP)
+   18:  JAL			80269D6C  %~Func:get_actor
+   1C:  LW			A0, 148 (S2)
+   20:  COPY		S0, V0
+   24:  JAL			80269D6C  %~Func:get_actor
+   28:  LH			A0, 428 (S0)
+   2C:  COPY		S1, V0
+   30:  LB			A1, 426 (S0)
+   34:  JAL			8026445C  %~Func:get_actor_part
+   38:  COPY		A0, S1
+   3C:  SW			R0, 84 (S2)
+		%Ensure that def down is not already enabled
+		LB			T0, 226 (S1)	%duration
+		SLTI		T0, T0, 1
+		BEQ			T0, R0, .oA0
+		NOP
+   40:  LW			S1, 0 (S1)
+   44:  COPY		V1, V0
+   48:  ANDI		V0, S1, 4000 %check flag 4000 (normal star rod)
+   4C:  BNE			V0, R0, .oA0
+   50:  ADDIU		V0, R0, 2
+   54:  LUI			V0, 40
+   58:  AND			V0, S1, V0
+   5C:  BNE			V0, R0, .oA0
+   60:  ADDIU		V0, R0, 2
+   64:  ANDI		V0, S1, 2000
+   68:  BNE			V0, R0, .oA0
+   6C:  ADDIU		V0, R0, 2
+   70:  LW			V1, 7C (V1)
+   74:  LUI			V0, 4
+   78:  AND			V0, V1, V0
+   7C:  BNE			V0, R0, .oA0
+   80:  ADDIU		V0, R0, 2
+   84:  LUI			V0, 8
+   88:  AND			V0, V1, V0
+   8C:  BNE			V0, R0, .oA0
+   90:  ADDIU		V0, R0, 2
+   94:  ADDIU		V0, R0, 1
+   98:  SW			V0, 84 (S2)
+   9C:  ADDIU		V0, R0, 2
+        .oA0
+		ADDIU		V0, R0, 2
+   A0:  LW			RA, 1C (SP)
+   A4:  LW			S2, 18 (SP)
+   A8:  LW			S1, 14 (SP)
+   AC:  LW			S0, 10 (SP)
+   B0:  JR			RA
+   B4:  ADDIU		SP, SP, 20
+}
+
+#new:Function $Function_DefenseDownTarget
+{
+    0:  ADDIU		SP, SP, FFE0
+    4:  SW			RA, 1C (SP)
+    8:  SW			S0, 18 (SP)
+    C:  JAL			80269D6C  %~Func:get_actor
+   10:  LW			A0, 148 (A0)
+   14:  COPY		S0, V0
+   18:  JAL			80269D6C  %~Func:get_actor
+   1C:  LH			A0, 428 (S0)
+   20:  LB			A1, 426 (S0)
+   24:  COPY		S0, V0
+   28:  JAL			8026445C  %~Func:get_actor_part
+   2C:  COPY		A0, S0
+   30:  LW			V1, 0 (S0)
+   34:  COPY		A0, V0
+   38:  ANDI		V0, V1, 4000 %star rod flag
+   3C:  BNE			V0, R0, .o1E4
+   40:  ADDIU		V0, R0, 2
+   44:  LUI			V0, 40
+   48:  AND			V0, V1, V0
+   4C:  BEQ			V0, R0, .o5C
+   50:  ANDI		V0, V1, 2000
+   54:  BEQ			R0, R0, .o1E4
+   58:  ADDIU		V0, R0, 2
+        .o5C
+   5C:  BNE			V0, R0, .o1E4
+   60:  ADDIU		V0, R0, 2
+   64:  LW			V1, 7C (A0)
+   68:  LUI			V0, 4
+   6C:  AND			V0, V1, V0
+   70:  BNE			V0, R0, .o1E4
+   74:  ADDIU		V0, R0, 2
+   78:  LUI			V0, 8
+   7C:  AND			V0, V1, V0
+   80:  BNE			V0, R0, .o1E4
+   84:  ADDIU		V0, R0, 2
+   88:  COPY		A0, S0
+   8C:  CLEAR		A1
+   90:  ADDIU		A2, R0, A
+   94:  ADDIU		V0, R0, 3		%duration
+   98:  SB			V0, 226 (S0)	%def duration
+   9C:  ADDIU		V0, R0, 3		%amount				-3 with a 0 def cap
+   %A0:  JAL			802788F8						this event is already called, so don't do this!
+   A4:  SB			V0, 225 (S0)	%def reduction
+   A8:  LH			V0, 150 (S0)
+   AC:  LWC1		F0, 144 (S0)
+   B0:  LW			V1, 0 (S0)
+   B4:  MTC1		V0, F2
+   B8:  NOP
+   BC:  CVT.S.W		F2, F2
+   C0:  LBU			V0, 190 (S0)
+   C4:  ADD.S		F0, F0, F2
+   C8:  SRL			V0, V0, 1
+   CC:  MTC1		V0, F2
+   D0:  NOP
+   D4:  CVT.S.W		F2, F2
+   D8:  ANDI		V0, V1, 800
+   DC:  BEQ			V0, R0, .o114
+   E0:  ADD.S		F4, F0, F2
+   E4:  LH			V0, 152 (S0)
+   E8:  LWC1		F0, 148 (S0)
+   EC:  MTC1		V0, F2
+   F0:  NOP
+   F4:  CVT.S.W		F2, F2
+   F8:  LBU			V0, 191 (S0)
+   FC:  ADD.S		F0, F0, F2
+  100:  MTC1		V0, F2
+  104:  NOP
+  108:  CVT.S.W		F2, F2
+  10C:  BEQ			R0, R0, .o180
+  110:  SUB.S		F0, F0, F2
+        .o114
+  114:  ANDI		V0, V1, 8000
+  118:  BNE			V0, R0, .o150
+  11C:  NOP
+  120:  LH			V0, 152 (S0)
+  124:  LWC1		F0, 148 (S0)
+  128:  MTC1		V0, F2
+  12C:  NOP
+  130:  CVT.S.W		F2, F2
+  134:  LBU			V0, 191 (S0)
+  138:  ADD.S		F0, F0, F2
+  13C:  MTC1		V0, F2
+  140:  NOP
+  144:  CVT.S.W		F2, F2
+  148:  BEQ			R0, R0, .o180
+  14C:  ADD.S		F0, F2, F0
+        .o150
+  150:  LH			V0, 152 (S0)
+  154:  LWC1		F2, 148 (S0)
+  158:  MTC1		V0, F0
+  15C:  NOP
+  160:  CVT.S.W		F0, F0
+  164:  LBU			V0, 191 (S0)
+  168:  ADD.S		F2, F2, F0
+  16C:  SLL			V0, V0, 1
+  170:  MTC1		V0, F0
+  174:  NOP
+  178:  CVT.S.W		F0, F0
+  17C:  ADD.S		F0, F2, F0
+        .o180
+  180:  LH			V0, 154 (S0)
+  184:  MFC1		A2, F0
+  188:  LWC1		F0, 14C (S0)
+  18C:  MTC1		V0, F2
+  190:  NOP
+  194:  CVT.S.W		F2, F2
+  198:  ADD.S		F0, F0, F2
+  19C:  LIF			F2, 5.0
+  1A4:  ADDIU		A0, R0, 1		%damage icon (5 -> 3) (aka -1)
+  1A8:  ADD.S		F0, F0, F2
+  1AC:  MFC1		A1, F4
+  1B0:  LIF			F4, 1.0
+  1B8:  MFC1		A3, F0
+  1BC:  ADDIU		V0, R0, 3C
+  1C0:  SW			V0, 14 (SP)
+  1C4:  JAL			800718D0
+  1C8:  SWC1		F4, 10 (SP)
+  1CC:  JAL			~Func:sfx_play_sound
+  1D0:  ADDIU		A0, R0, 210C			%def down sound from ddown moves?
+  1D4:  ADDIU		V0, R0, 2
+  1D8:  ADDIU		V1, R0, 1
+  %1DC:  SAW			V1, 0
+        .o1E4
+  1E4:  LW			RA, 1C (SP)
+  1E8:  LW			S0, 18 (SP)
+  1EC:  JR			RA
+  1F0:  ADDIU		SP, SP, 20
 }

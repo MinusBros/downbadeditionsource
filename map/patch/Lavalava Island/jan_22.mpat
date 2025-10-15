@@ -1,3 +1,18 @@
+
+#define .NpcID:Kolorado_00          00
+#define .NpcID:Kolorado_01          01
+#define .NpcID:Kolorado_02          02
+#define .NpcID:Kolorado_03          03
+#define .NpcID:JungleGuy_04         04
+#define .NpcID:RafaelRaven_05       05
+#define .NpcID:Raven_06             06
+#define .NpcID:Raven_07             07
+#define .NpcID:Raven_08             08
+#define .NpcID:Raven_09             09
+#define .NpcID:Raven_10             0A
+#define .NpcID:WorldMisstar_11      0B
+
+
 %Kolorado is now faster. Wow. Go figure.
 
 @	$Script_Interact_802460B0
@@ -15,4 +30,276 @@
 {
   [144]  Wait  10`
   [1F8]  Call  SetNpcSpeed       ( .Npc:Self *Fixed[15.0] )
+}
+
+
+
+@	$Script_Main
+{
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
+    0:  Set   *GB_WorldLocation  .Location:JadeJungle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o304 7FFFFE00 )
+   88:  Switch  *GB_StoryProgress
+   94:  	Case  <  .Story:Ch5_RafaelMovedRoot % 16
+   A0:  		Call  MakeNpcs  ( .False $NpcGroupList_8024966C )
+   B4:  	Case  ==  .Story:Ch5_BeganPeachMission % 26
+   C0:  		Call  MakeNpcs  ( .False $NpcGroupList_8024966C )
+   D4:  	Default
+   DC:  		Call  MakeNpcs  ( .False $NpcGroupList_8024969C )
+   F0:  EndSwitch
+   F8:  ExecWait  $Script_MakeEntities
+  104:  Exec  $Script_80249EC4
+  110:  Exec  $Script_80242CE4
+  11C:  Exec  $Script_8024B8DC
+  128:  Exec  $Script_8024ADD8
+  134:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o294 00000003 )
+  14C:  Thread
+  154:  	Call  ResetFromLava ( $LavaResetList_80241FDC )
+  164:  EndThread
+  16C:  Exec  $Script_80241D38
+  178:  Exec  $Script_80241DF0
+  184:  Exec  $Script_80241E94
+  190:  Exec  $Script_80241F38
+  19C:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  1B4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+  1CC:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitn 7FFFFE00 )
+  1E4:  Exec  $Script_EnterWalk_8024202C
+  1F0:  If  *GB_StoryProgress  ==  .Story:Ch5_BeganPeachMission % 26
+  200:  	Wait  35`
+  20C:  EndIf
+  214:  ExecWait  $Script_802419E0
+  220:  Return
+  228:  End
+}
+
+
+#import  SwapToGoombarius.mpat
+
+@	$Script_Idle_80247188
+{
+    0:  Call  WaitForPlayerInputEnabled ( )
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Call  DisablePlayerPhysics  ( .True )
+   2C:  Call  DisablePartnerAI  ( 00000000 )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 0
+			Call  SetNpcAnimation   ( .Npc:Partner 00010015 )
+		EndIf
+   3C:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+   54:  Exec  $Script_80246FA8
+   60:  Wait  20`
+   6C:  Call  LoadPath  ( 0000002D $VectorList_80247158 00000004 .Easing:Linear )
+   88:  Label  0
+   94:  Call  GetNextPathPos ( )
+   A0:  Call  SetNpcPos ( .Npc:Self *Var1 *Var2 *Var3 )
+   BC:  Wait  1`
+   C8:  If  *Var0  ==  00000001
+   D8:  	Goto  0
+   E4:  EndIf
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 0
+			Call  SetNpcAnimation   ( .Npc:Partner 0001000E )
+		EndIf
+   EC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .True )
+  104:  Call  DisablePlayerPhysics  ( .False )
+  114:  Call  SetNpcJumpscale   ( .Npc:Self *Fixed[0.4] )
+  128:  Set   *AreaFlag[00B]  .True
+  138:  Call  NpcJump0  ( .Npc:Self  625`  20`  0`  25` )
+  158:  Thread
+  160:  	Call  SetNpcSpeed   ( .Npc:Partner *Fixed[1.0] )
+  174:  	Call  NpcMoveTo     ( .Npc:Partner  730`  0`  0` )
+  190:  EndThread
+  198:  Set   *AreaFlag[00C]  .True
+  1A8:  Call  SetNpcFlagBits    ( .NpcID:Kolorado_01 00000200 .True )
+  1C0:  Call  NpcJump0      ( .Npc:Self  675`  40`  0`  20` )
+  1E0:  Exec  $Script_80246EB4 *Var9
+  1F0:  Wait  10`
+  1FC:  Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  218:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  234:  Call  SetPanTarget  ( .Cam:Default *Var0  0` *Var2 )
+  250:  Call  SetCamDistance    ( .Cam:Default  325` )
+  264:  Call  SetCamPitch   ( .Cam:Default *Fixed[16.0] *Fixed[-11.5] )
+  27C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.5] )
+  290:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2A8:  Call  SpeakToNpc ( .NpcID:Kolorado_01 00B6000A 00B60003 00000000 .Npc:Partner 001000D4 ) % Oh, woe is me... My beautiful treasure...
+  2C8:  Call  NpcFaceNpc    ( .Npc:Self .NpcID:Kolorado_01 00000001 )
+  2E0:  Wait  5`
+  2EC:  Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+		Call  SetPlayerAnimation    ( 00080008 )
+  308:  Call  SpeakToPlayer ( .Npc:Self 00160009 00160008 00000205 001000D5 ) % Listen to you! No treasure in the world is more va ...
+		Call  SetPlayerAnimation    ( 00010002 )
+		Call  GetCurrentPartnerID   ( *Var0 )
+  328:  Call  SetNpcAnimation   ( .Npc:Self 00160001 )
+  33C:  Loop
+  348:  	Call  GetNpcPos ( .Npc:Self *Var0 *Var3 *Var2 )
+  364:  	If  *Var3  ==  *Var1
+  374:  		BreakLoop
+  37C:  	EndIf
+  384:  	Wait  1`
+  390:  EndLoop
+  398:  Call  EndSpeech     ( .Npc:Self 00160002 00160001 00000205 )
+  3B4:  Wait  8`
+  3C0:  Call  InterpNpcYaw  ( .NpcID:Kolorado_01  270`  1` )
+  3D8:  Wait  12`
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 0		
+			Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
+			Call  SpeakToPlayer ( .Npc:Partner 00010018 00010017 00000005 00100132 ) % 
+		EndIf
+  3E4:  Call  SpeakToPlayer ( .NpcID:Kolorado_01 00B6000A 00B60003 00000005 001000D6 ) % But... Sigh...
+  404:  Wait  10`
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 0
+			Call  SpeakToPlayer ( .Npc:Partner 00010018 00010017 00000005 00100131 ) % 
+		EndIf
+  410:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  428:  Add   *Var0  0000001E
+  438:  Call  SetPanTarget  ( .Cam:Default *Var0  0` *Var2 )
+  454:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
+  468:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  480:  Call  InterpNpcYaw  ( .NpcID:Kolorado_01  90`  10` )
+  498:  Exec  $Script_802470F8 *Var8
+  4A8:  Call  SetNpcJumpscale   ( .Npc:Self *Fixed[0.5] )
+  4BC:  Call  NpcJump0      ( .Npc:Self  760`  35`  0`  20` )
+  4DC:  Kill  *Var8
+  4E8:  Wait  5`
+  4F4:  Call  NpcFacePlayer ( .Npc:Self 00000004 )
+		Thread
+			Wait  40`
+			Call  SetPlayerAnimation    ( 00080011 )
+		EndThread
+  508:  Call  SpeakToPlayer ( .Npc:Self 00160002 00160001 00000200 001000D7 ) % Dear Mario! You have saved five of us Star Spirits ...
+		
+  528:  Call  MakeLerp      ( 00000000 00000168 0000000A .Easing:Linear )
+  544:  Loop
+  550:  	Call  UpdateLerp ( )
+  55C:  	Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+  578:  	Wait  1`
+  584:  	If  *Var1  ==  00000000
+  594:  		BreakLoop
+  59C:  	EndIf
+  5A4:  EndLoop
+  5AC:  Kill  *Var9
+  5B8:  Call  SetNpcAnimation   ( .Npc:Self 00160003 )
+  5CC:  Wait  15`
+  5D8:  Call  SetPlayerAnimation    ( .PlayerAnim:GotItem )
+  5E8:  Call  PlaySoundAtPlayer ( 00000139 00000000 )
+  5FC:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  614:  Set   *Var3  *Var1
+  624:  Add   *Var1  00000032
+  634:  Add   *Var2  0000000A
+  644:  Add   *Var3  0000001E
+  654:  Loop  00000005
+  660:  	Call  PlayEffect    ( 00000011 00000003 *Var0 *Var1 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  6A4:  	Wait  6`
+  6B0:  	Call  PlayEffect    ( ~FX:Sparkles:Random *Var0 *Var3 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  6F4:  	Wait  6`
+  700:  EndLoop
+  708:  Wait  15`
+  714:  Call  PlaySoundAtPlayer ( 00000188 00000000 )
+  728:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  740:  Add   *Var1  00000014
+  750:  Call  PlayEffect        ( ~FX:EnergyWaveOut:Grey *Var0 *Var1 *Var2 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  794:  Wait  25`
+  7A0:  Call  SetPlayerAnimation        ( 00010002 )
+  7B0:  Call  SetNpcAnimation   ( .Npc:Self 00160001 )
+  7C4:  Exec  $Script_80246EB4 *Var9
+  7D4:  Call  $Function_80240FE0 ( )
+  7E0:  Call  ShowMessageAtScreenPos    ( 001D0195  160`  40` ) % Mario's Star Energy goes up to 5! Mario can now us ...
+  7F8:  Wait  9`
+		ExecWait  $SwapToGoombarius
+		Call  NpcMoveTo     ( .Npc:Partner  730`  0`  0` )
+		Call  SpeakToNpc    ( .Npc:Partner 0001000F 0001000E 00000000 .NpcID:WorldMisstar_11 00100133 ) %Goombarius flirts again
+		Call  SetNpcAnimation   ( .Npc:Partner 00010013 )
+		Call  SetNpcAnimation   ( .Npc:Self 00160008 )
+		Thread
+			Wait 40`
+			Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
+		EndThread
+		Call  SpeakToPlayer     ( .Npc:Self 00160009 00160008 00000200 00100134 ) % Misstar angry
+		Call  SpeakToPlayer     ( .Npc:Self 00160009 00160008 00000200 00100135 ) % Misstar angry 2
+		Call  SetNpcAnimation   ( .Npc:Self 00160001 )
+		Wait  1`
+		Call  SetNpcAnimation   ( .Npc:Partner 00010011 )
+  804:  Call  SpeakToPlayer     ( .Npc:Self 00160002 00160001 00000200 001000D8 ) % I have to go back to Star Haven for now, but if yo ...
+  824:  Wait  9`
+		Call  SetNpcAnimation   ( .Npc:Self 0016000A )
+  830:  Call  SetNpcFlagBits    ( .Npc:Self 00040000 .True )
+  848:  Thread
+  850:  	Loop  00000019
+  85C:  		Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  878:  		Call  PlayEffect    ( 00000011 00000004 *Var0 *Var1 *Var2 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  8BC:  		Wait  4`
+  8C8:  	EndLoop
+  8D0:  EndThread
+  8D8:  Thread
+  8E0:  	Set   *Var2  00000000
+  8F0:  	Set   *Var3  00000708
+  900:  	Call  MakeLerp  ( *Var2 *Var3 00000064 .Easing:CubicIn )
+  91C:  	Loop
+  928:  		Call  UpdateLerp ( )
+  934:  		Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+  950:  		Wait  1`
+  95C:  		If  *Var1  ==  00000000
+  96C:  			BreakLoop
+  974:  		EndIf
+  97C:  	EndLoop
+  984:  EndThread
+  98C:  Thread
+  994:  	Call  GetNpcPos ( .Npc:Self *Var2 *Var3 *Var4 )
+  9B0:  	Set   *Var5  *Var3
+  9C0:  	Add   *Var5  000000B4
+  9D0:  	Call  MakeLerp  ( *Var3 *Var5 00000064 .Easing:CubicIn )
+  9EC:  	Loop
+  9F8:  		Call  UpdateLerp ( )
+  A04:  		Call  SetNpcPos ( .Npc:Self *Var2 *Var0 *Var4 )
+  A20:  		Wait  1`
+  A2C:  		If  *Var1  ==  00000000
+  A3C:  			BreakLoop
+  A44:  		EndIf
+  A4C:  	EndLoop
+  A54:  	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  A70:  EndThread
+  A78:  Thread
+  A80:  	Wait  15`
+  A8C:  	Call  PlaySoundAtNpc    ( .Npc:Self 00002045 00000000 )
+  AA4:  EndThread
+  AAC:  Wait  5`
+  AB8:  Call  SetPlayerAnimation    ( 0001002A )
+  AC8:  Wait  80`
+  AD4:  Call  ResetCam  ( .Cam:Default  3` )
+  AE8:  Wait  10`
+  AF4:  Call  SetPlayerAnimation    ( 00010002 )
+  B04:  Kill  *Var9
+  B10:  Set   *GB_StoryProgress  .Story:Ch5_StarSpritDeparted
+		Call  SpeakToPlayer    ( .Npc:Partner 0001000C 0001000B 00000005 00100136 ) %Goombarius is sad
+  B20:  Wait  5`
+		Call  SetNpcAnimation   ( .Npc:Partner 00010001 )
+		Call  NpcFaceNpc    ( .Npc:Partner .NpcID:Kolorado_01 00000000 )
+  B2C:  Call  SpeakToPlayer     ( .NpcID:Kolorado_01 00B6000A 00B60003 00000000 001000D9 ) % Oh... I was so close... The treasure...right there ...
+  B4C:  Wait  3`
+  B58:  Call  InterpNpcYaw      ( .NpcID:Kolorado_01  270`  4` )
+  B70:  Call  SetNpcAnimation   ( .NpcID:Kolorado_01 00B60005 )
+		Thread
+			Wait  20`
+			Call  SetNpcAnimation   ( .Npc:Partner 00010017 )
+		EndThread
+  B84:  Call  SetNpcSpeed       ( .NpcID:Kolorado_01 *Fixed[0.2] )
+  B98:  Call  NpcMoveTo ( .NpcID:Kolorado_01  600`  0`  0` )
+		Call  SpeakToNpc    ( .Npc:Partner 00010018 00010017 00000000 .NpcID:Kolorado_01 00100137 ) %Goombarius is mad
+		Call  SpeakToPlayer     ( .NpcID:Kolorado_01 00B6000A 00B60003 00000000 00100138 ) % Sad Kolorado
+  B84:  Call  SetNpcSpeed       ( .NpcID:Kolorado_01 *Fixed[2.0] )
+  B98:  Call  NpcMoveTo ( .NpcID:Kolorado_01  520`  0`  0` )
+  BB4:  Call  SetNpcFlagBits    ( .NpcID:Kolorado_01 00000200 .False )
+  BCC:  Call  SetNpcPos ( .NpcID:Kolorado_01  0`  -1000`  0` )
+		Call  SpeakToPlayer    ( .Npc:Partner 00010018 00010017 00000000 00100139 ) %Goombarius is mad
+  BE8:  Call  EnablePartnerAI ( )
+  BF4:  Call  DisablePlayerInput    ( .False )
+  C04:  Return
+  C0C:  End
 }

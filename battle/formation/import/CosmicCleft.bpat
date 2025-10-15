@@ -157,6 +157,7 @@
    3C:  Call     BindNextTurn 	( .Actor:Self $Script_NextTurn_80220D3C_0E )
    50:  Call     SetActorVar 	( .Actor:Self 00000000 00000000 )
    68:  Call     SetActorVar 	( .Actor:Self 00000002 00000000 )
+		Call     SetActorVar 	( .Actor:Self 00000003 00000000 )
    80:  Return
    88:  End
 }
@@ -170,10 +171,13 @@
    34:  	Case  ==  .Phase:EnemyEnd
    40:  		Call     SetBattleVar 	( 00000001 00000000 )
    54:  		Call     SetActorVar 	( .Actor:Self 00000002 00000001 )
+				
    6C:  EndSwitch
    74:  Return
    7C:  End
 }
+
+%Clefts can charge indefinitely if they really want to.
 
 #new:Script $Script_80220DC0_0E
 {
@@ -182,39 +186,14 @@
    28:  Call     SetTargetActor ( .Actor:Self .Actor:Player )
    3C:  Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
    54:  If  *Var[0]  ==  00000000 
-   64:  	Call     UseBattleCamPreset 	( 0000000E )
-   74:  	Call     BattleCamTargetActor ( .Actor:Self )
-   84:  	Call     MoveBattleCamOver 	( 00000014 )
-   94:  	Wait     00000014 
-   A0:  	Call     PlaySoundAtActor 	( .Actor:Self .Sound:PowerUp )
-   B4:  	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
-   D0:  	Add  *Var[1]  0000000A 
-   E0:  	Call     PlayEffect  	( ~FX:EnergyIn:LongStreaks1 *Var[0] *Var[1] *Var[2] *Fixed[1.0] 0000002D 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  124:  	Call     SetAnimation 	( .Actor:Self 00000001 00300404 )
-  13C:  	Wait     0000001E 
-  148:  	Call     UseBattleCamPreset 	( 00000002 )
-  158:  	Call     MoveBattleCamOver 	( 00000014 )
-  168:  	Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.0] )
-  17C:  	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
-  198:  	Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
-  1B4:  	Call     JumpToGoal  	( .Actor:Self 0000000F 00000000 00000001 00000000 )
-  1D4:  	Call     $Function_802185C0_0E ( 000000C8 0000000A )
-  1E8:  	Thread
-  1F0:  		Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.5] )
-  20C:  	EndThread
-  214:  	Call     PlaySoundAtActor 	( .Actor:Self 000002D9 )
-  228:  	Call     PlayEffect  	( ~FX:Steam:LargeOutward *Var[0] *Var[1] *Var[2] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  26C:  	Thread
-  274:  		Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
-  290:  	EndThread
-  298:  	Call     SetActorVar 	( .Actor:Self 00000000 00000002 )
-  2B0:  	Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_80220C60_0E )
-  2C8:  	Call     EnableActorGlow 	( .Actor:Self .True )
-  2DC:  	Call     SetPartEventBits 	( .Actor:Self 00000001 00400000 .True )
-  2F8:  	Call     EnableIdleScript 	( .Actor:Self 00000001 )
-  30C:  	Call     UseIdleAnimation 	( .Actor:Self .True )
+			ExecWait $Charge
   320:  	Return
   328:  EndIf
+		Call  RandInt   ( 00000001 *Var0 )
+		If  *Var0  ==  00000000
+			ExecWait $Charge
+			Return
+		EndIf
   330:  Call     UseBattleCamPreset 	( 0000003F )
   340:  Call     BattleCamTargetActor ( .Actor:Self )
   350:  Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
@@ -279,6 +258,7 @@
   7AC:  		Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_80221CD4_0E )
   7C4:  		Call     EnableIdleScript 	( .Actor:Self 00000001 )
   7D8:  		Call     UseIdleAnimation 	( .Actor:Self .True )
+				Call  	 SetActorVar  ( .Actor:Self 3` 0` )
   7EC:  		Return
   7F4:  	EndCaseGroup
   7FC:  EndSwitch
@@ -296,7 +276,8 @@
   8E8:  Call     ResetAllActorSounds ( FFFFFF81 )
   8F8:  Wait     00000002 
   904:  Call     SetGoalToTarget 	( .Actor:Self )
-  914:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 000000016 00000020 )
+		Call     GetActorVar ( .Actor:Self 3` *VarB )
+  914:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 *VarB 00000020 )
   93C:  Switch  *Var[0] 
   948:  	CaseOR  ==  00000000 
   954:  	CaseOR  ==  00000002 
@@ -338,10 +319,49 @@
   C38:  		Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_80221CD4_0E )
   C50:  	EndCaseGroup
   C58:  EndSwitch
+		Call  	 SetActorVar  ( .Actor:Self 3` 0` )
   C60:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
   C74:  Call     UseIdleAnimation 	( .Actor:Self .True )
   C88:  Return
   C90:  End
+}
+
+#new:Script  $Charge
+{
+   64:  	Call     UseBattleCamPreset 	( 0000000E )
+   74:  	Call     BattleCamTargetActor ( .Actor:Self )
+   84:  	Call     MoveBattleCamOver 	( 00000014 )
+   94:  	Wait     00000014 
+   A0:  	Call     PlaySoundAtActor 	( .Actor:Self .Sound:PowerUp )
+   B4:  	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+   D0:  	Add  *Var[1]  0000000A 
+   E0:  	Call     PlayEffect  	( ~FX:EnergyIn:LongStreaks1 *Var[0] *Var[1] *Var[2] *Fixed[1.0] 0000002D 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  124:  	Call     SetAnimation 	( .Actor:Self 00000001 00300404 )
+  13C:  	Wait     0000001E 
+  148:  	Call     UseBattleCamPreset 	( 00000002 )
+  158:  	Call     MoveBattleCamOver 	( 00000014 )
+  168:  	Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.0] )
+  17C:  	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  198:  	Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  1B4:  	Call     JumpToGoal  	( .Actor:Self 0000000F 00000000 00000001 00000000 )
+  1D4:  	Call     $Function_802185C0_0E ( 000000C8 0000000A )
+  1E8:  	Thread
+  1F0:  		Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.5] )
+  20C:  	EndThread
+  214:  	Call     PlaySoundAtActor 	( .Actor:Self 000002D9 )
+  228:  	Call     PlayEffect  	( ~FX:Steam:LargeOutward *Var[0] *Var[1] *Var[2] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  26C:  	Thread
+  274:  		Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.0] )
+  290:  	EndThread
+  298:  	Call     SetActorVar 	( .Actor:Self 00000000 00000002 )
+  2B0:  	Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_80220C60_0E )
+  2C8:  	Call     EnableActorGlow 	( .Actor:Self .True )
+  2DC:  	Call     SetPartEventBits 	( .Actor:Self 00000001 00400000 .True )
+  2F8:  	Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  30C:  	Call     UseIdleAnimation 	( .Actor:Self .True )
+			Call  AddActorVar   ( .Actor:Self 3` 11` )
+			Return
+			End
 }
 
 #new:Script $Script_TakeTurn_80221A58_0E
@@ -565,6 +585,7 @@
   4E0:  		EndIf
   4E8:  		Return
   4F0:  	Case  ==  .Event:ShockHit
+				Call  	 SetActorVar  ( .Actor:Self 3` 0` )
   4FC:  		Call     SetActorRotationOffset 	( .Actor:Self 00000000 00000000 00000000 )
   518:  		Call     SetActorRotation 	( .Actor:Self 00000000 00000000 00000000 )
   534:  		Call     EnableActorGlow 	( .Actor:Self .False )

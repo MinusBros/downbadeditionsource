@@ -1,4 +1,5 @@
 SetVisible
+PlaySound       ( 000002DB )
 SetCustomSize   ( 16` 16` )
 Loop
 	SetCI           ( 3` ~ImageCI:ui/battle/status/trans_1 )

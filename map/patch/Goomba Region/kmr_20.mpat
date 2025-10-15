@@ -1,9 +1,21 @@
-@	$Function_802421A0
+@	$EntryList
 {
-	[25C] ADDIU 	A0, R0, 83` % badges total, was 80`
-	[318] ADDIU     A0, R0, 142` % star piece total, was 160`
+	~Vec4f:Entry0 %  240.0   30.0  -80.0   90.0
+	~Vec4f:Entry1 %  240.0   30.0  -70.0   90.0
+	~Vec4f:Entry2 %  100.0   44.0  -40.0   90.0
+	~Vec4f:Entry3 %  100.0   44.0  -40.0   90.0
+	~Vec4f:Entry4 %  594.0   30.0 -216.0  180.0
+	~Vec4f:Entry5
 }
 
+@	$Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  00000006
+	[Background]  80200000
+	[MapTattle]   00190044
+}
 
 @	$Script_80243AD0
 {
@@ -38,4 +50,560 @@
 		Call  MakeItemEntity    ( .Item:SpeedySpin ~Vec3d:NewSpeedySpin .ItemSpawnMode:Fixed_NeverVanish *GF_KMR20_NewSpeedySpin )
   154:  Return
   15C:  End
+}
+
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:MariosHouse
+   10:  Call  GetEntryID    ( *Var0 )
+   20:  If  *Var0  ==  ~Entry:Entry2
+   30:  	Set   *GB_StoryProgress  .Story:Epilogue
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+   58:  If  *Var0  ==  ~Entry:Entry4
+   68:  	Set   *MapFlag[0A]  .False
+   78:  	If  *GF_KMR20_ReunitedWithLuigi  ==  .False
+   88:  		Set   *GF_KMR20_ReunitedWithLuigi  .True
+   98:  		If  *GB_StoryProgress  <  .Story:Ch3_InvitedToBoosMansion % FFFFFFCE
+   A8:  			Set   *MapFlag[0A]  .True
+   B8:  		EndIf
+   C0:  	EndIf
+   C8:  EndIf
+   D0:  Set   *MapFlag[0C]  .False
+   E0:  Call  SetSpriteShading  ( .Shading:None )
+   F0:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+  110:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+  12C:  Call  SetCamEnabled     ( .Cam:Default .True )
+  140:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+  154:  Exec  $Script_80242C40
+  160:  Call  GetEntryID        ( *Var0 )
+  170:  If  *Var0  <  ~Entry:Entry4
+  180:  	Call  MakeNpcs  ( .False $NpcGroupList_8024A88C )
+  194:  Else
+  19C:  	Call  MakeNpcs  ( .False $NpcGroupList_8024DEDC )
+  1B0:  EndIf
+  1B8:  ExecWait  $Script_MakeEntities
+  1C4:  Call  EnableGroup   ( ~Model:g100 .False )
+  1D8:  Exec  $Script_80246794
+  1E4:  Exec  $Script_8024721C
+  1F0:  Exec  $Script_80244228
+  1FC:  Exec  $Script_80245638
+  208:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+  218:  	Exec  $Script_8024A3A0
+  224:  EndIf
+  22C:  Call  GetEntryID    ( *Var0 )
+  23C:  Switch  *Var0
+  248:  	Case  ==  ~Entry:Entry0
+  254:  		Call  $Function_80240310 ( )
+  260:  		Exec  $Script_8024FD70
+  26C:  		Wait  5`
+  278:  	Case  ==  ~Entry:Entry1
+  284:  		Exec  $Script_80250C5C
+  290:  	Case  ==  ~Entry:Entry2
+  29C:  		Wait  60`
+  2A8:  		Exec  $Script_8025232C
+  2B4:  	Case  ==  ~Entry:Entry3
+  2C0:  		Exec  $Script_80243B64
+  2CC:  		Exec  $Script_80252490
+  2D8:  	Case  ==  ~Entry:Entry4
+  2E4:  		Set   *GF_Map_MariosHouse  .True
+  2F4:  		If  *MapFlag[0A]  ==  .True
+  304:  			Exec  $Script_8024AC34
+  310:  			Thread
+  318:  				Call  DisablePlayerPhysics  ( .True )
+  328:  				Call  SetPlayerPos  (  0`  -1000`  0` )
+  340:  				Label  0
+  34C:  				If  *MapFlag[0B]  ==  .False
+  35C:  					Wait  1`
+  368:  					Goto  0
+  374:  				EndIf
+  37C:  				Set   *VarA  $Script_80243B64
+  38C:  				Exec  $Script_80242DA0
+  398:  			EndThread
+  3A0:  		Else
+  3A8:  			Set   *VarA  $Script_80243B64
+  3B8:  			Exec  $Script_80242DA0
+  3C4:  		EndIf
+			Case  ==  ~Entry:Entry5
+				Exec  $MarioWakesUp
+				Set   *VarA  $Script_80243B64
+  3CC:  EndSwitch
+  3D4:  Return
+  3DC:  End
+}
+
+#new:Script  $MarioWakesUp
+{
+				Call  DisablePlayerPhysics  ( .True )
+				Call  DisablePlayerInput  ( .True )
+				Call  InterpPlayerYaw   (  180`  0` )
+				Call  SetPlayerAnimation    ( 00080009 )
+				Wait  60`
+				Call  SetPlayerAnimation    ( 00080024 )
+				Wait  60`
+				Call  SetPlayerAnimation    ( 00010006 )
+				Wait  4`
+				Call  SetPlayerAnimation    ( 00010007 )
+				Wait  8`
+				Call  SetPlayerAnimation    ( 00010002 )
+				Call  DisablePlayerPhysics  ( .False )
+				Call  DisablePlayerInput  ( .False )
+				Return
+				End
+}
+
+
+@	$Script_80244228
+{
+    0:  Call  MakeDoorAdvanced  ( 00000000 $Script_OpenDoor_80243F80 $Script_MoveWalls_80243FB0 00000000 $Script_ToggleVis_80244100 ~Collider:o246 ~Collider:o245 ~Model:g62 $NpcList_80244220 )
+   30:  Call  GetEntryID        ( *Var0 )
+   40:  Switch  *Var0
+   4C:  	CaseOR  ==  ~Entry:Entry2
+   58:  	CaseOR  ==  ~Entry:Entry3
+			CaseOR  ==  ~Entry:Entry5
+   64:  		Call  EnableGroup   ( ~Model:g20 .True )
+   78:  		Call  EnableGroup   ( ~Model:g21 .True )
+   8C:  		Call  EnableGroup   ( ~Model:g49 .True )
+   A0:  		Call  EnableModel   ( ~Model:g56 .True )
+   B4:  		Call  EnableGroup   ( ~Model:g72 .False )
+   C8:  		Call  $Function_80241C9C ( )
+   D4:  		Call  RotateGroup   ( ~Model:g60 0000005A 00000001 00000000 00000000 )
+   F4:  		Call  RotateGroup   ( ~Model:g34 0000005A FFFFFFFF 00000000 00000000 )
+  114:  		Call  EnableGroup   ( ~Model:g60 .False )
+  128:  		Call  EnableGroup   ( ~Model:g34 .False )
+  13C:  		Call  $Function_80240330 ( )
+  148:  	EndCaseGroup
+  150:  	Default
+  158:  		Set   *Var0  00000003
+  168:  		Exec  $Script_ToggleVis_80244100
+  174:  EndSwitch
+  17C:  Return
+  184:  End
+}
+
+@ $Function_802421A0
+{
+    0:  ADDIU     SP, SP, FFB8
+    4:  SW        S6, 40 (SP)
+    8:  COPY      S6, A0
+    C:  SW        S0, 28 (SP)
+   10:  COPY      S0, A1
+   14:  SW        RA, 44 (SP)
+   18:  SW        S5, 3C (SP)
+   1C:  SW        S4, 38 (SP)
+   20:  SW        S3, 34 (SP)
+   24:  SW        S2, 30 (SP)
+   28:  BLEZ      S0, .o6A8
+   2C:  SW        S1, 2C (SP)
+   30:  LA        A0, 8009A66C
+   38:  LUI       V0, DE00
+   3C:  MTC1      S0, F0
+   40:  NOP
+   44:  CVT.D.W   F0, F0
+   48:  LW        V1, 0 (A0)
+   4C:  LAD       F2, $ConstDouble_80253030
+   54:  COPY      A1, V1
+   58:  ADDIU     V1, V1, 8
+   5C:  SW        V1, 0 (A0)
+   60:  SW        V0, 0 (A1)
+   64:  LA        V0, $???_80252D50
+   6C:  SW        V0, 4 (A1)
+   70:  ADDIU     V0, V1, 8
+   74:  SW        V0, 0 (A0)
+   78:  LUI       V0, E700
+   7C:  MUL.D     F0, F0, F2
+   80:  NOP
+   84:  SW        V0, 0 (V1)
+   88:  ADDIU     V0, V1, 10
+   8C:  SW        R0, 4 (V1)
+   90:  SW        V0, 0 (A0)
+   94:  LUI       V0, FA00
+   98:  LIF       F3, 28.0
+   A0:  MTC1      R0, F2
+   A4:  ADDIU     T5, V1, C
+   A8:  C.LE.D    F2, F0
+   AC:  NOP
+   B0:  BC1T      .oC8
+   B4:  SW        V0, 8 (V1)
+   B8:  TRUNC.W.D F4, F0
+   BC:  MFC1      T4, F4
+   C0:  BEQ       R0, R0, .oE4
+   C4:  LUI       T1, 1078
+        .oC8
+   C8:  SUB.D     F0, F0, F2
+   CC:  LUI       V0, 8000
+   D0:  TRUNC.W.D F4, F0
+   D4:  MFC1      T4, F4
+   D8:  NOP
+   DC:  OR        T4, T4, V0
+   E0:  LI        T1, 10781800
+		.oE4
+   E8:  LI        T3, F647C300
+   F0:  LI        T2, 000840AC
+   F8:  LI        A0, 1E
+   FC:  LI        A1, 28
+  100:  LI        A2, 104
+  104:  LA        T0, 8009A66C
+  10C:  ANDI      V0, T4, FF
+  110:  OR        V0, V0, T1
+  114:  MTC1      S0, F2
+  118:  NOP
+  11C:  CVT.D.W   F2, F2
+  120:  LW        V1, 0 (T0)
+  124:  LAD       F0, $ConstDouble_80253038
+  12C:  LI        S1, 1
+  130:  SW        V0, 0 (T5)
+  134:  COPY      V0, V1
+  138:  ADDIU     V1, V1, 8
+  13C:  SW        V1, 0 (T0)
+  140:  SW        T3, 0 (V0)
+  144:  SW        T2, 4 (V0)
+  148:  ADDIU     V0, V1, 8
+  14C:  SW        V0, 0 (T0)
+  150:  LUI       V0, E700
+  154:  MUL.D     F2, F2, F0
+  158:  NOP
+  15C:  SW        V0, 0 (V1)
+  160:  LI        V0, 6
+  164:  SW        R0, 4 (V1)
+  168:  SW        V0, 10 (SP)
+  16C:  SW        R0, 14 (SP)
+  170:  SW        S1, 18 (SP)
+  174:  SW        S0, 20 (SP)
+  178:  TRUNC.W.D F4, F2
+  17C:  SWC1      F4, 1C (SP)
+  180:  JAL       ~Func:msg_draw_frame
+  184:  LI        A3, 9B
+  188:  LI        A0, 000B00FC
+  190:  JAL       ~Func:get_string_width
+  194:  CLEAR     A1
+  198:  LI        A0, 000B00FC
+  1A0:  LI        S3, CE
+  1A4:  SUBU      A1, S3, V0
+  1A8:  LI        A2, 32
+  1AC:  COPY      A3, S0
+  1B0:  SW        R0, 10 (SP)
+  1B4:  JAL       ~Func:draw_string
+  1B8:  SW        S1, 14 (SP)
+  1BC:  LI        A1, D8
+  1C0:  LI        A2, 33
+  1C4:  LA        S2, 8010F290
+  1CC:  COPY      A3, S1
+  1D0:  LW        A0, 2B4 (S2)
+  1D4:  LI        S4, 2
+  1D8:  SW        R0, 10 (SP)
+  1DC:  SW        S0, 14 (SP)
+  1E0:  JAL       ~Func:draw_number
+  1E4:  SW        S4, 18 (SP)
+  1E8:  LI        A0, 000B00FD
+  1F0:  JAL       ~Func:get_string_width
+  1F4:  CLEAR     A1
+  1F8:  LI        A0, 000B00FD
+  200:  SUBU      A1, S3, V0
+  204:  LI        A2, 41
+  208:  COPY      A3, S0
+  20C:  SW        R0, 10 (SP)
+  210:  JAL       ~Func:draw_string
+  214:  SW        S1, 14 (SP)
+  218:  LI        A1, E7
+  21C:  LI        A2, 42
+  220:  COPY      A3, S1
+  224:  LHU       A0, 24 (S6)
+  228:  LI        S5, 3
+  22C:  SW        R0, 10 (SP)
+  230:  SW        S0, 14 (SP)
+  234:  JAL       ~Func:draw_number
+  238:  SW        S5, 18 (SP)
+  23C:  LI        A0, 001F0034
+  244:  LI        A1, E8
+  248:  LI        A2, 3F
+  24C:  COPY      A3, S0
+  250:  SW        R0, 10 (SP)
+  254:  JAL       ~Func:draw_string
+  258:  SW        R0, 14 (SP)
+  25C:  LI        A0, 110`						%<-- (badge total) 
+  260:  LI        A1, F4
+  264:  LI        A2, 42
+  268:  COPY      A3, S1
+  26C:  SW        R0, 10 (SP)
+  270:  SW        S0, 14 (SP)
+  274:  JAL       ~Func:draw_number
+  278:  SW        S4, 18 (SP)
+  27C:  LHU       V0, 32C (S2)
+  280:  BNE       V0, R0, .o2AC
+  284:  LUI       A0, B
+  288:  ORI       A0, A0, FA
+  28C:  LI        A1, 6D
+  290:  LI        A2, 50
+  294:  COPY      A3, S0
+  298:  SW        R0, 10 (SP)
+  29C:  JAL       ~Func:draw_string
+  2A0:  SW        S1, 14 (SP)
+  2A4:  BEQ       R0, R0, .o33C
+  2A8:  LUI       A0, B
+		.o2AC
+  2AC:  ORI       A0, A0, FB
+  2B0:  JAL       ~Func:get_string_width
+  2B4:  CLEAR     A1
+  2B8:  LI        A0, 000B00FB
+  2C0:  SUBU      A1, S3, V0
+  2C4:  LI        A2, 50
+  2C8:  COPY      A3, S0
+  2CC:  SW        R0, 10 (SP)
+  2D0:  JAL       ~Func:draw_string
+  2D4:  SW        S1, 14 (SP)
+  2D8:  LI        A1, E7
+  2DC:  LI        A2, 51
+  2E0:  LHU       A0, 32C (S2)
+  2E4:  LI        A3, 1
+  2E8:  SW        R0, 10 (SP)
+  2EC:  SW        S0, 14 (SP)
+  2F0:  JAL       ~Func:draw_number
+  2F4:  SW        S5, 18 (SP)
+  2F8:  LI        A0, 001F0034
+  300:  LI        A1, E8
+  304:  LI        A2, 4E
+  308:  COPY      A3, S0
+  30C:  SW        R0, 10 (SP)
+  310:  JAL       ~Func:draw_string
+  314:  SW        R0, 14 (SP)
+  318:  LI        A0, 175`					%<-- (star piece total)			
+  31C:  LI        A1, F4
+  320:  LI        A2, 50
+  324:  LI        A3, 1
+  328:  SW        R0, 10 (SP)
+  32C:  SW        S0, 14 (SP)
+  330:  JAL       ~Func:draw_number
+  334:  SW        S4, 18 (SP)
+  338:  LI        A0, 000B00FE
+		.o33C
+  340:  JAL       ~Func:get_string_width
+  344:  CLEAR     A1
+  348:  LH        A0, 26 (S6)
+  34C:  BNE       A0, R0, .o380
+  350:  COPY      V1, V0
+  354:  LI        A0, 000B00FA
+  35C:  LI        A1, 6E
+  360:  LI        A2, 5F
+  364:  COPY      A3, S0
+  368:  LI        V0, 1
+  36C:  SW        R0, 10 (SP)
+  370:  JAL       ~Func:draw_string
+  374:  SW        V0, 14 (SP)
+  378:  BEQ       R0, R0, .o450
+  37C:  NOP
+		.o380
+  380:  LI        V0, FFFF
+  384:  BNE       A0, V0, .o3C4
+  388:  LUI       A0, B
+  38C:  ORI       A0, A0, FE
+  390:  LI        A1, CE
+  394:  SUBU      A1, A1, V1
+  398:  LI        A2, 5F
+  39C:  COPY      A3, S0
+  3A0:  LI        V0, 1
+  3A4:  SW        R0, 10 (SP)
+  3A8:  JAL       ~Func:draw_string
+  3AC:  SW        V0, 14 (SP)
+  3B0:  CLEAR     A0
+  3B4:  LI        A1, E7
+  3B8:  LI        A2, 60
+  3BC:  BEQ       R0, R0, .o3F8
+  3C0:  LI        A3, 1
+		.o3C4
+  3C4:  ORI       A0, A0, FE
+  3C8:  LI        A1, CE
+  3CC:  SUBU      A1, A1, V1
+  3D0:  LI        A2, 5F
+  3D4:  COPY      A3, S0
+  3D8:  LI        V0, 1
+  3DC:  SW        R0, 10 (SP)
+  3E0:  JAL       ~Func:draw_string
+  3E4:  SW        V0, 14 (SP)
+  3E8:  LI        A1, E7
+  3EC:  LI        A2, 60
+  3F0:  LI        A3, 1
+  3F4:  LH        A0, 26 (S6)
+		.o3F8
+  3F8:  LI        V0, 3
+  3FC:  SW        R0, 10 (SP)
+  400:  SW        S0, 14 (SP)
+  404:  JAL       ~Func:draw_number
+  408:  SW        V0, 18 (SP)
+  40C:  LI        A0, 001F0034
+  414:  LI        A1, E8
+  418:  LI        A2, 5D
+  41C:  COPY      A3, S0
+  420:  SW        R0, 10 (SP)
+  424:  JAL       ~Func:draw_string
+  428:  SW        R0, 14 (SP)
+  42C:  LI        A1, F4
+  430:  LI        A2, 5F
+  434:  LI        A3, 1
+  %438:  LH        A0, 28 (S6)				%?? ADDIU     A0, R0, 51` % recipe total, was 50`
+		ADDIU     A0, R0, 75` 				% recipe total, was 50`
+  43C:  LI        V0, 2
+  440:  SW        R0, 10 (SP)
+  444:  SW        S0, 14 (SP)
+  448:  JAL       ~Func:draw_number
+  44C:  SW        V0, 18 (SP)
+		.o450
+  450:  LA        S1, 8010F290
+  458:  LHU       V0, 2C0 (S1)
+  45C:  BNE       V0, R0, .o48C
+  460:  LUI       A0, B
+  464:  ORI       A0, A0, FA
+  468:  LI        A1, 6D
+  46C:  LI        A2, 6E
+  470:  COPY      A3, S0
+  474:  LI        V0, 1
+  478:  SW        R0, 10 (SP)
+  47C:  JAL       ~Func:draw_string
+  480:  SW        V0, 14 (SP)
+  484:  BEQ       R0, R0, .o52C
+  488:  LUI       A0, B
+		.o48C
+  48C:  ORI       A0, A0, FF
+  490:  JAL       ~Func:get_string_width
+  494:  CLEAR     A1
+  498:  LI        A0, 000B00FF					%quizmo quizzes
+  4A0:  LI        A1, CE
+  4A4:  SUBU      A1, A1, V0
+  4A8:  LI        A2, 6E
+  4AC:  COPY      A3, S0
+  4B0:  LI        V0, 1
+  4B4:  SW        R0, 10 (SP)
+  4B8:  JAL       ~Func:draw_string
+  4BC:  SW        V0, 14 (SP)
+  4C0:  LI        A1, E7
+  4C4:  LI        A2, 6F
+  4C8:  LI        A3, 1
+  4CC:  SW        R0, 10 (SP)
+  4D0:  SW        S0, 14 (SP)
+  4D4:  LHU       A0, 2C2 (S1)					%first number
+  4D8:  LI        V0, 3
+  4DC:  JAL       ~Func:draw_number
+  4E0:  SW        V0, 18 (SP)
+  4E4:  LI        A0, 001F0034					%slash (a string for some reason)
+  4EC:  LI        A1, E8
+  4F0:  LI        A2, 6C
+  4F4:  COPY      A3, S0
+  4F8:  SW        R0, 10 (SP)
+  4FC:  JAL       ~Func:draw_string
+  500:  SW        R0, 14 (SP)
+  504:  LI        A1, F4
+  508:  LI        A2, 6F
+  50C:  LI        A3, 1
+  510:  SW        R0, 10 (SP)
+  514:  SW        S0, 14 (SP)
+  %518:  LHU       A0, 2C0 (S1)					%second number
+		LI		  A0, 64`
+  51C:  LI        V0, 2
+  520:  JAL       ~Func:draw_number
+  524:  SW        V0, 18 (SP)
+  528:  LI        A0, 000B00F4
+		.o52C
+  530:  JAL       ~Func:get_string_width
+  534:  CLEAR     A1
+  538:  LI        A0, 000B00F4
+  540:  LI        S4, CE
+  544:  SUBU      A1, S4, V0
+  548:  LI        A2, 7D
+  54C:  COPY      A3, S0
+  550:  LI        S2, 1
+  554:  SW        R0, 10 (SP)
+  558:  JAL       ~Func:draw_string
+  55C:  SW        S2, 14 (SP)
+  560:  LI        A1, D8
+  564:  LI        A2, 7E
+  568:  COPY      A3, S2
+  56C:  LA        S1, 8010F290
+  574:  SW        R0, 10 (SP)
+  578:  SW        S0, 14 (SP)
+  57C:  LHU       A0, 2A2 (S1)
+  580:  LI        S3, 2
+  584:  JAL       ~Func:draw_number
+  588:  SW        S3, 18 (SP)
+  58C:  LI        A0, 000B00F7
+  594:  JAL       ~Func:get_string_width
+  598:  CLEAR     A1
+  59C:  LI        A0, 000B00F7
+  5A4:  SUBU      A1, S4, V0
+  5A8:  LI        A2, 8C
+  5AC:  COPY      A3, S0
+  5B0:  SW        R0, 10 (SP)
+  5B4:  JAL       ~Func:draw_string
+  5B8:  SW        S2, 14 (SP)
+  5BC:  LI        A1, D8
+  5C0:  LI        A2, 8D
+  5C4:  LHU       A0, 29C (S1)
+  5C8:  COPY      A3, S2
+  5CC:  SW        R0, 10 (SP)
+  5D0:  SW        S0, 14 (SP)
+  5D4:  JAL       ~Func:draw_number
+  5D8:  SW        S3, 18 (SP)
+  5DC:  LI        A0, 000B00F8
+  5E4:  JAL       ~Func:get_string_width
+  5E8:  CLEAR     A1
+  5EC:  LI        A0, 000B00F8
+  5F4:  SUBU      A1, S4, V0
+  5F8:  LI        A2, 9B
+  5FC:  COPY      A3, S0
+  600:  SW        R0, 10 (SP)
+  604:  JAL       ~Func:draw_string
+  608:  SW        S2, 14 (SP)
+  60C:  LI        A1, D8
+  610:  LI        A2, 9C
+  614:  LHU       A0, 29E (S1)
+  618:  COPY      A3, S2
+  61C:  SW        R0, 10 (SP)
+  620:  SW        S0, 14 (SP)
+  624:  JAL       ~Func:draw_number
+  628:  SW        S3, 18 (SP)
+  %62C:  LHU       V0, 2A0 (S1)
+		ORI		  V0, R0, 1				%LAHU	  V0, 800DBDA0						%used gamebytes 30 and 31 for this (Force this to be drawn always, this should sidestep the glitches with the deathcount)
+  630:  BNE       V0, R0, .o65C				%Draw power bounce
+  634:  LUI       A0, B
+  638:  ORI       A0, A0, FA
+  63C:  LI        A1, 6D
+  640:  LI        A2, AA
+  644:  COPY      A3, S0
+  648:  SW        R0, 10 (SP)
+  64C:  JAL       ~Func:draw_string			%Draw ???
+  650:  SW        S2, 14 (SP)
+  654:  BEQ       R0, R0, .o6A8
+  658:  NOP
+		.o65C
+  65C:  ORI       A0, A0, F9
+  660:  JAL       ~Func:get_string_width
+  664:  CLEAR     A1
+  668:  LI        A0, 000B00F9
+  670:  SUBU      A1, S4, V0
+  674:  LI        A2, AA
+  678:  COPY      A3, S0
+  67C:  SW        R0, 10 (SP)
+  680:  JAL       ~Func:draw_string
+  684:  SW        S2, 14 (SP)
+  688:  LI        A1, D8
+  68C:  LI        A2, AB
+  %690:  LHU       A0, 2A0 (S1)						%get power bounce count (Replace with death count)
+		LAHU	  A0, 800DBDA0						%used gamebytes 30 and 31 for this
+  694:  LI        A3, 1
+  698:  SW        R0, 10 (SP)
+  69C:  SW        S0, 14 (SP)
+  6A0:  JAL       ~Func:draw_number
+  6A4:  SW        S3, 18 (SP)
+		.o6A8
+  6A8:  LW        RA, 44 (SP)
+  6AC:  LW        S6, 40 (SP)
+  6B0:  LW        S5, 3C (SP)
+  6B4:  LW        S4, 38 (SP)
+  6B8:  LW        S3, 34 (SP)
+  6BC:  LW        S2, 30 (SP)
+  6C0:  LW        S1, 2C (SP)
+  6C4:  LW        S0, 28 (SP)
+  6C8:  JR        RA
+  6CC:  ADDIU     SP, SP, 48
 }

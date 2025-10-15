@@ -49,7 +49,13 @@
 		Set *Var0 .True
 		Set     *Byte_Settings_BGM *Var0
 	0:  Set   *GB_WorldLocation  .Location:PeachCastleGrounds
-		
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Exec  $DarknessFollow
+				Call  EnableGroup   ( ~Model:o492 .False )
+   88:  	Default
+				Call  EnableGroup   ( ~Model:darkness .False )
+   9C:  EndSwitch		
    10:  Call  SetSpriteShading  ( .Shading:None )
    20:  Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
    40:  Call  SetCamBGColor ( .Cam:Default 00000000 00000000 00000000 )
@@ -93,4 +99,55 @@
   164:  Wait  1`
   170:  Return
   178:  End
+}
+
+
+
+#new:Script  $DarknessFollow
+{
+				Call  EnableGroup   ( ~Model:darkness .True )
+		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 6 )
+		  2E8:  Thread
+					Set  *Var[0] 6
+					Set  *Var[1] 738
+					Set  *Var[2] 440
+					Set  *Var[3] 380
+					Set  *Var[4] 220
+					Set  *Var[5] 1
+					Set  *Var[6] 1
+					Set  *Var[7] 1
+					Set  *Var[8] 1
+					Set  *Var[9] 0
+					Set  *Var[A] 0
+					Set  *Var[B] 0
+					Set  *Var[C] 0
+					Exec  $Script_UpdateTexturePan_80240C20
+				EndThread
+		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 7 )
+		  2E8:  Thread
+		  2F0:  	Set   *Var0  7
+		  300:  	Set   *Var1  1438`
+		  310:  	Set   *Var2  808`
+		  320:  	Set   *Var3  710`
+		  330:  	Set   *Var4  420`
+		  340:  	Set   *Var5  00000001
+		  350:  	Set   *Var6  00000001
+		  360:  	Set   *Var7  00000001
+		  370:  	Set   *Var8  00000001
+		  380:  	Set   *Var9  00000000
+		  390:  	Set   *VarA  00000000
+		  3A0:  	Set   *VarB  00000000
+		  3B0:  	Set   *VarC  00000000
+		  3C0:  	Exec   $Script_UpdateTexturePan_80240C20
+		  3CC:  EndThread
+	Loop
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Sub   *Var2   28`
+		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
+		%Call  GetCamPosA    ( .Cam:Default *Var0 *Var1 )
+		%Call  RotateModel   ( ~Model:fgdarkness 000000DF *Var0 0` *Var1 )
+		Wait  1`
+	EndLoop
+	Return
+	End
 }

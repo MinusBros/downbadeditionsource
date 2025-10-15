@@ -5,6 +5,97 @@
 %SE address (short) = 8010F290 + 290
 
 
+@	$Function_802A1518 %checks deep focus and super deep focus
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S2, 18 (SP)
+    8:  DADDU     S2, A0, R0
+    C:  LIA       V0, 8010F290
+   14:  SW        S1, 14 (SP)
+   18:  DADDU     S1, V0, R0
+   1C:  SW        RA, 1C (SP)
+   20:  SW        S0, 10 (SP)
+   24:  SW        R0, 84 (S2)
+   28:  LB        V0, 28E (S1) %get max se
+   2C:  LH        V1, 290 (S1) %get current se
+   30:  SLL       V0, V0, 8    %max se *= 0x100
+   34:  SLT       V1, V1, V0   
+   38:  BEQ       V1, R0, .o78 %we have max se, skip everything
+   3C:  ADDIU     V0, R0, 1
+   40:  JAL       ~Func:is_ability_active %gets if you have a badge equipped, it can detect copies of badges like deep focus
+   44:  ADDIU     A0, R0, 30 %ability 0x30 = deep focus
+   50:  SLL       S0, V0, 6 %if you have deep focus, S0 = n * 2^6 (0x40), otherwise it becomes 0
+		ORI		  V0, R0, 0	 %Reset super deep focus value to 0
+   58:  ADDU      S0, S0, V0 %and then those bonuses are added together
+   60:  ADDIU     A0, S0, 80 %focus base bonus? (0x80)
+		LAB		  S0, 800DBD7B %get turn count
+		SLTI	  S0, S0, 1
+		BEQ		  S0, R0, .afterturn1
+		NOP
+		SRL		  A0, A0, 2 %nerf: focusing turn 1 is 25% as effective
+		.afterturn1
+   5C:  JAL       800EA1F4	%???? (add se?)
+		NOP
+   64:  LB        V0, 28E (S1) %get max se again
+   68:  LH        V1, 290 (S1) %get current se again
+   6C:  SLL       V0, V0, 8    %max se *= 0x100 (current se is 2 bytes while max se is 1 byte)
+   70:  BNE       V1, V0, .o80 %not at max se
+   74:  ADDIU     V0, R0, 2    %return 2
+        .o78
+   78:  SW        V0, 84 (S2)  
+   7C:  ADDIU     V0, R0, 2    %return 2
+        .o80
+   80:  LW        RA, 1C (SP)
+   84:  LW        S2, 18 (SP)
+   88:  LW        S1, 14 (SP)
+   8C:  LW        S0, 10 (SP)
+   90:  JR        RA
+   94:  ADDIU     SP, SP, 20
+}
+
+
+@ $Function_802A15B0
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  LIA       V0, 8010F290
+   14:  SW        S0, 10 (SP)
+   18:  DADDU     S0, V0, R0
+   1C:  SW        RA, 18 (SP)
+   20:  SW        R0, 84 (S1)
+   24:  LB        V0, 28E (S0)
+   28:  LH        V1, 290 (S0)
+   2C:  SLL       V0, V0, 8
+   30:  SLT       V1, V1, V0
+   34:  BEQ       V1, R0, .o58
+   38:  ADDIU     V0, R0, 1
+		ADDIU     A0, R0, 80
+		LAB		  S0, 800DBD7B %get turn count
+		SLTI	  S0, S0, 1
+		BEQ		  S0, R0, .afterturn1
+		NOP
+		SRL		  A0, A0, 2 %nerf: focusing turn 1 is 25% as effective
+		.afterturn1
+   3C:  JAL       800EA1F4  %???? (add se?)
+		NOP
+		LIA       S0, 8010F290
+   44:  LB        V0, 28E (S0)
+   48:  LH        V1, 290 (S0)
+   4C:  SLL       V0, V0, 8
+   50:  BNE       V1, V0, .o60
+   54:  ADDIU     V0, R0, 2
+        .o58
+   58:  SW        V0, 84 (S1)
+   5C:  ADDIU     V0, R0, 2
+        .o60
+   60:  LW        RA, 18 (SP)
+   64:  LW        S1, 14 (SP)
+   68:  LW        S0, 10 (SP)
+   6C:  JR        RA
+   70:  ADDIU     SP, SP, 20
+}
+
 @ $Script_UsePower
 {
     0:  ExecWait  $Script_802A1630
@@ -28,8 +119,8 @@
    F4:  	Call  WaitForMessageBoxDone ( )
   100:  	Call  80276EFC ( )
   10C:  	Call  SetGoalToHome ( .Actor:Player )
-  11C:  	Call  SetActorSpeed ( .Actor:Player *Fixed[8.0] )
-  130:  	Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
+  11C:  	Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
+  130:  	Call  SetAnimation  ( .Actor:Player 00000000 00010011 )
   148:  	Call  PlayerRunToGoal   ( 00000000 )
   158:  	Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
   170:  Else
@@ -50,7 +141,7 @@
   230:  	Call  WaitForMessageBoxDone ( )
   23C:  	Call  80280818 ( )
   248:  	Call  SetGoalToHome ( .Actor:Partner )
-  258:  	Call  SetActorSpeed ( .Actor:Partner *Fixed[8.0] )
+  258:  	Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
   26C:  	Call  $Function_802A1494    ( 00000003 )
   27C:  	Call  RunToGoal ( .Actor:Partner 00000000 )
   290:  	Call  $Function_802A1494    ( 00000004 )
@@ -62,7 +153,7 @@
 #new:Script $Script_DoBonusEffects
 {
 	Call $Function_CheckAbility ( 00000030 *Var4 )	
-	Call $Function_CheckBadge ( .Item:PowerFocus *Var[1] )
+	Call $Function_CheckBadge2 ( .Item:PowerFocus *Var[1] )
 	If *Var[1] == 1
 		Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
 		Add *Var6 10`
@@ -78,10 +169,7 @@
 				Call	$Function_SetPower ( )				
 		EndSwitch
 	EndIf
-	%Call $Function_CheckBadge ( .Item:DefenseFocusImpostor *Var[1] )
-	%If *Var1 == 0`
-		Call $Function_CheckBadge ( .Item:DefenseFocus *Var[1] )
-	%EndIf
+	Call $Function_CheckBadge2 ( .Item:DefenseFocus *Var[1] )
 	If *Var[1] == 1
 		Call     GetActorPos 	( .Actor:Player *Var5 *Var6 *Var7 )
 		Add *Var6 10`
@@ -100,7 +188,7 @@
 	%ban hp focus and flower focus on first turn (anticheese)
 	%but just change the effect to 0
 	Call $Function_CheckAbility ( 00000030 *Var4 )	
-	Call $Function_CheckBadge ( .Item:HealthFocus *Var[1] )
+	Call $Function_CheckBadge2 ( .Item:HealthFocus *Var[1] )
 	If *Var[1] == 1
 		Set *Var5 2
 		Add *Var5 *Var4
@@ -120,7 +208,7 @@
 		Call	PlayEffect ( 00000040 00000000 *Var[0] *Var[1] *Var[2] *Var[E] 00000000 00000000 00000000 00000000 00000000 00000000 )			
 	EndIf
 	Call $Function_CheckAbility ( 00000030 *Var4 )	
-	Call $Function_CheckBadge ( .Item:FlowerFocus *Var[1] )
+	Call $Function_CheckBadge2 ( .Item:FlowerFocus *Var[1] )
 	If *Var[1] == 1
 		Set *Var5 2
 		Add *Var5 *Var4

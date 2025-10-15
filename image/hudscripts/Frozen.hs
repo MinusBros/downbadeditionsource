@@ -1,3 +1,4 @@
+PlaySound       ( 00000352 )
 SetVisible
 SetCustomSize   ( 16` 16` )
 Loop

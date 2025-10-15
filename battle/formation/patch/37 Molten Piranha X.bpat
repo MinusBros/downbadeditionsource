@@ -3,6 +3,15 @@
 
 %Changed kzn_05 to kzn_06 for new battle background.
 
+%Incendiary Blast
+#new:Script $ShowMessage1
+{
+	Call  ActorSpeak        ( 001F0042 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return
+	End
+}
+
+
 #new:IdleAnimations $IdleAnimations_8021D018
 {
 	.Status:Normal    00790803
@@ -148,6 +157,7 @@
    94:  Call  SetActorVar       ( .Actor:Self 0000000D 00000000 )
    AC:  Call  SetActorVar       ( .Actor:Self 00000001 00000000 )
    C4:  Call  SetActorVar       ( .Actor:Self 00000002 00000000 )
+		Call  SetActorVar       ( .Actor:Self 00000003 00000000 )  %New, used for varying attacks
    DC:  Set   *Var0  0000001E
    EC:  Call  SetActorVar       ( .Actor:Self 0000000D *Var0 )
   104:  Call  SetActorVar       ( .Actor:Self 00000007 00790803 )
@@ -193,8 +203,17 @@
   44C:  Call  HPBarToHome       ( .Actor:Enemy1 )
   45C:  Call  HPBarToHome       ( .Actor:Enemy2 )
   46C:  Call  $Function_802188FC ( )
-  478:  Return
-  480:  End
+		Call  SetBattleFlagBits ( 00060000 .True )
+		Call  SetBattleFlagBits2    ( 02000000 .True )
+   EC:  Return
+   F4:  End
+}
+
+#new:Script $FadeOutBattle
+{
+		Call  8026F60C  ( 0000000F )
+		Return
+		End
 }
 
 #new:Script $Script_Idle_8021D6EC
@@ -657,6 +676,7 @@
 
 #new:Script $Script_LavaSpit1
 {
+		Exec  $ShowMessage1
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    28:  Thread
@@ -720,7 +740,7 @@
 			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:75` 00000012 00000020 )
 		Else
 			Call  80269EAC  ( 0000001A )
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 0000FFFF ~DebuffType:Poison:3:75` 00000012 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF ~DebuffType:Poison:3:75` 00000012 00000020 )
 		EndIf
   464:  Set   *VarF  *Var0
   474:  Switch  *VarF
@@ -744,8 +764,11 @@
   56C:  End
 }
 
+
+%Have a random chance to poison instead of do burn damage and shrink
 #new:Script $Script_LavaSpit2
 {
+		Exec  $ShowMessage1
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    28:  Thread
@@ -808,10 +831,10 @@
   430:  Call  SetGoalToTarget   ( .Actor:Self )
 		Call  RandInt   ( 00000001 *Var0 )
 		If  *Var0  ==  00000000
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:75` 00000011 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Shrink:2:75` 00000013 00000020 )
 		Else
 			Call  80269EAC  ( 0000001A )
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 0000FFFF ~DebuffType:Poison:3:75` 00000011 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF ~DebuffType:Poison:3:75` 00000013 00000020 )
 		EndIf
   468:  Wait  12`
   474:  Call  OverrideBattleDmaDest ( $End[9230] )
@@ -2198,11 +2221,11 @@
    F4:  			ExecWait  $Script_802275E4
   100:  		EndIf
   108:  	Case  ==  .Event:BurnDeath % 24
-  114:  		ExecWait  $Script_80226B58
+  114:  		ExecWait  $Script_MoltenBudDie
   120:  	Case  ==  .Event:SpinSmashHit % B
   12C:  		ExecWait  $Script_802275E4
   138:  	Case  ==  .Event:SpinSmashDeath % 21
-  144:  		ExecWait  $Script_80226B58
+  144:  		ExecWait  $Script_MoltenBudDie
   150:  	Case  ==  .Event:ShockHit % 2F
   15C:  		SetConst  *Var0  00000001
   16C:  		Call  GetActorVar   ( .Actor:Self 00000008 *Var1 )
@@ -2220,7 +2243,7 @@
   208:  	Case  ==  .Event:AirLiftFailed % 1F
   214:  	Case  ==  .Event:SpikeTaunt % 1B
   220:  	Case  ==  .Event:Death % 20
-  22C:  		ExecWait  $Script_80226B58
+  22C:  		ExecWait  $Script_MoltenBudDie
   238:  	Case  ==  .Event:EndFirstStrike % 35
   244:  	Case  ==  .Event:RecoverStatus % 31
   250:  		Call  GetActorVar       ( .Actor:Self 00000000 *Var0 )
@@ -2548,7 +2571,7 @@
 	$PetitPiranhaBomb $Vector3D_80226AF8 0000005F 00000000 00000000 00000000 00000000
 }
 
-#new:Script $Script_80226B58
+#new:Script $Script_MoltenBudDie
 {
     0:  Call  GetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
    18:  If  *Var0  !=  00000000
@@ -2584,8 +2607,11 @@
   248:  	Wait  29`
   254:  	Call  PlaySoundAtActor  ( .Actor:Self 000003C7 )
 			If *GB_EnemyDefense == 0`
-				Add *GB_EnemyDefense 1`
-			Else
+				Set *GB_EnemyDefense 1`
+			EndIf
+			If *GB_EnemyDefense == 1`
+				Set *GB_EnemyDefense 2`
+				Call  SetDefenseTable   ( .Actor:Enemy0 00000001 $DefenseTable_LavaPiranhaBudsDown )
 				
 			EndIf
   268:  	Call  GetActorVar       ( .Actor:Self 00000000 *Var0 )
@@ -2941,7 +2967,14 @@
   208:  	Call  LoadBattleDmaData ( 0000001F )
   218:  	ExecWait  $Script_802256E0
   224:  EndThread
-  22C:  Wait  34`
+		Call  RandInt   ( 00000001 *Var0 )
+		Call  SetActorVar  ( .Actor:Self 00000003 *Var0 )
+		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+		If    *Var0  == 0`
+  22C:  	Wait  34`
+		Else
+			Wait  48`
+		EndIf
   238:  Call  SummonEnemy       ( $SpecialFormation_80226B3C 00000000 )
   24C:  Set   *Var5  *Var0
   25C:  Call  GetPartOffset     ( .Actor:Self 00000001 *Var0 *Var1 *Var2 )
@@ -2952,7 +2985,12 @@
   2C8:  Sub   *Var1  0000000F
   2D8:  Call  SetAnimation      ( *Var5 00000001 007A0005 )
   2F0:  Call  SetGoalPos        ( *Var5 *Var0 *Var1 *Var2 )
-  30C:  Call  SetActorSpeed     ( *Var5 *Fixed[10.0] )
+		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+		If    *Var0  == 0`
+  30C:  	Call  SetActorSpeed     ( *Var5 *Fixed[17.0] )
+		Else
+  30C:  	Call  SetActorSpeed     ( *Var5 *Fixed[10.0] )
+		EndIf
   320:  Call  SetActorJumpGravity   ( *Var5 *Fixed[1.8] )
   334:  Call  PlaySoundAtActor  ( *Var5 000003CB )
   348:  Call  SetTargetActor    ( *Var5 .Actor:Player )
@@ -3052,7 +3090,14 @@
   208:  	Call  LoadBattleDmaData ( 0000001F )
   218:  	ExecWait  $Script_802256E0
   224:  EndThread
-  22C:  Wait  36`
+		Call  RandInt   ( 00000001 *Var0 )
+		Call  SetActorVar  ( .Actor:Self 00000003 *Var0 )
+		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+		If    *Var0  == 0`
+  22C:  	Wait  32`
+		Else
+			Wait  44`
+		EndIf
   238:  Call  SummonEnemy       ( $SpecialFormation_80226B3C 00000000 )
   24C:  Set   *Var5  *Var0
   25C:  Call  GetPartOffset     ( .Actor:Self 00000001 *Var0 *Var1 *Var2 )
@@ -3070,7 +3115,12 @@
   35C:  Call  SetGoalToTarget   ( *Var5 )
   4C4:  Call  SetTargetActor    ( *Var5 .Actor:Player )
   4D8:  Call  SetGoalToTarget   ( *Var5 )
-  4E8:  Call  SetActorSpeed     ( *Var5 *Fixed[22.0] )
+		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+		If    *Var0  == 0`
+  30C:  	Call  SetActorSpeed     ( *Var5 *Fixed[22.1] )
+		Else
+  30C:  	Call  SetActorSpeed     ( *Var5 *Fixed[13.3] )
+		EndIf
   4FC:  Call  SetActorJumpGravity   ( *Var5 *Fixed[1.8] )
   510:  Call  FlyToGoal ( *Var5  0`  0` .Easing:Linear )
   52C:  Wait  2`

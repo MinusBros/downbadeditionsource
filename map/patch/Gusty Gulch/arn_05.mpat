@@ -32,3 +32,83 @@ $Script_Main $EntryList 00000003 00000000
 	Return
 	End
 }
+
+#import SwapToGoombarius.mpat
+
+
+@	$SwapToGoombarius
+{
+		Call  EnablePartnerAI ( )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  !=  .Partner:Bow 
+			Call  $PartnerSwap    ( 00000009 ) %9 is Bow for some reason
+			Thread
+				Set   *MapVar[0]  00000000
+				Wait  1`
+				Set   *MapVar[0]  00000001
+			EndThread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcYaw ( .Npc:Partner  90` )
+			Call  EnablePartnerAI ( )
+			Loop
+				Wait  1`
+				If  *MapVar[0]  ==  00000001
+				BreakLoop
+				EndIf
+			EndLoop
+		Wait  32`
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
+		Return
+		End
+}
+
+@	$Script_Interact_80241AB4
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch3_TubbaChasedMarioInFoyer % FFFFFFE6
+   18:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   24:  	Case  <  .Story:Ch3_BeganPeachMission % FFFFFFF2
+   30:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+   3C:  		Call  SpeakToPlayer ( .Npc:Self 00950104 00950101 00000000 000E00A9 ) % I never thought I'd be back in dear old Gusty Gulc ...
+   5C:  	Case  >=  .Story:Ch5_StarSpritDeparted % 27
+   68:  		If  *GF_ARN05_GaveGiftAdvice  ==  .True
+   78:  			If  *AreaFlag[009]  ==  .True
+   88:  				Call  SpeakToPlayer ( .Npc:Self 00950105 00950101 00000000 000E00AE ) % Oh...OK. Thanks. I'll do it.
+   A8:  			Else
+   B0:  				Call  SpeakToPlayer ( .Npc:Self 00950104 00950101 00000000 000E00B0 ) % Victoria loves me back! We're going to get married ...
+   D0:  			EndIf
+   D8:  		Else
+   E0:  			Call  SetNpcAnimation   ( .Npc:Self 00950107 )
+   F4:  			Call  SpeakToPlayer     ( .Npc:Self 00950107 00950101 00000000 000E00AA ) % My dear Victoria has also come back safe and sound ...
+  114:  			Call  SetNpcAnimation   ( .Npc:Self 00950109 )
+  128:  			Call  ContinueSpeech    ( .Npc:Self 00950109 00950101 00000000 000E00AB ) % I finally made up my mind. I'm going to confess my ...
+  148:  			Call  SetNpcAnimation   ( .Npc:Self 0095010A )
+  15C:  			Call  ContinueSpeech    ( .Npc:Self 0095010A 00950101 00000000 000E00AC ) % First, I figured I'd express my feelings by giving ...
+  17C:  			Call  ShowChoice        ( 001E001E ) % Fire Flower Volt Shroom No idea
+  18C:  			Switch  *Var0
+  198:  				Case  ==  00000000
+  1A4:  					Call  SetNpcAnimation   ( .Npc:Self 00950105 )
+  1B8:  					Call  ContinueSpeech    ( .Npc:Self 00950105 00950101 00000000 000E00AD ) % Oh...OK. Thanks. I'll do it.
+  1D8:  					Call  SetNpcAnimation   ( .Npc:Self 00950101 )
+  1EC:  					Set   *GF_ARN05_GaveGiftAdvice  .True
+  1FC:  					Set   *AreaFlag[009]  .True
+  20C:  				Case  ==  00000001
+  218:  					Call  SetNpcAnimation   ( .Npc:Self 00950105 )
+  22C:  					Call  ContinueSpeech    ( .Npc:Self 00950105 00950101 00000000 000E00AD ) % Oh...OK. Thanks. I'll do it.
+  24C:  					Call  SetNpcAnimation   ( .Npc:Self 00950101 )
+  260:  					Set   *GF_ARN05_GaveGiftAdvice  .True
+  270:  					Set   *AreaFlag[009]  .True
+  280:  				Case  ==  00000002
+  28C:  					Call  ContinueSpeech    ( .Npc:Self 00950104 00950101 00000000 000E00AF ) % Oh . . . Thanks for nothing...
+							Call  GetCurrentPartnerID   ( *Var0 )
+							If  *Var0  ==  .Partner:Bow 
+								Call  SpeakToPlayer ( .Npc:Partner 0005000A 00050001 00000005 000E0114 ) % Bow roast
+								Call  SpeakToPlayer ( .Npc:Self 00950104 00950101 00000000 000E0115 ) % Sad boo
+							EndIf
+  2AC:  			EndSwitch
+  2B4:  		EndIf
+  2BC:  EndSwitch
+  2C4:  Return
+  2CC:  End
+}
