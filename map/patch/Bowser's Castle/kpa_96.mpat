@@ -1,5 +1,7 @@
 #define .NpcID:SpikedGoomba_00      00
 
+#import DonloninaBottle.mpat
+
 @	$ShopOwnerNPC_80240478
 {
 	00000000 00270901 0027090B $Script_8024040C 00000000 00000000 $IntTable_802402F0
@@ -13,14 +15,23 @@
    60:  End
 }
 
+%This guy has scalped prices
+
 @	$ShopInventory_8024034C
 {
-	.Item:Mystery        0000000A 0024002B % Who knows what it does... Take a chance to find ou ...
-	.Item:HustleDrink    00000096 0023010D %
-	.Item:RepelGel       00000096 0023002C %
-	.Item:Pebble         00000032 00230006
-	.Item:LifeShroom     000000A0 0023000C
-	.Item:JellyUltra     00000096 00230037 
+	.Item:Mystery        25`  0024002B % Who knows what it does... Take a chance to find ou ...
+	.Item:CoconutBomb    80`  0023013D %
+	.Item:Pebble         50`  00230006
+	.Item:HustleDrink    264` 0023010D %
+	.Item:BowerJuice     128` 00230154
+	.Item:JellyUltra     320` 00230037 
+	00000000 00000000 00000000
+}
+
+@	$NpcGroupList_80240970
+{
+	00000001 $NpcGroup_80240780 00000000
+	00000001 $Donlon			00000000
 	00000000 00000000 00000000
 }
 
@@ -34,17 +45,70 @@
 	00000000 00000000 00000000 001A011F % He's one of Bowser's followers. He got bored guard ...
 }
 
+
 @	$Script_Interact_8024058C
 {
-   [10]  	Call  SpeakToPlayer ( .Npc:Self 00270902 00270901 00000000 0013004F ) % Whuhhh? Who're you, man!? I don't know your face.  ...
-   [6C]  			Call  ContinueSpeech        ( .Npc:Self 00270902 00270901 00000000 00130051 ) % Oh, you're loaded, man! Take a look around. I'll s ...
-  [14C]  			Call  ContinueSpeech    ( .Npc:Self 00270902 00270901 00000000 00130052 ) % You think I'm stupid, man? You're a terrible liar.
-  [17C]  		Call  ContinueSpeech    ( .Npc:Self 00270902 00270901 00000000 00130050 ) % What? You've got nothing? Lame...
+		If  *GoombatesScene == .False
+			Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0 == .Partner:Goombario
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
+				Wait  20`
+				Call  SetNpcAnimation   ( .Npc:Partner 00010001 )
+				Call  SpeakToNpc        ( .Npc:Partner 00010008 00010001 00000000 .Npc:Self 001300F0 )
+				Call  SpeakToPlayer ( .Npc:Self 00270902 00270901 00000005 001300F1 )
+				Call  SpeakToNpc        ( .Npc:Partner 00010008 00010001 00000000 .Npc:Self 001300F2 )
+				Call  SpeakToPlayer ( .Npc:Self 00270909 00270900 00000005 001300F3 )
+				Call  SpeakToNpc        ( .Npc:Partner 00010008 00010001 00000000 .Npc:Self 001300F4 )
+				Call  SpeakToPlayer ( .Npc:Self 00270902 00270901 00000005 001300F5 )
+				Call  SpeakToNpc        ( .Npc:Partner 00010009 00010013 00000000 .Npc:Self 001300F6 )
+				Set   *GoombatesScene .True
+				Call  EnablePartnerAI ( )
+				Goto  Buy
+			EndIf
+		EndIf
+    0:  If  *MapVar[0]  ==  00000000
+   10:  	Call  SpeakToPlayer ( .Npc:Self 00270902 00270901 00000000 0013004F ) % Whuhhh? Who're you, man!? I don't know your face.  ...
+   30:  	Call  ShowChoice    ( 001E0013 ) % Yes No
+   40:  	If  *Var0  ==  00000000
+   50:  		Call  $Function_80240000 ( )
+   5C:  		If  *Var0  ==  00000000
+   6C:  			Call  ContinueSpeech        ( .Npc:Self 00270902 00270901 00000000 00130051 ) % Oh, you're loaded, man! Take a look around. I'll s ...
+					Label Buy
+					Call  SetTattleString   ( .NpcID:SpikedGoomba_00  001A011F )
+					Set   *GoombariusKnowsGoombates .True
+   8C:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:o860 7FFFFE00 )
+   A4:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:o861 7FFFFE00 )
+   BC:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:o862 7FFFFE00 )
+   D4:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:o863 7FFFFE00 )
+   EC:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:o864 7FFFFE00 )
+  104:  			Call  ModifyColliderFlags   ( 00000001 ~Collider:o865 7FFFFE00 )
+  11C:  			Call  ModifyColliderFlags   ( 00000000 ~Collider:o964 7FFFFE00 )
+  134:  			Set   *MapVar[0]  00000001
+  144:  		Else
+  14C:  			Call  ContinueSpeech    ( .Npc:Self 00270902 00270901 00000000 00130052 ) % You think I'm stupid, man? You're a terrible liar.
+  16C:  		EndIf
+  174:  	Else
+  17C:  		Call  ContinueSpeech    ( .Npc:Self 00270902 00270901 00000000 00130050 ) % What? You've got nothing? Lame...
+  19C:  	EndIf
+  1A4:  Else
+  1AC:  	ExecWait  ItemShopInteract
+  1B8:  EndIf
+  1C0:  Return
+  1C8:  End
 }
 
+@	$Script_Init_8024075C
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024058C )
+		If  *GoombariusKnowsGoombates == .False
+			Call  SetTattleString   ( .NpcID:SpikedGoomba_00  001A0129 ) %Goombarius doesn't know who he is yet, so different tattle
+		EndIf
+   14:  Return
+   1C:  End
+}
 
 @	$Script_ExitDoubleDoor_802400F0
 {
-   [68]  Wait  15`
-   [88]  Wait  50`
+   [68]  Wait  5`
 }

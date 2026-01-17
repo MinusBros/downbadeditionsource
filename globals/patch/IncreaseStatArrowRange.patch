@@ -1,0 +1,221 @@
+%BoostAttack and BoostDefense increased up to +9 and -9
+/%Usage
+Original function calls will be unaffected by the new code that doesn't use the table
+
+
+FORMAT OF ARROW SPECIFIER: 0000TTMM
+
+TT: arrow types.
+%00 - use original table
+%01 - red arrow (up/down)
+%02 - blue arrow (up only, sorry)
+
+MM: magnitude - the number shown on the arrow. Can be anything from -9 (F7) to 0 (00) to +9 (09).
+
+
+Call    BoostDefense ( .Actor:Player 000002FE ) %-2 def
+%upper 16 bits are unused in arg 2, 3rd byte is arrow type (01 for atk, 02 for def)
+%last byte value to increase by (s8) so negative numbers work too
+
+Call    BoostAttack     ( .Actor:Player 00000109 ) %+9 atk
+%upper 16 bits unused, 3rd byte is arrow type 01 (01 for atk), value to increase by is 9
+
+Call    PlayEffect        ( 00000056 000001FE *Var0 *Var1 *Var2 *Fixed[1.0] 0000002D 00000000 00000000 00000000 00000000 00000000 00000000 00000000 ) %draws -2 red (down) arrow over the specified location
+
+%notes for using PlayEffect:
+%the first word, 00000056 is the effect type (arrow). For the second word, use the format listed above.
+%the other parameters are as normal.
+
+%/
+
+%arrow types:
+%00 - use original table
+%01 - red arrow (up/down)
+%02 - blue arrow (up)
+
+%%%NOTES ON HOW TO USE THIS IN A FUNCTION (instead of a Script):
+%the play effect wrapper is at 80070BB0. it expects these args...
+% X (A1) Y (A2) Z (A3) scale (F26) duration (S4)
+%but you either need to also:
+%DO IT THE NEW WAY - store your desired value to $OriginalValue.
+%DO IT THE OLD WAY - store your desired value to S1 and set $OriginalValue to #####0## (000000##)
+
+#new:Data $OriginalValue
+{
+	00000000
+}
+
+#new:Data $BackupValue
+{
+	00000000
+}
+@Hook 19E630 %[8026FD50] BoostAttack Hook
+{
+	ADDIU a0, r0, 0008 %in original hook
+	SW s0, 0074 (s2)   %in original hook
+	SAW s1, $OriginalValue %put into storage
+	SLL t0, s1, 18		%byte passed to effect call
+	SRA t0, t0, 18
+	JAL 8024E40C		%wrapper to use_cam_preset
+	SW t0, 0078 (s2)
+	J 8026FD60
+	NOP
+}
+
+@Hook 19EAD0 %[80270180] BoostDefense Hook
+{
+	ADDIU a0, r0, 0008
+	SW s0, 0074 (s2)
+	SAW s1, $OriginalValue
+	SLL t0, s1, 18
+	SRA t0, t0, 18
+	JAL	8024E40C
+	SW t0, 0078 (s2)
+	J 80270200
+	NOP
+}
+
+@Hook FD98C % PlayEffect Hook - FCC4C + D40 / 802D829C + D40
+{	
+	D40:  MFC1		A1, F20 %in original code
+  	D44:  MFC1		A2, F22 %in original code
+	%args 1, 2, 3, 4, 5, 6, and 7 are used - for effect Id, subtype, X, Y, Z, scale, and duration.
+		  SAW		A0, $OriginalValue		 
+		  SLL 		A0, A0, 18 %cast and sign-extend
+		  SRA 		A0, A0, 18 
+		  J	  		802D8FE4   %return to original code
+		  COPY		S1, A0 %I sure hope I'm doing this right
+		  
+}
+
+
+/% original code:
+%PlayEffect lives at 000FCC4C --> 802D829C
+  D40:  MFC1		A1, F20
+  D44:  MFC1		A2, F22
+  D48:  MFC1		A3, F24
+  D4C:  SWC1		F26, 10 (SP)
+  D50:  JAL			800718D0
+  D54:  SW			S4, 14 (SP)
+  D58:  BEQ			R0, R0, .o13F4
+  D5C:  COPY		S5, V0
+%/
+
+/% jumps to this wrapper:
+
+2040:  ADDIU     SP, SP, FFD0		%atk/def boost effect wrapper II (arrow) %800718D0
+ 2044:  SW        A0, 10 (SP)		%subtype?
+ 2048:  SW        A1, 14 (SP)		%X?
+ 204C:  SW        A2, 18 (SP)		%Y?
+ 2050:  SW        A3, 1C (SP)		%Z?
+ 2054:  SWC1      F12, 20 (SP)		%IDFK, maybe this is all just a big PUSH
+ 2058:  SWC1      F14, 24 (SP)
+ 205C:  SWC1      F16, 28 (SP)
+ 2060:  SW        RA, 2C (SP)
+ 2064:  JAL       ~Func:play_effect
+ 2068:  ADDIU     A0, R0, 56
+ 206C:  LW        A0, 10 (SP)
+ 2070:  LW        A1, 14 (SP)
+ 2074:  LW        A2, 18 (SP)
+ 2078:  LW        A3, 1C (SP)
+ 207C:  LWC1      F12, 20 (SP)
+ 2080:  LWC1      F14, 24 (SP)
+ 2084:  LWC1      F16, 28 (SP)
+ 2088:  LW        RA, 2C (SP)
+ 208C:  ADDIU     SP, SP, 30
+ 2090:  LAW       AT, $???_8007FA20
+ 2098:  JR        AT
+ 209C:  NOP
+%/
+@Function 3AEEE8 %[E00AC0C8] yes this is the RAM address...it's in kseg3 memory region
+{
+SAW s1, $BackupValue
+LAW s1, $OriginalValue
+LIO at, $VanillaArrowCode
+JR at
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+}
+
+
+#new:Function $VanillaArrowCode
+{
+ ANDI v0, s1, 0700 %01, 02, 04
+ SRL v0, v0, 8
+ BEQ v0, r0, .originaltable
+ NOP
+ .noTable
+ XORI t0, v0, 0001 %if 01, (BoostAttack)
+ BEQ t0, r0, .isBoostAttack
+ NOP
+ XORI t0, v0, 0002 %if 02, (BoostDefense)
+ BEQ t0, r0, .isBoostDefense
+ NOP
+ .originaltable %original code
+ LAW s1, $BackupValue
+ SLL            V0, S1, 3
+ ADDU           V0, V0, V1
+ SW             R0, 0028 (A0)
+ SW             R0, 002C (A0)
+ SW             R0, 0030 (A0)
+ SW             R0, 0038 (A0)
+ SW             R0, 0034 (A0)
+ SWC1           F0, 0010 (A0)
+ LW             V1, 0000 (V0)
+ SW             V1, 001C (A0)
+ LW             V1, 0004 (V0)
+ DADDU          V0, S0, R0
+ SW             V1, 0020 (A0)
+ .end
+ SAW r0, $BackupValue
+ SAW r0, $OriginalValue
+ LW             RA, 0030 (SP)
+ LW             S1, 002C (SP)
+ LW             S0, 0028 (SP)
+ LDC1           F24, 0048 (SP)
+ LDC1           F22, 0040 (SP)
+ LDC1           F20, 0038 (SP)
+ LIO at, E00AC114
+ JR at
+ NOP
+ .isBoostAttack
+ SLL t1, s1, 18
+ SRA t1, t1, 18 %cast to signed byte
+ ORI t0, r0, 0000
+ BLTZL t1, .useDownAtkArrow
+ ADDIU t0, t0, 0001
+ .useDownAtkArrow
+ BEQ r0, r0, .afterNoTable
+ NOP
+%
+.isBoostDefense
+ BEQ r0, r0, .afterNoTable
+ ORI t0, r0, 0002
+%
+.afterNoTable
+ SLL t1, s1, 18
+ SRA t1, t1, 18
+ SW  t0, 001C (A0) %arrow type
+ SW  t1, 0020 (A0) %damage value
+ SW             R0, 0028 (A0)
+ SW             R0, 002C (A0)
+ SW             R0, 0030 (A0)
+ SW             R0, 0038 (A0)
+ SW             R0, 0034 (A0)
+ SWC1           F0, 0010 (A0)
+ BEQ r0, r0, .end
+ DADDU          V0, S0, R0
+}
+
+#export $OriginalValue

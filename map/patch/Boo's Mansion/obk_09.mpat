@@ -1,21 +1,42 @@
 #define .NpcID:WorldSkolar_02       02
 #define .Npc:Broozer 03
 
+#import AutoSave.mpat
+
 @	$Script_Main
 {
-   [10]  Call  SetSpriteShading  ( .Shading:mim_12 )
+    0:  Set   *GB_WorldLocation  .Location:BoosMansion
+   10:  Call  SetSpriteShading  ( .Shading:mim_12 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  GetEntryID        ( *Var0 )
+   94:  If  *Var0  ==  ~Entry:Entry2
+   A4:  	Call  MakeNpcs      ( .False $NpcGroupList_80242640 )
+   B8:  	Exec  $Script_80242660
+   C4:  	Call  FadeInMusic   ( 00000000 .Song:IntroStory 00000000 00000BB8 00000000 0000007F )
+   E8:  	Wait  1`
+   F4:  	Return
+   FC:  EndIf
+  104:  Call  MakeNpcs  ( .False $NpcGroupList_80242628 )
+		If  *GB_StoryProgress  >=  .Story:Ch3_SawTubbaEatBoo 
+			Call  SetNpcPos ( .Npc:Broozer  225`  0`  65` )
+		EndIf
+  118:  Bind  $Script_ExitDoubleDoor_802406A8 .Trigger:WallPressA ~Collider:tt1 00000001 00000000
+  134:  Bind  $Script_ExitDoubleDoor_8024075C .Trigger:WallPressA ~Collider:tt2 00000001 00000000
+  150:  Exec  $Script_EnterDoubleDoor_80240580
+  15C:  Exec  $Script_802404A0
+  168:  Return
+  170:  End
 }
 
 @	$Script_802404A0
 {
-		If  *GB_StoryProgress  ==  .Story:Ch3_BowJoinedParty
-			Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
-			Return
-		EndIf
-    0:  If  *GB_StoryProgress  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+    0:  If  *GB_StoryProgress  <  .Story:Ch3_BowJoinedParty % FFFFFFF0
    10:  	Call  SetMusicTrack ( 00000000 .Song:BoosMansion 00000000 00000008 )
    2C:  Else
-   34:  	Call  SetMusicTrack ( 00000000 .Song:CheerfulBoosMansion 00000000 00000008 )
+   34:  	Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
    50:  EndIf
    58:  Return
    60:  End
@@ -243,7 +264,6 @@
   E2C:  Wait  10`
   E44:  Call  DisablePartnerAI      ( 00000000 )
   E54:  Call  SpeakToPlayer ( .Npc:Partner 0005000B 0005000B 00000000 000E0054 ) % OK, then! Tubba Blubba's going down! Gwaah ha haaa ...
-		Call  MakeNpcs  ( .False $Tyrant )
 		ExecWait $TyrantScene
   E90:  Return
   E98:  End
@@ -252,6 +272,7 @@
 
 #new:Script $TyrantScene
 {
+
 	Call  SetMusicTrack ( 00000000 .Song:KammyKoopaTheme 00000000 00000008 )
 	Call  SetNpcPos     ( .Npc:Broozer 0` 500` 200` )
 	Call  PlaySound ( 00000433 )
@@ -285,28 +306,46 @@
 
 #new:Script $TyrantInit
 {
-	Call  BindNpcIdle       ( .Npc:Broozer $TyrantIdle )
-    Call  BindNpcDefeat     ( .Npc:Broozer $TyrantDefeat )
-	Call  SetNpcScale   ( .Npc:Broozer *Fixed[1.75] *Fixed[1.75] *Fixed[1.75] )
+	Call  SetNpcScale   ( .Npc:Self *Fixed[1.75] *Fixed[1.75] *Fixed[1.75] )
+	If    *GB_StoryProgress  >=  .Story:Ch3_SawTubbaEatBoo 
+		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Tyrant )
+		Return
+	EndIf
+	Call  BindNpcIdle       ( .Npc:Self $TyrantIdle )
+	Call  BindNpcDefeat     ( .Npc:Self $TyrantDefeat )
 	Return
 	End
+}
+
+
+#new:Script $Script_Interact_Tyrant
+{
+   C4:  Call  SpeakToPlayer ( .Npc:Self 00EC0001 00EC0001 00000000 000E010C )
+    0:  Call  GetCurrentPartnerID   ( *Var0 )
+   10:  If  *Var0  ==  .Partner:Bow % 9
+			Call  DisablePartnerAI      ( 00000000 )
+			Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000000 .Npc:Self 000E010D )
+			Call  EnablePartnerAI ( )
+  18C:  EndIf
+  194:  Return
+  19C:  End
 }
 
 #new:Script $TyrantIdle
 {
     0:  Loop
-    C:  	Call  GetNpcVar    ( .Npc:Broozer 00000000 *Var0 )
+    C:  	Call  GetNpcVar    ( .Npc:Self 00000000 *Var0 )
    20:  	If  *Var0  !=  00000000
    30:  		BreakLoop
    38:  	EndIf
    40:  	Wait  1`
    4C:  EndLoop
 		Thread
-			Call  SetNpcSpeed   ( .Npc:Broozer *Fixed[3.7] )
+			Call  SetNpcSpeed   ( .Npc:Self *Fixed[3.7] )
 			Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
 			Add   *Var0  50`
-			Call  SetNpcAnimation   ( .Npc:Broozer 00EC0002 )
-			Call  NpcMoveTo ( .Npc:Broozer *Var0 *Var2  0` )
+			Call  SetNpcAnimation   ( .Npc:Self 00EC0002 )
+			Call  NpcMoveTo ( .Npc:Self *Var0 *Var2  0` )
 			Wait  10`
 		EndThread
    88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -352,6 +391,7 @@
 				Call  SetNpcPos     ( .Npc:Broozer  0` -1000` 0` )
 				Call  EnablePartnerAI ( )
 				Call  DisablePlayerInput    ( .False )
+				Exec  $AutoSave
   198:  	Case  ==  .Outcome:PlayerLost % 1
   1A4:  	Case  ==  .Outcome:PlayerFled % 2
   29C:  EndSwitch
@@ -360,24 +400,27 @@
 }
 
 
-#new:NpcGroupList $Tyrant
+@	$NpcGroupList_80242628
 {
-	00000001 $NpcGroup_Tyrant 0D120000
+	00000003 $NpcGroup_80241C78 00000000
+	00000001 $NpcGroup_Tyrant   0D120000
 	00000000 00000000 00000000
 }
+
 
 #new:NpcGroup	$NpcGroup_Tyrant
 {
 	.Npc:Broozer $NpcSettings_Broozer ~Vec3f:Broozer % 430 0 -27
-	00002C00 $TyrantInit 00000000 00000000 0000010E
+	00002C01 $TyrantInit 00000000 00000000 0000010E
 	~NoDrops
 	~Movement:Broozer
 	~AnimationTable:Broozer
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A012A % no tattle string
 }
+
 
 #new:NpcSettings $NpcSettings_Broozer
 {
-	00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00620038 00000000 00000000 00000000 00000000 00000000 00000000
 	00000000 00000000 00630000
 }

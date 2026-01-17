@@ -32,3 +32,69 @@
     J	    802B60C8
     NOP
 }
+
+
+
+
+% Patch $mod\world\action\src\00 Idle.wscr
+%
+% Mario - Fall asleep when he hasn't move for some time
+@Hook E232A8 % 802B6048
+{
+    PUSH    T0, T1, T2
+    LHU	    V0, 0008 (S0) % load idle timer % 8010EFD0
+    % Check if the player is Mario, not Peach
+    LABU    T0, 800740A2 % 0 = Mario
+    BNE     T0, R0, .End
+    NOP
+    % Check if player inputs are locked
+    LAW     T0, 8010EFC8 %  playerFlags
+    ORI     T1, R0, 3000 % playerFlags(0x02(bit4/5))
+    AND     T1, T0, T1
+    BNEL    T1, R0, .End
+    SH	    R0, 0008 (S0) % clear idle timer
+    % check if Mario is in 8bit mode
+    LAW     T0, 8010EFCC %  playerFlags2
+    ORI     T1, R0, 4000 % playerFlags(0x02(bit6))
+    AND     T1, T0, T1
+    BNEL    T1, R0, .End
+    SH	    R0, 0008 (S0) % clear idle timer
+    % Check if Mario is already sleeping, to bypass all of this
+    LAW     T0, 8010F080 % load player's animation
+    LIO     T1, 0008001D % sleeping
+    BEQ     T0, T1, .End
+    NOP
+    % If Mario is in peril bypass all of this too
+    LABU    T0, 8010F292 % load mario HP
+    SLTIU   T0, T0, 6
+    BNE     T0, R0, .End
+    NOP
+    % Check timer to know what animation to use
+    % V0 = Idle timer
+    LIO     T1, 8010F080 % Mario's animation
+    % 1st Yawn
+    LIO     T2, 00080008 % yawn
+    ORI     T0, R0, 420 % 1st yawn
+    BEQL    V0, T0, .End
+    SW      T2, 0 (T1)
+    % 2nd yawn
+    ORI     T0, R0, 420 % 2nd yawn
+    BEQL    V0, T0, .End
+    SW      T2, 0 (T1)
+    % Frame before 2nd Yawn
+    % Set animation as 00010002 first
+    LIO     T2, 00010002 % idle
+    ORI     T0, R0, 41F % Pre-2nd yawn
+    BEQL    V0, T0, .End
+    SW      T2, 0 (T1)
+    % Sleeping
+    LIO     T2, 0008001D % idle
+    ORI     T0, R0, 4B5 % fall asleep
+    BEQL    V0, T0, .End
+    SW      T2, 0 (T1)
+    .End
+    POP     T0, T1, T2
+    % restore vanilla code
+    J       802B6050
+    LW	    V1, 0000 (S0)
+}

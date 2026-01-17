@@ -1,10 +1,86 @@
+%Let's add new sprite event flags
+%Flag 00000001 = last stand (Half incoming damage AFTER defense)
+%Flag 00000040 = cloud 9 (Reduce incoming damage by 1/3 AFTER defense)
+
+%watch out for enemies with these flags
+
+%It seems that only flag 4 is checked somewhere? (To do: Test its effect)
+
+
+%Second set of new flags
+%Flag 01000000 = Attacks are capped to 1 damage (after calculating defense)
+%Flag 02000000 = Negate all attacks that aren't exact kills (after calculating defense)
+%Flag 04000000 = Negate all attacks that aren't lethal (weaker version of 2)
+%Flag 08000000 = Dark energy (Damage on jump, with no way to get around it)
+%Flag 20000000 = Front spiky 2 (Triggers when the fiery flag would trigger)
+%	Partially functioning right now, Bow's smack doesn't trigger it but it doesn't matter that much since the enemies I use it on have a lot of defense
+
+%could come up with weirder mathy flags like "even damage is negated" but I don't want you to have to use high level math to play a mario game :P
+
+%	^	I'll put some of them in the game in case I want to make some more wacky enemy mechanics
+
+%Flag 10000000 = Odd damage is negated
+%Flag 40000000 = When at max hp, lethal hits will fail ("Ultra Sturdy") (This is a much stronger version of sturdy)
+%Flag 80000000 = When at max hp, lethal hits become nonlethal (equal to max hp - 1) ("Sturdy") (like in the pokemon games)
+
+
+%Flag 00400000 = last stand * 2 (division by 4)
+%	^	No!!! charging enemies use this flag!
+
+%Flag 00020000 = last stand * 2 (division by 4)
+
+
+%changed the damage flag storage location from 480 + battle data pointer to 19C + pointer since 19C is actually unused while 480 is kind of unused I think
+
+
+%800DC4F0 is unused I think?
+%However, it is set to 0 when changing maps, so it might not be part of "battle data"
+%though it is never set to anything else IIRC
+%(though some battle data surrounding it is also reset, so that might just be what happens to that part of the battle data)
+
+%Changed it to 19C so it should be better
+
+%Mario sprite event flags stuff
+
+%1A0224 --> 80271944
+%New fire flag
+
+%250:  ANDI      V0, V1, 2
+%254:  BEQ       V0, R0, .o2C4
+%258:  NOP
+@Hook 1A0474
+{
+	PUSH	V0
+	LUI		V0, 800
+	AND     V0, V1, V0
+	BEQ		V0, R0, .normal
+	NOP
+	%Check this special value (Might be some kind of special flag to ignore certain contact hazards)
+	LW      V0, 18C (S4)
+	ANDI    V0, V0, 10
+	BNE     V0, R0, .normal
+	NOP
+	POP		V0
+	J		80271BD8	%Execute fire stuff
+	NOP
+	.normal
+	POP		V0
+	ANDI    V0, V1, 2
+	BEQ     V0, R0, .branch
+	NOP
+	J		80271B9C	%normal next code
+	NOP
+	.branch
+	J		80271C08	%do branch
+	NOP
+}
+
+
 
 %Make it so that Quake + Jump does not trigger spikiness (normally, jump moves are hardcoded to trigger spikiness unless you have spike shield, regardless of other factors)
 %1A0034 --> 80271754
-/%
-   E0:  LW        V0, 188 (S2)								%(damage type word)
-   E4:  ANDI      V0, V0, 80								%check for 80 (Jump)
-%/
+
+
 @Hook 1A0114
 {
 	LW        V0, 188 (S2)
@@ -20,3 +96,26 @@
 	J		  8027183C
 	ORI		  V0, R0, 0		%nope, no jump flag here
 }
+
+@Hook 1A03DC
+{
+	LW        V1, 188 (S4)
+	%Check for 800 flag
+	ANDI      V1, V1, 800
+	BNE		  V1, R0, .new
+	NOP
+	.normal
+	LW        V1, 188 (S4)
+	J		  80271B04
+	AND       V0, V0, V1
+	.new
+	PUSH      T0
+	LW        V1, 188 (S4)
+	LI		  T0, FFFFFF7F		% not 80 flag
+	AND		  V1, V1, T0
+	POP		  T0
+	J		  80271B04
+	AND       V0, V0, V1
+}
+
+

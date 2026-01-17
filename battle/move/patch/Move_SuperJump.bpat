@@ -93,7 +93,6 @@
   1F0:  Call  LoadActionCommand ( .ActionCommand:Jump )
   200:  Call  802A9000 % CreateActionCommandIcons
   20C:  Call  802694A4  ( .False ) % ShowActionCommandIcons
-		Call  UseBattleCamPreset    ( 00000000 )
   230:  Call  SetGoalToTarget   ( .Actor:Player )
         Thread % rotate Mario
             Call    GetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
@@ -190,18 +189,6 @@
         %=====================
         % I patched tidal wave's action command global function a little bit, use this next
         % byte to use the new code instead of the original one.
-        Call  $WriteAddress ( $TornadoJumpByte 0 .True .False .False )
-        Call  LoadActionCommand     ( .ActionCommand:TidalWave )
-        Call  802A9000 % CreateActionCommandIcons
-        Call  802691C8      ( 00000005 00000014 0000001E 0000003C 00000050 00000064 )
-        Call  802A9138      ( 00000000 00000064 00000003 )
-        % Action command
-        Loop  100`
-            Call  802695A8  ( *Var0 )
-            Call  $Function_TidalWave_ActionCommand
-            Wait  1`
-        EndLoop
-        Call  $WriteAddress ( $TornadoJumpByte 0 .False .False .False )
         Loop % wait for Mario to stop spinning
             Call    $ReadAddress ( $End[1] 0 *Var0 .False .False ) % $End[1] = Mario is spinning (bool)
             If *Var0 == .False
@@ -213,8 +200,6 @@
         Set   *VarD  *Var0
         Call  $WriteAddress ( 800DC070 0 .True 81 .False ) % actionSuccess byte
         Exec  $Script_InitTracker % start tracking stylish inputs
-        Call  UseBattleCamPreset      ( 00000002 )
-        Call  MoveBattleCamOver ( 00000005 )
         Wait  15`
         % Damage targets
         Call  InitTargetIterator

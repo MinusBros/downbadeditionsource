@@ -47,14 +47,11 @@
    F0:  		Call  SetBattleFlagBits ( 00004000 .False )
   104:  		ExecWait  $Script_8023AB84
   110:  	Case  ==  000000B0
-				Set  *JonathanChargeCount 0`
   11C:  		ExecWait  $Script_8023B45C
   128:  	Case  ==  000000B1
   134:  		Call  SetBattleFlagBits ( 00004000 .False )
-				Set  *JonathanChargeCount 0`
   148:  		ExecWait  $Script_8023CC64
   154:  	Case  ==  000000B2
-				Set  *JonathanChargeCount 0`
   160:  		ExecWait  $Script_8023CCC4
   16C:  EndSwitch
   174:  Return
@@ -62,7 +59,7 @@
 }
 
 %Jonathan will charge every time he uses Spiny Flip.
-%However, if you use any move besides Spiny Flip, the counter resets.
+%However, if you use moves besides Spiny Flip, the counter resets after damage.
 
 
 @	$Script_8023AB84
@@ -163,14 +160,13 @@
   72C:  Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
   744:  Switch  *Var2
   750:  	Case  ==  000000AD
-  75C:  		Set   *VarE  00000003
+  75C:  		Set   *VarE  00000002
   76C:  	Case  ==  000000AE
-  778:  		Set   *VarE  00000004
+  778:  		Set   *VarE  00000003
   788:  	Case  ==  000000AF
-  794:  		Set   *VarE  00000005
+  794:  		Set   *VarE  00000004
   7A4:  EndSwitch
 		Set *VarD *JonathanChargeCount
-		Div *VarD 2`
 		Add *VarE *VarD
   7AC:  Switch  *VarF
   7B8:  	Case  >  00000000
@@ -189,7 +185,7 @@
   868:  	CaseOR  ==  00000001
   874:  	CaseOR  ==  00000003
   880:  		ExecWait  $Script_8023AA70
-				If  *JonathanChargeCount < 6`
+				If  *JonathanChargeCount < 4`
 					ExecWait  $ChargeJonathan
 				EndIf
   88C:  	EndCaseGroup
@@ -222,13 +218,163 @@
 			End
 }
 
-%Spiny Surge
+%Spiny Surge will now use Jonathan's charge to influence attack power
+%However, one Spiny Surge will reset the charge to 0.
 @	$Script_8023B45C
 {
-  [18C]  Call  FlyToGoal     ( .Actor:Partner  16`  0` .Easing:CosInOut )
-  [1C0]  Wait  8`
-  [69C]  Wait  6`
-  [88C]  Wait  15`
+    0:  Call  LoadActionCommand ( .ActionCommand:SpinySurge )
+   10:  Call  802A9000 ( )
+   1C:  Call  GetActorLevel     ( .Actor:Partner *Var0 )
+   30:  Switch  *Var0
+   3C:  	Case  ==  00000000
+   48:  		Call  SetupMashMeter    ( 00000002 00000063 00000064 00000000 00000000 00000000 )
+   6C:  	Case  ==  00000001
+   78:  		Call  SetupMashMeter    ( 00000003 00000046 00000063 00000064 00000000 00000000 )
+   9C:  	Case  ==  00000002
+   A8:  		Call  SetupMashMeter    ( 00000004 00000028 00000046 00000063 00000064 00000000 )
+   CC:  EndSwitch
+   D4:  Call  80269344      ( 0000000A )
+   E4:  Call  UseBattleCamPreset    ( 00000013 )
+   F4:  Call  SetBattleCamTarget    (  45`  60`  0` )
+  10C:  Call  SetBattleCamOffsetZ   (  0` )
+  11C:  Call  SetBattleCamZoom      (  400` )
+  12C:  Call  MoveBattleCamOver     (  30` )
+  13C:  Call  InitTargetIterator ( )
+  148:  Call  SetGoalToHome ( .Actor:Partner )
+  158:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00100003 )
+  170:  Call  AddGoalPos    ( .Actor:Partner  60`  20`  0` )
+  18C:  Call  FlyToGoal     ( .Actor:Partner  15`  0` .Easing:CosInOut )
+  1A8:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00100001 )
+  1C0:  Wait  5`
+  1CC:  Call  GetActorLevel ( .Actor:Partner *Var0 )
+  1E0:  Switch  *Var0
+  1EC:  	Case  ==  00000000
+  1F8:  		Set   *VarA  0000003C
+  208:  	Case  ==  00000001
+  214:  		Set   *VarA  0000003C
+  224:  	Case  ==  00000002
+  230:  		Set   *VarA  0000003C
+  240:  EndSwitch
+  248:  Set   *VarB  *VarA
+  258:  Add   *VarB  FFFFFFFD
+  268:  Call  802A916C  ( 00000000 *VarB 00000003 )
+  280:  Call  SetBattleFlagBits ( 00004000 .False )
+  294:  Call  InitTargetIterator ( )
+  2A0:  Call  SetActorVar       ( .Actor:Partner 00000000 00000000 )
+  2B8:  Set   *Var9  00000000
+  2C8:  Set   *Flag[02]  .False
+  2D8:  Set   *Flag[03]  .False
+  2E8:  Loop  *VarA
+  2F4:  	Call  GetActionResult   ( *Var0 )
+  304:  	If  *Var9  ==  00000002
+  314:  		Set   *Var0  00000003
+  324:  	EndIf
+  32C:  	Switch  *Var0
+  338:  		Case  ==  FFFFFFFF
+  344:  			Set   *Var9  00000000
+  354:  			Call  SetPartFlagBits   ( .Actor:Partner 00000002 00000001 .True )
+  370:  			Call  SetAnimation      ( .Actor:Partner FFFFFFFF 00100001 )
+  388:  		Case  ==  00000001
+  394:  			If  *Var9  ==  00000001
+  3A4:  				BreakCase
+  3AC:  			EndIf
+  3B4:  			Call  SetPartFlagBits   ( .Actor:Partner 00000002 00000001 .False )
+  3D0:  			Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+  3EC:  			Add   *Var0  00000003
+  3FC:  			Add   *Var1  00000022
+  40C:  			Add   *Var2  00000005
+  41C:  			Call  SetPartPos    ( .Actor:Partner 00000002 *Var0 *Var1 *Var2 )
+  43C:  			Call  SetAnimation  ( .Actor:Partner FFFFFFFF 0010000F )
+  454:  			Set   *Var9  00000001
+  464:  		Case  ==  00000002
+  470:  			If  *Var9  ==  00000000
+  480:  				BreakCase
+  488:  			EndIf
+  490:  			If  *Flag[02]  ==  .False
+  4A0:  				Call  PlaySoundAtActor  ( .Actor:Partner 0000201B )
+  4B4:  				Set   *Flag[02]  .True
+  4C4:  			Else
+  4CC:  				Call  PlaySoundAtActor  ( .Actor:Partner 0000201C )
+  4E0:  				Set   *Flag[02]  .False
+  4F0:  			EndIf
+  4F8:  			Call  $Function_80238A6C ( )
+  504:  			Call  SetAnimation      ( .Actor:Partner FFFFFFFF 00100013 )
+  51C:  			Call  SetPartFlagBits   ( .Actor:Partner 00000002 00000001 .True )
+  538:  			ChildThread
+  540:  				Call  GetActorVar   ( .Actor:Partner 00000000 *Var0 )
+  558:  				Add   *Var0  00000001
+  568:  				Call  SetActorVar   ( .Actor:Partner 00000000 *Var0 )
+  580:  				Wait  15`
+  58C:  				Call  GetActorVar   ( .Actor:Partner 00000000 *Var0 )
+  5A4:  				Sub   *Var0  00000001
+  5B4:  				Call  SetActorVar   ( .Actor:Partner 00000000 *Var0 )
+  5CC:  			EndChildThread
+  5D4:  			Set   *Flag[03]  .True
+  5E4:  			Set   *Var9  00000000
+  5F4:  	EndSwitch
+  5FC:  	Wait  1`
+  608:  EndLoop
+  610:  Call  SetPartFlagBits   ( .Actor:Partner 00000002 00000001 .True )
+  62C:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 00100001 )
+  644:  Loop
+  650:  	Call  GetActorVar   ( .Actor:Partner 00000000 *Var0 )
+  668:  	If  *Var0  ==  00000000
+  678:  		BreakLoop
+  680:  	EndIf
+  688:  	Wait  1`
+  694:  EndLoop
+  69C:  Wait  5`
+  6A8:  If  *Flag[03]  ==  .False
+  6B8:  	Set   *Var0  00000000
+  6C8:  	Set   *VarF  00000000
+  6D8:  	Wait  15`
+  6E4:  	Goto  D
+  6F0:  EndIf
+  6F8:  Call  InitTargetIterator ( )
+  704:  Label  0
+  710:  Call  SetGoalToTarget   ( .Actor:Partner )
+  720:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000  2` 00000010 )
+  744:  If  *Var0  ==  .HitResult:Miss % 6
+  754:  	Goto  C
+  760:  EndIf
+  768:  Call  GetActionCommandResult    ( *VarA )
+  778:  Call  $Function_80238B50 ( )
+		Set *VarD *JonathanChargeCount
+		Add *VarF *VarD
+  784:  Switch  *Var0
+  790:  	Case  >  .HitResult:Hit % 0
+  79C:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:SpinySurge|NoContact|NoOtherDamagePopups 00000000 00000000 *VarF 00000070 )
+  7C0:  	Default
+  7C8:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:SpinySurge|NoContact|NoOtherDamagePopups 00000000 00000000 *VarF 00000030 )
+  7EC:  EndSwitch
+  7F4:  Switch  *Var0
+  800:  	Case  >  .HitResult:Hit % 0
+  80C:  		Call  UseBattleCamPreset    ( 00000004 )
+  81C:  	Default
+  824:  		Call  UseBattleCamPreset    ( 00000033 )
+  834:  EndSwitch
+  83C:  Wait  3`
+  848:  Label  C
+  854:  Call  ChooseNextTarget  ( .Iter:Next *Var1 )
+  868:  If  *Var1  !=  FFFFFFFF
+  878:  	Goto  0
+  884:  EndIf
+  88C:  Wait  20`
+  898:  Label  D
+		
+  8A4:  Switch  *Var0
+  8B0:  	CaseOR  ==  00000001 % 1
+  8BC:  	CaseOR  ==  00000003 % 3
+  8C8:  		ExecWait  $Script_8023AA70
+  8D4:  	EndCaseGroup
+  8DC:  	CaseOR  ==  .HitResult:Hit % 0
+  8E8:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  8F4:  		ExecWait  $Script_8023AAF8
+  900:  	EndCaseGroup
+  908:  EndSwitch
+		Set  *JonathanChargeCount 0`
+  910:  Return
+  918:  End
 }
 
 
@@ -369,6 +515,111 @@
 }
 
 
+
+
+
+
+
+%Hurricane is now a piercing multihit (it used to just be a clone of spook)
+%Anything that would be vulnerable to hurricane now gets a bonus +3 damage
+%version 2: damage is constant now, action command has constant difficulty, success does 4 damage while fail does 2 damage
+
+%minor problem: it makes the front enemy one dimensional
+@ $Script_8023CCC4
+{
+    0:  Call     LoadActionCommand 	( 00000014 )
+   10:  Call     802A9000 ( )
+   1C:  Call     802691C8 ( 00000001 00000064 00000000 00000000 00000000 00000000 )
+   40:  Call     80269344 ( 0000000F )
+   50:  Call     80269EAC ( 00000014 )
+   60:  Call     UseBattleCamPreset 	( 00000013 )
+   70:  Call     SetBattleCamTarget 	( FFFFFFD3 00000036 00000000 )
+   88:  Call     SetBattleCamOffsetZ 	( 00000000 )
+   98:  Call     SetBattleCamZoom  	( 00000118 )
+   A8:  Call     MoveBattleCamOver 	( 00000028 )
+   B8:  Call     InitTargetIterator 	( )
+   C4:  Call     SetGoalToHome 	( .Actor:Partner )
+   D4:  Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100003 )
+   EC:  Call     AddGoalPos 	( .Actor:Partner 00000028 00000014 00000000 )
+  108:  Call     FlyToGoal  	( .Actor:Partner 0000001E 00000000 .Easing:CosInOut )
+  124:  Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100001 )
+  13C:  Wait     0000000F 
+  148:  Call     $Function_80238D8C ( )
+		Set 	 *Var0  100`	%action command doesn't really matter anymore
+  154:  Call     802A91A0 ( 00000000 00000093 00000003 *Var[0] )
+  170:  Call     SetBattleFlagBits 	( 00004000 .False )
+  184:  Call     SetActorRotationOffset 	( .Actor:Partner 00000000 00000014 00000000 )
+  1A0:  Call     UseBattleCamPreset 	( 00000013 )
+  1B0:  Call     SetBattleCamTarget 	( 00000023 00000036 00000000 )
+  1C8:  Call     SetBattleCamOffsetZ 	( 00000000 )
+  1D8:  Call     SetBattleCamZoom  	( 000001AE )
+  1E8:  Call     MoveBattleCamOver 	( 00000096 )
+  1F8:  Call     8024ECF8 ( 00000000 00000000 00000001 )
+  210:  Call     PlaySoundAtActor 	( .Actor:Partner 00000288 )
+  224:  Thread
+  22C:  	Call     $Function_80239140 ( )
+  238:  EndThread
+  240:  Wait     00000002 
+  24C:  Loop     00000096 
+  258:  	Call     $Function_8023A1B0 ( )
+  264:  	If  *Var[0]  ==  00000000 
+  274:  		BreakLoop
+  27C:  	EndIf
+  284:  	Call     802694F8 ( *Var[0] )
+  294:  	If  *Var[0]  ==  00000064 
+  2A4:  		BreakLoop
+  2AC:  	EndIf
+  2B4:  	Wait     00000001 
+  2C0:  EndLoop
+  2C8:  Wait     0000000F 
+  2D4:  Call     802694F8 ( *Var[0] )
+  2E4:  Switch  *Var[0] 
+  2F0:  	Case  >  00000063 
+  2FC:  		Call     UseBattleCamPreset 	( 00000004 )
+  30C:  	Default
+  314:  		Call     UseBattleCamPreset 	( 00000033 )
+  324:  EndSwitch
+  32C:  Call     InitTargetIterator 	( )
+  338:  Label    0000000A 
+  344:  Call     SetGoalToTarget 	( .Actor:Self )
+		%
+  720: 	Call     PartnerTestEnemy 	( *Var[0] 00000000 00000014 00000000 00000002 00000010 ) %uncomment to prevent invis hits
+  744: 	If  *Var[0]  ==  00000006 
+  754: 		Goto     0000000B
+  760: 	EndIf
+		% Make this do varying damage
+		% 100 divided by 20 = 5, which is the max damage
+		% Also add Jonathan's charge count to final damage
+		% Max damage afterwards is 9
+		Call  GetActionCommandResult    ( *VarF )
+		If *VarF == 64
+			 Div *VarF 20`
+			 Set *VarD *JonathanChargeCount
+			 Add *VarF *VarD
+			 Call     PartnerDamageEnemy 	( *Var[2] ~Flags:DamageType:NoContact|NoOtherDamagePopups|Water|IgnoreDefense 00000000 00000000 *VarF 00000070 )
+		Else
+			 Div *VarF 20`
+			 Set *VarD *JonathanChargeCount
+			 Add *VarF *VarD
+			Call     PartnerDamageEnemy 	( *Var[2] ~Flags:DamageType:NoContact|NoOtherDamagePopups|Water|IgnoreDefense 00000000 00000000 *VarF 00000030 )
+		EndIf
+		Wait	 00000006 %prevent bugged damage indicators
+  40C:  Label    0000000B 
+  418:  Call     ChooseNextTarget 	( .Iter:Next *Var[0] )
+  42C:  If  *Var[0]  !=  FFFFFFFF 
+  43C:  	Goto     0000000A 
+  448:  EndIf
+  450:  Wait     00000022 
+  45C:  Call     SetActorRotation 	( .Actor:Partner 00000000 00000000 00000000 )
+  478:  Call     SetActorRotationOffset 	( .Actor:Partner 00000000 00000000 00000000 )
+  494:  ExecWait $Script_8023AAF8 
+  4A0:  Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100002 )
+  4B8:  Call     $Function_8023A19C ( )
+  4C4:  Call     80280818 ( )
+		Set  *JonathanChargeCount 0`
+  4D0:  Return
+  4D8:  End
+}
 
 
 

@@ -17,6 +17,8 @@
 #define .NpcID:Twink_18             12
 #define .NpcID:StarRod_19           13
 
+#import SwapToGoombarius.mpat
+
 @	$Script_80245AF0
 {
   [264]  Wait  5`
@@ -28,6 +30,12 @@
   [1DC]  Call  SetNpcJumpscale   ( .NpcID:WorldBowser_00 *Fixed[2.0] )
 }
 
+
+@	$ExtraAnimationList_80241E14
+{
+	00800002 00800003 00800004 00800006 00800007 00800009 0080000D 0080000E 0080000F 00800012 00800013
+	00800027 FFFFFFFF
+}
 
 @	$Script_802463F4
 {
@@ -163,11 +171,11 @@
   9D8:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_00 0080000E )
   9EC:  Wait  15`
   9F8:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_00 00800002 )
-  A0C:  Call  SpeakToPlayer ( .NpcID:WorldBowser_00 00800006 00800002 00000000 00130082 ) % Uuuuaaaaahhhhh!!!!!! Yes!!! Oh, Kammy Koopa! That  ...
+  A0C:  Call  SpeakToPlayer ( .NpcID:WorldBowser_00 00800007 00800027 00000000 00130082 ) % Uuuuaaaaahhhhh!!!!!! Yes!!! Oh, Kammy Koopa! That  ...
    24:  Call  DisablePlayerPhysics  ( .True )
    34:  Call  DisablePlayerInput    ( .True )
   A2C:  Wait  30`
-  A38:  Call  SetPlayerAnimation    ( 0006000E )
+  A38:  Call  SetPlayerAnimation    ( 0001003A )
   A48:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   A60:  Add   *Var0  00000032
   A70:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -188,7 +196,7 @@
   B78:  Call  NpcMoveTo ( .NpcID:WorldBowser_00  200`  0`  45` )
   B94:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_00 00800002 )
   BA8:  Wait  5`
-  BB4:  Call  SpeakToPlayer     ( .NpcID:WorldBowser_00 00800006 00800002 00000000 00130083 ) % Hey, you! Mario! It's not going to be like before, ...
+  BB4:  Call  SpeakToPlayer     ( .NpcID:WorldBowser_00 00800009 00800003 00000000 00130083 ) % Hey, you! Mario! It's not going to be like before, ...
   BD4:  Wait  5`
   BE0:  Call  SetNpcVar ( .NpcID:WorldBowser_00 00000000 00000001 )
   BF8:  Return
@@ -259,6 +267,10 @@
 
 @	$Script_8024B254
 {
+    SetF	*Var0 *Fixed[25.0] % speed
+    SetF	*Var1 *Fixed[5.0]  % fully bright
+    Exec    $Script_FadeScreenIn
+				Call $ClearFlagCarryOverworldMusicToBattle()
     0:  Call  DisablePlayerInput    ( .True )
    10:  Call  DisablePartnerAI  ( 00000000 )
    20:  Exec  $Script_8024AA8C
@@ -309,21 +321,29 @@
   398:  	Call  SetPlayerAnimation    ( 0006000C )
   3A8:  EndThread
   3B0:  Call  NpcJump0  ( .NpcID:StarRod_19  150`  60`  0`  15` )
-  3D0:  Call  PlayEffect    ( ~FX:RadialFlowIn:GoldenRays 00000096 0000003C 00000000 00000001 0000014A 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-		Call  SetMusicTrack ( 00000000 .Song:RecoveredStarRod 00000000 00000008 )
-  414:  Wait  340`
-		Call  FadeOutMusic  ( 00000000 00000096 )
-  420:  Call  ShowMessageAtScreenPos    ( 001300AA  160`  40` ) % You took back the Star Rod!
-  438:  Call  PlaySound ( 0000022D )
-		Wait  1`
- 11D8:  Call  PlaySoundAtPlayer ( 00002127 00000000 )
-		Call  PlaySoundAtPlayer     ( 00000390 00000000 )
- 11EC:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
- 1204:  Add   *Var2  00000005
- 1214:  Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-		Call  SetPlayerAnimation   ( 00010017 )
-		Call  NpcJump0      ( .NpcID:StarRod_19  220`  18`  -40`  20` )
-		Wait  60`
+		If  *GF_KKJ25_TrueFinalBower == .False
+			Call  SetMusicTrack ( 00000000 .Song:BattleEnd 00000000 00000008 )
+			Wait  78`
+			Call  SetMusicTrack     ( 00000000 .Song:MarioFalls 00000001 00000008 )
+	 11D8:  Call  PlaySoundAtPlayer ( 00002127 00000000 )
+			Call  PlaySoundAtPlayer     ( 00000390 00000000 )
+	 11EC:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+	 1204:  Add   *Var2  00000005
+	 1214:  Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  SetPlayerAnimation   ( 00010017 )
+			Call  NpcJump0      ( .NpcID:StarRod_19  220`  18`  -40`  20` )
+			Wait  60`
+			ExecWait  $BowserRevenge
+			Wait  60`
+		Else
+			Call  PlayEffect    ( ~FX:RadialFlowIn:GoldenRays 00000096 0000003C 00000000 00000001 0000014A 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  SetMusicTrack ( 00000000 .Song:RecoveredStarRod 00000000 00000008 )
+	  414:  Wait  336`
+			Call  FadeOutMusic  ( 00000000 00000096 )
+	  420:  Call  ShowMessageAtScreenPos    ( 001300AA  160`  40` ) % You took back the Star Rod!
+	  438:  Call  PlaySound ( 0000022D )
+			Wait  1`
+		EndIf
   448:  Call  RemoveNpc ( .NpcID:StarRod_19 )
   458:  Call  SetPlayerAnimation    ( .PlayerAnim:ThumbsUp )
   468:  Call  GetCurrentPartnerID   ( *Var0 )
@@ -380,18 +400,26 @@
   788:  EndThread
   790:  Call  NpcMoveTo     ( .NpcID:Twink_18  230`  30`  85` )
   7AC:  Wait  10`
+		Call  SetPlayerAnimation    ( 00080016 )
+		Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
 		Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000C0029 )
 		Wait  50`
 		Call  StopSound ( 0000022D )
 		Call  SetMusicTrack     ( 00000000 .Song:CastleSaved 00000000 00000008 )
 		Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000A0001 )
+		Thread
+			Wait  180`
+			Call  SetPlayerAnimation    ( 00010037 )
+		EndThread
   7B8:  Call  SpeakToPlayer ( .NpcID:BattleKooper_16 000C0001 000C000C 00000000 001300AC ) % Mario... I knew you would save me. Thank you, Mari ...
+		Call  SetPlayerAnimation    ( 00080022 )
 		Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000C0002 )
   7D8:  Wait  20`
   7E4:  Call  PlaySound     ( 8000006B )
 		Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000A0001 )
   7F4:  Set   *MapVar[C]  00000001
   804:  Call  PlaySoundAtPlayer ( 00000262 00000000 )
+		Call  SetPlayerAnimation    ( 0001002B )
   818:  Call  ShowEmote     ( .NpcID:WorldBowser_00 .Emote:Exclamation  0`  20` .False  0`  0`  0`  0` )
   848:  Call  PlaySoundAtNpc    ( .NpcID:BattleKooper_16 00000262 00000000 )
   860:  Call  ShowEmote     ( .NpcID:BattleKooper_16 .Emote:Exclamation  0`  20` .True  0`  0`  0`  0` )
@@ -559,6 +587,7 @@
 
 #new:Script $BowserRevenge
 {
+		Exec  $SwapToGoombarius
   A54:  Call  GetNpcPos     ( .NpcID:WorldBowser_15 *Var0 *Var1 *Var2 )
   A70:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
   A8C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -569,56 +598,71 @@
   B00:  Call  SetNpcAnimation   ( .NpcID:BattleKooper_16 000C0006 )
   B14:  Call  SetNpcAnimation   ( .NpcID:Twink_18 0020000E )
   B28:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_15 0080000D )
+		Call $SetFlagCarryOverworldMusicToBattle()
   B3C:  Call  SetNpcJumpscale   ( .NpcID:WorldBowser_15 *Fixed[1.0] )
   B50:  Call  NpcJump0      ( .NpcID:WorldBowser_15  300`  0`  40`  20` )
-  B70:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_15 00800002 )
+		Wait  1`
+  B70:  Call  SetNpcAnimation   ( .NpcID:WorldBowser_15 00800028 )
+		Call  SpeakToPlayer ( .NpcID:WorldBowser_15 00800029 00800028 00000000 001300C9 )
+		Thread
+			Call  SetNpcAnimation   ( .NpcID:WorldBowser_15 00800005 )
+			Call  GetNpcPos    ( .NpcID:WorldBowser_15 *Var0 *Var1 *Var2 )
+			Sub   *Var0  100`
+			Call  NpcMoveTo     ( .NpcID:WorldBowser_15 *Var0 *Var2  40` )
+		EndThread
+  260:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  278:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  294:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[3.5] )
+  2A8:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2C0:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Wait  1`
+		Set  *GF_KKJ25_TrueFinalBower .True
+		Call  SetNpcVar ( .NpcID:StarRod_19 00000000 00000001 )
+		Wait  60`
 		Return
 		End
 }
 
-%Copied this script from DSE to make the final fourth Bowser work.
 
-#new:Script $StartBowser4
+%Dark Star battle script is crashing for some reason.
+%Fourth Bowser battle doesn't work on Bowser_15.
+
+@	$Script_Init_80244AA0
 {
-	Set *Var2 $Battles
-	Set *Var0 00000000
-	Call	$Function_SetBattle ( *Var[2] *Var[0] )
-	Call	StartBossBattle ( .Song:Brawl )
-	Return
-	End 
+    0:  Call  SetNpcPos ( .NpcID:StarRod_19  270`  0`  0` )
+		Call  BindNpcIdle   ( .Npc:Self $Script_Idle_Rod )
+   1C:  Return
+   24:  End
 }
 
-#new:IntTable $Battles
+#new:Script $Script_Idle_Rod
 {
-23050000 % Bowser 4
+    0:  Call  SetSelfVar    ( 00000000 00000000 )
+   14:  Loop
+   20:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   34:  	If  *Var0  !=  00000000
+   44:  		BreakLoop
+   4C:  	EndIf
+   54:  	Wait  1`
+   60:  EndLoop
+		Wait  3`
+		Call	StartBossBattle ( .Song:MarioFalls )
+		Call  SetNpcPos     ( .NpcID:WorldBowser_15 *Var0 -1000 *Var2 )
+   30:  Call  GotoMap   ( $ASCII_8024C710 00000002 ) % kkj_25
+   44:  Wait  80`
+  168:  Return
+  170:  End
 }
 
-#new:Function $Function_SetBattle % ( $BattleTable, index )
+
+
+
+@	$NpcGroupList_802455F4
 {
-	% push stack
-	PUSH      RA, S0, S1, S2
-	% read script args
-	DADDU     S1, A0, R0
-	LW        S0, C (A0)
-	LW        A1, 0 (S0)
-	JAL       ~Func:get_variable % get battle table
-	ADDIU     S0, S0, 4
-	LW        A1, 0 (S0)
-	JAL       ~Func:get_variable % get battle index
-	DADDU     S2, V0, R0
-	% get encounter struct
-	LW        S0, 148 (S1)
-	LB        V1, 4 (S0)
-	SLL       V1, V1, 2
-	LTW       A0, V1 (800B0F38)
-	% get battle from table
-	SLL       V0, V0, 2
-	DADDU     V0, V0, S2
-	LW        V0, 0 (V0)
-	% set battle ID
-	SW        V0, 44 (A0)
-	% pop stack and return 2
-	POP       RA, S0, S1, S2
-	JR        RA
-	ADDIU V0, R0, 2
+	00000001 $NpcGroup_80244C44 23030000
+	00000001 $NpcGroup_80244E34 00000000
+	00000001 $NpcGroup_80245024 26000000
+	00000001 $NpcGroup_80245214 00000000
+	00000001 $NpcGroup_80245404 3B00FFFF %Screw it, just give the Star Rod the battle instead
+	00000000 00000000 00000000
 }

@@ -117,7 +117,7 @@
 
 @	$HyperGoomba
 {
-	[Level]        15`b
+	[Level]        16`b
 	[MaxHP]         8`b
 	[Coins]         2`b
 }
@@ -345,7 +345,7 @@
 
 @	$HyperParagoomba
 {
-	[Level]        16`b
+	[Level]        17`b
 	[MaxHP]         10`b
 	[Coins]         2`b
 }
@@ -713,7 +713,7 @@
 
 @	$HyperCleft
 {
-	[Level]        18`b
+	[Level]        19`b
 	[MaxHP]         6`b
 	[Coins]         3`b
 }
@@ -1050,6 +1050,52 @@
 	[PowerBounce]   3`b
 }
 
+@	$Script_Init_80223DA0
+{
+    0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   18:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   30:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   48:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   60:  Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+   78:  Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
+   90:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_802245C8 )
+   A4:  Call  BindIdle      ( .Actor:Self $Script_Idle_80223E98 )
+   B8:  Call  BindHandleEvent       ( .Actor:Self $Script_HandleEvent_80224038 )
+   CC:  Call  SetPartTargetFlagBits ( .Actor:Self 00000002 00000002 .True )
+		Exec  $MonitorPos
+   E8:  Return
+   F0:  End
+}
+
+
+#new:Script  $MonitorPos
+{
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -85`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+	EndLoop
+	Set   *TubbsTurn .True
+	Exec  $ShowSong
+	Call  SetMusicTrack ( 00000000 .Song:TubbaBlubbaBattle 00000000 00000008 ) 
+	Return
+	End
+}
+
+#new:Script $ShowSong
+{
+	Call  ActorSpeak        ( 001F006F .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return 
+	End
+}
+
 %Hopping Attack Startup?
 
 @	$Script_802244DC
@@ -1107,6 +1153,10 @@
 
 @	$Script_TakeTurn_802245C8
 {
+		If  *TubbsTurn == .False
+			Call  SetMusicTrack ( 00000000 .Song:TubbaBlubbaBattle 00000000 00000008 ) 
+			Set *TubbsTurn .True
+		EndIf
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    28:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
@@ -1375,6 +1425,20 @@
 	[Level]        78`b
 	[MaxHP]        50`b
 	[PowerBounce]   3`b
+}
+
+@	$Script_Init_80225D98
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_802264AC )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_80225F58 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_802260D0 )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
+   54:  Exec  $Script_80225E08
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $TubbaBlubba 108` )
+		EndIf
+   60:  Return
+   68:  End
 }
 
 

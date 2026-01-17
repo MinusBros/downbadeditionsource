@@ -3,6 +3,7 @@
 #define .NpcID:GourmetGuy_02        02
 #define .NpcID:GrooveGuy_03         03
 
+
 @	$Script_MakeEntities
 {
     [0]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80245150 .Item:StarPoint 80000000 )
@@ -142,9 +143,13 @@
   7D4:  Switch  *Var9
   7E0:  	Case  ==  00000000
   7EC:  		Call  SpeakToPlayer     ( .Npc:Self 00C10004 00C10001 00000000 000F0042 ) % Bleagh!!! Hack! Thppth! That was disgusting! That  ...
+				ExecWait  $GourmetGuyKillsMario
+				Return
   80C:  		Call  SetNpcAnimation   ( .Npc:Self 00C1000D )
   820:  	Case  ==  00000001
   82C:  		Call  SpeakToPlayer     ( .Npc:Self 00C10004 00C10001 00000000 000F0043 ) % Aw, ickthpth!!! Bleah! That's the worst tasting fo ...
+				ExecWait  $GourmetGuyKillsMario
+				Return
   84C:  		Call  SetNpcAnimation   ( .Npc:Self 00C1000D )
   860:  	Case  ==  00000002
   86C:  		Thread
@@ -336,6 +341,40 @@
  1620:  End
 }
 
+#new:Script  $GourmetGuyKillsMario
+{
+		Wait  1`
+		Thread
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+			Call  SetNpcFlagBits    ( .Npc:Partner 00000100 .True )
+			Call  SetNpcSpeed       ( .Npc:Partner *Fixed[24.0] )
+			Call  NpcMoveTo ( .Npc:Partner 45` 113`  20` )
+		EndThread
+		Thread
+			Wait  3`
+			Call  SetNpcAnimation   ( .Npc:Self 00C1000B )
+			Wait  3`
+			Call  SetPlayerAnimation    ( 0008001F )
+			Wait  27`
+			Call  SetNpcAnimation   ( .Npc:Self 00C1000E )
+		EndThread	
+		Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+		Call  SetNpcJumpscale   ( .Npc:Self *Fixed[1.0] )
+		Add   *Var5  5`
+		Call  PlaySoundAtNpc    ( .Npc:Self 000003E7 00000000 )
+		Call  NpcJump0  ( .Npc:Self  *Var3  *Var4  *Var5  30` )
+		Call  PlaySoundAtNpc    ( .Npc:Self 000000DD 00000000 )
+		Call  PlaySoundAtNpc    ( .Npc:Self 000000E2 00000000 )
+		Call  PlaySoundAtNpc    ( .Npc:Self 000000F7 00000000 )
+		Call  FadeOutMusic      ( 00000000 00000024 )
+		Wait  100`
+		Call  GotoMap   ( "gv_01" 00000000 ) 
+		Wait  100`		
+		Return
+		End
+}
+
 
 @	$Script_Main_EnterWalk
 {
@@ -360,6 +399,7 @@
   1A0:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt1 7FFFFE00 )
   1B8:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt2 7FFFFE00 )
   1D0:  EndIf
+		Call  MakeItemEntity ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_OMO05_StarPiece )  %New hidden Star Piece to the left of Gourmet Guy
   1D8:  Set   *Var0  $Script_80242568
     0:  Call  GetLoadType   ( *Var1 )
    10:  If  *Var1  ==  00000001

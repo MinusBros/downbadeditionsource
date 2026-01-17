@@ -49,8 +49,6 @@
 
 
 
-
-
 %Monty Moles now have two different kinds of attacks.
 %They can throw either small rocks or big rocks.
 %The big rocks take longer to come out and do way
@@ -58,12 +56,27 @@
 
 @	$MontyMole
 {
-	[Level]        32`b
+	[Level]        38`b
 	[MaxHP]        20`b
 	[Coins]         3`b
 	[Item]         80`b
 	[AirLift]      25`b
 	[Hurricane]    15`b % Bow's "Spook" as well
+}
+
+
+		
+@	$Script_Init_80230840
+{
+    0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   18:  If  *Var0  ==  00000001
+   28:  	Call  SetPartScale  ( .Actor:Self 00000001 *Fixed[0.4] *Fixed[0.4] *Fixed[0.4] )
+   48:  EndIf
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $MontyMole 44` )
+		EndIf
+   50:  Return
+   58:  End
 }
 
 
@@ -249,19 +262,148 @@
 @	$Spike
 {
 	[Level]        90`b
-	[MaxHP]        90`b
+	[MaxHP]       101`b
 	[PowerBounce]   3`b
 }
 
+%New Jonathan buffs.
+%His primary attack will start out really slow and will
+%speed up as the fight progresses.
 
 @	$Script_Init_80231990
 {
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_802329E4 )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_802319DC )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80231A6C )
-		Call  SetActorVar   ( .Actor:Self 00000006 15` )
+		Call  SetActorVar   ( .Actor:Self 00000006 18` )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Spike 115` )
+		EndIf
    3C:  Return
    44:  End
+}
+
+
+@	$Script_HandleEvent_80231A6C
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   3C:  Switch  *Var0
+   48:  	CaseOR  ==  .Event:HitCombo % 9
+   54:  	CaseOR  ==  .Event:Hit % A
+   60:  		SetConst  *Var0  00000001
+   70:  		SetConst  *Var1  0010000A
+   80:  		ExecWait  DoNormalHit
+   8C:  	EndCaseGroup
+   94:  	Case  ==  .Event:BurnHit % E
+   A0:  		SetConst  *Var0  00000001
+   B0:  		SetConst  *Var1  0010000C
+   C0:  		SetConst  *Var2  0010000D
+   D0:  		ExecWait  DoBurnHit
+   DC:  	Case  ==  .Event:BurnDeath % 24
+   E8:  		SetConst  *Var0  00000001
+   F8:  		SetConst  *Var1  0010000C
+  108:  		SetConst  *Var2  0010000D
+  118:  		ExecWait  DoBurnHit
+  124:  		SetConst  *Var0  00000001
+  134:  		SetConst  *Var1  0010000D
+				Exec  $CheckRemainingTargets
+  144:  		ExecWait  DoDeath
+  150:  		Return
+  158:  	Case  ==  .Event:SpinSmashHit % B
+  164:  		SetConst  *Var0  00000001
+  174:  		SetConst  *Var1  0010000A
+  184:  		ExecWait  DoSpinSmashHit
+  190:  	Case  ==  .Event:SpinSmashDeath % 21
+  19C:  		SetConst  *Var0  00000001
+  1AC:  		SetConst  *Var1  0010000A
+  1BC:  		ExecWait  DoSpinSmashHit
+  1C8:  		SetConst  *Var0  00000001
+  1D8:  		SetConst  *Var1  0010000B
+				Exec  $CheckRemainingTargets
+  1E8:  		ExecWait  DoDeath
+  1F4:  		Return
+  1FC:  	Case  ==  .Event:ShockHit % 2F
+  208:  		SetConst  *Var0  00000001
+  218:  		SetConst  *Var1  0010000A
+  228:  		ExecWait  DoShockHit
+  234:  		SetConst  *Var0  00000001
+  244:  		SetConst  *Var1  0010000A
+  254:  		ExecWait  DoJumpBack
+  260:  		ExecWait  $Script_802319EC
+  26C:  	Case  ==  .Event:ShockDeath % 26
+  278:  		SetConst  *Var0  00000001
+  288:  		SetConst  *Var1  0010000A
+  298:  		ExecWait  DoShockHit
+  2A4:  		SetConst  *Var0  00000001
+  2B4:  		SetConst  *Var1  0010000B
+				Exec  $CheckRemainingTargets
+  2C4:  		ExecWait  DoDeath
+  2D0:  		Return
+  2D8:  	CaseOR  ==  00000017 % 17
+  2E4:  	CaseOR  ==  .Event:Immune % 19
+  2F0:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  2FC:  		SetConst  *Var0  00000001
+  30C:  		SetConst  *Var1  00100001
+  31C:  		ExecWait  DoImmune
+  328:  	EndCaseGroup
+  330:  	Case  ==  .Event:Death % 20
+  33C:  		SetConst  *Var0  00000001
+  34C:  		SetConst  *Var1  0010000A
+  35C:  		ExecWait  DoNormalHit
+  368:  		Wait  10`
+  374:  		SetConst  *Var0  00000001
+  384:  		SetConst  *Var1  0010000B
+				Exec  $CheckRemainingTargets
+  394:  		ExecWait  DoDeath
+  3A0:  		Return
+  3A8:  	Case  ==  .Event:BeginFirstStrike % 38
+  3B4:  		Call  SetActorPos       ( .Actor:Self  20`  0`  0` )
+  3D0:  		Call  HPBarToCurrent    ( .Actor:Self )
+  3E0:  	Case  ==  .Event:EndFirstStrike % 35
+  3EC:  		ExecWait  $Script_802319EC
+  3F8:  		Call  HPBarToHome   ( .Actor:Self )
+  408:  	Case  ==  .Event:RecoverStatus % 31
+  414:  		SetConst  *Var0  00000001
+  424:  		SetConst  *Var1  00100001
+  434:  		ExecWait  DoRecover
+  440:  	Case  ==  .Event:ScareAway % 39
+  44C:  		SetConst  *Var0  00000001
+  45C:  		SetConst  *Var1  00100003
+  46C:  		SetConst  *Var2  0010000A
+  47C:  		ExecWait  DoScareAway
+  488:  		Return
+  490:  	Case  ==  .Event:BeginAirLift % 3A
+  49C:  		SetConst  *Var0  00000001
+  4AC:  		SetConst  *Var1  0010000A
+  4BC:  		ExecWait  DoAirLift
+  4C8:  	Case  ==  .Event:BlowAway % 16
+  4D4:  		SetConst  *Var0  00000001
+  4E4:  		SetConst  *Var1  0010000A
+  4F4:  		ExecWait  DoBlowAway
+  500:  		Return
+  508:  	Default
+  510:  EndSwitch
+  518:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  52C:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  540:  Return
+  548:  End
+}
+
+#new:Script  $CheckRemainingTargets
+{
+  1A0:  Call  CountPlayerTargets    ( .Actor:Self 00008002 *Var0 )
+  1B8:  If  *Var0  ==  00000001 
+			Thread
+			Wait  5`
+			Call  SetMusicTrack ( 00000000 .Song:LakilesterTheme 00000002 00000008 ) 
+			Wait  212`
+			Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 ) 
+			EndThread
+  1DC:  EndIf
+	Return
+	End
 }
 
 %Jonathan will buff either his defense or attack
@@ -540,12 +682,12 @@
 
 @	$HuffNPuff
 {
-	[Level]       100`b
-	[MaxHP]       150`b
+	[Level]       120`b
+	[MaxHP]       164`b
 	[PowerBounce]   3`b
 }
 
-%Make him weak to love
+%Make him weak to love... and Throw
 
 @	$DefenseTable_80219A34
 {
@@ -554,13 +696,67 @@
 	.Element:Mystery 00000000
 	.Element:Jump   00000000
 	.Element:Hammer 00000000
+	.Element:Throw FFFFFFFF
 	.Element:Cosmic FFFFFFFE
 	.Element:End
 }
 
 
+@	$Script_BeforeBattle_80235134
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetCamBGColor     ( .Cam:Battle  0`  0`  0` )
+   2C:  Set   *Var0  0000000E
+   3C:  Exec  $Script_80234FE0
+   48:  Set   *Var0  00000010
+   58:  Exec  $Script_80234FE0
+   64:  Set   *Var0  00000012
+   74:  Exec  $Script_80234FE0
+   80:  Set   *Var0  00000014
+   90:  Exec  $Script_80234FE0
+   9C:  Set   *Var0  00000019
+   AC:  Exec  $Script_80234FE0
+   B8:  Thread
+   C0:  	Set   *Var0  0000001F
+   D0:  	Exec  $Script_80234FE0
+   DC:  	Set   *Var0  00000020
+   EC:  	Exec  $Script_80234FE0
+   F8:  	Wait  5`
+  104:  	Set   *Var0  00000000
+  114:  	Exec  $Script_80234FE0
+  120:  	Set   *Var0  00000001
+  130:  	Exec  $Script_80234FE0
+  13C:  	Wait  5`
+  148:  	Set   *Var0  00000005
+  158:  	Exec  $Script_80234FE0
+  164:  	Set   *Var0  00000004
+  174:  	Exec  $Script_80234FE0
+  180:  	Set   *Var0  00000006
+  190:  	Exec  $Script_80234FE0
+  19C:  	Wait  5`
+  1A8:  	Set   *Var0  00000021
+  1B8:  	Exec  $Script_80234FE0
+  1C4:  	Set   *Var0  00000022
+  1D4:  	Exec  $Script_80234FE0
+  1E0:  EndThread
+  1E8:  Call  CloneModel        ( ~Model:flo_bt04:o427 00002710 )
+  1FC:  Call  EnableModel       ( 00002710 .False )
+  210:  Call  TranslateModel    ( 00002710 00000000 00000009 00000000 )
+  22C:  Call  ParentColliderToModel ( ~Collider:flo_bt04:yuka 00002710 )
+  240:  ExecWait  $Script_80235100
+		Thread
+			Wait 30`
+			Exec  $MonitorPos
+		EndThread
+  24C:  Return
+  254:  End
+}
+
 @	$Script_Init_8022F780
 {
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $HuffNPuff 145` )
+		EndIf
     0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_802305E8 )
    14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8022FA10 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8022FE2C )
@@ -592,6 +788,45 @@
   278:  End
 }
 
+
+#new:Script  $MonitorPos
+{
+
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+	If    *LordofThunderTurn == .True
+		Add  *Var6  1`
+		If   *Var6  > 90`
+			Call  802D5FA4  ( 00000004 )
+		EndIf
+	EndIf
+	EndLoop
+	If    *LordofThunderTurn == .False
+		Set   *LordofThunderTurn .True
+		Exec  $ShowSong
+		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffBattle 00000000 00000008 ) 
+		Wait  40`
+	EndIf
+	Call  802D5FA4  ( 00000007 )
+	Return
+	End
+}
+
+#new:Script $ShowSong
+{
+	Call  ActorSpeak        ( 001F0077 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return 
+	End
+}
 
 @	$Script_Idle_8022FA10
 {
@@ -631,6 +866,10 @@
 
 @	$Script_TakeTurn_8021D2B8
 {
+		Kill  $MonitorPos
+		Call  802D5FA4  ( 00000007 )
+		Set   *LordofThunderTurn .True
+		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffBattle 00000000 00000008 ) 
     0:  Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
    18:  Switch  *Var0
    24:  	CaseOR  ==  00000004
@@ -740,6 +979,7 @@
 				Exec  $ShowMessage1
   564:  		ExecWait  $Script_GroupBodySlam
   570:  EndSwitch
+		Exec  $MonitorPos
   578:  Return
   580:  End
 }
@@ -1246,14 +1486,83 @@
   3AC:  Set   *Var0  00000001
   3BC:  Set   *Var1  007C0007
 		Thread
-			Wait  87`
+			Wait  83`
 			Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000001 00000008 ) %Huff N. Puff Battle end stinger (doesn't work on the regular song for some reason)
-			Wait  139`
+			Wait  155`
 			Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
 		EndThread
   3CC:  ExecWait  DoDeath
   3D8:  Return
   3E0:  End
+}
+
+
+%Apparently there is a clone of this script if he dies from fire/explosion
+@	$Script_8021B504
+{
+    0:  UseArray  $TuffPuffIDs
+    C:  Label  0
+   18:  Call  GetBattleFlags    ( *Var0 )
+   28:  If  *Var0  &  00000100
+   38:  	Wait  1`
+   44:  	Goto  0
+   50:  EndIf
+   58:  Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )
+   70:  If  *Var0  &  00000001
+   80:  	Call  DispatchEvent ( *Array[0] .Event:Death )
+   94:  EndIf
+   9C:  If  *Var0  &  00000002
+   AC:  	Call  DispatchEvent ( *Array[1] .Event:Death )
+   C0:  EndIf
+   C8:  If  *Var0  &  00000004
+   D8:  	Call  DispatchEvent ( *Array[2] .Event:Death )
+   EC:  EndIf
+   F4:  If  *Var0  &  00000008
+  104:  	Call  DispatchEvent ( *Array[3] .Event:Death )
+  118:  EndIf
+  120:  If  *Var0  &  00000010
+  130:  	Call  DispatchEvent ( *Array[4] .Event:Death )
+  144:  EndIf
+  14C:  If  *Var0  &  00000020
+  15C:  	Call  DispatchEvent ( *Array[5] .Event:Death )
+  170:  EndIf
+  178:  If  *Var0  &  00000040
+  188:  	Call  DispatchEvent ( *Array[6] .Event:Death )
+  19C:  EndIf
+  1A4:  If  *Var0  &  00000080
+  1B4:  	Call  DispatchEvent ( *Array[7] .Event:Death )
+  1C8:  EndIf
+  1D0:  If  *Var0  &  00000100
+  1E0:  	Call  DispatchEvent ( *Array[8] .Event:Death )
+  1F4:  EndIf
+  1FC:  If  *Var0  &  00000200
+  20C:  	Call  DispatchEvent ( *Array[9] .Event:Death )
+  220:  EndIf
+  228:  Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
+  240:  Switch  *Var0
+  24C:  	CaseOR  ==  00000004
+  258:  	CaseOR  ==  00000008
+  264:  	CaseOR  ==  0000000B
+  270:  		Call  GetActorVar   ( .Actor:Self 00000004 *Var0 )
+  288:  		Kill  *Var0
+  294:  		Call  GetActorVar   ( .Actor:Self 00000005 *Var0 )
+  2AC:  		Call  RemoveEffect  ( *Var0 )
+  2BC:  		Call  StopSound     ( 0000035C )
+  2CC:  	EndCaseGroup
+  2D4:  EndSwitch
+  2DC:  Call  SetAnimation  ( .Actor:Self 00000002 007C0027 )
+  2F4:  Call  SetAnimation  ( .Actor:Self 00000003 007C0028 )
+  30C:  Set   *Var0  00000001
+  31C:  Set   *Var1  007C0026
+		Thread
+			Wait  83`
+			Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000001 00000008 ) %Huff N. Puff Battle end stinger (doesn't work on the regular song for some reason)
+			Wait  155`
+			Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
+		EndThread
+  32C:  ExecWait  DoDeath
+  338:  Return
+  340:  End
 }
 
 

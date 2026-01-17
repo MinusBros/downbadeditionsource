@@ -1,3 +1,8 @@
+#define .Npc:Joseph       03
+#define .Npc:DeadJoseph   04
+
+#import AutoSave.mpat
+
 @	$Script_Interact_80240E90
 {
   [104]  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[8.0] )
@@ -48,6 +53,8 @@
    DC:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
    EC:  	Call  $Function_80240000 ( )
 		    Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+			Call  MakeNpcs  ( .False $NpcGroupList_Joseph )
+			Call $SetFlagCarryOverworldMusicToBattle()
    F8:  EndIf
   100:  Call  UseDoorSounds ( .DoorSounds:Large )
   110:  Exec  $Script_80240A58
@@ -69,7 +76,11 @@
    44:  	EndIf
    4C:  EndIf
 		If *Byte_Settings_Difficulty == 0` %Casual
-			Bind  $FilthyCasual .Trigger:WallPressA ~Collider:deilit2 00000001 00000000
+			If  *GB_StoryProgress  ==  .Story:Ch8_ReachedPeachsCastle
+				Bind  $FilthyCasual .Trigger:WallPressA ~Collider:deilit2 00000001 00000000
+			Else
+				Bind  $Script_ExitDoubleDoor_802409B4 .Trigger:WallPressA ~Collider:deilit2 00000001 00000000
+			EndIf
 		Else
    54:  	Bind  $Script_ExitDoubleDoor_802409B4 .Trigger:WallPressA ~Collider:deilit2 00000001 00000000
 		EndIf
@@ -101,4 +112,197 @@
 	Call  EnablePartnerAI ( )
 	Return
 	End
+}
+
+
+
+#new:Script $Script_Init_Joseph
+{
+		If  *GB_StoryProgress  !=  .Story:Ch8_ReachedPeachsCastle
+			Return
+		EndIf
+		If  *FoughtJoseph == .True
+			Return
+		EndIf
+   30:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_Joseph )
+		Call  BindNpcDefeat     ( .Npc:Self $Script_Defeat_Joseph )
+   58:  Return
+   60:  End
+}
+
+
+#new:Script $Script_Idle_Joseph
+{
+	Loop
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 ) 
+	If   *Var0  > 1130`
+		BreakLoop
+	EndIf
+	Wait  1`
+	EndLoop
+	Call  DisablePlayerInput    ( .True )
+	Call  SetNpcPos ( .Npc:Self  880`  110`  15` )
+	Call  FadeOutMusic  ( 00000000 000003E8 )
+	Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000005 001300D6 )  % Yo dude
+	Call  SetMusicTrack ( 00000000 .Song:SunTowerCloudy 00000000 00000008 )
+    Call  GetNpcPos      ( .Npc:Joseph *Var0 *Var1 *Var2 )
+	Add   *Var0  50`
+    Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+    Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+    Call  SetCamSpeed       ( .Cam:Default *Fixed[1.5] )
+    Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+	Call  SetCamDistance    ( .Cam:Default  390` )
+    Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+    Call  SetPlayerSpeed    ( *Fixed[5.0] )
+    Call  PlayerMoveTo     (  950`  0`  0` )
+	Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000000 001300D7 )  % It's me, Joseph
+	Call  DisablePartnerAI  ( 00000000 )
+
+	Call  GetCurrentPartnerID   ( *Var0 )
+	If  *Var0  ==  .Partner:Goombario % 2
+		Call  SpeakToNpc        ( .Npc:Partner 00010008 00010001 00000000 .Npc:Joseph 001300D8 )  %Goombarius says stand aside
+		Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000000 001300D9 )  % Nuh uh
+	EndIf
+	Wait  2`
+	Call  BringPartnerOut   ( .Partner:Kooper )
+    Wait  10`
+	Call  SpeakToNpc        ( .Npc:Partner 00020015 00020014 00000000 .Npc:Joseph 001300DD )  %Kooper says stand aside
+	Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000000 001300DE )  % Nuh uh
+	Call  SpeakToNpc        ( .Npc:Partner 0002000F 00020002 00000000 .Npc:Joseph 001300DF )
+	Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000000 001300E0 )  % Killing is what I must do
+	Call  PutPartnerAway ( )
+	Call  GetCurrentPartnerID   ( *Var0 )
+	If  *Var0  ==  .Partner:Goombario % 2
+		Call  SpeakToNpc        ( .Npc:Partner 00010018 00010017 00000000 .Npc:Joseph 001300DA )  %Goombarius stands firm
+		Call  InterpNpcYaw  ( .Npc:Self  270`  7` )
+		Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000005 001300DB )  % Maybe you're right
+		Call  InterpNpcYaw  ( .Npc:Self  90`  7` )
+	EndIf
+	Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000005 001300DC )  % 
+	Call  SetNpcAnimation   ( .Npc:Self 008F0116 )
+	Wait  2`
+	Call  PlaySound      ( 000020F3 )
+	Call  $ClearFlagCarryOverworldMusicToBattle()
+	Wait  18`
+	Call  StartBossBattle   ( .Song:StarHaven )
+    Call  DisablePlayerInput    ( .False )
+	Return
+	End
+}
+
+
+
+
+#new:Script $Script_Defeat_Joseph
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+				Call  DisablePlayerInput    ( .True )
+   28:  		Call  SetEncounterStatusFlags   ( 00000001 .False )
+   3C:  		Call  $SetFlagCarryOverworldMusicToBattle()
+				Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000002 00000008 )
+				Call  SetNpcAnimation   ( .Npc:Self 008F010C )
+				Wait  15`
+				Call  SetNpcAnimation   ( .Npc:Self 008F0102 )
+				Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000005 001300FC )  % Dang I lost
+				Wait  3`
+				Call  ShowMessageAtScreenPos    ( 001300F9  160`  40` ) % Joseph you have failed
+				Exec  $JosephShake
+				Wait  10`
+				Call  SpeakToPlayer ( .Npc:Self 008F0107 008F0102 00000005 001300FA )  % Forgive me, Lord Death
+				Kill  $JosephShake
+				Call  NpcFacePlayer ( .Npc:DeadJoseph 00000001 )
+ 11D8:  		Call  PlaySoundAtPlayer ( 00002127 00000000 )
+ 11EC: 			Call  GetNpcPos      ( .Npc:Joseph *Var0 *Var1 *Var2 )
+ 1214:  		Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+				Wait  6`
+				Call  SetNpcPos ( .Npc:Self    0`  -1000`  0` )
+				Call  SetNpcPos ( .Npc:DeadJoseph  *Var0 *Var1 *Var2 )
+				Wait  30`
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer ( .Npc:DeadJoseph 00530610 00530602 00000005 001300F7 )  % Yikes, I better get outta here
+				Call  InterpNpcYaw  ( .Npc:DeadJoseph  270`  7` )
+				Wait  5`
+				Call  NpcMoveTo     ( .Npc:DeadJoseph  700`  10`  32` )
+				Call  SetNpcPos ( .Npc:DeadJoseph  0` -1000` 0` )
+				Call  BringPartnerOut   ( .Partner:Kooper )
+				Wait  10`
+				Call  SpeakToNpc        ( .Npc:Partner 0002000D 00020003 00000000 .Npc:Joseph 001300F8 )  % You forgot your skin!
+				Call  SetPlayerAnimation    ( 00010029 )
+				Wait  12`
+				Call  SetPlayerAnimation    ( 00010002 )
+				Call  PutPartnerAway ( )
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If  *Var0  ==  .Partner:Goombario %
+					Wait  10`
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 001300FB )  % Joseph sucks
+					Call  SetPlayerAnimation    ( 00010012 )
+					Wait  20`
+					Call  SetPlayerAnimation    ( 00010002 )
+				EndIf
+				Call  SetMusicTrack ( 00000000 .Song:BowserAttacks 00000001 00000008 )
+				Call  EnablePartnerAI ( )
+				Call  DisablePlayerInput    ( .False )
+   7C:  		Thread
+   84:  			Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+					Exec  $AutoSave
+   98:  		EndThread				
+   48:  	Case  ==  .Outcome:PlayerLost % 1
+   54:  	Case  ==  .Outcome:PlayerFled % 2
+   60:  EndSwitch
+   68:  Return
+   70:  End
+}
+
+#new:Script  $JosephShake
+{
+	Wait  5`
+	Loop
+		Call  GetNpcPos      ( .Npc:Joseph *Var0 *Var1 *Var2 )
+		Add   *Var0  1`
+		Call  SetNpcPos      ( .Npc:Joseph *Var0 *Var1 *Var2 )
+		Wait  2`
+		Call  GetNpcPos      ( .Npc:Joseph *Var0 *Var1 *Var2 )
+		Sub   *Var0  1`
+		Call  SetNpcPos      ( .Npc:Joseph *Var0 *Var1 *Var2 )
+		Wait  2`
+	EndLoop
+	Return
+	End
+}
+
+#new:NpcSettings $NpcSettings_Joseph
+{
+	00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+#new:NpcGroupList	$NpcGroupList_Joseph
+{
+	00000001 $Joseph  26070000
+	00000001 $DeadJoseph 00000000
+	00000000 00000000 00000000
+}
+
+#new:NpcGroup $Joseph
+{
+	.Npc:Joseph $NpcSettings_Joseph ~Vec3f:Joseph
+	00840505 $Script_Init_Joseph 00000000 00000000 00000000
+	~NoDrops
+	~Movement:Joseph
+	~AnimationTable:Joseph
+	00000000 00000000 00000000 00000000 
+	%%%%%%%%
+
+}
+
+#new:NpcGroup  $DeadJoseph
+{
+	.Npc:DeadJoseph $NpcSettings_Joseph ~Vec3f:DeadJoseph
+	00840505 00000000 00000000 00000000 00000000
+	~NoDrops
+	~Movement:DeadJoseph
+	~AnimationTable:DeadJoseph
+	00000000 00000000 00000000 00000000 
 }

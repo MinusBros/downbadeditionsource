@@ -1,0 +1,251 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000003 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]The trap in this room is[BR]
+still functional. That[BR]
+rotating platform in the[BR]
+center looks slippery.[BR]
+[Wait][Next]
+Better be careful, or else[BR]
+we could end up in that...[BR]
+[Pause 21]uh...[Pause 21] green goop.[BR]
+[Wait][Next]
+Come to think of it, that[BR]
+green liquid is all over the[BR]
+place. What is that stuff?![BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1
+~Vec4f:Entry2
+}
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou Depths
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+		ExecWait $Script_MakeEntities
+   Exec     $Script_RotateThatBlade
+   Exec     $Script_SandFlow
+	Call     ModifyColliderFlags ( 00000003 ~Collider:lava 00000002 )
+   Thread
+	Call     ResetFromLava 	( $Demo_LavaResetList )
+   EndThread
+   Wait 00000009
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+	
+	#new:Script $Script_SandFlow
+{
+	Call     EnableTexPanning 	( ~Model:lavamodel .True )
+	Set      *Var[0] 00000000 
+	Loop     
+		Add      *Var[0] 100`  
+		Call     802C9364 ( 00000001 00000000 00000000 *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+	
+#new:LavaResetList $Demo_LavaResetList
+{
+~Collider:lavaN ~Vec3f:lavaN
+~Collider:lavaE ~Vec3f:lavaE
+~Collider:lavaS ~Vec3f:lavaS
+~Collider:lavaW ~Vec3f:lavaW
+FFFFFFFF 00000000 00000000 00000000
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity       	( .Entity:HiddenPanel ~Vec4d:starpiecepanel ~Model:panelmodel 80000000 )
+	Call     AssignPanelFlag 	( *GF_DNJ06_StarPiece )
+	Return
+	End
+}
+
+#new:Script $Script_RotateThatBlade
+{
+    Exec     $Script_RotationProceed 
+    Return
+    End
+}
+
+#new:Script $Script_RotationProceed
+{
+Call	ParentColliderToModel 	( ~Collider:blade  ~Model:blade   )
+Call	ParentColliderToModel 	( ~Collider:center ~Model:center )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( ~Model:center 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[1.0] 
+   54:  Call     $Function_80240800 ( )
+    Call     RotateModel 	( ~Model:center *Var[0] 00000000 00000001 00000000 )
+   	Call     RotateModel 	( ~Model:blade  *Var[0] 00000000 00000001 00000000 )
+	Call	UpdateColliderTransform	( ~Collider:center )
+	Call	UpdateColliderTransform	( ~Collider:blade )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[1.0] 
+  118:  Loop     00000032 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+    Call     RotateModel 	( ~Model:center *Var[0] 00000000 00000001 00000000 )
+   	Call     RotateModel 	( ~Model:blade  *Var[0] 00000000 00000001 00000000 )
+	Call	UpdateColliderTransform	( ~Collider:center )
+	Call	UpdateColliderTransform	( ~Collider:blade )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000032 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+    Call     RotateModel 	( ~Model:center *Var[0] 00000000 00000001 00000000 )
+   	Call     RotateModel 	( ~Model:blade  *Var[0] 00000000 00000001 00000000 )
+	Call	UpdateColliderTransform	( ~Collider:center )
+	Call	UpdateColliderTransform	( ~Collider:blade )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+}
+ 
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:exit2 00000001 00000000
+	Bind     $Script_Exit2  .Trigger:FloorAbove ~Collider:exit3 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_05" 00000001 )
+	Wait     00000064 
+	Return
+	End	
+}
+	
+	#new:Script $Script_Exit1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	%Call     GotoMap     	( "kmr_48" 00000001 )
+	Wait     00000064 
+	Return
+	End
+}
+
+	#new:Script $Script_Exit2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000002 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	%Call     GotoMap     	( "dnj_07" 00000000 )
+	Wait     00000064 
+	Return
+	End	
+}
+
+	#new:Function $Function_80240800
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  LUI       A1, FE36
+   10:  SW        RA, 14 (SP)
+   14:  JAL       ~Func:get_float_variable
+   18:  ORI       A1, A1, 3C80
+   1C:  MOV.S     F2, F0
+   20:  LAD       F4, $ConstDouble_80247940
+   28:  CVT.D.S   F0, F2
+   2C:  C.LE.D    F4, F0
+   30:  NOP
+   34:  BC1F      .o44
+   38:  DADDU     A0, S0, R0
+   3C:  SUB.D     F0, F0, F4
+   40:  CVT.S.D   F2, F0
+        .o44
+   44:  LUI       A1, FE36
+   48:  MFC1      A2, F2
+   4C:  JAL       ~Func:set_float_variable
+   50:  ORI       A1, A1, 3C80
+   54:  LW        RA, 14 (SP)
+   58:  LW        S0, 10 (SP)
+   5C:  ADDIU     V0, R0, 2
+   60:  JR        RA
+   64:  ADDIU     SP, SP, 18
+}
+   
+   #new:ConstDouble $ConstDouble_80247940
+{
+	360.000000d
+}

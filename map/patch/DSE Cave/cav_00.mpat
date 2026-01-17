@@ -1,0 +1,176 @@
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000004
+[Background] 80200000
+[MapTattle]   $Function_GetTattle 
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]Woah. I never knew there[BR]
+was a cave below Toad Town.[BR]
+[WAIT][NEXT]I wonder how big it is...[BR]
+[WAIT][END]
+}
+
+#import EnterViaPipe.mpat
+#import ExitViaPipe.mpat
+
+#new:Script $Script_UseBluePipe1
+{
+	%Call     GotoMap	( "cav_12" 2 )
+	Wait     00000064 
+	Return
+	End
+}
+
+#new:Script $Script_UseBluePipe2
+{
+	%Call     GotoMap	( "tem_00" 2 )
+	Wait     00000064 
+	Return
+	End
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+~Vec4f:Entry3
+}
+
+#new:Script $Script_SetMusic
+{
+%Call     SetMusicTrack 	( 00000000 .Song:CaveTheme 00000000 00000008 ) %New music maybe
+Return
+End
+}
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec     $Script_SetMusic 
+%entry 0 = side pipe
+%entry 1 = loading zone
+%entry 2 = town shortcut pipe
+%entry 2 = temple shortcut pipe
+Call 	 MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:PipeLoc ~Entry:Entry2 $Script_UseBluePipe1 000001D6 80000000 )	%*GF_CAV12_PipeB
+Call 	 MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:PipeLoc2 ~Entry:Entry3 $Script_UseBluePipe2 0000064A 80000000 )	%*GF_TEM_PipeA
+Call     GetEntryID  	( *Var[0] )
+Switch *Var0
+	Case == 00000000
+		Set		*Var[A] $Script_MakeExits 
+		Set 	*Var[B] ~Collider:o89
+		Exec $Script_EnterHorizontalPipe %the script executes the script in *Var[A]
+	Case == 00000001
+		Set		*Var[0] $Script_MakeExits 
+		Exec EnterWalk
+	Case == 00000002
+		If  *GF_CAV12_PipeB ==  00000000 
+			Call     DisablePlayerInput 	( .True )
+			Call     DisablePlayerPhysics 	( .True )
+			Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     SetPlayerPos 	( *Var[0] FFFFFC18 *Var[2] )
+			Wait     0000001E 
+			Call     PlaySound   	( 0000208E )
+			Set      *GF_CAV12_PipeB 00000001 
+			Wait     0000001E 
+			Call     802D10D8 		( 00000000 )
+			Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     DisablePlayerPhysics 	( .False )
+			Call     DisablePlayerInput 	( .False )
+		EndIf
+		Set *Var[A] $Script_MakeExits
+		Exec $Script_EnterVerticalPipe
+	Case == 00000003
+		If  *GF_TEM_PipeA ==  00000000 
+			Call     DisablePlayerInput 	( .True )
+			Call     DisablePlayerPhysics 	( .True )
+			Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     SetPlayerPos 	( *Var[0] FFFFFC18 *Var[2] )
+			Wait     0000001E 
+			Call     PlaySound   	( 0000208E )
+			Set      *GF_TEM_PipeA 00000001 
+			Wait     0000001E 
+			Call     802D10D8 		( 00000000 )
+			Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     DisablePlayerPhysics 	( .False )
+			Call     DisablePlayerInput 	( .False )
+		EndIf
+		Set *Var[A] $Script_MakeExits
+		Exec $Script_EnterVerticalPipe		
+EndSwitch
+Return
+End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_ExitViaPipe .Trigger:WallPush ~Collider:o89 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:lz 00000001 00000000
+	Return
+    End
+}
+	
+#new:Script $Script_ExitViaPipe %$Script_802445CC
+{
+	0:  SetGroup 0000001B 
+		Set *Var[A] 00000000 		%entry id
+		Set *Var[B] ~Collider:o89	%collider id
+		Set *Var[C]	$Script_Entry0 	%script
+   3C:  ExecWait $Script_HorizontalPipe 
+   48:  Return
+   50:  End
+}
+   
+#new:Script $Script_Entry0
+{
+		%Call     GotoMap     	( "tik_26" 00000001 ) 
+   14:  Wait     00000064 
+   20:  Return
+   28:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+		%Call     GotoMap     	( "cav_01" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}

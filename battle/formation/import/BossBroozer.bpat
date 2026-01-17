@@ -15,7 +15,7 @@
 #new:Actor $BossBroozer {
 % stats
 [Index]        9Fb 
-[Level]        40`b 
+[Level]        52`b 
 [MaxHP]        50`b 
 [Coins]         2`b 
 [Flags]       00000000 
@@ -140,6 +140,9 @@
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_Broozer )
    14:  Call  BindIdle          ( .Actor:Self $Script_Idle_Broozer )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_Broozer )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $BossBroozer 69` )
+		EndIf
    3C:  Return
    44:  End
 }
@@ -214,6 +217,7 @@
   254:  		ExecWait  DoJumpBack 
   260:  		SetConst  *Var0  .part_broozer
   270:  		SetConst  *Var1  00EC0002 
+				Exec  $MonitorPos
   280:  		ExecWait  DoReturnHome 
   28C:  	Case  ==  .Event:ShockDeath % 26
   298:  		SetConst  *Var0  .part_broozer
@@ -272,6 +276,30 @@
 }
 
 
+%If idle long enough, change to thinking variation
+#new:Script  $MonitorPos
+{
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		If   *Var6  > 100`
+			Call  802D5FA4  ( 00000004 )
+		EndIf
+	EndLoop
+	Call  802D5FA4  ( 00000007 )
+	Return
+	End
+}
+
 #new:Script  $EndingStinger
 {
 	Call  SetMusicTrack ( 00000000 .Song:Kazuya 00000001 00000008 )  %Ending stinger
@@ -284,17 +312,21 @@
 #new:Script $Script_TakeTurn_Broozer {
     Call UseIdleAnimation  ( .Actor:Self .False )
     Call EnableIdleScript  ( .Actor:Self .False )
-
+	Kill  $MonitorPos
+	Wait  2`
+	Call  802D5FA4  ( 00000007 )
     % Randomize Broozer attack
     Call RandInt ( 100` *Var0 )
     If *Var0 < 50`
         % The intent of this attack is that he basically runs over Mario, off screen and appears on the other side where goes back to his position
         ExecWait $Script_AttackPunch_Broozer
+		Exec  $MonitorPos
         610:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
         624:  Call  UseIdleAnimation  ( .Actor:Self .True )
     Else
         % Punches barrel at you, if you block it, GREAT! If you fail, 2 damage and it knocks your partner out for two turns
         ExecWait $Script_AttackBarrel_Broozer
+		Exec  $MonitorPos
         610:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
         624:  Call  UseIdleAnimation  ( .Actor:Self .True )
     EndIf
@@ -308,7 +340,6 @@
         % Broozer is safe
         Call  SetActorVar  ( .Actor:Self .avar_counter .False )
     EndIf
-
     Call EnableIdleScript  ( .Actor:Self .True )
     Call UseIdleAnimation  ( .Actor:Self .True )
     Return
@@ -358,8 +389,7 @@
         Call  RunToGoal         ( .Actor:Self 0` .False )
         Call SetAnimation       ( .Actor:Self .part_broozer 00EC0003)
         Wait  25`
-        Call  YieldTurn ( )
-        
+        Exec  $MonitorPos
         Return
       EndCaseGroup
     EndSwitch
@@ -385,7 +415,6 @@
     Call  RunToGoal         ( .Actor:Self 0` .False )
     Call SetAnimation       ( .Actor:Self .part_broozer .anim_broozer_idle)
     Wait  5`
-    Call  YieldTurn ( )
 
     Return
     End

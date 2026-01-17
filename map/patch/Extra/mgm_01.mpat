@@ -1,0 +1,210 @@
+#define .NpcID:Toad_00              00
+
+@	$Script_Interact_802424F4
+{
+    0:  Call  GetSelfVar    ( 00000001 *Var0 )
+   14:  If  *Var0  ==  00000000
+   24:  	Call  SetSelfVar    ( 00000001 00000001 )
+   38:  EndIf
+   40:  Call  GetSelfVar    ( 00000002 *Var0 )
+   54:  If  *Var0  ==  FFFFFFFF
+   64:  	If  *GF_MGM_Met_JumpAttack  ==  .False
+   74:  		Call  $Function_80241780 ( )
+   80:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008002D ) % Greetings, my good man! This is the floor for Jump ...
+   A0:  		Set   *GF_MGM_Met_JumpAttack  .True
+   B0:  	Else
+   B8:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008002E ) % Welcome! You need ten coins to play. How about it? ...
+   D8:  	EndIf
+   E0:  	Call  ShowCoinCounter   ( .True )
+   F0:  	Call  $Function_802416CC ( )
+   FC:  	If  *VarA  <  0000000A
+  10C:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080039 ) % ...Mario, you don't have ten coins. You can't play ...
+  12C:  		Call  $Function_80241760 ( )
+  138:  		Wait  12`
+  144:  		Exec  $Script_802424D8
+  150:  		Call  GotoMap   ( $ASCII_80243614 00000002 ) % mgm_00
+  164:  		Wait  100`
+  170:  		Return
+  178:  	EndIf
+  180:  	Call  ShowChoice    ( 001E004E ) % 5-Block Option 7-Block Option 9-Block Option Don't ...
+  190:  	If  *Var0  ==  00000003
+  1A0:  		Call  $Function_80241760 ( )
+  1AC:  		Wait  5`
+  1B8:  		Call  ContinueSpeech    ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080032 ) % Whatever suits you. Come again sometime! See you.
+  1D8:  		Exec  $Script_802424D8
+  1E4:  		Call  GotoMap   ( $ASCII_80243614 00000002 ) % mgm_00
+  1F8:  		Wait  100`
+  204:  		Return
+  20C:  	EndIf
+  214:  	Call  GetSelfVar    ( 00000006 *Var1 )
+  228:  	If  *Var1  <  00000064
+  238:  		Add   *Var1  00000001
+  248:  		Call  SetSelfVar    ( 00000006 *Var1 )
+  25C:  	EndIf
+  264:  	Thread
+  26C:  		Call  $Function_MonitorGame ( )
+  278:  	EndThread
+  280:  	Switch  *Var0
+  28C:  		Case  ==  00000000
+  298:  			Call  SetNpcVar ( .NpcID:Toad_00 00000004 00000004 )
+  2B0:  			Call  ContinueSpeech    ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008002F ) % Try to hit five blocks. Get ready to... JUMP... AT ...
+  2D0:  		Case  ==  00000001
+  2DC:  			Call  SetNpcVar ( .NpcID:Toad_00 00000004 00000006 )
+  2F4:  			Call  ContinueSpeech    ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080030 ) % Try to hit seven blocks. Get ready to... JUMP... A ...
+  314:  		Case  ==  00000002
+  320:  			Call  SetNpcVar ( .NpcID:Toad_00 00000004 00000008 )
+  338:  			Call  ContinueSpeech    ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080031 ) % Try to hit nine blocks. Get ready to... JUMP... AT ...
+  358:  		Case  ==  00000003
+  364:  	EndSwitch
+			Call  SetMusicTrack ( 00000000 .Song:Minigame 00000000 00000008 )
+  36C:  	Call  $Function_80241760 ( )
+  378:  	Call  EndSpeech ( .NpcID:Toad_00 00830E04 00830E01 00000005 )
+  394:  	Wait  5`
+  3A0:  	Call  $Function_80241234 ( )
+  3AC:  	Wait  10`
+  3B8:  	Call  EndSpeech ( .NpcID:Toad_00 00830E04 00830E01 00000005 )
+  3E8:  	Wait  10`
+  3F4:  	Call  EndSpeech ( .NpcID:Toad_00 00830E04 00830E01 00000005 )
+  410:  	Call  $Function_802403FC ( )
+  41C:  	Call  SetNpcVar ( .NpcID:Toad_00 00000003 FFFFFFFF )
+  434:  	Call  SetNpcVar ( .NpcID:Toad_00 00000002 00000000 )
+  44C:  	Wait  1`
+  458:  Else
+  460:  	Call  $Function_802416F8 ( )
+  46C:  	Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080033 ) % Get jumping, Mario! You need to hit more block.
+  48C:  EndIf
+  494:  Return
+  49C:  End
+}
+
+
+
+@	$Script_80241C4C
+{
+    0:  Label  0
+    C:  Set   *VarA  00000000
+   1C:  Set   *VarB  00000000
+   2C:  Call  GetNpcVar ( .NpcID:Toad_00 00000004 *VarC )
+   44:  Loop  0000000B
+   50:  	Call  $Function_8024045C    ( *VarA )
+   60:  	Switch  *Var0
+   6C:  		Case  ==  00000000
+   78:  			Call  EnableModel   ( *Var1 .False )
+   8C:  			Call  $Function_8024050C    ( *VarA 00000001 )
+   A0:  		Case  ==  00000002
+   AC:  			Call  DisablePlayerInput    ( .True )
+   BC:  			Call  $Function_8024058C    ( *VarA )
+   CC:  			Call  EnableModel   ( *Var1 .True )
+   E0:  			Call  $Function_8024050C    ( *VarA 00000003 )
+   F4:  		Case  ==  00000004
+  100:  			If  *Var2  !=  00000003
+  110:  				If  *Var3  <  *VarC
+  120:  					Call  DisablePlayerInput    ( .False )
+  130:  				EndIf
+  138:  			EndIf
+  140:  			Call  $Function_802407E4    ( *VarA )
+  150:  			Call  $Function_8024050C    ( *VarA 00000005 )
+  164:  		Case  ==  00000006
+  170:  			Call  $Function_802408EC    ( *VarA )
+  180:  			Call  $Function_8024050C    ( *VarA 00000007 )
+  194:  		Case  ==  00000008
+  1A0:  			Call  $Function_80240BF4    ( *VarA )
+  1B0:  			Call  $Function_8024050C    ( *VarA 00000009 )
+  1C4:  	EndSwitch
+  1CC:  	Switch  *Var0
+  1D8:  		Case  ==  00000003
+  1E4:  			Call  $Function_802406C4    ( *VarA )
+  1F4:  			If  *Var3  ==  00000001
+  204:  				Call  $Function_8024050C    ( *VarA 00000004 )
+  218:  			EndIf
+  220:  		Case  ==  00000005
+  22C:  			Call  $Function_8024084C    ( *VarA )
+  23C:  			If  *Var3  ==  00000001
+  24C:  				Call  $Function_8024050C    ( *VarA 00000006 )
+  260:  			EndIf
+  268:  		Case  ==  00000007
+  274:  			Call  $Function_80240AAC    ( *VarA )
+  284:  			If  *Var3  ==  00000001
+  294:  				Call  $Function_8024050C    ( *VarA 00000008 )
+  2A8:  			EndIf
+  2B0:  		Case  ==  00000009
+  2BC:  			If  *Var2  ==  00000003
+  2CC:  				Set   *VarB  00000001
+  2DC:  			Else
+  2E4:  				If  *Var3  ==  *VarC
+  2F4:  					Set   *VarB  00000002
+  304:  				EndIf
+  30C:  			EndIf
+  314:  	EndSwitch
+  31C:  	If  *Var0  >=  00000002
+  32C:  		Call  $Function_80240ECC    ( *VarA )
+  33C:  		Call  TranslateModel    ( *Var1 *Var5 *Var6 *Var7 )
+  358:  		Call  RotateModel       ( *Var1 *Var8 *Fixed[0.0] *Fixed[1.0] *Fixed[0.0] )
+  378:  		Call  ScaleModel        ( *Var1 *Var9 *Var9 *Fixed[1.0] )
+  394:  	EndIf
+  39C:  	Add   *VarA  00000001
+  3AC:  EndLoop
+  3B4:  If  *VarB  !=  00000000
+  3C4:  	Goto  63
+  3D0:  EndIf
+  3D8:  Wait  1`
+  3E4:  Goto  0
+  3F0:  Label  63
+  3FC:  Call  $Function_80240438 ( )
+  430:  Switch  *VarB
+  43C:  	Case  ==  00000001
+				Call  SetMusicTrack ( 00000000 .Song:Fail 00000000 00000008 )
+  448:  		Call  PlaySoundWithVolume   ( 00002017 00000000 )
+  45C:  		Wait  10`
+  468:  		Call  PlaySoundWithVolume   ( 00002017 00000000 )
+  47C:  		Wait  10`
+  488:  		Call  $Function_80240DB8 ( )
+  494:  		Call  TranslateModel        ( *Var1 *Var5 *Var6 *Var7 )
+  4B0:  		Wait  15`
+  4BC:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080034 ) % Oops... Bummer! Game over. Too bad. Better luck ne ...
+  4DC:  	Case  ==  00000002
+  4E8:  		Switch  *VarC
+  4F4:  			Case  ==  00000004
+						Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
+  500:  				Call  $Function_CalculateScore ( )
+  50C:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080035 ) % 5-Blocks Option cleared! You get coins!
+  52C:  			Case  ==  00000006
+						Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
+  538:  				Call  $Function_CalculateScore ( )
+  544:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080036 ) % 7-Blocks Option cleared! You get coins!
+  564:  			Case  ==  00000008
+						Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
+  570:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080037 ) % Wow! Yeah! 9-Blocks Option cleared! As a special b ...
+  590:  				Call  $Function_80240D84 ( )
+  59C:  				Call  PlaySoundWithVolume   ( 000003FC 00000000 )
+  5B0:  				Wait  30`
+  5BC:  				Call  $Function_CalculateScore ( )
+  5C8:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080038 ) % You get coins!!
+  5E8:  		EndSwitch
+  5F0:  		Call  ShowCoinCounter   ( .True )
+  600:  		Wait  10`
+  60C:  		Call  $Function_80240CD0 ( )
+  618:  		Wait  15`
+  624:  		Call  ShowCoinCounter   ( .False )
+  634:  		Wait  5`
+  640:  		Call  SpeakToPlayer     ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008003A ) % Come again sometime!
+  660:  EndSwitch
+  668:  Wait  10`
+  674:  Call  $Function_80240F90 ( )
+  680:  Exec  $Script_80242470
+  68C:  Wait  1`
+  698:  Call  DisablePlayerInput    ( .False )
+  6A8:  Goto  0
+  6B4:  Return
+  6BC:  End
+}
+
+@	$NpcGroup_80242A38
+{
+	.NpcID:Toad_00 $NpcSettings_80241A70 ~Vec3f:NPC_Toad_00 % 0 0 -20
+	00002D01 $Script_Init_80242998 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_00
+	~AnimationTable:NPC_Toad_00 % .Sprite:Toad
+	00000000 00000000 00000000 001A0061 % This Toad both explains and judges the Playroom ga ...
+}

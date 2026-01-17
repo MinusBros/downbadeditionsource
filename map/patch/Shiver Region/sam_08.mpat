@@ -1,8 +1,237 @@
+
+#define .NpcID:WorldKooper_00       00
+#define .NpcID:WorldKooper_01       01
+#define .NpcID:Duplighost_02        02
+#define .NpcID:WorldKooper_03       03
+#define .NpcID:WorldKooper_04       04
+#define .NpcID:WorldClubba_05       05
+#define .NpcID:WorldClubba_06       06
+
 %The miniboss against the Duplighost keeps the music going instead of interrupting it.
+%This doesn't really matter now thanks to Rain's carry over music patch
+
+@	$Script_Main_EnterWalk
+{
+   [10]  Call  SetSpriteShading  ( .Shading:mim_01 )
+}
 
 @	$Script_Idle_802425DC
 {
    [50]  Call  StartBossBattle   ( .Song:ShiverMountain )
+}
+
+@	 $Script_Interact_802424E4
+{
+    0:  Call  SpeakToPlayer ( .Npc:Self 0002000F 00020002 00000000 0012012B ) % I'm not worried... You and I go way back, Mario. I ...
+   20:  Return
+   28:  End
+}
+
+@	$Script_Interact_80242560
+{
+    0:  Call  SpeakToPlayer ( .Npc:Self 00020019 00020018 00000000 0012012A ) % Don't listen to this idiot! Look at him! He's a li ...
+   20:  Return
+   28:  End
+}
+
+@	$Script_80243A18
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  ModifyColliderFlags   ( 00000001 ~Collider:o47 7FFFFE00 )
+   28:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o47 00008000 )
+   40:  Thread
+   48:  	Call  EnableModel   ( ~Model:m1_kabe .True )
+   5C:  	Call  PlaySoundAtCollider   ( ~Collider:m1_kabe 0000039B 00000000 )
+   74:  	Call  MakeLerp  ( FFFFFF88 00000000 0000003C .Easing:CosInOut )
+   90:  	Label  0
+   9C:  	Call  UpdateLerp ( )
+   A8:  	Call  TranslateGroup        ( ~Model:move1 00000000 *Var0 00000000 )
+   C4:  	Call  UpdateColliderTransform   ( ~Collider:m1_kabe )
+   D4:  	Wait  1`
+   E0:  	If  *Var1  ==  00000001
+   F0:  		Goto  0
+   FC:  	EndIf
+  104:  EndThread
+  10C:  Call  SetNpcFlagBits    ( .Npc:Partner 00000002 .True )
+  124:  Call  SetNpcFlagBits    ( .NpcID:WorldKooper_00 00000100 .True )
+  13C:  Call  SetNpcFlagBits    ( .NpcID:WorldKooper_01 00000100 .True )
+  154:  Call  EnableNpcShadow   ( .Npc:Partner .False )
+  168:  Call  GetNpcPos ( .Npc:Partner *Var2 *Var3 *Var4 )
+  184:  Call  GetPlayerPos      ( *Var5 *Var6 *Var7 )
+  19C:  Thread
+  1A4:  	Call  SetNpcPos ( .NpcID:WorldKooper_00 *Var2 *Var3 *Var4 )
+  1C0:  	Sub   *Var5  0000001E
+  1D0:  	Call  MakeLerp  ( *Var2 *Var5 00000014 .Easing:QuadraticOut )
+  1EC:  	Label  1
+  1F8:  	Call  UpdateLerp ( )
+  204:  	Call  SetNpcPos ( .NpcID:WorldKooper_00 *Var0 *Var3 *Var4 )
+  220:  	Wait  1`
+  22C:  	If  *Var1  ==  00000001
+  23C:  		Goto  1
+  248:  	EndIf
+  250:  EndThread
+  258:  Call  SetNpcPos ( .NpcID:WorldKooper_01 *Var2 *Var3 *Var4 )
+  274:  Sub   *Var5  0000003C
+  284:  Call  MakeLerp  ( *Var2 *Var5 00000014 .Easing:QuadraticOut )
+  2A0:  Label  2
+  2AC:  Call  UpdateLerp ( )
+  2B8:  Call  SetNpcPos ( .NpcID:WorldKooper_01 *Var0 *Var3 *Var4 )
+  2D4:  Wait  1`
+  2E0:  If  *Var1  ==  00000001
+  2F0:  	Goto  2
+  2FC:  EndIf
+  304:  Call  InterpPlayerYaw   (  270`  0` )
+  318:  Wait  60`
+  324:  Call  DisablePartnerAI  ( 00000000 )
+  334:  Call  SetNpcPos ( .Npc:Partner  0`  -1000`  0` )
+  350:  Call  SetNpcFlagBits    ( .Npc:Partner 00000004 .True )
+  368:  Call  SetNpcAnimation   ( .NpcID:WorldKooper_00 00020003 )
+  37C:  Call  SetNpcAnimation   ( .NpcID:WorldKooper_01 00020003 )
+  390:  Call  InterpNpcYaw      ( .NpcID:WorldKooper_00  270`  0` )
+  3A8:  Call  InterpNpcYaw      ( .NpcID:WorldKooper_01  90`  0` )
+  3C0:  Wait  9`
+  3CC:  Call  PlaySoundAtNpc    ( .NpcID:WorldKooper_01 00000263 00000000 )
+  3E4:  Call  ShowEmote ( .NpcID:WorldKooper_01 .Emote:Question  45`  20` .True  0`  0`  0`  0` )
+  414:  Wait  9`
+  420:  Call  PlaySoundAtNpc    ( .NpcID:WorldKooper_00 00000263 00000000 )
+  438:  Call  ShowEmote ( .NpcID:WorldKooper_00 .Emote:Question  0`  20` .True  0`  0`  0`  0` )
+  468:  Wait  9`
+  474:  Call  PlaySoundAtPlayer ( 00000263 00000000 )
+  488:  Call  ShowEmote ( .NpcID:WorldKooper_00 .Emote:Question  -45`  20` .False  0`  0`  0`  0` )
+  4B8:  Wait  9`
+  4C4:  Call  PlaySoundAtNpc    ( .NpcID:WorldKooper_01 00000263 00000000 )
+  4DC:  Call  ShowEmote ( .NpcID:WorldKooper_01 .Emote:Question  45`  20` .True  0`  0`  0`  0` )
+  50C:  Wait  9`
+  518:  Call  PlaySoundAtNpc    ( .NpcID:WorldKooper_00 00000263 00000000 )
+  530:  Call  ShowEmote ( .NpcID:WorldKooper_00 .Emote:Question  0`  20` .True  0`  0`  0`  0` )
+  560:  Call  SpeakToPlayer     ( .NpcID:WorldKooper_00 00020003 00020003 00000005 0012011F ) % Mmm??
+  580:  Thread
+  588:  	Call  SetNpcAnimation   ( .NpcID:WorldKooper_00 00020006 )
+  59C:  	Call  SetNpcJumpscale   ( .NpcID:WorldKooper_00 *Fixed[1.0] )
+  5B0:  	Call  NpcJump1  ( .NpcID:WorldKooper_00  -1062`  -120`  -37` 0000000F )
+  5D0:  	Call  SetNpcAnimation   ( .NpcID:WorldKooper_00 00020003 )
+  5E4:  EndThread
+  5EC:  Thread
+  5F4:  	Call  SetNpcAnimation   ( .NpcID:WorldKooper_01 00020006 )
+  608:  	Call  SetNpcJumpscale   ( .NpcID:WorldKooper_01 *Fixed[1.0] )
+  61C:  	Call  NpcJump1  ( .NpcID:WorldKooper_01  -1172`  -120`  -37` 0000000F )
+  63C:  	Call  SetNpcAnimation   ( .NpcID:WorldKooper_01 00020003 )
+  650:  EndThread
+  658:  Wait  5`
+  664:  Call  ShowMessageAtScreenPos    ( 00120120  160`  40` ) % Nooo!!
+  67C:  Wait  20`
+				Call  PushSong  ( 00000082 00000000 )
+ 16BC: 			Wait  3`
+ 16C8:  		Call  ShowMessageAtScreenPos    ( 0012020B  160`  40` ) % Goombario joined your party!! Press to have him te ...
+				Thread
+    0:  			Call  FadeOutMusic  ( 00000000 000001F4 )
+					Wait  15`
+   20:  			Call  PopSong ( )
+				EndThread		
+  688:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+  69C:  Call  GetNpcPos     ( .NpcID:WorldKooper_00 *Var1 *Var2 *Var3 )
+  6B8:  Call  GetPlayerPos  ( *Var4 *Var5 *Var6 )
+  6D0:  Add   *Var1  *Var4
+  6E0:  Add   *Var2  *Var5
+  6F0:  Add   *Var3  *Var6
+  700:  DivF  *Var1  *Fixed[2.0]
+  710:  DivF  *Var2  *Fixed[2.0]
+  720:  DivF  *Var3  *Fixed[2.0]
+  730:  Call  UseSettingsFrom   ( .Cam:Default *Var1 *Var2 *Var3 )
+  74C:  Call  SetPanTarget  ( .Cam:Default *Var1 *Var2 *Var3 )
+  768:  Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
+  77C:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-8.0] )
+  794:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  7A8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  7C0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  7D4:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_00 .False )
+  7E8:  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 00020016 00020017 00000000 00120121 ) % What's wrong with my eyes? You look just like me!  ...
+  808:  Call  GetNpcPos     ( .NpcID:WorldKooper_01 *Var7 *Var8 *Var9 )
+  824:  Add   *Var7  *Var4
+  834:  Add   *Var8  *Var5
+  844:  Add   *Var9  *Var6
+  854:  DivF  *Var7  *Fixed[2.0]
+  864:  DivF  *Var8  *Fixed[2.0]
+  874:  DivF  *Var9  *Fixed[2.0]
+  884:  Call  SetPanTarget  ( .Cam:Default *Var7 *Var8 *Var9 )
+  8A0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )
+  8B4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  8C8:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_01 .False )
+  8DC:  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 0002000E 00020003 00000000 00120122 ) % I'm Kooper... Yeah, that's it. The question is, wh ...
+  8FC:  Call  SetPanTarget  ( .Cam:Default *Var1 *Var2 *Var3 )
+  918:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  92C:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_00 .False )
+  940:  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000E 00020003 00000000 00120123 ) % Wha... Wha... Whaaat!? That's impossible! I'm the  ...
+  960:  Call  SetPanTarget  ( .Cam:Default *Var7 *Var8 *Var9 )
+  97C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  990:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_01 .False )
+  9A4:  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 00120124 ) % You're talking crazy-talk now. You're making no se ...
+  9C4:  Call  SetPanTarget  ( .Cam:Default *Var1 *Var2 *Var3 )
+  9E0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  9F4:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_00 .False )
+  A08:  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000E 00020017 00000000 00120125 ) % I'm not lying! Mario...you know I'm Kooper, don't  ...
+  A28:  Call  SetPanTarget  ( .Cam:Default *Var7 *Var8 *Var9 )
+  A44:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  A58:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_01 .False )
+  A6C:  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020015 00020014 00000000 00120126 ) % Shut your mouth, goody-goody! I'm his buddy! Yeah, ...
+  A8C:  Call  SetPanTarget  ( .Cam:Default *Var1 *Var2 *Var3 )
+  AA8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  ABC:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_00 .False )
+  AD0:  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000F 00020002 00000000 00120127 ) % Why you... You're the one who should shut his mout ...
+  AF0:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  B08:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  B24:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  B40:  Call  SetCamDistance    ( .Cam:Default *Fixed[400.0] )
+  B54:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  B68:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  B80:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  B94:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_01 .False )
+  BA8:  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 00120128 ) % Listen, Moron...er, Mario, you have to decide who' ...
+  BC8:  Call  PlayerFaceNpc ( .NpcID:WorldKooper_00 .False )
+  BDC:  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000F 00020002 00000000 00120129 ) % Fine! Yeah, fine with me! If you think you'll get  ...
+  BFC:  Call  SetNpcFlagBits    ( .NpcID:WorldKooper_00 00000100 .False )
+  C14:  Call  SetNpcFlagBits    ( .NpcID:WorldKooper_01 00000100 .False )
+  C2C:  Call  DisablePlayerInput        ( .False )
+  C3C:  Call  SetPlayerFlagBits ( 000000C0 .True )
+  C50:  Unbind
+  C58:  Return
+  C60:  End
+}
+
+
+@	$Script_80244680
+{
+   [10]  Call  SetNpcAnimation   ( .NpcID:WorldKooper_00 0002000C )
+   [24]  Wait  6`
+   [30]  Call  SetNpcAnimation   ( .NpcID:WorldKooper_00 00020014 )
+  [1D0]  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  [210]  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 00020015 00020014 00000000 0012012C ) % Ow! Unbelievable! You don't even recognize me?
+  [2F8]  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )
+  [334]  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 0012012D ) % Baaa ha ha ha ha! You simpleton, Mario! I complete ...
+  [444]  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 00020015 00020014 00000000 0012012E ) % You deceitful monster! How dare you try to trick M ...
+  [554]  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 0012012F ) % What're you gonna do about it?
+ [122C]  	Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000E 00020017 00000000 00120125 ) % I'm not lying! Mario...you know I'm Kooper, don't  ...
+ [12A4]  	Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 00120124 ) % You're talking crazy-talk now. You're making no se ...
+ [1308]  	Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000F 00020002 00000000 00120127 ) % Why you... You're the one who should shut his mout ...
+ [136C]  	Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020015 00020014 00000000 00120126 ) % Shut your mouth, goody-goody! I'm his buddy! Yeah, ...
+ [1444]  	Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000F 00020002 00000000 00120129 ) % Fine! Yeah, fine with me! If you think you'll get  ...
+ [1478]  	Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 00120128 ) % Listen, Moron...er, Mario, you have to decide who' ...
+ [1558]  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 00120124 ) % You're talking crazy-talk now. You're making no se ...
+ [15D0]  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000E 00020017 00000000 00120125 ) % I'm not lying! Mario...you know I'm Kooper, don't  ...
+ [1634]  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020015 00020014 00000000 00120126 ) % Shut your mouth, goody-goody! I'm his buddy! Yeah, ...
+ [1698]  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000F 00020002 00000000 00120127 ) % Why you... You're the one who should shut his mout ...
+ [1770]  Call  SpeakToPlayer ( .NpcID:WorldKooper_01 00020019 00020018 00000000 00120128 ) % Listen, Moron...er, Mario, you have to decide who' ...
+ [17A4]  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 0002000F 00020002 00000000 00120129 ) % Fine! Yeah, fine with me! If you think you'll get  ...
+}
+
+@	$Script_80245EB0
+{
+   [8C]  Call  SetCamSpeed       ( .Cam:Default *Fixed[3.0] )
+   [CC]  Wait  9`
+  [360]  Call  SpeakToPlayer ( .NpcID:Duplighost_02 004E0005 004E0002 00000000 00120130 ) % Yeeeow! What made you think that I was the one lyi ...
+  [3BC]  Call  SpeakToPlayer ( .NpcID:WorldKooper_00 00020015 00020014 00000005 00120131 ) % Don't be such a crybaby! You lost! What were you t ...
+  [3DC]  Wait  5`
+  [3E8]  Call  SpeakToPlayer ( .NpcID:Duplighost_02 004E0005 004E0002 00000000 00120132 ) % What? Shut up! I'll trick YOU...
 }
 
 %That White Clubba is a whole lot faster now.

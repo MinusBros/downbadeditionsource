@@ -24,6 +24,13 @@
 #define .NpcID:HarryT_29            1D
 #define .NpcID:VannaT_30            1E
 
+
+
+@ $Header
+{
+[EntryCount]  00000009 
+}
+
 @ $EntryList
 {
 ~Vec4f:Entry0 % -387.0    0.0 -460.0  125.0
@@ -37,8 +44,6 @@
 ~Vec4f:Entry8 %underneath the dojo stairs
 }
 
-%WIP for now, but have an NPC that sells you a Return Pipe for 100 coins.
-%It can be used during most parts of the game to warp to Kinoko Town.
 
 
 #define .Npc:PipeSalesman 00000030
@@ -229,10 +234,13 @@ Still, it's quite useful.[BR]
 [Pause 10]Take good care of it.[Wait][End]
 }
 
+%Change trading quest
+@	$Script_Interact_8024C08C
+{
+  [210]  		Set   *Var0  000000D3 %Magic Cookie
+}
 
-
-
-
+%Give shop 7 items
 @	$Script_Init_8024A368
 {
     0:  Switch  *GB_StoryProgress
@@ -282,6 +290,34 @@ Still, it's quite useful.[BR]
 	~Short:Model:shouhin7 ~Short:Collider:mono7
 }
 
+%Kind of a hacky way of doing this, but it works.
+%Change shopkeeper's message if it's in post-Chapter 7 state.
+
+#new:IntTable  $IntTable_DarkDialogue
+{
+	00270000 00270001 00270002 00270003 002700D3 00270005 00270006 00270007
+	00270008 00270009 0027000A 0027000B 0027000C 0027000D 0027000E 0027000F
+	00270010 00270011 00270012 00270013 00270014 00270015 00270016
+}
+
+#new:ShopOwnerNPC $ShopOwnerNPC_DarkKinokoTown
+{
+	00000001 00880001 00880004 $Script_8024E320 00000000 00000000 $IntTable_DarkDialogue
+}
+
+
+@	$Script_8024E3A8
+{
+    0:  Call  MakeShop      ( $ShopItemPositions_8024E374 $ShopInventory_8024E26C $ShopPriceList_8024E2C0 00010000 )
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+   1C:  		Call  MakeShopOwner ( $ShopOwnerNPC_DarkKinokoTown )
+			Default
+				Call  MakeShopOwner ( $ShopOwnerNPC_8024E38C )
+		EndSwitch
+   2C:  Return
+   34:  End
+}
 
 
 @	$Script_Interact_802509A4
@@ -293,6 +329,78 @@ Still, it's quite useful.[BR]
 {
   [22C]  Call  SpeakToPlayer ( .Npc:Self 00830604 00830601 00000000 *Var0 ) % variable string ID
 }
+
+
+
+%The couple
+@	$Script_Interact_80250128
+{
+    0:  Switch  *GB_StoryProgress
+   64:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   70:  		Set   *Var0  000200B3
+   80:  		Set   *Var1  000200B4
+			    Set   *Var2  0002012D  %Goombarius dialogue
+			    Set   *Var3  00010018  %Talking anim
+			    Set   *Var4  00010017  %Idle anim
+   90:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   D4:  		Set   *Var0  000200B7
+   E4:  		Set   *Var1  000200B8
+			    Set   *Var2  00020134  %Goombarius dialogue
+			    Set   *Var3  00010008  %Talking anim
+			    Set   *Var4  00010012  %Idle anim
+   FC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+  108:  		Set   *Var0  000200B9
+  118:  		Set   *Var1  000200BA
+			    Set   *Var2  0002012E  %Goombarius dialogue
+			    Set   *Var3  0001000C  %Talking anim
+			    Set   *Var4  0001000B  %Idle anim
+  128:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  144:  		Set   *Var0  000200BB
+  154:  		Set   *Var1  000200BC
+			    Set   *Var2  0002012F  %Goombarius dialogue
+			    Set   *Var3  0001000C  %Talking anim
+			    Set   *Var4  0001000B  %Idle anim
+  200:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  20C:  		Set   *Var0  000200C3
+  21C:  		Set   *Var1  000200C4
+			    Set   *Var2  00020130  %Goombarius dialogue
+			    Set   *Var3  0001000F  %Talking anim
+			    Set   *Var4  0001000E  %Idle anim
+  258:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  264:  		Set   *Var0  000200C7
+  274:  		Set   *Var1  000200C8
+			    Set   *Var2  00020131  %Goombarius dialogue
+			    Set   *Var3  00010011  %Talking anim
+			    Set   *Var4  00010012  %Idle anim
+  2B0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  2BC:  		Set   *Var0  000200CB
+  2CC:  		Set   *Var1  000200CC
+			    Set   *Var2  00020132  %Goombarius dialogue
+			    Set   *Var3  0001000C  %Talking anim
+			    Set   *Var4  0001000B  %Idle anim
+  2DC:  	Case  <  .Story:Epilogue % 60
+  2E8:  		Set   *Var0  000200CD
+  2F8:  		Set   *Var1  000200CE
+			    Set   *Var2  00020133  %Goombarius dialogue
+			    Set   *Var3  00010018  %Talking anim
+			    Set   *Var4  00010017  %Idle anim
+  308:  	Case  >=  .Story:Epilogue % 60
+  314:  		Set   *Var0  00010030
+  324:  		Set   *Var1  00010031
+  334:  EndSwitch
+  33C:  Call  SpeakToPlayer ( .NpcID:Toad_10 00830204 00830201 00000005 *Var0 ) % variable string ID
+  35C:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_11 00840104 00840101 00000005 *Var1 ) % variable string ID
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If    *Var0 == .Partner:Goombario
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToPlayer ( .Npc:Partner *Var3 *Var4 00000005 *Var2 )
+			Call  EnablePartnerAI ( )
+		EndIf
+  37C:  Return
+  384:  End
+}
+
+
 
 
 %Goombarius tries to hit on the ladies
@@ -377,19 +485,19 @@ Still, it's quite useful.[BR]
   458:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840704 00840701 00000000 *Var1 ) % variable string ID
   478:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840304 00840301 00000000 *Var2 ) % variable string ID
 		Call  GetCurrentPartnerID   ( *Var0 )
-  540:  If  *Var0  ==  .Partner:Goombario % 2
+		If  *Var0  ==  .Partner:Goombario % 2
 				Wait  4`
-  570:  		Call  DisablePartnerAI  ( 00000000 )
-  580:  		Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 00020120 ) % 
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 00020120 ) % 
 				Call  SetNpcAnimation   ( .Npc:Partner 00010013 )
-  438:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840608 00840608 00000000 00020121 ) 
-				Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
-  458:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840708 00840708 00000000 00020121 ) 
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_12 00840608 00840608 00000000 00020121 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 0001001C )
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_13 00840708 00840708 00000000 00020121 ) 
 				Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
-  478:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840308 00840308 00000000 00020121 ) 
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_14 00840308 00840308 00000000 00020121 ) 
 				Call  SpeakToPlayer    ( .Npc:Partner 0001000B 0001000B 00000005 00020121 ) % 
-  5EC:  		Call  EnablePartnerAI ( )
-  600:  EndIf
+				Call  EnablePartnerAI ( )
+		EndIf
   498:  Return
   4A0:  End
 }
@@ -417,10 +525,76 @@ Still, it's quite useful.[BR]
 
 
 
-@ $Header
+%This guy will comment on your dojo rank and if Goombarius is out,
+%he will comment on what this guy says.
+
+@	$Script_Interact_80250D10
 {
-[EntryCount]  00000009 
+    0:  Call  FindKeyItem   ( .Item:FirstDegreeCard *Var1 )
+   14:  Call  FindKeyItem   ( .Item:SecondDegreeCard *Var2 )
+   28:  Call  FindKeyItem   ( .Item:ThirdDegreeCard *Var3 )
+   3C:  Call  FindKeyItem   ( .Item:FourthDegreeCard *Var4 )
+   50:  Call  FindKeyItem   ( .Item:Diploma *Var5 )
+		Call  GetCurrentPartnerID   ( *Var0 )
+   64:  If  *Var1  !=  FFFFFFFF
+   74:  	Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00020114 ) % Hey, that's... a First-Degree Card! I have one, to ...
+			If  *Var0  ==  .Partner:Goombario % 2
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 00010008 0001001B 00000005 0002013B ) %
+				Call  EnablePartnerAI ( )
+			EndIf
+   94:  	Return
+   9C:  EndIf
+   A4:  If  *Var2  !=  FFFFFFFF
+   B4:  	Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00020115 ) % Hey, that's... a Second-Degree Card? Whoa! Cool! Y ...
+			If  *Var0  ==  .Partner:Goombario % 2
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 00010008 0001001B 00000005 0002013C ) %
+				Call  EnablePartnerAI ( )
+			EndIf
+   D4:  	Return
+   DC:  EndIf
+   E4:  If  *Var3  !=  FFFFFFFF
+   F4:  	Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00020116 ) % Hey, that's... a Third-Degree Card? Whoa! Wow! Who ...
+			If  *Var0  ==  .Partner:Goombario % 2
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 00010008 0001001B 00000005 0002013D ) %
+				Call  EnablePartnerAI ( )
+			EndIf
+  114:  	Return
+  11C:  EndIf
+  124:  If  *Var4  !=  FFFFFFFF
+  134:  	Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00020117 ) % Hey, that's... a Fourth-Degree Card! Whoa! Amazing ...
+			If  *Var0  ==  .Partner:Goombario % 2
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 00010008 0001001B 00000005 0002013E ) % 
+				Call  EnablePartnerAI ( )
+			EndIf
+  154:  	Return
+  15C:  EndIf
+  164:  If  *Var5  !=  FFFFFFFF
+  174:  	Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00020118 ) % Whoa! Can it be? That's... a Diploma??? Whooooopee ...
+			If  *Var0  ==  .Partner:Goombario % 2
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 0001000C 0001000B 00000005 0002013F ) % Tired anim
+				Call  EnablePartnerAI ( )
+			EndIf
+  194:  	Return
+  19C:  EndIf
+  1A4:  Call  SpeakToPlayer ( .Npc:Self 00830304 00830301 00000000 00020113 ) % Oh?...Ha ha ha! You don't have it? The Degree, Mar ...
+		If  *Var0  ==  .Partner:Goombario % 2
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToPlayer    ( .Npc:Partner 00010018 00010017 00000005 0002013A ) % Ruuuuude!
+			Call  EnablePartnerAI ( )
+		EndIf
+  1C4:  Return
+  1CC:  End
 }
+
+
+
+
+
 
 
 @	$Script_Init_80249684
@@ -447,7 +621,6 @@ Still, it's quite useful.[BR]
    38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
 			%spawn indestructible block
 			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 ) %this is a stone block to prevent access to the endgame zone too early. Might change to metal block later
-				%also theres a 3 koopatrol encounter on the other side		<--	no
 			Call     AssignScript 	( $Script_SmashBlockInfinite )
    48:  	Return
    50:  EndIf
@@ -506,7 +679,7 @@ Still, it's quite useful.[BR]
 				EndIf
    5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
    6C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
    88:  	Default
    90:  		Exec  $Script_8024E420
@@ -575,11 +748,15 @@ Still, it's quite useful.[BR]
 	End
 }
 
+%There's a lot of precautionary things set up on load for this map
+%as it is where you go after using the Return Pipe.
 
 @	$Script_Main
 {
+		Set  *DidDojoFight  0`    %Fix Master dialogue and music
+		Call $ClearFlagCarryOverworldMusicToBattle()   %Fix battle music not working
     0:  Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Exec  $DarknessFollow
    88:  	Default
 				Call  EnableGroup   ( ~Model:darkness .False )
@@ -653,9 +830,56 @@ Still, it's quite useful.[BR]
 			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 )
 			Call     AssignScript 	( $Script_SmashBlock )
 		EndIf	
+		Exec  $AutoSaveCheck
   40C:  Return
   414:  End
 }
+
+@	$Script_EnterWalk_80244D74
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80244CD4
+   38:  	Return
+   40:  EndIf
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	CaseOR  ==  ~Entry:Entry3
+   28:  	CaseOR  ==  ~Entry:Entry4
+   34:  		Set   *VarA  $Script_80244CD4
+   44:  		Exec  $Script_80243D40
+   50:  	EndCaseGroup
+   58:  	Case  ==  ~Entry:Entry5
+   64:  		Exec  $Script_80253508
+   70:  	Case  ==  ~Entry:Entry7
+   7C:  		ExecWait  $Script_80255688
+   88:  		Exec  $Script_80244CD4
+   94:  	Default
+   9C:  		Set   *Var0  $Script_80244CD4
+   AC:  		Exec  EnterWalk
+   B8:  EndSwitch
+   C0:  Return
+   C8:  End
+}
+
+#import AutoSave.mpat
+
+#new:Script  $AutoSaveCheck
+{
+	Label 0
+	Wait  1`
+	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+	If  *Var1 == 115`
+		Wait  15`
+		Exec  $AutoSave
+	Else
+		Goto  0
+	EndIf
+	Return
+	End
+}
+
 
 %Move final Master to a separate Battle Formation.
 
@@ -664,14 +888,81 @@ Still, it's quite useful.[BR]
 	00000300 00000301 00000302 00000303 00000404 %Fifth slot is final Master
 }
 
+#new:Script  $FindDojoRank
+{
+    0:  Call  FindKeyItem   ( .Item:FirstDegreeCard *Var1 )
+   14:  Call  FindKeyItem   ( .Item:SecondDegreeCard *Var2 )
+   28:  Call  FindKeyItem   ( .Item:ThirdDegreeCard *Var3 )
+   3C:  Call  FindKeyItem   ( .Item:FourthDegreeCard *Var4 )
+   50:  Call  FindKeyItem   ( .Item:Diploma *Var5 )
+		Return
+		End
+}
 
-%Chan and Lee start with Popple's theme,
-%shared with Jr. Troopa
+%Give Chan and Lee more dialogue
+
+@	$Script_Interact_8024AA04
+{
+    0:  If  *GB_StoryProgress  <  .Story:Ch0_TwinkGaveLuckyStar % FFFFFF98
+   10:  	Set   *Var0  00020016
+   20:  Else
+   28:  	Set   *Var0  0002001C
+   38:  EndIf
+		ExecWait  $FindDojoRank
+   64:  If  *Var1  !=  FFFFFFFF
+			Set   *Var0  00020127
+   9C:  EndIf
+   A4:  If  *Var2  !=  FFFFFFFF
+			Set   *Var0  00020128
+   DC:  EndIf
+   E4:  If  *Var3  !=  FFFFFFFF
+			Set   *Var0  00020129
+  11C:  EndIf
+  124:  If  *Var4  !=  FFFFFFFF
+			Set   *Var0  0002012A
+  15C:  EndIf
+  164:  If  *Var5  !=  FFFFFFFF
+			Set   *Var0  0002012B
+  19C:  EndIf
+   40:  Call  SpeakToPlayer ( .Npc:Self 00A40006 00A40002 00000000 *Var0 ) % variable string ID
+   60:  Return
+   68:  End
+}
+
+@	$Script_Interact_8024A644
+{
+    0:  If  *GB_StoryProgress  <  .Story:Ch0_TwinkGaveLuckyStar % FFFFFF98
+   10:  	Set   *Var0  00020015
+   20:  Else
+   28:  	Set   *Var0  0002001B
+   38:  EndIf
+		ExecWait  $FindDojoRank
+   64:  If  *Var1  !=  FFFFFFFF
+			Set   *Var0  00020122
+   9C:  EndIf
+   A4:  If  *Var2  !=  FFFFFFFF
+			Set   *Var0  00020123
+   DC:  EndIf
+   E4:  If  *Var3  !=  FFFFFFFF
+			Set   *Var0  00020124
+  11C:  EndIf
+  124:  If  *Var4  !=  FFFFFFFF
+			Set   *Var0  00020125
+  15C:  EndIf
+  164:  If  *Var5  !=  FFFFFFFF
+			Set   *Var0  00020126
+  19C:  EndIf
+   40:  Call  SpeakToPlayer ( .Npc:Self 00A30004 00A30001 00000000 *Var0 ) % variable string ID
+   60:  Return
+   68:  End
+}
 
 
 @	$Script_NpcAI_8024A6B4
 {
    [44]  Wait  3`
+   [80]  	Call  PlayerMoveTo      (  348`  -364`  10` )
+  [114]  Call  NpcMoveTo ( .Npc:Self  380`  -400`  15` )
   [174]  Wait  20`
   [18C]  Call  StartBattleWith   ( .Song:Kazuya )
 }
@@ -680,8 +971,200 @@ Still, it's quite useful.[BR]
 @	$Script_NpcAI_8024AA74
 {
    [44]  Wait  3`
+   [80]  	Call  PlayerMoveTo      (  348`  -364`  10` )
+  [114]  Call  NpcMoveTo ( .Npc:Self  380`  -400`  15` )
   [174]  Wait  10`
   [18C]  Call  StartBattleWith   ( .Song:Kazuya )
+}
+
+
+#new:Function $Function_SongVariation
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+@	$Script_8024B1DC
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  If  *GF_MAC00_Met_TheMaster  ==  .False
+   20:  	Set   *GF_MAC00_Met_TheMaster  .True
+			If  *GB_StoryProgress  <  .Story:Ch8_StarShipActivated
+   30:  		Set   *Var0  00020017
+			Else
+				Set   *Var0  00020135  %This dialogue is only ever possible to see if you never touch the dojo before starting Chapter 8
+			EndIf
+   40:  Else
+ 			If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+   30:  		Set   *Var0  00020018
+			Else
+				Set   *Var0  00020137  %His dialogue is more serious if in a post-Chapter 7 state
+			EndIf
+   58:  EndIf
+		If   *DidDojoFight == 1`
+			Set   *Var0  00020136   %If you've already done a dojo battle, have something different to say
+		EndIf
+   60:  Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 *Var0 ) % variable string ID
+   80:  Call  ShowChoice    ( 001E0016 ) % Try Only drop in
+   90:  If  *Var0  ==  00000001
+			If  *GB_MAC00_DojoRank  >  00000001
+				Call  ContinueSpeech        ( 00000003 00A20009 00A20002 00000000 00020138 ) % Afraid of Shisho are we?
+			Else
+				Call  ContinueSpeech        ( 00000003 00A20009 00A20002 00000000 00020019 ) % Very well. Please feel free to observe our trainin ...
+			EndIf
+   C0:  	Call  DisablePlayerInput    ( .False )
+   D0:  	Return
+   D8:  EndIf
+   E0:  If  *GB_MAC00_DojoRank  >  00000004
+   F0:  	Call  ContinueSpeech        ( 00000003 00A20009 00A20002 00000000 00020043 ) % Cough cough... Mario, you have already proven your ...
+  110:  	Call  DisablePlayerInput    ( .False )
+  120:  	Return
+  128:  EndIf
+		If *Byte_Settings_Difficulty == 0` %Casual difficulty
+			Call  ContinueSpeech    ( 00000003 00A20009 00A20002 00000000 00020139 ) % I won't battle you on casual difficulty
+			Call  DisablePlayerInput    ( .False )
+			Return
+		EndIf
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0
+		Call	$Function_SaveItems ( )
+  130:  Call  SetSelfVar    ( 00000002 00000001 )
+  144:  Wait  1`
+  150:  Switch  *GB_MAC00_DojoRank
+  15C:  	Case  ==  00000000
+  168:  		Call  BindNpcDefeat ( 00000004 $Script_Defeat_8024A85C )
+  17C:  		Call  BindNpcAI ( 00000004 $Script_NpcAI_8024A6B4 )
+  190:  		Call  DisablePlayerInput    ( .False )
+  1A0:  		Return
+  1A8:  	Case  ==  00000001
+  1B4:  		Call  BindNpcDefeat ( 00000005 $Script_Defeat_8024AC1C )
+  1C8:  		Call  BindNpcAI ( 00000005 $Script_NpcAI_8024AA74 )
+  1DC:  		Call  DisablePlayerInput    ( .False )
+  1EC:  		Return
+  1F4:  	Case  ==  00000002
+  200:  		Set   *Var1  0002002B
+  210:  	Case  ==  00000003
+  21C:  		Set   *Var1  0002002C
+  22C:  	Case  ==  00000004
+  238:  		Set   *Var1  0002002D
+  248:  EndSwitch
+  250:  Call  ContinueSpeech    ( 00000003 00A20009 00A20002 00000000 *Var1 ) % variable string ID
+  270:  Wait  10`
+  27C:  Call  SetNpcFlagBits    ( 00000003 00000100 .True )
+  294:  Thread
+  29C:  	Call  802D2C14      ( 00000001 )
+  2AC:  	Call  PlayerMoveTo  (  348`  -364`  20` )
+  2C4:  	Call  InterpPlayerYaw   (  20`  0` )
+  2D8:  	Wait  20`
+  2E4:  	Call  802D2C14      ( 00000000 )
+  2F4:  EndThread
+  2FC:  Call  NpcMoveTo     ( .Npc:Self  375`  -400`  30` )
+  318:  Call  InterpNpcYaw  ( 00000003  225`  0` )
+		Wait  5`
+  33C:  Call  SetNpcFlagBits    ( 00000003 00000100 .False )
+  354:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_8024B164 )
+  368:  Wait  1`
+  374:  Call  $Function_80242178 ( )
+  380:  If  *GB_MAC00_DojoRank  <  00000002
+  390:  	Call  StartBattle ( )
+  39C:  Else
+  3A4:  	Call  StartBattleWith   ( .Song:MasterBattle )
+  3B4:  EndIf
+  3BC:  Call  DisablePlayerInput    ( .False )
+  3CC:  Return
+  3D4:  End
+}
+
+
+
+
+@	$Script_Idle_8024ADA4
+{
+    0:  Label  0
+    C:  Call  SetSelfVar    ( 00000000 00000000 )
+   20:  Call  SetSelfVar    ( 00000002 00000000 )
+   34:  Loop
+   40:  	Call  GetSelfVar    ( 00000002 *Var0 )
+   54:  	If  *Var0  !=  00000000
+   64:  		BreakLoop
+   6C:  	EndIf
+   74:  	Wait  1`
+   80:  EndLoop
+   88:  Call  DisablePlayerInput    ( .True )
+   98:  Loop
+   A4:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   B8:  	If  *Var0  !=  00000000
+   C8:  		BreakLoop
+   D0:  	EndIf
+   D8:  	Wait  1`
+   E4:  EndLoop
+   EC:  Call  GetSelfVar    ( 00000001 *Var0 )
+  100:  Switch  *Var0
+  10C:  	Case  ==  00000001
+  118:  		Call  $Function_80242224 ( )
+				Call	$Function_LoadItems ( )
+				Set *DidDojoFight 1`
+  124:  		Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020042 ) % Hm... You lack strength. You have skill, though. P ...
+				Call  FullyRestoreHPandFP ( )
+				Call  FullyRestoreSP ( )
+				Set *Var0 .True
+				Set     *Byte_Settings_BGM *Var0
+  144:  	Case  ==  00000002
+  150:  		Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020140 ) % You ran away
+				Set *DidDojoFight 1`
+				Call	$Function_LoadItems ( )
+				Call  FullyRestoreHPandFP ( )
+				Call  FullyRestoreSP ( )
+				Set *Var0 .True
+				Set     *Byte_Settings_BGM *Var0
+  170:  	Case  ==  00000000
+  17C:  		Switch  *GB_MAC00_DojoRank
+  188:  			Case  ==  00000000
+  194:  				Set   *Var1  00020023
+  1A4:  				Set   *Var0  0000000A
+  1B4:  				Set   *Var2  0000000A
+  1C4:  			Case  ==  00000001
+  1D0:  				Set   *Var1  0002002A
+  1E0:  				Set   *Var0  0000000B
+  1F0:  				Set   *Var2  0000000A
+  200:  			Case  ==  00000002
+  20C:  				Set   *Var1  0002003E
+  21C:  				Set   *Var0  0000000C
+  22C:  				Set   *Var2  0000000B
+  23C:  			Case  ==  00000003
+  248:  				Set   *Var1  0002003F
+  258:  				Set   *Var0  0000000D
+  268:  				Set   *Var2  0000000C
+  278:  			Case  ==  00000004
+  284:  				Set   *Var1  00020040
+  294:  				Set   *Var0  0000000E
+  2A4:  				Set   *Var2  0000000D
+  2B4:  		EndSwitch
+  2BC:  		Add   *GB_MAC00_DojoRank  00000001
+  2CC:  		Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 *Var1 ) % variable string ID
+  2EC:  		Call  FindKeyItem   ( *Var2 *Var1 )
+  300:  		If  *Var1  !=  FFFFFFFF
+  310:  			Call  RemoveKeyItemAt   ( *Var1 )
+  320:  		EndIf
+  328:  		Set   *Var1  00000001
+  338:  		ExecWait  $Script_80245DC4
+  344:  		Call  AddKeyItem    ( *Var0 )
+				Set *DidDojoFight 1`
+  354:  		If  *GB_MAC00_DojoRank  <  00000005
+  364:  			Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020041 ) % You are welcome to train here with us anytime. Cou ...
+  384:  		EndIf
+  38C:  EndSwitch
+  394:  Call  DisablePlayerInput    ( .False )
+  3A4:  Goto  0
+  3B0:  Return
+  3B8:  End
 }
 
 
@@ -748,6 +1231,10 @@ Still, it's quite useful.[BR]
 					If *ShopState == 00000001
 						Set *ShopState 00000000
 						Call  PopSong ( )
+					EndIf
+					If *DidDojoFight == 00000001
+						Set   *DidDojoFight  0`
+						Exec  $Script_80243C20
 					EndIf
 				EndIf
    7C:  EndSwitch

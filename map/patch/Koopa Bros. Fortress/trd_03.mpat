@@ -21,21 +21,21 @@
   128:  EndThread
   130:  Wait  5`
   13C:  Call  SetNpcAnimation   ( .NpcID:KoopaBros_00 00660304 )
-  150:  Wait  10`
+  150:  Wait  5`
   15C:  Call  InterpNpcYaw      ( .NpcID:KoopaBros_00  90`  0` )
   174:  Wait  3`
   180:  Call  SetNpcAnimation   ( .NpcID:KoopaBros_00 00660303 )
-  194:  Call  SetNpcSpeed       ( .NpcID:KoopaBros_00 *Fixed[2.6] )
+  194:  Call  SetNpcSpeed       ( .NpcID:KoopaBros_00 *Fixed[3.6] )
   1A8:  Call  NpcMoveTo ( .NpcID:KoopaBros_00  -555`  20`  0` )
   1C4:  Call  InterpNpcYaw      ( .NpcID:KoopaTroopa_10  270`  0` )
-  1DC:  Wait  15`
+  1DC:  Wait  12`
   1E8:  Call  SetNpcAnimation   ( .NpcID:KoopaBros_00 00660304 )
   1FC:  Wait  2`
   208:  Call  SetNpcAnimation   ( .NpcID:KoopaBros_00 00660314 )
-  21C:  Wait  15`
+  21C:  Wait  12`
   228:  Call  SetNpcAnimation   ( .NpcID:KoopaBros_00 00660304 )
   23C:  Call  SetNpcAnimation   ( .NpcID:KoopaTroopa_10 00290109 )
-  250:  Wait  15`
+  250:  Wait  12`
   25C:  Call  SetNpcAnimation   ( .NpcID:KoopaTroopa_10 00290101 )
   270:  Thread
   278:  	Call  PlaySoundAtCollider   ( ~Collider:ori1 0000026B 00000000 )
@@ -49,11 +49,11 @@
   308:  	EndIf
   310:  	Call  PlaySoundAtCollider   ( ~Collider:ori1 0000026C 00000000 )
   328:  	Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[1.0] )
-  344:  	Wait  10`
+  344:  	Wait  5`
   350:  EndThread
   358:  Wait  5`
   364:  Call  SetNpcAnimation       ( .NpcID:KoopaBros_00 00660303 )
-  378:  Call  SetNpcSpeed   ( .NpcID:KoopaBros_00 *Fixed[2.0] )
+  378:  Call  SetNpcSpeed   ( .NpcID:KoopaBros_00 *Fixed[3.0] )
   38C:  Call  NpcMoveTo     ( .NpcID:KoopaBros_00  -550`  70`  0` )
   3A8:  Call  SetNpcAnimation       ( .NpcID:KoopaBros_00 00660304 )
   3BC:  Wait  5`
@@ -89,14 +89,302 @@
   61C:  Call  SetNpcAnimation   ( .NpcID:KoopaBros_00 00660303 )
   630:  Call  SetNpcJumpscale   ( .NpcID:KoopaBros_00 *Fixed[0.8] )
   644:  Call  GetNpcPos     ( .NpcID:KoopaBros_00 *Var0 *Var1 *Var2 )
-  660:  Call  NpcJump0      ( .NpcID:KoopaBros_00 *Var0 *Var1 *Var2  8` )
+  660:  Call  NpcJump0      ( .NpcID:KoopaBros_00 *Var0 *Var1 *Var2  6` )
   680:  Wait  4`
   68C:  Call  PlaySoundAtNpc    ( .NpcID:KoopaBros_00 00000174 00000000 )
   6A4:  Call  SetNpcSpeed   ( .NpcID:KoopaBros_00 *Fixed[18.0] )
   6B8:  Call  NpcMoveTo     ( .NpcID:KoopaBros_00  -300`  70`  0` )
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000C0142 )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner 0002000F 00020002 00000005 000C0143 ) 
+			EndSwitch
   6D4:  Set   *GB_StoryProgress  .Story:Ch1_KoopaBrosHidKey
   6E4:  Call  RemoveNpc     ( .NpcID:KoopaBros_00 )
   6F4:  Call  DisablePlayerInput    ( .False )
   710:  Return
   718:  End
+}
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:KoopaBrosFortress
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80242E04 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  If  *GB_StoryProgress  <  .Story:Ch1_KoopaBrosHidKey % FFFFFFA8
+   B4:  	Exec  $Script_80241C14
+   C0:  Else
+   C8:  	Exec  $Script_EnterWalk_80240ED8
+   D4:  EndIf
+   DC:  If  *GF_TRD02_BombedWall  ==  .False
+   EC:  	Call  EnableModel   ( ~Model:nk1 .False )
+  100:  Else
+  108:  	Call  SetGroupEnabled       ( ~Model:ana1 00000000 )
+  11C:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:deilit1 7FFFFE00 )
+  134:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt1 7FFFFE00 )
+  14C:  EndIf
+  154:  If  *GF_TRD03_BombedCenterCell  ==  .False
+  164:  	Call  EnableModel   ( ~Model:nk2 .False )
+  178:  	Bind  $Script_80241064 .Trigger:PointBomb $TriggerCoord_80241044 00000001 00000000
+  194:  Else
+  19C:  	Call  SetGroupEnabled       ( ~Model:ana2 00000000 )
+  1B0:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:deilit2 7FFFFE00 )
+  1C8:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt2 7FFFFE00 )
+  1E0:  EndIf
+  1E8:  If  *GF_TRD03_BombedRightCell  ==  .False
+  1F8:  	Call  EnableModel   ( ~Model:nk3 .False )
+  20C:  	Bind  $Script_80241168 .Trigger:PointBomb $TriggerCoord_80241054 00000001 00000000
+  228:  Else
+  230:  	Call  SetGroupEnabled       ( ~Model:ana3 00000000 )
+  244:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:deilit3 7FFFFE00 )
+  25C:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt3 7FFFFE00 )
+  274:  EndIf
+  27C:  Exec  $Script_80240A80
+  288:  If  *GB_StoryProgress  <  .Story:Ch1_KoopaBrosHidKey % FFFFFFA8
+  298:  	Call  TranslateModel    ( ~Model:0ri 00000000 00000064 FFFFFFFF )
+  2B4:  EndIf
+  2BC:  ExecWait  $Script_80242E40
+  2C8:  Exec  $Script_8024126C
+  2D4:  Return
+  2DC:  End
+}
+
+
+@	$Script_80243174
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Label  7B
+   1C:  Call  GetPlayerActionState  ( *Var0 )
+   2C:  Wait  1`
+   38:  If  *Var0  !=  .ActionState:Idle % 0
+   48:  	Goto  7B
+   54:  EndIf
+   5C:  Call  UseSettingsFrom       ( .Cam:Default  0`  0`  0` )
+   78:  Call  SetPanTarget  ( .Cam:Default  -315`  120`  -50` )
+   94:  Call  $Function_80240880    ( FFFFFEC5 FFFFFF9C 0000003C )
+   AC:  Call  SetCamPosA    ( .Cam:Default *Var0 *Var1 )
+   C4:  Call  SetCamPosB    ( .Cam:Default *Var2 *Var3 )
+   DC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+   F0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  108:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  11C:  Wait  12`
+  128:  If  *MapVar[0]  ==  00000000
+  138:  	Set   *Var7  00000039
+  148:  	Set   *Var8  FFFFFF6F
+  158:  	Set   *Var9  00000014
+  168:  	Exec  $Script_802430A0
+  174:  	Wait  3`
+  180:  	Set   *Var7  00000035
+  190:  	Set   *Var8  FFFFFFA1
+  1A0:  	Set   *Var9  00000011
+  1B0:  	Exec  $Script_802430A0
+  1BC:  	Wait  3`
+  1C8:  	Set   *Var7  00000034
+  1D8:  	Set   *Var8  FFFFFFA1
+  1E8:  	Set   *Var9  00000010
+  1F8:  	Exec  $Script_802430A0
+  204:  	Wait  3`
+  210:  	Set   *Var7  0000003A
+  220:  	Set   *Var8  FFFFFF6F
+  230:  	Set   *Var9  00000013
+  240:  	Exec  $Script_802430A0
+  24C:  	Wait  3`
+  258:  	Set   *Var7  00000033
+  268:  	Set   *Var8  FFFFFFA1
+  278:  	Set   *Var9  0000000F
+  288:  	Exec  $Script_802430A0
+  294:  	Wait  3`
+  2A0:  	Set   *Var7  00000032
+  2B0:  	Set   *Var8  FFFFFFA1
+  2C0:  	Set   *Var9  0000000E
+  2D0:  	Exec  $Script_802430A0
+  2DC:  	Wait  3`
+  2E8:  	Set   *Var7  0000003B
+  2F8:  	Set   *Var8  FFFFFF6F
+  308:  	Set   *Var9  00000012
+  318:  	Exec  $Script_802430A0
+  324:  	Wait  3`
+  330:  	Set   *MapVar[0]  00000001
+  340:  Else
+  348:  	Set   *Var7  0000003B
+  358:  	Set   *Var8  FFFFFF6F
+  368:  	Set   *Var9  00000012
+  378:  	Exec  $Script_80242FCC
+  384:  	Wait  3`
+  390:  	Set   *Var7  00000032
+  3A0:  	Set   *Var8  FFFFFFA1
+  3B0:  	Set   *Var9  0000000E
+  3C0:  	Exec  $Script_80242FCC
+  3CC:  	Wait  3`
+  3D8:  	Set   *Var7  00000033
+  3E8:  	Set   *Var8  FFFFFFA1
+  3F8:  	Set   *Var9  0000000F
+  408:  	Exec  $Script_80242FCC
+  414:  	Wait  3`
+  420:  	Set   *Var7  0000003A
+  430:  	Set   *Var8  FFFFFF6F
+  440:  	Set   *Var9  00000013
+  450:  	Exec  $Script_80242FCC
+  45C:  	Wait  3`
+  468:  	Set   *Var7  00000034
+  478:  	Set   *Var8  FFFFFFA1
+  488:  	Set   *Var9  00000010
+  498:  	Exec  $Script_80242FCC
+  4A4:  	Wait  3`
+  4B0:  	Set   *Var7  00000035
+  4C0:  	Set   *Var8  FFFFFFA1
+  4D0:  	Set   *Var9  00000011
+  4E0:  	Exec  $Script_80242FCC
+  4EC:  	Wait  3`
+  4F8:  	Set   *Var7  00000039
+  508:  	Set   *Var8  FFFFFF6F
+  518:  	Set   *Var9  00000014
+  528:  	Exec  $Script_80242FCC
+  534:  	Wait  3`
+  540:  	Set   *MapVar[0]  00000000
+  550:  EndIf
+  558:  Wait  5`
+		Exec  $Script_PartnerBlurb
+  564:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  57C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.5] )
+  590:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  5A4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  5B8:  Call  DisablePlayerInput    ( .False )
+  5C8:  Return
+  5D0:  End
+}
+
+
+@	$Script_8024374C
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Label  7B
+   1C:  Call  GetPlayerActionState  ( *Var0 )
+   2C:  Wait  1`
+   38:  If  *Var0  !=  .ActionState:Idle % 0
+   48:  	Goto  7B
+   54:  EndIf
+   5C:  Call  UseSettingsFrom       ( .Cam:Default  0`  0`  0` )
+   78:  Call  SetPanTarget  ( .Cam:Default  210`  120`  -50` )
+   94:  Call  $Function_80240880    ( 000000D2 FFFFFF9C FFFFFFC4 )
+   AC:  Call  SetCamPosA    ( .Cam:Default *Var0 *Var1 )
+   C4:  Call  SetCamPosB    ( .Cam:Default *Var2 *Var3 )
+   DC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.5] )
+   F0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  108:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  11C:  Wait  12`
+  128:  If  *MapVar[0]  ==  00000000
+  138:  	Set   *Var7  0000003B
+  148:  	Set   *Var8  FFFFFF6F
+  158:  	Set   *Var9  00000012
+  168:  	Exec  $Script_802430A0
+  174:  	Wait  3`
+  180:  	Set   *Var7  00000032
+  190:  	Set   *Var8  FFFFFFA1
+  1A0:  	Set   *Var9  0000000E
+  1B0:  	Exec  $Script_802430A0
+  1BC:  	Wait  3`
+  1C8:  	Set   *Var7  00000033
+  1D8:  	Set   *Var8  FFFFFFA1
+  1E8:  	Set   *Var9  0000000F
+  1F8:  	Exec  $Script_802430A0
+  204:  	Wait  3`
+  210:  	Set   *Var7  0000003A
+  220:  	Set   *Var8  FFFFFF6F
+  230:  	Set   *Var9  00000013
+  240:  	Exec  $Script_802430A0
+  24C:  	Wait  3`
+  258:  	Set   *Var7  00000034
+  268:  	Set   *Var8  FFFFFFA1
+  278:  	Set   *Var9  00000010
+  288:  	Exec  $Script_802430A0
+  294:  	Wait  3`
+  2A0:  	Set   *Var7  00000035
+  2B0:  	Set   *Var8  FFFFFFA1
+  2C0:  	Set   *Var9  00000011
+  2D0:  	Exec  $Script_802430A0
+  2DC:  	Wait  3`
+  2E8:  	Set   *Var7  00000039
+  2F8:  	Set   *Var8  FFFFFF6F
+  308:  	Set   *Var9  00000014
+  318:  	Exec  $Script_802430A0
+  324:  	Wait  3`
+  330:  	Set   *MapVar[0]  00000001
+  340:  Else
+  348:  	Set   *Var7  00000039
+  358:  	Set   *Var8  FFFFFF6F
+  368:  	Set   *Var9  00000014
+  378:  	Exec  $Script_80242FCC
+  384:  	Wait  3`
+  390:  	Set   *Var7  00000035
+  3A0:  	Set   *Var8  FFFFFFA1
+  3B0:  	Set   *Var9  00000011
+  3C0:  	Exec  $Script_80242FCC
+  3CC:  	Wait  3`
+  3D8:  	Set   *Var7  00000034
+  3E8:  	Set   *Var8  FFFFFFA1
+  3F8:  	Set   *Var9  00000010
+  408:  	Exec  $Script_80242FCC
+  414:  	Wait  3`
+  420:  	Set   *Var7  0000003A
+  430:  	Set   *Var8  FFFFFF6F
+  440:  	Set   *Var9  00000013
+  450:  	Exec  $Script_80242FCC
+  45C:  	Wait  3`
+  468:  	Set   *Var7  00000033
+  478:  	Set   *Var8  FFFFFFA1
+  488:  	Set   *Var9  0000000F
+  498:  	Exec  $Script_80242FCC
+  4A4:  	Wait  3`
+  4B0:  	Set   *Var7  00000032
+  4C0:  	Set   *Var8  FFFFFFA1
+  4D0:  	Set   *Var9  0000000E
+  4E0:  	Exec  $Script_80242FCC
+  4EC:  	Wait  3`
+  4F8:  	Set   *Var7  0000003B
+  508:  	Set   *Var8  FFFFFF6F
+  518:  	Set   *Var9  00000012
+  528:  	Exec  $Script_80242FCC
+  534:  	Wait  3`
+  540:  	Set   *MapVar[0]  00000000
+  550:  EndIf
+  558:  Wait  5`
+		Exec  $Script_PartnerBlurb
+  564:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  57C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.5] )
+  590:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  5A4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  5B8:  Call  DisablePlayerInput    ( .False )
+  5C8:  Return
+  5D0:  End
+}
+
+
+#new:Script  $Script_PartnerBlurb
+{
+			Wait  5`
+			Call  RandInt   ( 00000003 *Var6 )
+			If    *Var6 == 0`
+				If    *GB_StoryProgress == .Story:Ch1_DefeatedDungeonGuards
+					Call  GetCurrentPartnerID   ( *Var0 )
+					If  *Var0 == .Partner:Kooper
+						Call  RandInt   ( 00000001 *Var7 )
+						If  *Var7 == 0`
+							Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C014B )
+						Else
+							Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C014C )
+						EndIf
+					EndIf
+				EndIf
+			EndIf
+			Return
+			End
 }

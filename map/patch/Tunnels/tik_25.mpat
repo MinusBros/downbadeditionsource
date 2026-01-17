@@ -1,16 +1,200 @@
+#define .Npc:Cody           01
+
+#new:Function $Function_MuteSongChannel
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014AB60
+   10:  LI        A1, 2
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+
 @	$Script_80240810
 {
     0:  Call  SetMusicTrack ( 00000000 .Song:ToadTownTunnels 00000000 00000008 )
 		Thread
-			  Wait 30`
-			  Call  802D5FA4  ( 00000002 )
+			  Wait 26`
+			  Call  $Function_MuteSongChannel ( )
 		EndThread
    1C:  Return
    24:  End
+}
+
+#import AutoSave.mpat
+
+@	$Script_Main_EnterWalk
+{
+		
+    0:  Set   *GB_WorldLocation  .Location:ToadTownTunnels
+   10:  Call  SetSpriteShading  ( .Shading:tik_04 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_80240810
+   9C:  Exec  $Script_8024123C
+   A8:  Call  SetTexPanner      ( ~Model:mizu 00000000 )
+   BC:  Thread
+   C4:  	Set   *Var0  00000000
+   D4:  	Set   *Var1  00000000
+   E4:  	Set   *Var2  FFFFFF38
+   F4:  	Set   *Var3  FFFFFF9C
+  104:  	Set   *Var4  FFFFFE0C
+  114:  	Set   *Var5  00000000
+  124:  	Set   *Var6  00000001
+  134:  	Set   *Var7  00000001
+  144:  	Set   *Var8  00000001
+  154:  	Set   *Var9  00000000
+  164:  	Set   *VarA  00000000
+  174:  	Set   *VarB  00000000
+  184:  	Set   *VarC  00000000
+  194:  	Exec  $Script_UpdateTexturePan_80240880
+  1A0:  EndThread
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240978
+   38:  	Return
+   40:  EndIf
+  1A8:  Set   *Var0  $Script_80240978	
+  1B8:  Exec  EnterWalk
+  1C4:  Wait  1`
+		Thread
+			Wait  20`
+			Exec  $AutoSave
+		EndThread
+  1D0:  Return
+  1D8:  End
 }
 
 
 @	$Script_ExitWalk_8024091C
 {
    [40]  Wait  60`
+}
+
+@	$Script_80241450
+{
+    0:  If  *GF_TIK25_GiantChest  ==  .False
+   10:  	Label  A
+   1C:  	If  *GF_TIK25_GiantChest  ==  .False
+   2C:  		Wait  1`
+   38:  		Goto  A
+   44:  	EndIf
+   4C:  	Wait  60`
+   58:  	Exec  $Script_8024083C
+   64:  	Call  ShowMessageAtScreenPos    ( 001D0187  160`  40` ) % You got the Ultra Boots! The attack power of Mario ...
+   7C:  	Call  $Function_80240680 ( )
+			Call  MakeNpcs  ( .False $NpcGroupList_Cody )
+   88:  EndIf
+   90:  Return
+   98:  End
+}
+
+
+
+
+
+#new:Script $Script_Init_Cody
+{
+		Call  BindNpcIdle   ( .Npc:Self $Script_Cody_Idle )
+		Call  SetNpcPos ( .Npc:Self 304` -135` 0` )
+		Exec  $CheckPos
+   C0:  Return
+   C8:  End
+}
+
+#new:Script  $CheckPos
+{
+		Loop
+   1C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 ) 
+		If  *Var0  >  235`
+				   Call  DisablePlayerInput    ( .True )
+			   70:  Call  GetNpcPos      ( .Npc:Cody *Var0 *Var1 *Var2 )
+					Add  *Var0 40`
+			   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+					
+			   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+			   C0:  Call  SetCamDistance    ( .Cam:Default  350` )
+			   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+			   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[32.0] )
+			  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+				   Call  PlaySound     ( 0000008C )
+				   Wait  5`		   
+				   Call  SpeakToPlayer     ( .Npc:Cody 00560802 00560801 00000000 0008004C )
+				   Wait  5`
+				   Call  SetNpcVar ( .Npc:Cody 00000000 00000001 )
+	   50:  	   Return
+				EndIf
+		Call  NpcFacePlayer ( .Npc:Cody 00000004 )
+		Wait  1`
+		EndLoop
+		Return
+		End
+}
+
+#new:Script  $Script_Cody_Idle
+{
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+		Call  SetNpcFlagBits    ( .Npc:Cody 00000100 .True )
+   64:  Wait  10`
+   70:  Call  GetNpcPos      ( .Npc:Cody *Var0 *Var1 *Var2 )
+   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+   C0:  Call  SetCamDistance    ( .Cam:Default  500` )
+   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
+  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+		Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+		Set   *GF_TIK25_CodyDefeated .True 
+		Wait  1`
+		Call  DisablePlayerInput    ( .False )
+		Call  StartBossBattle   ( .Song:LegendaryBattle2 )	
+		Return
+		End
+}
+
+#new:Script  $Script_Cody_Defeat
+{
+	Call  DisablePlayerInput    ( .False )
+	Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+	Wait  1`
+	Call  DoNpcDefeat ( )
+	Return
+	End
+}
+
+
+#new:NpcSettings $NpcSettings_Cody
+{
+	00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+#new:NpcGroup $NpcGroup_Cody
+{
+	.Npc:Cody $NpcSettings_Cody ~Vec3f:Cody
+	00640D0D $Script_Init_Cody 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:Cody
+	~AnimationTable:Cody
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_Cody
+{
+	00000001 $NpcGroup_Cody 1C000000  %Boss location
+	00000000 00000000 00000000
 }

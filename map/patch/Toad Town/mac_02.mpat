@@ -16,11 +16,14 @@
     0:  Switch  *GB_StoryProgress
     C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
    1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
    38:  	Default
    40:  		Exec  $Script_8024E150
    4C:  EndSwitch
+		Call $ClearFlagCarryOverworldMusicToBattle()
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
    54:  Return
    5C:  End
 }
@@ -51,7 +54,7 @@
 @	$Script_Main_EnterWalk
 {
     0:  Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Exec  $DarknessFollow
    88:  	Default
 				Call  EnableGroup   ( ~Model:darkness .False )
@@ -128,8 +131,43 @@
   43C:  	Set   *VarA  $Script_80244624
   44C:  	Exec  $Script_80243630
   458:  EndIf
+		If  *GB_StoryProgress == .Story:Ch7_StarSpritDeparted
+			Call  GetEntryID        ( *Var0 )
+			If  *Var0  ==  ~Entry:Entry5
+				If  *GreenToadNotice == .False
+					Exec  $GreenToadCutscene
+					Return
+				EndIf
+			EndIf
+		EndIf
   460:  Return
   468:  End
+}
+
+%After returning from Chapter 7, this Toad will comment on the apocalypse in Kinoko Town
+
+#new:Script  $GreenToadCutscene
+{
+				0:  Loop
+				C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+			   24:  	If  *Var2  >  -120`
+			   74:  		BreakLoop
+			   7C:  	EndIf
+			   84:  	Wait  1`
+			   90:  EndLoop
+					Call  DisablePlayerInput        ( .True )
+					Wait  20`				
+					Call  PlaySoundAtNpc    ( .NpcID:Toad_05 00000262 00000000 )
+					Call  ShowEmote ( .NpcID:Toad_05 .Emote:Exclamation  -30`  20` .True  0`  0`  0`  0` )
+					Wait  25`
+					Call  SetNpcAnimation   ( .NpcID:Toad_05 00830102 )
+					Call  NpcMoveTo ( .NpcID:Toad_05 -408` -120` 20` )
+					Call  SetNpcAnimation   ( .NpcID:Toad_05 00830101 )
+					Call  SpeakToPlayer ( .NpcID:Toad_05 00830108 00830101 00000000 00040096 )
+					Set   *GreenToadNotice  .True
+					Call  DisablePlayerInput        ( .False )
+					Return
+					End
 }
 
 #new:Script  $DarknessFollow
@@ -262,17 +300,18 @@
 {
     0:  Call  SetNpcFlagBits    ( .NpcID:TayceT_00 00000100 .True )
    18:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0002 )
-		Call  SetNpcSpeed   ( .Npc:Self *Fixed[12.0] )
-   2C:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  20` )
-   48:  Call  NpcMoveTo ( .NpcID:TayceT_00  -220`  -425`  30` )
+   2C:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  10` )
+   48:  Call  NpcMoveTo ( .NpcID:TayceT_00  -220`  -425`  10` )
    64:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0007 )
-   A4:  Wait  8`
+   78:  Wait  8`
+   84:  Call  SpeakToPlayer     ( .NpcID:TayceT_00 00AA0007 00AA0007 00000005 0004000E ) % Tra-la-la-la-la!
+   A4:  Wait  10`
    B0:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0008 )
-   C4:  Wait  4`
+   C4:  Wait  15`
    D0:  Call  SetNpcYaw ( .NpcID:TayceT_00  90` )
    E4:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0002 )
-   F8:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  20` )
-  114:  Call  NpcMoveTo ( .NpcID:TayceT_00  -236`  -318`  20` )
+   F8:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  10` )
+  114:  Call  NpcMoveTo ( .NpcID:TayceT_00  -236`  -318`  10` )
   130:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0001 )
   144:  Call  SetNpcFlagBits    ( .NpcID:TayceT_00 00000100 .False )
   15C:  Return
@@ -305,6 +344,21 @@
   100:  	Call  SpeakToPlayer    ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040003 ) % Oh my. You don't have any ingredients for me. I ca ...
   120:  	Goto  9
   12C:  EndIf
+   3C:  Call  GetCurrentPartnerID   ( *Var0 )
+   60:  If  *Var0  ==  .Partner:Goombario
+			If  *CathyGoombariusScene == .False
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SetNpcAnimation   ( .Npc:Partner 0001000E )
+				Call  SpeakToNpc    ( .Npc:Partner 0001000F 0001000E 00000000 .NpcID:TayceT_00 00040097 )
+				Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040098 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
+				Call  SpeakToPlayer ( .Npc:Partner 0001000C 0001000B 00000005 00040099 ) 
+				Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0005 00AA0001 00000000 0004009A ) 
+				Call  EnablePartnerAI ( )
+				Set   *CathyGoombariusScene .True
+				Goto 1
+			EndIf
+		EndIf
    68:  	If  *AreaFlag[001]  ==  .False
    78:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040001 ) % Oh, it's Mario! Hi there! Would you like me to coo ...
    98:  		Set   *AreaFlag[001]  .True
@@ -336,7 +390,7 @@
   33C:  If  *Var0  <  00000002
   34C:  	Goto  .lOneItemCook
   358:  EndIf
-  360:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040007 ) % Would you like me to use another ingredient?
+  360:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 00040007 ) % Would you like me to use another ingredient?
   380:  Call  ShowChoice    ( 001E0010 ) % Yes No
   390:  Call  CloseMessage ( )
   39C:  If  *Var0  ==  00000001
@@ -358,7 +412,7 @@
   528:  		Set   *Var9  *Var0
   538:  		Call  AddItem   ( *Var0 *Var1 )
   54C:  		If  *Var8  ==  *Var9
-  55C:  			Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040009 ) % This is the same kind as the first ingredient. Ple ...
+  55C:  			Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0006 00AA0006 00000000 00040009 ) % This is the same kind as the first ingredient. Ple ...
   57C:  			Set   *Var3  00000001
   58C:  		EndIf
   594:  EndSwitch
@@ -390,31 +444,47 @@
         ExecWait $Script_Get1ItemRecipe
   7BC:  Call  RemoveItem    ( *Var8 *Var0 )
   7D0:  Label  .lHandleCook
-  7DC:  Call  SpeakToPlayer        ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 0004000D ) % I'll whip something special up just for you, honey ...
+  7DC:  Call  SpeakToPlayer        ( .NpcID:TayceT_00 00AA0011 00AA0011 00000000 0004000D ) % I'll whip something special up just for you, honey ...
+		If    *CathyHasCookedBefore == .False
+			Set  *CathyHasCookedBefore .True
+			ExecWait  $Script_802490F8
+		EndIf
   808:  Switch  *Var7
   814:  	Case  ==  00000000
-  820:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040012 ) % Oh... I'm so sorry. This recipe didn't work out. O ...
+  820:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0006 00AA0006 00000000 00040012 ) % Oh... I'm so sorry. This recipe didn't work out. O ...
   840:  	Case  ==  00000002
-  84C:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 0004000F ) % All done! It smells delicious!
+  84C:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0010 00AA0011 00000000 0004000F ) % All done! It smells delicious!
   86C:  	Case  ==  00000003
-  878:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040010 ) % Oh, sweet success! This dish is one of my specialt ...
+  878:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0010 00AA0011 00000000 00040010 ) % Oh, sweet success! This dish is one of my specialt ...
   898:  	Case  ==  00000004
-  8A4:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040013 ) % OK, all finished! ...I don't exactly know what it  ...
+  8A4:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 00040013 ) % OK, all finished! ...I don't exactly know what it  ...
   8C4:  	Default
-  8CC:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040011 ) % Here you are! This recipe's not too bad.
+  8CC:  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 00040011 ) % Here you are! This recipe's not too bad.
   8EC:  EndSwitch
-  8F4:  Call  ContinueSpeech        ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040014 ) % Here, please!
+  8F4:  Call  ContinueSpeech        ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 00040014 ) % Here, please!
   914:  Call  $Function_80242F60    ( *Var6 )
   924:  Set   *Var0  *Var6
   934:  Set   *Var1  00000000
 		Thread
 			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA000D )
 			Wait  20`
-			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0001 )
+			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0011 )
 		EndThread
   944:  ExecWait  $Script_80246154 %Show got item
   950:  Call  AddItem   ( *Var6 *Var0 )
-  964:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0004 00AA0001 00000000 00040015 ) % Come back anytime, hon. I look forward to it!
+		%Ask to cook again
+		Call  SpeakToPlayer    ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 00040004 ) % Would you like to cook some more?
+  380:  Call  ShowChoice    ( 001E0010 ) % Yes No
+  390:  Call  CloseMessage ( 
+  39C:  If  *Var0  ==  00000000 %Yes
+  3AC:  	Goto  1
+  3B8:  EndIf
+  964:  Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 00040015 ) % Come back anytime, hon. I look forward to it!
+		Thread
+			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0013 )
+			Wait  10`
+			Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0001 )
+		EndThread
   984:  Label  9
   990:  Call  DisablePlayerInput    ( .False )
   9A0:  Return
@@ -450,6 +520,7 @@
    7C:  End
 }
 
+%Current recipes: 70
 
 @	$RecipesDiscovedIDs
 {
@@ -461,7 +532,11 @@
 	000000D8 000000D9 000000DA 00000089 0000009A 0000009B 00000097 00000095
 	0000008B 0000008F 00000082 00000080 
 	% NEW %
-	.Item:StarCake .Item:SuperShroomCake .Item:UltraShroomCake .Item:HealthySalad .Item:CathTea 
+	.Item:StarCake .Item:SuperShroomCake .Item:UltraShroomCake .Item:HealthySalad 
+	.Item:CathTea  .Item:DayzeeSyrup     .Item:CoconutBomb     .Item:ChocoCake
+	.Item:HottestDog .Item:OmeletteMeal  .Item:RoastHorsetail  .Item:RoastBump
+	.Item:VolcanoShroom  .Item:InkySauce  .Item:InkPasta     .Item:SpicyPasta      
+	.Item:PeachSyrup     .Item:FruitParfait
 	00000000
 }
 
@@ -482,9 +557,15 @@
 	*GF_MAC02_DiscoveredRecipe_31 *GF_MAC02_DiscoveredRecipe_32 *GF_MAC02_DiscoveredRecipe_33 *GF_MAC02_DiscoveredRecipe_34
 	% NEW %
     *GF_MAC02_DiscoveredRecipe_35 *GF_MAC02_DiscoveredRecipe_36 *GF_MAC02_DiscoveredRecipe_37 *GF_MAC02_DiscoveredRecipe_38 
-	*GF_MAC02_DiscoveredRecipe_39 00000000
+	*GF_MAC02_DiscoveredRecipe_39 *GF_MAC02_DiscoveredRecipe_3A *GF_MAC02_DiscoveredRecipe_3B *GF_MAC02_DiscoveredRecipe_3C 
+	*GF_MAC02_DiscoveredRecipe_3D *GF_MAC02_DiscoveredRecipe_3E *GF_MAC02_DiscoveredRecipe_3F *GF_MAC02_DiscoveredRecipe_40
+	*GF_MAC02_DiscoveredRecipe_41 *GF_MAC02_DiscoveredRecipe_42 *GF_MAC02_DiscoveredRecipe_43 *GF_MAC02_DiscoveredRecipe_44
+	*GF_MAC02_DiscoveredRecipe_45 *GF_MAC02_DiscoveredRecipe_46
+	00000000
 }
 
+
+%
 
 
 %==========================================
@@ -719,7 +800,7 @@
 .Item:UltraShroom .Item:DriedFruit .Item:VoltShroom
 .Item:LifeShroom .Item:DriedFruit .Item:VoltShroom
 .Item:Melon .Item:CakeMix .Item:YoshiCookie
-.Item:WhackasBump FFFFFFFF .Item:YummyMeal
+.Item:WhackasBump FFFFFFFF .Item:RoastBump			 %New recipe for using Whacka Bump on its own
 .Item:DriedFruit .Item:DriedPasta .Item:YummyMeal
 .Item:DriedFruit .Item:IcedPotato .Item:YummyMeal
 .Item:FireFlower .Item:UltraShroom .Item:YummyMeal
@@ -732,41 +813,90 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %New Stuff%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-.Item:GoldenLeaf FFFFFFFF .Item:CathTea  %Cath Tea
-.Item:CocoaBean .Item:CakeMix .Item:ChocoCake
+.Item:GoldenLeaf FFFFFFFF .Item:CathTea  %Cath Tea  %Cath Tea
+.Item:CocoaBean .Item:CakeMix .Item:ChocoCake		%Choco Cake
 .Item:CocoaBean .Item:Egg .Item:ChocoCake
 .Item:CocoaBean .Item:Cake .Item:ChocoCake
-.Item:Coconut .Item:FireFlower .Item:CoconutBomb
-.Item:DayzeeTear FFFFFFFF .Item:DayzeeSyrup
+.Item:CakeMix  .Item:InkySauce .Item:ChocoCake
+.Item:Coconut .Item:FireFlower .Item:CoconutBomb	%Coconut Bomb
+.Item:DayzeeTear FFFFFFFF .Item:DayzeeSyrup			%Dayzee Syrup
 .Item:DayzeeTear .Item:HoneySyrup .Item:DayzeeSyrup
+.Item:DayzeeTear .Item:MapleSyrup .Item:DayzeeSyrup
+.Item:PeachyPeach .Item:HoneySyrup .Item:FruitParfait  %Fruit Parfait (a lot of combos)
+.Item:PeachyPeach .Item:MapleSyrup .Item:FruitParfait
+.Item:PeachyPeach .Item:JamminJelly .Item:FruitParfait
+.Item:PeachyPeach .Item:KeelMango .Item:FruitParfait
+.Item:KeelMango .Item:HoneySyrup .Item:FruitParfait
+.Item:KeelMango .Item:MapleSyrup .Item:FruitParfait
+.Item:KeelMango .Item:JamminJelly .Item:FruitParfait
+.Item:Apple     .Item:PeachyPeach  .Item:FruitParfait
+.Item:Apple     .Item:KeelMango  .Item:FruitParfait
+.Item:Apple     .Item:HoneySyrup  .Item:FruitParfait
+.Item:Apple     .Item:MapleSyrup  .Item:FruitParfait
+.Item:Apple     .Item:JamminJelly  .Item:FruitParfait
+.Item:Melon     .Item:PeachyPeach  .Item:FruitParfait
+.Item:Melon     .Item:KeelMango    .Item:FruitParfait
 .Item:Horsetail .Item:KoopaLeaf .Item:HealthySalad  %Healthy Salad
 .Item:GoldenLeaf .Item:KoopaLeaf .Item:HealthySalad
 .Item:StinkyHerb .Item:KoopaLeaf .Item:HealthySalad
 .Item:StrangeLeaf .Item:KoopaLeaf .Item:HealthySalad
 .Item:StrangeLeaf .Item:Horsetail .Item:HealthySalad
 .Item:StinkyHerb .Item:Horsetail .Item:HealthySalad
-.Item:HotSauce .Item:HotDog .Item:HottestDog
-.Item:CakeMix 	.Item:ShootingStar .Item:StarCake
+.Item:HotSauce .Item:HotDog .Item:HottestDog		%Hottest Dog
+.Item:HotSauce .Item:KoopaTea    .Item:InkySauce         %Inky Sauce
+.Item:HotSauce .Item:SuperSoda   .Item:InkySauce 
+.Item:HotSauce .Item:TastyTonic    .Item:InkySauce 
+.Item:HotSauce .Item:KoopaLeaf    .Item:InkySauce 
+.Item:HotSauce .Item:CathTea    .Item:InkySauce 
+.Item:HotSauce .Item:StrangeLeaf   .Item:InkySauce 
+.Item:HotSauce .Item:StinkyHerb  .Item:InkySauce 
+.Item:CocoaBean .Item:TastyTonic   .Item:InkySauce 
+.Item:CocoaBean .Item:SpecialShake   .Item:InkySauce 
+.Item:CocoaBean .Item:HealthyJuice   .Item:InkySauce 
+.Item:InkySauce .Item:DriedPasta     .Item:InkPasta  %Ink Pasta
+.Item:InkySauce .Item:Spaghetti     .Item:InkPasta
+.Item:InkySauce .Item:Koopasta     .Item:InkPasta 
+.Item:Horsetail .Item:Egg  .Item:OmeletteMeal 		%Omelette Meal
+.Item:BoiledEgg .Item:Mushroom  .Item:OmeletteMeal 
+.Item:BoiledEgg .Item:SuperShroom  .Item:OmeletteMeal 
+.Item:BoiledEgg .Item:UltraShroom  .Item:OmeletteMeal 
+.Item:BoiledEgg .Item:LifeShroom  .Item:OmeletteMeal 
+.Item:PeachyPeach FFFFFFFF  .Item:PeachSyrup        %Peach Syrup
+.Item:Horsetail FFFFFFFF  .Item:RoastHorsetail 		%Roast Horsetail
+.Item:HotSauce  .Item:DriedPasta  .Item:SpicyPasta  %Spicy Pasta
+.Item:HotSauce  .Item:Spaghetti  .Item:SpicyPasta
+.Item:HotSauce  .Item:Koopasta  .Item:SpicyPasta
+.Item:CakeMix 	.Item:ShootingStar .Item:StarCake	%Star Cake
 .Item:Cake 	.Item:ShootingStar .Item:StarCake
+.Item:Mushroom 	.Item:HotSauce .Item:VolcanoShroom	%Volcano Shroom
+.Item:VoltShroom .Item:HotSauce .Item:VolcanoShroom
+.Item:SuperShroom .Item:HotSauce .Item:VolcanoShroom
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %New ingredients for old recipes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+.Item:Goomnut .Item:Egg .Item:NuttyCake 			%Why not
 .Item:Mushroom .Item:Horsetail .Item:BlandMeal
 .Item:Mushroom .Item:PeachyPeach .Item:BlandMeal
 .Item:Mushroom .Item:KeelMango .Item:BlandMeal
+.Item:FriedShroom .Item:HotDog .Item:BlandMeal
 .Item:SuperShroom .Item:PeachyPeach .Item:BlandMeal
 .Item:SuperShroom .Item:KeelMango .Item:BlandMeal
 .Item:DriedPasta .Item:HealthySalad .Item:BlandMeal
 .Item:Spaghetti .Item:HealthySalad .Item:BlandMeal
 .Item:Koopasta .Item:HealthySalad .Item:BlandMeal
+.Item:FriedShroom .Item:RoastBump .Item:BlandMeal
+.Item:FriedShroom .Item:InkPasta .Item:BlandMeal
 .Item:UltraShroom .Item:PeachyPeach .Item:YummyMeal
 .Item:UltraShroom .Item:Horsetail .Item:YummyMeal
+.Item:RoastBump .Item:FriedShroom .Item:YummyMeal
 .Item:HealthySalad .Item:HotShroom .Item:YummyMeal
+.Item:FriedShroom .Item:ShroomSteak .Item:YummyMeal
 .Item:GoldenLeaf .Item:WhackasBump .Item:DeluxeFeast
 .Item:HealthySalad .Item:ShroomSteak .Item:DeluxeFeast
+.Item:Spaghetti  .Item:UltraShroom  .Item:DeluxeFeast
+.Item:ShroomSteak .Item:HotShroom  .Item:DeluxeFeast
 .Item:GoldenLeaf .Item:Melon .Item:SpecialShake
 .Item:GoldenLeaf .Item:SpecialShake .Item:HealthyJuice
-.Item:Goomnut .Item:Egg .Item:NuttyCake %Why not
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Point Swap things
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -784,7 +914,7 @@
 .Item:RakukajaGem .Item:PointSwap .Item:RakundaGem
 .Item:TarundaGem  .Item:PointSwap .Item:TarukajaGem
 .Item:RakundaGem .Item:PointSwap .Item:RakukajaGem
-.Item:GoldBarX3 .Item:PointSwap .Item:GoldBar %The stupidest one
+.Item:GoldBarX3 .Item:PointSwap .Item:GoldBar		 %The stupidest one
 .Item:TastyTonic .Item:PointSwap .Item:SleepySheep
 .Item:SleepySheep .Item:PointSwap .Item:TastyTonic
 .Item:VoltShroom .Item:PointSwap .Item:SuperShroom
@@ -883,6 +1013,24 @@
    88:  EndIf
    90:  Return
    98:  End
+}
+
+@	$Script_8024926C
+{
+   [30]  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 0004001A ) % Here's the Cake!
+   [90]  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 0004001B ) % This is my most delicious Cake. One taste of it wo ...
+   [C8]  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0006 00AA0006 00000000 0004001C ) % Oh, my... You're carrying too much. You can't poss ...
+  [1A8]  		Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0010 00AA0011 00000000 00040019 ) % Oh, Mario! My dear, dear Frying Pan! You saved it  ...
+  [1F4]  			Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0012 00AA0011 00000000 0004001A ) % Here's the Cake!
+  [254]  			Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0010 00AA0011 00000000 0004001B ) % This is my most delicious Cake. One taste of it wo ...
+  [28C]  			Call  SpeakToPlayer ( .NpcID:TayceT_00 00AA0006 00AA0006 00000000 0004001C ) % Oh, my... You're carrying too much. You can't poss ...
+}
+
+%Add new animations for Cathy
+@	$ExtraAnimationList_8024CB04
+{
+	00AA0000 00AA0001 00AA0002 00AA0001 00AA0004 00AA0005 00AA0006 00AA0007
+	00AA0008 00AA0010 00AA0011 00AA0012 FFFFFFFF
 }
 
 

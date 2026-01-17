@@ -1,5 +1,94 @@
+#define .NpcID:Bubulb_00            00
 #define .NpcID:Bzzap_01             01
+#define .NpcID:SpyGuy_50            32
+#define .NpcID:SpyGuy_51            33
+#define .NpcID:SpyGuy_52            34
+#define .NpcID:SpyGuy_53            35
+#define .NpcID:SpyGuy_54            36
+#define .NpcID:SpyGuy_55            37
 
+@	$???_80244788
+{
+	000000DC 00000000
+}
+
+%Make Bubble Plant not talk to you if the spring hasn't been filled to prevent sequence breaks
+%He also gives you a hint on what to give him
+
+@	$Script_Interact_80244790
+{
+    0:  If  *AreaFlag[025]  ==  .True
+   10:  	Set   *AreaFlag[023]  .True
+   20:  	Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00110063 ) % There! Isn't it great?!
+   40:  	Set   *AreaFlag[023]  .False
+   50:  	Return
+   58:  EndIf
+   60:  Set   *AreaFlag[023]  .True
+   70:  If  *GF_FLO14_GaveBerryToBubblePlant  ==  .False
+   80:  	Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 0011005F ) % Hi! My name's Bubble Plant! You wanna know why my  ...
+   A0:  Else
+   A8:  	Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00110060 ) % Hi! I'm Bubble Plant! I'll show you how cool my Bu ...
+   C8:  EndIf
+		If  *GB_StoryProgress  <  .Story:Ch6_FilledSpringWithWater 
+			Set   *AreaFlag[023]  .False
+			Return
+		Else 
+		EndIf
+   D0:  Call  FindItem  ( .Item:Xbox *Var0 )
+   E4:  If  *Var0  !=  FFFFFFFF
+   F4:  	Set   *Var0  $???_80244788
+  104:  	Set   *Var1  00000000
+  114:  	ExecWait  $Script_80244738
+  120:  	If  *Var0  ==  FFFFFFFF
+  130:  		Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00110064 ) % You don't have a Bubble Berry? Not even one? That' ...
+  150:  	Else
+  158:  		Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00110061 ) % Oh, awesome! Good going! OK! Get a load of this!
+  178:  		Set   *AreaFlag[024]  .True
+  188:  		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+  1A0:  		Call  PlayerMoveTo  (  555`  110`  20` )
+  1B8:  		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .False )
+  1D0:  		Call  InterpPlayerYaw   (  90`  0` )
+  1E4:  		Call  802CF56C      ( 00000002 )
+  1F4:  		Wait  5`
+  200:  		Call  AdjustCam     ( .Cam:Default *Fixed[1.0]  0`  350` *Fixed[17.0] *Fixed[-6.0] )
+  224:  		Exec  $Script_80243870
+  230:  		Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00110062 ) % Ummmm... Hrrrrrrrrr......
+  250:  		Thread
+  258:  			Wait  40`
+  264:  			Call  InterpPlayerYaw   (  315`  0` )
+  278:  		EndThread
+  280:  		Label  A
+  28C:  		If  *AreaFlag[025]  ==  .False
+  29C:  			Wait  1`
+  2A8:  			Goto  A
+  2B4:  		EndIf
+  2BC:  		Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+  2D0:  		Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000005 00110063 ) % There! Isn't it great?!
+  2F0:  		Set   *GF_FLO14_GaveBerryToBubblePlant  .True
+  300:  		Bind  $Script_8024352C .Trigger:FloorPressA ~Collider:o154 00000001 00000000
+  31C:  	EndIf
+		Else
+			Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000000 00110064 ) % You don't have a Bubble Berry? Not even one? That' ...
+  324:  EndIf
+  32C:  Set   *AreaFlag[023]  .False
+  33C:  Return
+  344:  End
+}
+
+
+#import NPC_SpyGuy.mpat
+
+
+
+@	$NpcGroup_80244B20
+{
+	.NpcID:Bubulb_00 $NpcSettings_802445A4 ~Vec3f:NPC_Bubulb_00 % 617 0 108
+	00004D01 $Script_Init_80244ADC 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Bubulb_00
+	~AnimationTable:NPC_Bubulb_00 % .Sprite:Bubulb
+	00000000 00000000 00000000 001A00E3 % It's a Bubble Plant. It looks like blowing bubbles ...
+}
 
 @	$NpcGroup_80244D10
 {
@@ -10,4 +99,74 @@
 	~Movement:NPC_Bzzap_01
 	~AnimationTable:NPC_Bzzap_01 % .Sprite:Bzzap
 	00000003 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+#new:NpcGroup $NpcGroup_SpyGuy1
+{
+	00000032 $NpcSettings_SpyGuy ~Vec3f:NPC_SpyGuy_50 
+	00000C00 00000000 00000000 00000000 0000010E
+	~Items:5:FireFlower:2:ThunderRage:2:ThunderBolt:2:DustyHammer:2:Pebble:2
+	~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:0:3
+	~Movement:NPC_SpyGuy_50
+	~AnimationTable:NPC_SpyGuy_50
+	00000001 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80247068[1F0]
+	00000033 $NpcSettings_Rock_SpyGuy 0.0 -1000.0 0.0
+	00800D00 00000000 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_SpyGuy_51	%0 radius circles
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80247068[3E0]
+	00000034 $NpcSettings_Rock_SpyGuy 0.0 -1000.0 0.0
+	00800D00 00000000 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_SpyGuy_52
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroup $NpcGroup_SpyGuy2
+{
+	00000035 $NpcSettings_SpyGuy ~Vec3f:NPC_SpyGuy_53 
+	00000C00 00000000 00000000 00000000 0000010E
+	~Items:5:FireFlower:2:ThunderRage:2:ThunderBolt:2:DustyHammer:2:Pebble:2
+	~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:0:3
+	~Movement:NPC_SpyGuy_53
+	~AnimationTable:NPC_SpyGuy_53
+	00000001 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80247068[1F0]
+	00000036 $NpcSettings_Rock_SpyGuy 0.0 -1000.0 0.0
+	00800D00 00000000 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_SpyGuy_54	%0 radius circles
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80247068[3E0]
+	00000037 $NpcSettings_Rock_SpyGuy 0.0 -1000.0 0.0
+	00800D00 00000000 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_SpyGuy_55
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010 003F0010
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+@	$NpcGroupList_80244F00
+{
+	00000001 $NpcGroup_80244B20 00000000
+	00000001 $NpcGroup_80244D10 18190001
+	00000003 $NpcGroup_SpyGuy1  18010001
+	00000003 $NpcGroup_SpyGuy2  18020001
+	00000000 00000000 00000000
 }

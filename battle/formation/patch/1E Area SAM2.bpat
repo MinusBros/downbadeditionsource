@@ -109,20 +109,35 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
   27C:  Wait  50`
 		ExecWait  $MonstarAttack
 		Wait     00000006
-		Call	PlaySoundAtActor	( .Actor:Player 000002D8 )
-			Thread % added
-				Call	8026BF48	 ( 00000001 )
-				Call  GetActorVar   ( .Actor:Self 00000004 *Var0 )
-				If  *Var0  == 0`
-					Call    SetActorVar ( .Actor:Self 00000004 1` )
-					Call	BoostDefense ( .Actor:Player FFFFFFFD )
-				Else
-					Call 	SetActorVar ( .Actor:Self 00000004 0` )
-					Set *Var[E] 7
-					ExecWait $Script_FP_Drain
-				EndIf			
-				Call	8026BF48	 ( 00000000 )
-			EndThread % added
+		Call	PlaySoundAtActor	( .Actor:Player 000002D8 )	
+				Call  GetActorVar   ( .Actor:Self 00000004 *Var9 )
+				Thread
+				Switch  *Var9 
+					Case  == 0`
+						Call    SetActorVar ( .Actor:Self 00000004 1` )
+						Call	8026BF48	 ( 00000001 )
+						Call	BoostDefense ( .Actor:Player 000002FD )
+						Call	8026BF48	 ( 00000000 )
+					Case  == 1`
+						Call 	SetActorVar ( .Actor:Self 00000004 2` )
+						Set *Var[E] 9
+						ExecWait $Script_FP_Drain
+					Case  == 2`
+						Call 	SetActorVar ( .Actor:Self 00000004 3` )
+						Call     $SPSubtractMainFunction ( 00000002 00000000 )
+					Case  == 3`
+						Call 	SetActorVar ( .Actor:Self 00000004 4` )
+						Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+						Wait  6`
+						Call  SetGoalToTarget   ( .Actor:Self )
+						Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic 00000000 00000000 9` 00000020 )
+					Case  == 4`
+						Call    SetActorVar ( .Actor:Self 00000004 0` )
+						Call	8026BF48	 ( 00000001 )
+						Call	BoostAttack ( .Actor:Player 000001FD )
+						Call	8026BF48	 ( 00000000 )	
+				EndSwitch
+				EndThread
   700:  Switch  *Var0
   70C:  	CaseOR  ==  .HitResult:Hit % 0
   718:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -193,6 +208,9 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
    68:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
    80:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
 		Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Monstar 137` )
+		EndIf
    98:  Return
    A0:  End
 }
@@ -267,6 +285,7 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
    D4:  		ExecWait  $Script_8021B898
    E0:  	Case  ==  .Event:BurnDeath % 24
 				ExecWait  $MonstarAttack
+				ExecWait  $CheckDeath
    EC:  		Set   *Var0  00000001
    FC:  		Set   *Var1  007E0008
   10C:  		Set   *Var2  FFFFFFFF
@@ -304,6 +323,7 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
   2B0:  		SetConst  *Var1  007E0008
   2C0:  		ExecWait  DoNormalHit
   2CC:  		ExecWait  $MonstarAttack
+				ExecWait  $CheckDeath
   2D8:  		SetConst  *Var0  00000001
   2E8:  		SetConst  *Var1  007E0008
 				
@@ -342,6 +362,20 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
   4B8:  End
 }
 
+
+#new:Script $CheckDeath
+{
+			Thread		
+				Call  SetMusicTrack ( 00000000 .Song:MailCall 00000001 00000008 )  %Ending stinger
+				Wait  209`
+			Call  GetActorHP    ( .Actor:Player *Var0 )
+			If  *Var0  >  00000000 
+				Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
+			EndIf
+			EndThread
+			Return
+			End
+}
 
 
 

@@ -112,6 +112,33 @@
 	[PowerBounce]  10`b
 }
 
+@	$Script_Init_80218F38
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021AF4C )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_802192B0 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80219328 )
+   3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_802190E4 )
+   50:  Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
+   68:  Call  SetActorVar   ( .Actor:Self 00000006 0000000A )
+   80:  Call  SetActorVar   ( .Actor:Self 00000000 00000002 )
+   98:  Call  SetActorVar   ( .Actor:Self 00000001 000000F0 )
+   B0:  Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
+   C8:  Call  SetActorVar   ( .Actor:Self 0000000B 00000000 )
+   E0:  Call  SetActorVar   ( .Actor:Self 0000000C 00000000 )
+   F8:  Call  PlayEffect    ( 0000003C 00000001 *Var0 *Var1 *Var2 *Fixed[1.0] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  13C:  Call  SetActorVar   ( .Actor:Self 0000000A *Var0 )
+  154:  Call  $Function_80218000 ( )
+  160:  Exec  $Script_80219204
+  16C:  ExecWait  $Script_8021B14C
+  178:  Wait  2`
+  184:  Call  SetActorVar   ( .Actor:Self 0000000D 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $BigLanternGhost 69` )
+		EndIf
+  19C:  Return
+  1A4:  End
+}
+
 
 
 @	$StatusTable_80218DC8
@@ -140,10 +167,35 @@
 	.Status:End
 }
 
+%If idle long enough, change to thinking variation
+#new:Script  $MonitorPos
+{
 
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		Switch  *Var6
+		Case  > 160`
+			Call  802D5FA4  ( 00000004 )
+		EndSwitch
+	EndLoop
+	Call  802D5FA4  ( 00000007 )
+	Return
+	End
+}
 
 @	$Script_TakeTurn_8021AF4C
 {
+		Kill  $MonitorPos
     0:  Call  GetActorVar   ( .Actor:Self 0000000C *Var0 )
    18:  If  *Var0  >  00000000
    28:  	Sub   *Var0  00000001
@@ -172,6 +224,7 @@
   180:  	Default
   188:  		ExecWait  $Script_80219C00 %Stomp Attack
   194:  EndSwitch
+		Exec  $MonitorPos
   19C:  Return
   1A4:  End
 }

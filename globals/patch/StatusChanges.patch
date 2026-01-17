@@ -198,78 +198,6 @@
 %%% STOP is an unadorned stop. No surprises here.
 %%% we haven't changed the others (yet)
 
-% dizzy enemies get a turn
-@Function 175C94 %00175B8C+108
-{
-	CLEAR V1
-}
-
-@Function 171A64 %001718C0+1A4
-{
-	LBU			V0, 210 (S0)   %1A4:  LB			V0, 210 (S0)		%LBU to V0
-  	BEQ			V0, R0, 58 %.o204  %1A8:  LBU			V1, 210 (S0)		%branch if 0
-  	SW			A0, 0 (S0)	   %1AC:  BEQ			V0, R0, .o204		% (store)
-  	ADDIU		V0, V0, FFFC   %1B0:  SW			A0, 0 (S0)			%sub 4 from statusID
-  	BEQ			V0, R0, 14 %.o1CC  %1B4:  ADDIU			V0, V1, FFFD		%branch if 0 (short)
-  	SLTIU		V0, V0, 5	   %1B8:  SLTIU			V0, V0, 6			%SLTIU with 5
-  %1BC:  BEQ			V0, R0, .o1CC	%then check if it's < 9, and...							
-  %1C0:  LUI			V0, 1
-  %1C4:  OR			V0, A0, V0		%well, if so, set the flag again. (this halts enemy turn)
-  %1C8:  SW			V0, 0 (S0)
-  %.o1cc
-
-	%note that it's +addr from the delay slot
-	%NOT in num of instructions, just what you'd add to the PC
-}
-
-%statuses affecting / not
-%03 (mystery) : 0011
-%05 (para)	  : 0101
-%06 (sleep)	  : 0110
-%07 (freeze)  : 0111
-%08 (stop) 	  : 1000
-
-%00 (normal)  : 0000
-%04 (dizzy)   : 0100
-%09 (poison)  : 1001
-%0A (shrink)  : 1010
-
-% dizzy mario gets a turn
-@Hook 17103C %00170904+738
-{
-	%prev line = LB			V0, 210 (S1)
-	BEQ		V0, R0, .noStatuses
-	ADDIU	AT, R0, 4
-	BEQ 	V0, AT, .noStun
-	SLTI	V0, V0, 9
-	BEQ		V0, R0, .noStun
-	ADDIU	V0, R0, 1 %redundant - could be replaced with NOP here as this is guaranteed to be 0
-	%but SR won't let me put a pseudoinstruction in a delay slot :P
-	SAW		V0, 8029F254	%stores 'stunned' bool
-	%SAW is a two-instruction pseudo, the first of which is a load to AT, so it's fine (I think)
-	.noStun
-	J		80242774	%80242024+750
-	NOP
-	.noStatuses
-	J		802427DC	%80242024+7B8
-	NOP
-}
-
-@Function 41A60C %41A5A8+64
-{
-%there's a second check for dizzy Mario in the battle menu - disable it
-	CLEAR A0
-}
-
-
-/% original code = 
-  734:  LB			V0, 210 (S1)	%now for all the other statuses
-738:  BEQ			V0, R0, .o7B8
-73C:  SLTI		V0, V0, 9		%if status ID >= 9 (< impl. mystery, dizzy, para, sleep, frozen, stop), branch
-  740:  BEQ			V0, R0, .o750	%status IDs over 9: poison (9), shrink (A), static (B), stone (C), partner KO (D), invis (E)
-  744:  ADDIU		V0, R0, 1															
-  748:  SAW			V0, 8029F254	%put 1 into this bool  (implies stunning status)
-  %/
 
 %and can block
 
@@ -290,65 +218,12 @@
 	NOP 
 }
 
-/% orig code
-  544:  LB			V0, 210 (S3)
-  548:  BEQ			V0, R0, .o558	%HOOK THIS TO SKIP 4 (dizzy) - similar patern as to the other one
-  54C:  SLTI		V0, V0, 9
-  550:  BNE			V0, R0, .o654	%if we are stunned, jump over block
-  554:  NOP
-%/
 
-
-%enemy test returns 'lucky' if enemy is dizzy (target must be Mario or partner)
-	%make sure lucky anim for partner works properly! (currently we just send 'miss' instead)
-	%alternately, dizzied enemies always attack mario if attacking (not currently the case)
-	
-%this also clears Cloud Nine	
-	
-@Function 1A5BE0		%001A5AD8 + 108	%partner will not skip the evade check
-{
-	NOP
-}
 
 %fn starts at 802771F8
 
-@Function 1A5BF4  %001A5AD8 + 11C
-{
-	%we have 0xB4 (ish) in terms of space, let's get to it
-	%V0, V1, and A1 are safe to use
-	%A0 starts with source actor ID (player/partner)
-	%S0 has target actor handle
-	%S1 will store result code but it's pushed into V0 before return
-	%S2 has battle struct
-	%must check if source actor is 000 or 100 else farskip
-		%00
-	BEQ		A0, R0, .ok		 
-	ADDIU	V0, R0, 100
-	BNE		A0, V0, .noEvade
-	.ok
-	LW		V1, 18 (SP) %source actor handle
-	LBU 	A0, 210 (V1) %source actor status
-	ADDIU 	V0, R0, 4	 %dizzy
-	BNE		V0, A0, .noEvade
-	ADDIU	V0, R0, 100		%partner actor ID
-	BEQL	A0, V0, .evade	%if we get here, enemy is dizzy. check if partner
-		ADDIU V0, R0, 6			%if partner, send 'miss'
-	ADDIU	V0, R0, 5		%if we get here, target is player. send lucky.
-	.evade
-	J 		80277410		%to top fn return (.o218)
-	NOP
-	.noEvade
-	J		802773D4		%to top fn static/stone check (.o1DC)
-	ADDIU	V0, R0, 6		%as S1 was unchanged, this ensures we won't return early and will fall through to static/stone check
-	%total space used = 0x3C
-}
+% Okay, scrap Dizzy cuz it overwrites the Pretty Lucky and Lucky Day checks
 
-% 'lucky' turns into 'miss'
-
-@Function 18F470 %0018F450+20
-{
-	ADDIU		A0, R0, 1	%indicates effect variant - had '2' which becomes 'LUCKY' - now has '1' which becomes 'MISS'
-}
 
 /% this only affects Mario. If you want to affect partners:
 % • you'll need to change partner-targeted attacks to trigger lucky

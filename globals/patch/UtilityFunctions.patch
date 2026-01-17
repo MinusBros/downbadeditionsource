@@ -1,6 +1,10 @@
 % Just a bunch of random functions needed to make stuff from 
 % Master Quest, Dark Star and TTYD64 work.
 
+%Increase Mario movement speed
+@Data 91020 {2.5} %walk speed, 800F7B70
+@Data 91024 {5.0} %run speed, 800F7B74
+
 #export:Data $RandomBattleData
 {
 	00000000
@@ -1318,6 +1322,275 @@ ORI V0, R0, 2
 }
 
 
+
+% [!] Model should have render mode: `13 Surface_XLU_No_AA`
+#export:Script $Script_AdvancedUpdateModelAlpha
+{
+    Set   *Var6 *Var0
+    Set   *Var7 *Var1
+    Set   *Var8 *Var2
+    Set   *Var9 *Var3
+    Call  SetModelCustomGfx ( *Var6 00000001 FFFFFFFF )
+    Call  SetCustomGfxBuilders  ( 00000001 $Function_InitDisplayListCode 00000000 )
+    Call  MakeLerp  ( *Var8 *Var9 *Var7 .Easing:Linear )
+    Loop
+        Call  UpdateLerp
+        Call  $WriteAddress ( $Data_ModelOpacity 2 *Var0 .False .False )
+        Wait  1`
+        If  *Var1  ==  .False
+            BreakLoop
+        EndIf
+    EndLoop
+    Return
+    End
+}
+
+
+#new:Function $Function_InitDisplayListCode
+{
+    LI        A2, FC121624 % G_SETCOMBINE
+    LUI       A1, FF2F % G_SETCIMG
+    LA        A0, 8009A66C
+    LW        V0, 0 (A0)
+    ORI       A1, A1, FFFF
+    COPY      V1, V0
+    ADDIU     V0, V0, 8
+    SW        V0, 0 (A0)
+    SW        A2, 0 (V1)
+    SW        A1, 4 (V1)
+    ADDIU     V1, V0, 8
+    SW        V1, 0 (A0)
+    LAW       A0, $Data_ModelOpacity
+    LUI       V1, FA00 % G_SETPRIMCOLOR
+    SW        V1, 0 (V0)
+    JR        RA
+    SW        A0, 4 (V0)
+}
+
+
+#new:Data $Data_ModelOpacity
+{
+	00000000
+}
+
+
+
+
+
+
+% ====================================================
+% Custom Battle Popups
+% These work, but could be implemented better.
+% ====================================================
+
+#export:Function $ShowCustomMessage % ( stringID from Custom section, message display time )
+{
+	PUSH	RA, S0, S1
+	DADDU	S0, A0, R0
+	LW		S1, C (A0)
+	JAL		~Func:get_variable
+	LW		A1, 0 (S1)
+	ADDIU	S1, S1, 4
+	DADDU	A0, S0, R0
+	DADDU	S0, V0, R0
+	JAL		~Func:get_variable
+	LW		A1, 0 (S1)
+	DADDU	S1, V0, R0
+	DADDU	A0, R0, R0
+	JAL		8024EF68	% CreateMessageBox? (usually at 8029F2C0)
+	DADDU	A1, S1, R0
+	DADDU	V1, V0, R0
+	BEQ		V1, R0, .Done
+	NOP
+	SW		R0, 0 (V1)
+	LIA		V0, $Custom_8024FB3C
+	SW		V0, 4 (V1)
+	SW		R0, 8 (V1)
+	LIA		V0, $Custom_80250EA4
+	SW		V0, C (V1)
+	SH		S0, 12 (V1)	% message ID
+	SH		S1, 14 (V1) % message time
+	SB		R0, 16 (V1)
+	ADDIU	V0, R0, 1
+	SB		V0, 17 (V1)
+	SW		R0, 18 (V1)
+	SAW		V1, 802838F8
+	SAH		R0, 8029F640
+	SAH		R0, 8029F64A
+	SAH		R0, 8029F64C
+	SAH		R0, 8029F64E
+	SAH		R0, 8029F650
+	.Done
+	POP		RA, S0, S1
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+	
+#export:Function $ShowCustomMessage_ASM 		%Same as above but uses A0 and A1 as args
+{
+	PUSH	RA, S0, S1
+	DADDU	S0, A0, R0
+	%LW		S1, C (A0)
+	%JAL		~Func:get_variable
+	%LW		A1, 0 (S1)
+	%ADDIU	S1, S1, 4
+	%DADDU	A0, S0, R0
+	%DADDU	S0, V0, R0
+	COPY	S0, A0
+	%JAL	~Func:get_variable
+	%LW		A1, 0 (S1)
+	COPY	S1, A1
+	%DADDU	S1, V0, R0
+	DADDU	A0, R0, R0
+	JAL		8024EF68	% CreateMessageBox? (usually at 8029F2C0)
+	DADDU	A1, S1, R0
+	DADDU	V1, V0, R0
+	BEQ		V1, R0, .Done
+	NOP
+	SW		R0, 0 (V1)
+	LIA		V0, $Custom_8024FB3C
+	SW		V0, 4 (V1)
+	SW		R0, 8 (V1)
+	LIA		V0, $Custom_80250EA4
+	SW		V0, C (V1)
+	SH		S0, 12 (V1)	% message ID
+	SH		S1, 14 (V1) % message time
+	SB		R0, 16 (V1)
+	ADDIU	V0, R0, 1
+	SB		V0, 17 (V1)
+	SW		R0, 18 (V1)
+	SAW		V1, 802838F8
+	SAH		R0, 8029F640
+	SAH		R0, 8029F64A
+	SAH		R0, 8029F64C
+	SAH		R0, 8029F64E
+	SAH		R0, 8029F650
+	.Done
+	POP		RA, S0, S1
+	JR		RA
+	ADDIU	V0, R0, 2
+}
+	
+#export:Function $Custom_80250EA4 % [17F784]
+{
+	ADDIU	SP, SP, FFC0
+	SW		S3, 34 (SP)
+	DADDU	S3, A0, R0
+	SW		RA, 3C (SP)
+	SW		S4, 38 (SP)
+	SW		S2, 30 (SP)
+	SW		S1, 2C (SP)
+	SW		S0, 28 (SP)
+	%
+	LH		V0, 12 (S3)
+	LUI		S0, 001F
+	OR		S0, S0, V0
+	%
+	LB		V0, 17 (S3)
+	BEQ		V0, R0, .Done
+	NOP
+	SB		R0, 17 (S3)
+	%
+	DADDU	A1, R0, R0
+	JAL		80126474		% GetTextWidth  (9D)
+	DADDU	A0, S0, R0
+	%
+	ADDIU	A3, V0, 1E
+	SRL		V0, A3, 1F
+	ADDU	V0, A3, V0
+	SRA		V0, V0, 1
+	ADDIU	V1, R0, A0 % 160`
+	SUBU	S1, V1, V0 % S1 = 160 - (V0 + 30) / 2	(start pos)
+	DADDU	S2, A3, R0 % S1 = V0 + 30 				(box width)
+	JAL		801264B0		% GetTextLines? (2)
+	DADDU	A0, S0, R0
+	%
+	ADDIU	V0, V0, FFFF
+	ADDIU	A0, R0, 9
+	DADDU	A1, S1, R0	% text hpos
+	ADDIU	A2, R0, 50	% text vpos
+	DADDU	A3, S2, R0	% box width
+	SLL		V0, V0, 1
+	LTH		T0, V0 (802835D0) % (1C/28)
+	SW		T0, 10 (SP) % box height
+	SW		R0, 14 (SP)
+	LIA		V0, $Custom_80250818
+	SW		V0, 18 (SP)
+	SW		S3, 1C (SP)
+	ADDIU	V0, R0, FFFF
+	SW		V0, 20 (SP)
+	JAL		80147CC8
+	NOP
+	%
+	ADDIU	A0, R0, 9
+	ADDIU	A1, R0, 1
+	JAL		80147E7C
+	NOP
+	.Done
+	LW		RA, 3C (SP)
+	LW		S4, 38 (SP)
+	LW		S3, 34 (SP)
+	LW		S2, 30 (SP)
+	LW		S1, 2C (SP)
+	LW		S0, 28 (SP)
+	JR		RA
+	ADDIU	SP, SP, 40
+}
+	
+#export:Function $Custom_8024FB3C		% 17E41C
+{
+	ADDIU	SP, SP, FFE0
+	SW		S1, 14 (SP)
+	DADDU	S1, A0, R0
+	SW		S2, 18 (SP)
+	SW		RA, 1C (SP)
+	SW		S0, 10 (SP)
+	LIA		A0, 800DC070
+	DADDU	S2, R0, R0
+	LIO		V0, 8024FB84
+	JR		V0
+	NOP
+}
+	
+#export:Function $Custom_80250818	% [17F0F8]
+{
+	ADDIU     SP, SP, FFC8
+	SW        S2, 20 (SP)
+	ADDIU     S2, A1, F
+	SW        S3, 24 (SP)
+	DADDU     S3, A0, R0
+	SW        RA, 2C (SP)
+	SW        S4, 28 (SP)
+	SW        S1, 1C (SP)
+	SW        S0, 18 (SP)
+	SDC1      F20, 30 (SP)
+	ADDIU     S1, A2, 6
+	LH		V0, 12 (S3)
+	LUI		S0, 001F
+	OR		S0, S0, V0
+	JAL       801264B0
+	DADDU     A0, S0, R0
+	ADDIU     V1, V0, FFFF
+	DADDU     A0, S0, R0
+	DADDU     A1, S2, R0
+	ADDIU     A3, R0, FF
+	SLL       V0, V1, 1
+	LTH       A2, V0 (802835D4)
+	ADDIU     V0, R0, F
+	SW        V0, 10 (SP)
+	SW        R0, 14 (SP)
+	JAL       801264EC		% DrawString
+	ADDU      A2, S1, A2
+	LW        RA, 2C (SP)
+	LW        S4, 28 (SP)
+	LW        S3, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F20, 30 (SP)
+	JR        RA
+ADDIU SP, SP, 38
+}
 
 
 

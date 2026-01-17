@@ -1,0 +1,233 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000004 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]I see how this works. The statues[BR]
+with green above them give us[BR]
+information about what to do.[BR]
+[Wait][Next]
+They also sometimes seem to[BR]
+open up paths, so we should[BR]
+definitely talk to them.[BR]
+[Wait][Next]
+The ones with red above them[BR]
+explain the lore of this place[BR]
+and how it came to be.[BR]
+[Wait][Next]
+I don't know about you, but[BR]
+it seems pretty important to[BR]
+me that we read everything[BR]
+we can.[BR]
+[Wait][Next]
+The more information we have[BR]
+about this place, the better.[BR]
+[Pause 16]Unless there's something we[BR]
+would rather not know...[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+		
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1 %  coordinates
+~Vec4f:Entry2 %  coordinates
+~Vec4f:Entry3 %  coordinates
+}
+	
+	
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	If  *GF_DNJ13_FlagA  ==  00000001
+	 Goto 00000001 % Check if left side is done first
+    Else
+     Goto 00000002 % If its not then just skip the next check
+	EndIf
+Label 00000001 % If it is, check if right side is done
+	If  *GF_DNJ13_FlagB  ==  00000001
+		Call     ModifyColliderFlags 	( 00000000 ~Collider:barsdown 7FFFFE00 )
+		Set *Var[2] -1000`
+		Call	TranslateModel	( ~Model:barsdown 00000000 *Var[2] 00000000 )
+		Goto 00000003 % If the right side is done as well, skip the movement of barsup
+	EndIf 
+Label 00000002 % If its not we will end up here
+	Set *Var[2] -1000`
+	Call	TranslateModel	( ~Model:barsup 00000000 *Var[2] 00000000 )
+Label 00000003
+	Bind     $Script_TalkLeft  .Trigger:WallPressA ~Collider:talkeyeleft  00000001 00000000 
+	Bind     $Script_TalkRight  .Trigger:WallPressA ~Collider:talkeyeright  00000001 00000000 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+		Wait	1
+	Return
+	End
+}
+	
+#new:Script $Script_TalkLeft
+{
+    Call     DisablePlayerInput 	( .True )
+    Call     ShowMessageAtScreenPos     	( $LeftString 000000A0 00000028 )
+	  Call     DisablePlayerInput 	( .False )
+Return
+End
+}
+
+#new:Script $Script_TalkRight
+{
+    Call     DisablePlayerInput 	( .True )
+    Call     ShowMessageAtScreenPos     	( $RightString 000000A0 00000028 )
+	  Call     DisablePlayerInput 	( .False )
+Return
+End
+}
+
+#string $LeftString
+{
+[DelayOff][Style Inspect]
+HIS REQUEST REJECTED[BR]
+THE MAN'S ANGER IGNITED[BR]
+AGAINST THE HONORABLE SEVEN[BR]
+A WAR WAS INCITED[BR]
+[Pause 5][Wait][Next]
+THE MAN'S ARMIES ADVANCED[BR]
+HIS FOES WERE DECIMATED[BR]
+THE SEVEN GREW FEARFUL[BR]
+AS THEIR DEMISE AWAITED[BR]
+[Wait][Next]
+JUST AS ALL HOPE LEFT[BR]
+THE MAN ENTERED THEIR ROOM[BR]
+AND THE STAR ROD WAS USED[BR]
+TO WISH FOR HIS DOOM[BR]
+[Wait][Next]
+IN AN INSTANT WAR ENDED[BR]
+AND THEN PEACE CAME TO ALL[BR]
+EXCEPT THAMZ AND HIS MEN[BR]
+WHO WERE DESTINED TO FALL[BR]
+[Wait][Next]
+THE EMPIRE HE HAD BUILT[BR]
+FELL INTO DESPAIR[BR]
+HE AND HIS TROOPS[BR]
+WERE CAST TO THIS LAIR[BR]
+[DelayOn][Wait][End]
+}
+
+#string $RightString
+{
+[DelayOff][Style Inspect]
+TRUST NOT WHAT YOU SEE[BR]
+ON THE PATH TO YOUR RIGHT[BR]
+THE PATH TO THE LEFT[BR]
+WILL SHOW YOU THE LIGHT[BR]
+[DelayOn][Wait][End]
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:exit2 00000001 00000000
+	If  *GF_DNJ13_FlagA  ==  00000001
+	 Goto 00000001 % Check if left side is done first
+    Else
+     Goto 00000002 % If its not then just skip the next check
+	EndIf
+Label 00000001 % If it is, check if right side is done
+	If  *GF_DNJ13_FlagB  ==  00000001
+	Bind     $Script_Exit2  .Trigger:FloorAbove ~Collider:exit3 00000001 00000000
+	EndIf
+Label 00000002	% If it is, the exit is opened. If not, that one is skipped
+	Bind     $Script_Exit3  .Trigger:FloorAbove ~Collider:exit4 00000001 00000000
+Return
+End
+}
+
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_11" 00000001 )
+	Wait     00000064 
+	Return
+	End	
+}
+	
+	#new:Script $Script_Exit1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_14" 00000001 )
+	Wait     00000064 
+	Return
+	End		
+}
+	
+	#new:Script $Script_Exit2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000002 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_56" 00000000 )
+	Wait     00000064 
+	Return
+	End		
+}
+	
+	#new:Script $Script_Exit3
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000003 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "kmr_51" 00000000 )
+	Wait     00000064 
+	Return
+	End	
+}

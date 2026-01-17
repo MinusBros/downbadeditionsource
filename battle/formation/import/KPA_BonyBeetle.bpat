@@ -3,7 +3,7 @@
 #new:Actor $KPA_BonyBeetle {
 % stats
 [Index]        46b 
-[Level]        39`b 
+[Level]        44`b 
 [MaxHP]        19`b 
 [Coins]         5`b 
 [Flags]       00000000 
@@ -212,6 +212,9 @@
   2B0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80219110_22 )
   2C4:  Call  HPBarToHome   ( .Actor:Self )
   2D4:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $KPA_BonyBeetle 51` )
+		EndIf
   2EC:  Return
   2F4:  End
 }
@@ -432,21 +435,26 @@
   6AC:  End
 }
 
+#new:Script  $BattleCam
+{
+   5C:  	Call  UseBattleCamPreset    ( 0000003F )
+   6C:  	Call  BattleCamTargetActor  ( .Actor:Self )
+   7C:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+	Return
+	End
+}
+
 #new:Script $Script_Tackle_22 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  GetBattlePhase    ( *Var0 )
    4C:  If  *Var0  ==  00000001 
-   5C:  	Call  UseBattleCamPreset    ( 0000003F )
-   6C:  	Call  BattleCamTargetActor  ( .Actor:Self )
-   7C:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+			ExecWait  $BattleCam
    94:  	Call  SetAnimation  ( .Actor:Self 00000001 00550016 )
    AC:  	Goto  64
    B8:  EndIf
-   C0:  Call  UseBattleCamPreset    ( 0000003F )
-   D0:  Call  BattleCamTargetActor  ( .Actor:Self )
-   E0:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+		ExecWait  $BattleCam
    F8:  Call  SetAnimation  ( .Actor:Self 00000001 00550010 )
   110:  Wait  5`
   11C:  Thread
@@ -676,16 +684,12 @@
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  GetBattlePhase    ( *Var0 )
    4C:  If  *Var0  ==  00000001 
-   5C:  	Call  UseBattleCamPreset    ( 0000003F )
-   6C:  	Call  BattleCamTargetActor  ( .Actor:Self )
-   7C:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+			ExecWait  $BattleCam
    94:  	Call  SetAnimation  ( .Actor:Self 00000001 00550017 )
    AC:  	Wait  2`
    B8:  	Goto  64
    C4:  EndIf
-   CC:  Call  UseBattleCamPreset    ( 0000003F )
-   DC:  Call  BattleCamTargetActor  ( .Actor:Self )
-   EC:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+		ExecWait  $BattleCam
   104:  Call  SetAnimation  ( .Actor:Self 00000001 00550011 )
   11C:  Wait  4`
   128:  Thread

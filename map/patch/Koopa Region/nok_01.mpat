@@ -10,7 +10,7 @@
 #define .NpcID:WorldBombomb_14      0E
 #define .NpcID:ChuckQuizmo_15       0F
 
-
+#import DonloninaBottle.mpat
 #import EnterViaPipe.mpat
 
 @	$EntryList
@@ -25,16 +25,233 @@
 	[EntryCount]  00000003
 }
 
-
-@	$Script_ExitWalk_80242F70
+@	$Script_OpenDoor_8024FF38
 {
-   [78]  Wait  75`
+		If    *ShopState != 0`
+			Set   *ShopState  0`
+			Exec  $Script_80242BD0
+		EndIf
+    0:  Call  RotateModel   ( ~Model:o200 *Var0 00000000 00000001 00000000 )
+   20:  Return
+   28:  End
 }
 
-@ $Script_ExitWalk_80243004
+@	$Script_80249B68
 {
-   [50]  Wait  75`
+		Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )  %Sailor Mercury song
+		Set   *ShopState  1`
+    0:  Call  HidePlayerShadow  ( .False )
+   10:  Call  802D2520  ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+   34:  Call  SetPlayerPos      (  -380`  0`  5` )
+   4C:  Call  SetPlayerSpeed    ( *Fixed[4.2] )
+   5C:  Call  PlayerMoveTo      (  -325`  79`  0` )
+   80:  Return
+   88:  End
 }
+
+
+%Left Bob-Omb with new Bombette responses
+
+@	$Script_Interact_8024C868
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   18:  		If  *AreaFlag[00C]  ==  .False
+   28:  			Set   *AreaFlag[00C]  .True
+   38:  			Set   *Var0  000C0046
+   48:  		Else
+   50:  			Set   *AreaFlag[00C]  .False
+   60:  			Set   *Var0  000C0047
+   70:  		EndIf
+   78:  		Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 *Var0 ) % variable string ID
+   98:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   A4:  		If  *AreaFlag[00C]  ==  .False
+   B4:  			Set   *AreaFlag[00C]  .True
+   C4:  			Call  NpcFacePlayer     ( .Npc:Self 00000000 )
+   D8:  			Call  BringPartnerOut   ( .Partner:Bombette )
+   E8:  			Call  NpcFaceNpc        ( .Npc:Partner .Npc:Self 00000000 )
+  100:  			Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C0048 ) % Bombette! You're safe!? Oh, joy!! I was so worried ...
+  120:  			Call  DisablePartnerAI  ( 00000000 )
+  130:  			Call  SpeakToPlayer     ( .Npc:Partner 0003000E 00030003 00000000 000C0049 ) % Mario rescued me. So I figured the least I could d ...
+  150:  			Call  EnablePartnerAI ( )
+  15C:  			Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C004A ) % Good luck, Bombette! We Bob-ombs will all be wishi ...
+  17C:  			Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+  190:  			Wait  10`
+  19C:  			Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+  1B0:  			Wait  3`
+  1BC:  			Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  1D8:  			Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+  1F0:  			Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  208:  			Wait  30`
+  214:  			Call  PutPartnerAway ( )
+  220:  		Else
+  228:  			Call  NpcFacePlayer     ( .Npc:Self 00000000 )
+  23C:  			Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C004B ) % Here's a little something I put together to wish M ...
+  25C:  			Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+  270:  			Wait  10`
+  27C:  			Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+  290:  			Wait  3`
+  29C:  			Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  2B8:  			Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+  2D0:  			Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  2E8:  		EndIf
+  2F0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  2FC:  		Call  NpcFacePlayer     ( .Npc:Self 00000000 )
+  310:  		Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C004C ) % Explosion is a fine art! Bomb-bomb!
+  330:  		Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+  344:  		Wait  10`
+  350:  		Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+  364:  		Wait  3`
+  370:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  38C:  		Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+  3A4:  		Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+				If    *BombetteLeftBobOmbCutscene  == .False
+					Call  BringPartnerOut   ( .Partner:Bombette )
+					Call  NpcFaceNpc        ( .Npc:Partner .Npc:Self 00000000 )
+					Call  DisablePartnerAI  ( 00000000 )
+					Wait  10`
+					Call  SpeakToNpc        ( .Npc:Partner 0003000E 00030003 00000000 .Npc:Self 000C0162 )
+					Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C0163 )
+	  330:  		Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+	  344:  		Wait  10`
+	  350:  		Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+	  364:  		Wait  3`
+	  370:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+	  38C:  		Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+	  3A4:  		Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  208:  			Wait  30`
+  214:  			Call  PutPartnerAway ( )
+					Call  EnablePartnerAI  ( )
+					Set   *BombetteLeftBobOmbCutscene .True
+				EndIf
+  3BC:  	Case  >=  .Story:Ch7_StarSpritDeparted % 59
+  3C8:  		Call  NpcFacePlayer     ( .Npc:Self 00000000 )
+  3DC:  		Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C004D ) % Bombs away, Mario! We wish you the best of luck! B ...
+  3FC:  		Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+  410:  		Wait  10`
+  41C:  		Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+  430:  		Wait  3`
+  43C:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  458:  		Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+  470:  		Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  488:  EndSwitch
+  490:  Return
+  498:  End
+}
+
+
+
+%Middle Bob-Omb with new Bombette responses
+
+@	$Script_Interact_8024C694
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   18:  		If  *AreaFlag[00B]  ==  .False
+   28:  			Set   *AreaFlag[00B]  .True
+   38:  			Set   *Var0  000C003F
+   48:  		Else
+   50:  			Set   *AreaFlag[00B]  .False
+   60:  			Set   *Var0  000C0040
+   70:  		EndIf
+   78:  		Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 *Var0 ) % variable string ID
+   98:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   A4:  		Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C0041 ) % I decided to stay here with my friends for a while ...
+				If    *BombetteMiddleBobOmbCutscene == .False
+					Call  BringPartnerOut   ( .Partner:Bombette )
+					Call  NpcFaceNpc        ( .Npc:Partner .Npc:Self 00000000 )
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  SpeakToNpc        ( .Npc:Partner 0003000E 00030003 00000000 .Npc:Self 000C015B )
+					Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C015C ) %
+					Call  SpeakToNpc        ( .Npc:Partner 0003000D 00030014 00000000 .Npc:Self 000C015D )
+					Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C015E ) %
+					Call  SpeakToNpc        ( 0000000D 00910104 00910101 00000000 .Npc:Partner 000C015F ) %Left Bob-Omb
+					Call  SpeakToNpc        ( .NpcID:WorldBombomb_14 00910104 00910301 00000000 .Npc:Partner 000C015F ) %Left Bob-Omb
+					Call  NpcFaceNpc        ( .Npc:Partner .Npc:Self 00000000 )
+					Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C0160 ) %
+					Call  SpeakToNpc        ( .Npc:Partner 0003000E 00030003 00000000 .Npc:Self 000C0161 )
+					Set   *BombetteMiddleBobOmbCutscene .True
+					Call  EnablePartnerAI ( )
+					Call  PutPartnerAway ( )
+				EndIf
+   C4:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+   D0:  		Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C0042 ) % Bombette will be victorious! You can bet your bomb ...
+   F0:  	Case  >=  .Story:Ch7_StarSpritDeparted % 59
+   FC:  		Call  NpcFacePlayer     ( .Npc:Self 00000000 )
+  110:  		Call  SpeakToPlayer     ( .Npc:Self 00910104 00910101 00000000 000C0043 ) % I'm a Bob-omb. I love to bomb-bomb!
+  130:  		Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+  144:  		Wait  10`
+  150:  		Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+  164:  		Wait  3`
+  170:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  18C:  		Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+  1A4:  		Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  1BC:  EndSwitch
+  1C4:  Return
+  1CC:  End
+}
+
+
+%Right Bob-Omb
+@	$Script_Interact_8024CD08
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   18:  		If  *AreaFlag[00E]  ==  .False
+   28:  			Set   *AreaFlag[00E]  .True
+   38:  			Call  NpcFacePlayer ( .Npc:Self 00000000 )
+   4C:  			Call  NpcFacePlayer ( 0000000C 00000000 )
+   60:  			Call  NpcFacePlayer ( 0000000D 00000000 )
+   74:  			Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C004E ) % Thank you, thank you, thank you! Way to beat the K ...
+   94:  			Call  PlayerFaceNpc ( 0000000C .False )
+   A8:  			Call  SpeakToPlayer ( 0000000C 00910104 00910101 00000000 000C004F ) % I feel...so very happy... ...surrounded by friends ...
+   C8:  			Call  PlayerFaceNpc ( 0000000D .False )
+   DC:  			Call  SpeakToPlayer ( 0000000D 00910104 00910101 00000000 000C0050 ) % We salute you! Buh-bomb!
+   FC:  			Thread
+  104:  				Call  SetNpcAnimation   ( 0000000D 00910103 )
+  118:  				Wait  10`
+  124:  				Call  SetNpcAnimation   ( 0000000D 00910101 )
+  138:  				Wait  3`
+  144:  				Call  GetNpcPos ( 0000000D *Var0 *Var1 *Var2 )
+  160:  				Call  PlaySoundAtNpc    ( 0000000D .Sound:Cannon1 00000000 )
+  178:  				Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  190:  			EndThread
+  198:  			Wait  20`
+  1A4:  			Thread
+  1AC:  				Call  PlayerFaceNpc     ( 0000000C .False )
+  1C0:  				Call  SetNpcAnimation   ( 0000000C 00910103 )
+  1D4:  				Wait  10`
+  1E0:  				Call  SetNpcAnimation   ( 0000000C 00910101 )
+  1F4:  				Wait  3`
+  200:  				Call  GetNpcPos ( 0000000C *Var0 *Var1 *Var2 )
+  21C:  				Call  PlaySoundAtNpc    ( 0000000C .Sound:Cannon1 00000000 )
+  234:  				Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  24C:  			EndThread
+  254:  			Wait  20`
+  260:  			Thread
+  268:  				Call  PlayerFaceNpc     ( .Npc:Self .False )
+  27C:  				Call  SetNpcAnimation   ( .Npc:Self 00910103 )
+  290:  				Wait  10`
+  29C:  				Call  SetNpcAnimation   ( .Npc:Self 00910101 )
+  2B0:  				Wait  3`
+  2BC:  				Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  2D8:  				Call  PlaySoundAtNpc    ( .Npc:Self .Sound:Cannon1 00000000 )
+  2F0:  				Call  $Function_802426A4    ( *Var0 *Var1 *Var2 )
+  308:  			EndThread
+  310:  		Else
+  318:  			Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C0051 ) % Some of our other friends who were also in the for ...
+  338:  		EndIf
+  340:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  34C:  		Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C0052 ) % Oh, yeah... the air out here is so wonderfully cle ...
+  36C:  	Case  >=  .Story:Ch7_StarSpritDeparted % 59
+  378:  		Call  SpeakToPlayer ( .Npc:Self 00910104 00910101 00000000 000C0053 ) % It's not fair that bad guys' wishes always come tr ...
+  398:  EndSwitch
+  3A0:  Return
+  3A8:  End
+}
+
+
+
 
 @	$Script_MakeEntities
 {
@@ -119,6 +336,65 @@
 	End
 }
 
+@	$Script_802506C0
+{
+    0:  Call  MakeDoorAdvanced  ( 00000200 $Script_OpenDoor_8024FF38 $Script_MoveWalls_80250078 00000000 $Script_ToggleVis_80250504 ~Collider:o200 ~Collider:o284 ~Model:aka $NpcList_80250698 )
+   30:  Call  MakeDoorAdvanced  ( 00001200 $Script_OpenDoor_80250140 $Script_MoveWalls_8025021C 00000000 $Script_ToggleVis_80250568 ~Collider:o226 ~Collider:o286 ~Model:ki $NpcList_802506A0 )
+   60:  If  *GB_StoryProgress  <  .Story:Ch1_KooperJoinedParty % FFFFFFA4
+   70:  	Call  MakeDoorAdvanced  ( 00000200 $Script_OpenDoor_802502FC $Script_MoveWalls_802503DC $Script_DropDoor_80250498 $Script_ToggleVis_802505D8 ~Collider:o246 ~Collider:o291 ~Model:ao $NpcList_802506A8 )
+   A0:  Else
+   A8:  	Call  MakeDoorAdvanced  ( 00000200 $Script_OpenDoor_802502FC $Script_MoveWalls_802503DC $Script_DropDoor_80250498 $Script_ToggleVis_802505D8 ~Collider:o246 ~Collider:o291 ~Model:ao $NpcList_802506B8 )
+   D8:  EndIf
+   E0:  Call  $Function_802427C0 ( )
+   EC:  Set   *Var0  00000003
+   FC:  Exec  $Script_ToggleVis_80250504
+  108:  Exec  $Script_ToggleVis_80250568
+  114:  Exec  $Script_ToggleVis_802505D8
+  120:  Exec  $Script_8024FD30
+  12C:  Exec  $Script_8024FEA0
+		Exec  $MoveGrass
+  138:  Return
+  140:  End
+}
+
+
+#new:Script	$MoveGrass
+{
+    C:  Call  MakeLerp      ( 25` 0` 60` .Easing:CosInOut )
+		Loop
+			Call  UpdateLerp ( )
+			Call  RotateModel   ( ~Model:o315 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o322 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o391 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o390 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o392 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o393 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o394 *Var0 -1` 00000000 00000000 )
+			Wait  1`
+		EndLoop
+  160:  Return
+  168:  End
+}
+
+
+
+@	$NpcGroupList_8024FAA8
+{
+	00000009 $NpcGroup_8024D1F8 00000000
+	00000004 $NpcGroup_8024F2E8 00000000
+	00000001 $NpcGroup_8024E368 00000000
+	00000001 $NpcGroup_8024E558 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+@	 $NpcGroupList_8024FAE4
+{
+	00000006 $NpcGroup_8024E748 00000000
+	00000004 $NpcGroup_8024F2E8 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
 
 
 @	$NpcGroup_8024F2E8

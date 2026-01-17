@@ -1,9 +1,19 @@
 %This battle section is on the verge of crashing, so I need to free up space somehow.
 
+#delete $StatusTable_8022F614
+#delete $StatusTable_8022C844
+
+@	$Script_BeforeBattle_8022FB20
+{
+     Return
+     End
+}
+
 @	$ToyTank
 {
-	[MaxHP]        48`b
+	[MaxHP]        64`b
 	[PowerBounce]   3`b
+	[StatusTable] $StatusTable_8021833C
 }
 
 
@@ -40,6 +50,7 @@
 {
 	[MaxHP]         25`b
 	[PowerBounce]    3`b
+	[StatusTable] $StatusTable_8021833C
 }
 
 %Wattage can't damage the bulb now and it has two defence
@@ -50,6 +61,73 @@
 	.Element:End
 }
 
+@	$Script_HandleEvent_8022CE5C
+{
+    0:  Call  SetActorVar       ( .Actor:Self 00000009 00000001 )
+   18:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   2C:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   40:  Switch  *Var0
+   4C:  	Case  ==  .Event:HitCombo % 9
+   58:  		ExecWait  $Script_8022D238
+				ExecWait  $ShyShogunReaction
+   E0:  	CaseOR  ==  .Event:Hit % A
+   EC:  	CaseOR  ==  .Event:BurnHit % E
+   F8:  		ExecWait  $Script_8022D238
+				ExecWait  $ShyShogunReaction
+  180:  	EndCaseGroup
+  188:  	Case  ==  .Event:SpinSmashHit % B
+  194:  		ExecWait  $Script_8022D238
+				ExecWait  $ShyShogunReaction
+  21C:  	Case  ==  00000017 % 17
+  228:  		Call  8026E914  ( *Var0 *Var1 )
+				ExecWait $ShyShogunImmune
+  274:  	Case  ==  .Event:Immune % 19
+				ExecWait $ShyShogunImmune
+  2B8:  	Case  ==  .Event:AirLiftFailed % 1F
+  2C4:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  2D8:  		Wait  30`
+  2E4:  	CaseOR  ==  .Event:Death % 20
+  2F0:  	CaseOR  ==  .Event:BurnDeath % 24
+  2FC:  		ExecWait  $Script_8022D238
+  308:  		ExecWait  $Script_8022ED80
+  314:  		Return
+  31C:  	EndCaseGroup
+  324:  	Case  ==  .Event:SpinSmashDeath % 21
+  330:  		ExecWait  $Script_8022D238
+  33C:  		ExecWait  $Script_8022ED80
+  348:  		Return
+  350:  	Case  ==  .Event:SpikeContact % 2A
+  35C:  	Case  ==  .Event:BurnContact % 2C
+  368:  	Case  ==  .Event:ShockHit % 2F
+  374:  	Case  ==  .Event:EndFirstStrike % 35
+  380:  	Default
+  388:  EndSwitch
+  390:  Call  SetActorVar       ( .Actor:Self 00000009 00000000 )
+  3A8:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  3BC:  Return
+  3C4:  End
+}
+
+#new:Script    $ShyShogunReaction
+{
+  1A0:  		Call  SetAnimation  ( .Actor:Enemy0 00000001 00760002 )
+  1B8:  		Call  SetEnemyTargetOffset  ( .Actor:Self 00000002  0`  35` )
+  1D4:  		Call  SetPartFlagBits       ( .Actor:Enemy0 00000001 00000001 .True )
+  1F0:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  204:  		Call  PlaySoundAtPart       ( .Actor:Enemy0 00000001 0000206B )
+				Return
+				End
+}
+
+#new:Script   $ShyShogunImmune
+{
+  280:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  294:  		Call  PlaySoundAtPart       ( .Actor:Enemy0 00000001 0000206B )
+  2AC:  		Wait  20`
+				Return
+				End
+}
+
 
 @	$Script_TakeTurn_80218BA0
 {
@@ -57,6 +135,9 @@
    18:  If  *Var0  ==  00000000
    28:  	Return
    30:  EndIf
+ 		Kill  $MonitorPos
+		Wait  2`
+		Call  802D5FA4  ( 00000007 )
    38:  Call  ActorExists   ( .Actor:Enemy2 *Var0 )
    4C:  If  *Var0  !=  .False
    5C:  	Call  GetStatusFlags    ( .Actor:Partner *Var0 )
@@ -65,6 +146,7 @@
    94:  		If  *Var0  <  0000003C
 					Exec  $ShowMessage1
    A4:  			ExecWait  $Script_LightningAttack
+					Exec  $MonitorPos
    B0:  			Return
    B8:  		EndIf
    C0:  	EndIf
@@ -72,11 +154,38 @@
 		Exec  $ShowMessage2
    D0:  ExecWait  $Script_BombAttack
 		ExecWait  $Script_BombAttack
+		Exec  $MonitorPos
    DC:  Return
    E4:  End
 }
 
 
+#new:Script  $MonitorPos
+{
+
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		Switch  *Var6
+		Case  > 400`
+			Call  802D5FA4  ( 00000004 )
+		Case  > 120`
+			Call  802D5FA4  ( 00000005 )
+		EndSwitch
+	EndLoop
+	Call  802D5FA4  ( 00000007 )
+	Return
+	End
+}
 
 
 
@@ -152,22 +261,154 @@
 }
 
 
+
 @	$Script_LightningAttack
 {
-   [C0]  Wait  15`
-  [12C]  Wait  8`
-  [190]  Wait  10`
-  [2AC]  Wait  25`
-  [2B8]  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Electric ~DebuffType:Paralyze:2:100` 00000008 00000020 )
-  [398]  		Wait  8`
-  [494]  			Wait  8`
-  [4F8]  			Wait  5`
-  [698]  		Wait  8`
-  [784]  		Wait  8`
-  [918]  Wait  8`
-  [934]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010264 00000007 00000020 )
-  [9CC]  			Wait  15`
-  [B14]  Wait  8`
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+   3C:  Call  SetGoalToTarget   ( .Actor:Self )
+   4C:  Call  UseBattleCamPreset    ( 00000013 )
+   5C:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+   78:  Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+   90:  Call  SetBattleCamZoom  (  320` )
+   A0:  Call  SetBattleCamOffsetZ   (  30` )
+   B0:  Call  MoveBattleCamOver (  20` )
+   C0:  Wait  15`
+   CC:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206A )
+   E4:  Call  SetAnimation      ( .Actor:Enemy0 00000001 0076000B )
+   FC:  Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .False )
+  118:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_80220D88 )
+  12C:  Wait  8`
+  138:  Call  GetActorVar       ( .Actor:Enemy1 00000007 *Var0 )
+  150:  If  *Var0  !=  00000000
+  160:  	Call  80253734  ( 00000002 )
+  170:  EndIf
+  178:  Call  SetAnimation      ( .Actor:Self 00000001 00760003 )
+  190:  Wait  10`
+  19C:  Call  SetActorVar       ( .Actor:Enemy1 00000006 00000001 )
+		ExecWait  $CamZoom2
+  1D4:  Thread
+  1DC:  	Call  $Function_80218000 ( )
+  1E8:  EndThread
+  1F0:  Call  GetModelCenter    ( 00000027 )
+  200:  Thread
+  208:  	Loop  00000004
+  214:  		Call  PlaySoundAtActor  ( *Var8 000003D2 )
+  228:  		Call  RandInt   ( 00000003 *Var0 )
+  23C:  		Add   *Var0  00000003
+  24C:  		Wait  *Var0
+  258:  	EndLoop
+  260:  EndThread
+  268:  Call  PlayEffect        ( ~FX:SnakingStatic *Var0 *Var1 *Var2 *Fixed[1.0] 00000028 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  2AC:  Wait  40`
+  2B8:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Electric ~DebuffType:Paralyze:2:100` 00000008 00000020 )
+  2DC:  Switch  *Var0
+  2E8:  	Case  ==  .HitResult:Miss % 6
+  2F4:  		Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+				ExecWait  $DoLightning
+  398:  		Wait  12`
+  3A4:  		Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+  3B8:  		Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Electric 00000000 00000002 00000020 )
+  3DC:  		If  *Var0  !=  .HitResult:Miss % 6
+  3EC:  			Call  GetModelCenter    ( 00000027 )
+  3FC:  			Call  SetGoalToTarget   ( .Actor:Self )
+  40C:  			Call  GetGoalPos        ( .Actor:Self *Var3 *Var4 *Var5 )
+  428:  			Call  PlaySound ( 00002069 )
+  438:  			Call  PlayEffect        ( ~FX:Lightning *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 *Fixed[1.0] 00000012 00000000 00000000 00000000 00000000 )
+  47C:  			Call  SetActorVar       ( .Actor:Enemy1 00000006 00000000 )
+  494:  			Wait  12`
+  4A0:  			Call  SetGoalToTarget   ( .Actor:Self )
+  4B0:  			Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact|Electric 00000000 00000000 00000002 00000020 )
+  4D8:  		Else
+  4E0:  			Call  SetActorVar   ( .Actor:Enemy1 00000006 00000000 )
+  4F8:  			Wait  20`
+  504:  		EndIf
+  50C:  		Call  GetActorVar   ( .Actor:Enemy1 00000007 *Var0 )
+  524:  		If  *Var0  !=  00000000
+  534:  			Call  80253734  ( 00000003 )
+  544:  		EndIf
+  54C:  		Call  $Function_80218098 ( )
+  558:  		Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  570:  		Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
+  58C:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  5A0:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
+  5B8:  		Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  5CC:  		Call  UseIdleAnimation  ( .Actor:Self .True )
+  5E0:  		Return
+  5E8:  	Case  ==  .HitResult:Lucky % 5
+  5F4:  		Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+				ExecWait  $DoLightning
+  698:  		Wait  9`
+  6A4:  		Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+  6C8:  		Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+				ExecWait  $DoLightning
+  76C:  		Call  SetActorVar       ( .Actor:Enemy1 00000006 00000000 )
+  784:  		Wait  9`
+  790:  		Call  GetActorVar       ( .Actor:Enemy1 00000007 *Var0 )
+  7A8:  		If  *Var0  !=  00000000
+  7B8:  			Call  80253734  ( 00000003 )
+  7C8:  		EndIf
+  7D0:  		Call  $Function_80218098 ( )
+  7DC:  		Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  7F4:  		Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
+  810:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  824:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
+  83C:  		Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  850:  		Call  UseIdleAnimation  ( .Actor:Self .True )
+  864:  		Return
+  86C:  EndSwitch
+  874:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+		ExecWait  $DoLightning
+  918:  Wait  9`
+  924:  Call  SetGoalToTarget   ( .Actor:Self )
+  934:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010264 00000007 00000020 )
+  95C:  Switch  *VarF
+  968:  	CaseOR  ==  .HitResult:Hit % 0
+  974:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  980:  	CaseOR  ==  0000000A % A
+  98C:  		Call  SetAnimation  ( .Actor:Self 00000001 00760002 )
+  9A4:  		If  *VarF  ==  0000000A % A
+  9B4:  			Call  SetActorVar       ( .Actor:Enemy1 00000006 00000000 )
+  9CC:  			Wait  30`
+  9D8:  			Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  9F0:  			Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
+  A0C:  			Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  A20:  			Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
+  A38:  			Return
+  A40:  		EndIf
+  A48:  	EndCaseGroup
+  A50:  EndSwitch
+  A58:  Call  SetTargetActor    ( .Actor:Self .Actor:Partner )
+		ExecWait  $DoLightning
+  AFC:  Call  SetActorVar       ( .Actor:Enemy1 00000006 00000000 )
+  B14:  Wait  12`
+  B20:  Call  SetGoalToTarget   ( .Actor:Self )
+  B30:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact|Electric 00000000 00000000 00000002 00000020 )
+  B58:  Call  GetActorVar       ( .Actor:Enemy1 00000007 *Var0 )
+  B70:  If  *Var0  !=  00000000
+  B80:  	Call  80253734  ( 00000003 )
+  B90:  EndIf
+  B98:  Call  $Function_80218098 ( )
+  BA4:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  BBC:  Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
+  BD8:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  BEC:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
+  C04:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  C18:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  C2C:  Return
+  C34:  End
+}
+
+#new:Script  $DoLightning
+{
+  A6C:  Call  GetModelCenter    ( 00000027 )
+  A7C:  Call  SetGoalToTarget   ( .Actor:Self )
+  A8C:  Call  GetGoalPos        ( .Actor:Self *Var3 *Var4 *Var5 )
+  AA8:  Call  PlaySound ( 00002069 )
+  AB8:  Call  PlayEffect        ( ~FX:Lightning *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 *Fixed[1.0] 00000012 00000000 00000000 00000000 00000000 )
+		Return
+		End
 }
 
 
@@ -184,12 +425,11 @@
    84:  	Wait  35`
 			ExecWait  $CamZoom2
    B0:  EndThread
-   B8:  Wait  4`
    C4:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206A )
    DC:  Call  SetAnimation  ( .Actor:Enemy0 00000001 0076000B )
    F4:  Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .False )
   110:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_80220D88 )
-  124:  Wait  18`
+  124:  Wait  22`
   130:  Call  SetAnimation  ( .Actor:Self 00000001 0076000B )
   148:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
   164:  Sub   *Var0  00000008
@@ -211,27 +451,15 @@
   2C4:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000004 00000020 )
   2E8:  Switch  *Var0
   2F4:  	Case  ==  .HitResult:Miss % 6
-  300:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000002 000002F9 )
-  318:  		Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-  32C:  		Call  SetGoalToTarget   ( .Actor:Self )
-  33C:  		Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+				ExecWait  $FlyBomb
   358:  		Sub   *Var0  00000078
   368:  		Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[18.0] )
   380:  		Call  SetPartJumpGravity    ( .Actor:Self 00000002 *Fixed[0.1] )
   398:  		Call  JumpPartTo        ( .Actor:Self 00000002 *Var0 *Var1 *Var2  0` .True )
-  3C0:  		Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
-  3DC:  		Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
-  3F4:  		Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
-  410:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
-  424:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
-  43C:  		Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  450:  		Call  UseIdleAnimation  ( .Actor:Self .True )
+				ExecWait  $EndBomb
   464:  		Return
   46C:  	Case  ==  .HitResult:Lucky % 5
-  478:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000002 000002F9 )
-  490:  		Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-  4A4:  		Call  SetGoalToTarget   ( .Actor:Self )
-  4B4:  		Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+				ExecWait  $FlyBomb
   4D0:  		Sub   *Var0  00000032
   4E0:  		Set   *Var1  FFFFFFFB
   4F0:  		Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[19.0] )
@@ -245,13 +473,7 @@
   5BC:  		Call  SetPartMoveSpeed  ( .Actor:Self 00000002 *Fixed[10.0] )
   5D4:  		Call  SetPartJumpGravity    ( .Actor:Self 00000002 *Fixed[0.1] )
   5EC:  		Call  FlyPartTo ( .Actor:Self 00000002 *Var0 *Var1 *Var2  0`  15` .Easing:Linear )
-  618:  		Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
-  634:  		Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
-  64C:  		Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
-  668:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
-  67C:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
-  694:  		Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  6A8:  		Call  UseIdleAnimation  ( .Actor:Self .True )
+				ExecWait $EndBomb
   6BC:  		Return
   6C4:  EndSwitch
 		Call  YieldTurn ( )
@@ -292,14 +514,37 @@
   9A8:  End
 }
 
+#new:Script  $FlyBomb
+{
+  478:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000002 000002F9 )
+  490:  		Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+  4A4:  		Call  SetGoalToTarget   ( .Actor:Self )
+  4B4:  		Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+				Return
+				End
+}
+
+#new:Script  $EndBomb
+{
+  3C0:  		Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
+  3DC:  		Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  3F4:  		Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
+  410:  		Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
+  424:  		Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
+  43C:  		Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  450:  		Call  UseIdleAnimation  ( .Actor:Self .True )
+				Return
+				End
+}
+
 @	$Script_8022EB80
 {
     0:  Call  802535B4  ( 00000000 )
    10:  Call  UseBattleCamPreset    ( 0000000E )
    20:  Call  BattleCamTargetActor  ( .Actor:Enemy0 )
    30:  Call  MoveBattleCamOver (  60` )
+		Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
    40:  Wait  60`
-   36:	Call  FadeOutMusic  ( 00000000 000001F4 )
    4C:  Call  ActorSpeak        ( 000F0071 .Actor:Enemy0 00000001 00760000 00760000 ) % ............ Gah! Grrrr...! Fine! I'll beat you my ...
    6C:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760005 )
    84:  Call  EndActorSpeech    ( .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
@@ -315,8 +560,7 @@
   168:  Call  SetPartFlagBits   ( .Actor:Enemy0 00000001 00000001 .True )
   184:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8021E798 )
   198:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 0000206B )
-  1B0:  Call  UseBattleCamPreset    ( 00000002 )
-  1C0:  Call  MoveBattleCamOver (  30` )
+		ExecWait  $CamZoom2
   1D0:  Call  802535B4  ( 00000001 )
   1E0:  Call  8026BF48  ( 00000000 )
   1F0:  Return
@@ -403,6 +647,7 @@
    3C:  Call  8024ECF8  ( 00000000 00000001 00000000 )
    54:  Call  GetActorVar   ( .Actor:Enemy0 00000002 *Var0 )
    6C:  If  *Var0  ==  00000001
+			Call  ActorSpeak    ( 000F006A .Actor:Enemy0 00000001 0076000C 00760002 ) % You men make me sick! We must protect the Toy Box! ...
    7C:  	Call  ActorSpeak    ( 000F006B .Actor:Enemy0 00000001 0076000C 00760002 ) % Mario! You, sir, will pay! You beat my infantry, b ...
    9C:  Else
    A4:  EndIf
@@ -410,7 +655,6 @@
    CC:  Wait  10`
    D8:  Call  LoadBattleSection ( 0000002A )
    E8:  Call  SummonEnemy       ( $SpecialFormation_8022F570 00000001 )
-   FC:  Wait  60`
   108:  Call  SummonEnemy       ( $SpecialFormation_8022F58C 00000001 )
   11C:  Wait  60`
   128:  Label  1
@@ -576,4 +820,42 @@
   51C:  Call  RemoveActor       ( .Actor:Self )
   52C:  Return
   534:  End
+}
+
+
+@	$Script_8022DBA0
+{
+    0:  Call  802535B4  ( 00000000 )
+		ExecWait  $CamZoom2
+   30:  Wait  30`
+   64:  Call  ActorSpeak    ( 000F0069 .Actor:Enemy0 00000001 00760000 00760000 ) % Mercy, he beat 'em all up! That surely isn't good. ...
+   B4:  Call  LoadBattleSection ( 0000002C )
+   C4:  Call  SummonEnemy       ( $SpecialFormation_8022F554 00000001 )
+   D8:  Wait  60`
+   E4:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 .Sound:ToyTankMove1 )
+  108:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_80222A98 )
+  11C:  Call  SetAnimatedModelRootPosition  ( 00000000 00000014 00000000 00000000 )
+  138:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760003 )
+  150:  Wait  27`
+  168:  Call  SetOwnerTarget    ( *Var0 00000001 )
+  17C:  Call  SetGoalToTarget   ( .Actor:Self )
+  18C:  Call  EnemyDamageTarget ( .Actor:Self *Var1 ~Flags:DamageType:IgnoreDefense 00000000 00000000 00000004 00000020 )
+  1B4:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760010 )
+  1CC:  Wait  16`
+  1D8:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760004 )
+  1F0:  Wait  16`
+  1FC:  Call  PlaySoundAtPart   ( .Actor:Enemy0 00000001 .Sound:ToyTankMove2 )
+  220:  Call  SetAnimation      ( .Actor:Enemy0 00000001 00760002 )
+  238:  Wait  20`
+  244:  Call  PlayModelAnimation    ( 00000000 $ModelAnimation_8022C55C )
+  258:  Wait  26`
+  264:  ExecWait  $Script_8022E3DC
+  270:  Call  GetActorPos       ( .Actor:Enemy0 *Var0 *Var1 *Var2 )
+  28C:  Call  SetHomePos        ( .Actor:Enemy0 *Var0 *Var1 *Var2 )
+  2A8:  Call  HPBarToHome       ( .Actor:Enemy0 )
+		ExecWait  $CamZoom2
+  2D8:  Call  802535B4  ( 00000001 )
+  2E8:  Call  8026BF48  ( 00000000 )
+  2F8:  Return
+  300:  End
 }

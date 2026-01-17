@@ -1,0 +1,78 @@
+#define .NpcID:KoopaTroopa_00       00
+#define .NpcID:Goomba_02            02
+#define .NpcID:SpikedGoomba_03      03
+
+@	$NpcGroup_80244F20
+{
+	.NpcID:Goomba_02 $NpcSettings_802443D4 ~Vec3f:NPC_Goomba_02 % 50 0 -72
+	00000C00 00000000 00000000 00000000 0000010E
+	~Items:5:Mushroom:A ~HP:GenerousWhenLow:2 ~FP:GenerousWhenLow:2 ~NoCoinBonus
+	~Movement:NPC_Goomba_02
+	~AnimationTable:NPC_Goomba_02 % .Sprite:Goomba
+	00000001 00000000 00000000 00000000 % no tattle string
+}
+
+@	$AISettings_80244384
+{
+    2.5 % move speed
+    30` % move time
+    30` % wait time
+  140.0 % alert radius
+    0.0
+    1`
+    4.5 % chase speed
+    180`
+    3`
+  160.0 % chase radius
+    0.0
+    1`
+}
+
+@	$Script_MakeEntities
+{
+    0:  If  *GB_StoryProgress  <=  .Story:Ch1_KnockedSwitchFromTree % FFFFFF9D
+   10:  	If  *GB_StoryProgress  ==  .Story:Ch1_KnockedSwitchFromTree % FFFFFF9D
+   20:  		Call  MakeEntity        ( .Entity:BlueSwitch ~Vec4d:Entity80242A20 80000000 )
+   44:  		Call  AssignAreaFlag    ( 00000001 )
+   54:  	Else
+   5C:  		Call  MakeEntity        ( .Entity:BlueSwitch ~Vec4d:Entity80242A5C 80000000 )
+   80:  		Call  AssignAreaFlag    ( 00000001 )
+   90:  		Set   *MapVar[0]  *Var0
+   A0:  	EndIf
+   A8:  EndIf
+   B0:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242AB0 .Item:POWBlock 80000000 )
+   D8:  Call  AssignBlockFlag   ( *GF_NOK12_ItemBlock_POWBlock )
+   E8:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80242AE8 80000000 )
+  10C:  Call  AssignScript  ( $Script_80242870 )
+  11C:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80242B1C 80000000 )
+  140:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80242B40 80000000 )
+  164:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80242B64 80000000 )
+  188:  Call  MakeEntity    ( .Entity:MultiCoinBrick ~Vec4d:Entity80242B88 80000000 )
+  1AC:  Call  AssignBlockFlag   ( *GF_NOK12_MultiCoinBrick )
+  1BC:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item80242BBC .ItemSpawnMode:Fixed_NeverVanish *GF_NOK12_Item_StarPiece )
+		If    *GF_NOK12_Item_StarPiece == .False
+			Exec $Script_PartnerBlurb
+		EndIf
+  1E0:  Call  MakeItemEntity    ( .Item:SleepySheep ~Vec3d:Item80242BE0 .ItemSpawnMode:Fixed_NeverVanish *GF_NOK12_Item_SleepySheep )
+  204:  Return
+  20C:  End
+}
+
+
+
+#new:Script  $Script_PartnerBlurb
+{
+			Label  0
+			Wait  1`
+			If    *GF_NOK12_Item_StarPiece == .False
+				Goto  0
+			EndIf
+			Wait  45`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0153 ) 
+			EndSwitch
+			Return
+			End
+}

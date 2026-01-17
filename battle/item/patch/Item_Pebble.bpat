@@ -31,19 +31,36 @@
   1F8:  		Wait  1`
   204:  	EndLoop
   20C:  EndThread
-  214:  Call  SetVirtualEntityJumpGravity   ( *VarA *Fixed[0.8] )
+		Call  RandInt   (  2`  *Var6 )
+		Switch  *Var6
+			Case == 0`
+				 Call  SetVirtualEntityJumpGravity   ( *VarA *Fixed[0.8] )
+			Case == 1`
+				 Call  SetVirtualEntityJumpGravity   ( *VarA *Fixed[1.0] )
+			Case == 2`
+				 Call  SetVirtualEntityJumpGravity   ( *VarA *Fixed[0.6] )
+		EndSwitch
   228:  Add   *Var2  00000005
+  
+		%Rework the Pebble to roll 12 coin flips. The more you get, the more damage.
+		%Maxes out at 12 damage and does fire damage if more than 9 damage is dealt.
+		
   238:  Call  VirtualEntityJumpTo   ( *VarA *Var0 *Var1 *Var2  18` )
-        Call  RandInt   ( 00000001 *Var0 )
-		If  *Var0  ==  00000000
-		  258:  Call  GetItemPower  ( .Item:Pebble *Var3 *Var4 )
-		  270:  Call  ApplyShrinkFromOwner  ( *Var3 )
-		  280:  Call  ItemDamageEnemy       ( *Var9 ~Flags:DamageType:IgnoreDefense|NoContact 00000000 *Var3 00000020 )
+		Set   *Var3  1`
+		Loop  11`
+			Call  RandInt   ( 1` *Var6 )
+			If    *Var6 == 0`
+				Add   *Var3  1`
+			EndIf
+		EndLoop	
+		Call  ApplyShrinkFromOwner  ( *Var3 )
+		If    *Var3 < 9`
+			Call  ItemDamageEnemy       ( *Var9 ~Flags:DamageType:IgnoreDefense|NoContact 00000000 *Var3 00000020 )
 		Else
-		  258:  Call  GetItemPower  ( .Item:Pebble *Var3 *Var4 )
-				Mul   *Var3  0000000A 
-		  270:  Call  ApplyShrinkFromOwner  ( *Var3 )
-		  280:  Call  ItemDamageEnemy       ( *Var9 ~Flags:DamageType:IgnoreDefense|NoContact|Fire|Blast 00000000 *Var3 00000060 )      
+			Call  ItemDamageEnemy       ( *Var9 ~Flags:DamageType:IgnoreDefense|NoContact|Fire|Blast 00000000 *Var3 00000060 )  
+		EndIf
+		If   *Var3 <= 3`
+		    Call  PlaySound ( 000020C3 )  %Haha
 		EndIf
   2A0:  Add   *Var0  0000003C
   2B0:  Add   *Var1  00000000

@@ -1,0 +1,673 @@
+#new:NpcGroup $Donlon
+{
+	00000069 $NpcSettings_8025326C ~Vec3f:Donlon 
+	00402D09 $Script_Init_802529FC 00000000 00000000 0000001E
+	~NoDrops
+	~Movement:Donlon
+	~AnimationTable:Donlon
+	00000000 00000000 00000000 001A0127 % He's a stubborn and mysterious old man. His name i ...
+}
+
+
+#new:Script $Script_Init_802529FC
+{
+		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
+		Call  NpcFacePlayer ( .Npc:Self 00000005 )
+		Call  BindNpcAux		( .Npc:Self $Script_FloatingHologramAux )
+  140:  Call  BindNpcInteract   ( .Npc:Self $DonlonSpeak )
+  154:  Return
+  15C:  End
+}
+
+#new:NpcSettings $NpcSettings_8025326C
+{
+	00A50001 00240020 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+#new:Script $DonlonSpeak
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  SpeakToPlayer     ( .Npc:Self 00A50104 00A50101 00000000 000300EA ) % Ah, Mario. Do you want me to predict the path you  ...
+		Set     *Var1 *Var0
+		Switch *Var1
+        Case == 0 % Difficulty
+			Switch *Byte_Settings_Difficulty
+					Case == 0
+						Set *Var0 $String_Easy
+					Case == 1
+						Set *Var0 $String_Normal
+					Case == 2
+						Set *Var0 $String_Hard
+			EndSwitch
+				Call    SetMessageString ( *Var0 0 )
+				%Call    SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 $String_Settings_Difficulty )
+				Call    ShowChoice ( $String_Choice_Settings_Difficulty )
+				If *Var0 != 3 % Cancel
+					Set     *Byte_Settings_Difficulty *Var0
+					%Return
+				Else 
+					Call  CloseMessage
+					Goto 69
+				EndIf
+		EndSwitch
+  13C:  Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 00030037 ) % Excellent. Now relax while I read what your future ...
+  15C:  Call  SetNpcAnimation   ( .Npc:Self 00A50108 )
+  170:  Wait  6`
+  17C:  Call  SpeakToPlayer     ( .Npc:Self 00A50108 00A50108 00000000 00030038 ) % Ooooo---------! Crystal eye! Open wide! Aiiii----- ...
+  19C:  Exec  $Script_80246824
+  1A8:  Wait  10`
+  1B4:  If  *MapVar[C]  ==  00000000
+  1C4:  	NewArray  00000014 *MapVar[C]
+  1D4:  EndIf
+  1DC:  UseArray  *MapVar[C]
+  1E8:  ExecWait  $Script_8024EC64
+  1F4:  Wait  10`	
+		Call  PopSong ( )
+		Switch *Byte_Settings_Difficulty
+					Case == 0
+						Call  SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 00210000 )
+					Case == 1
+						Call  SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 00210001 )
+					Case == 2
+						Call  SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 00210002 )
+		EndSwitch
+		Label 69
+		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
+  B88:  Call  DisablePlayerInput    ( .False )
+  B98:  Return
+  BA0:  End
+}
+
+
+#new:Script $Script_80246824
+{
+		Call  PushSong      ( .Song:MerleeSpell 00000001 )
+   1C:  Return
+   24:  End
+}
+
+
+
+#new:Script $Script_8024EC64
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00A5010A )
+   24:  Call  PlaySoundAt       ( 00000207 00000000 *Var0 *Var1 *Var2 )
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var1  20`
+   44:  Call  PlayEffect        ( ~FX:GlowingOrb:Green *Var0 *Var1 *Var2 *Fixed[1.0] FFFFFFFF 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   88:  Set   *Array[1]  *VarF
+   98:  Wait  30`
+   A4:  Set   *Array[6]  00000000
+   C0:  Wait  30`
+   CC:  Thread
+   D4:  	Call  $Function_802440FC ( )
+   E0:  EndThread
+   E8:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var1  20`
+  100:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+  11C:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  138:  Call  GetCamDistance    ( .Cam:Default *Var0 )
+  14C:  If  *Var0  >  00000000
+  15C:  	SetF  *Var0  *Fixed[284.6]
+  16C:  Else
+  174:  	SetF  *Var0  *Fixed[-284.6]
+  184:  EndIf
+  18C:  Call  SetCamDistance    ( .Cam:Default *Var0 )
+  1A0:  Call  GetCamPitch   ( .Cam:Default *Var0 *Var1 )
+  1B8:  SetF  *Var1  *Fixed[-11.0]
+  1C8:  Call  SetCamPitch   ( .Cam:Default *Var0 *Var1 )
+  1E0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1F8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  20C:  Set   *Array[6]  00000001
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var1  20`
+  21C:  Call  PlayEffect    ( ~FX:MerlinHouseStars FFFFFED6 00000015 FFFFFEB6 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  260:  Set   *Array[2]  *VarF
+  280:  Call  PlayEffect    ( ~FX:MotionBlurFlame:Small *Var0 *Var1 *Var2 00000001 FFFFFFFF 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  2C4:  Set   *Array[3]  *VarF
+  2D4:  Call  PlayEffect    ( ~FX:MotionBlurFlame:Small *Var0 *Var1 *Var2 00000001 FFFFFFFF 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  318:  Set   *Array[4]  *VarF
+  328:  Call  PlayEffect    ( ~FX:MotionBlurFlame:Small *Var0 *Var1 *Var2 00000001 FFFFFFFF 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  36C:  Set   *Array[5]  *VarF
+  37C:  Thread
+  384:  	Call  $Function_802443E0 ( )
+  390:  EndThread
+  398:  Wait  50`
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var1  20`
+  3B4:  Call  PlaySoundAt   ( 00000208 00000000 *Var0 *Var1 *Var2 )
+  3D4:  Call  PlayEffect    ( ~FX:EnergyWaveOut:Green *Var0 *Var1 *Var2 *Fixed[0.5] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  418:  Wait  30`
+  434:  Call  PlaySoundAt   ( 00000208 00000000 *Var0 *Var1 *Var2 )
+  454:  Call  PlayEffect    ( ~FX:EnergyWaveOut:Green *Var0 *Var1 *Var2 *Fixed[0.5] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  498:  Wait  30`
+  4A4:  Thread
+  4AC:  	Call  $Function_802441EC ( )
+  4B8:  EndThread
+  4D0:  Call  PlaySoundAt   ( 00000208 00000000 *Var0 *Var1 *Var2 )
+  4F0:  Call  PlayEffect    ( ~FX:EnergyWaveOut:Grey *Var0 *Var1 *Var2 *Fixed[0.5] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  534:  Wait  70`
+  540:  Call  802D7B10      ( *Array[2] )
+  550:  Wait  40`
+  55C:  Call  PlaySoundAt   ( 00000607 00000000 *Var0 *Var1 *Var2 )
+  57C:  Call  $Function_802446AC    ( *Array[1] )
+  58C:  Wait  15`
+  598:  Call  802D7B10      ( *Array[1] )
+  5A8:  Thread
+  5B0:  	Call  $Function_80244308 ( )
+  5BC:  EndThread
+  5C4:  Wait  92`
+  5D0:  Set   *Array[6]  00000002
+  5E0:  Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+  5F4:  Call  SetNpcAnimation   ( 00000000 00A50101 )
+  608:  Return
+  610:  End
+}
+
+
+
+#string $String_Settings_Difficulty
+{
+[Style Right]
+Well, Mario. Right now your[BR]
+journey is on [SaveColor][Color:07][Var 0][RestoreColor]
+[Yield][End]
+}
+
+
+#string $String_Choice_Settings_Difficulty
+{
+[Style Choice pos=101,90 size=108,60]
+[StartChoice]
+[Option 0][SaveColor][Color:01]Casual[RestoreColor][BR]
+[Option 1][SaveColor][Color:21]Normal[RestoreColor][BR]
+[Option 2][SaveColor][Color:20]Gamer[RestoreColor][BR]
+[EndChoice cancel=3][End]
+}
+
+
+#string $String_Easy
+{
+[SaveColor][Color:01]Casual[RestoreColor][End]
+}
+
+#string $String_Normal
+{
+[SaveColor][Color:21]Normal[RestoreColor][End]
+}
+
+#string $String_Hard
+{
+[SaveColor][Color:20]Gamer[RestoreColor][End]
+}
+
+
+
+
+
+
+
+#new:Script $Script_FloatingHologramAux
+{
+	% start the hologram effect
+	NewArray 00000001 *Var[A] 
+	UseArray *Var[A] 
+	Thread
+		UseArray *Var[A] 
+		Label    00000000 
+		Call     RandInt     	( 0000005A *Var[0] )
+		Add      *Var[0] 0000001E 
+		SetF     *Array[0] *Fixed[10.0] 
+		Wait     *Var[0] 
+		Call     RandInt     	( 00000064 *Var[1] )
+		If       *Var[1]  <  00000050 
+			Set      *Var[1] 00000001 
+		Else
+			Set      *Var[1] 00000002 
+		EndIf
+		Loop     *Var[1] 
+			SetF     *Array[0] *Fixed[40.0] 
+			Wait     00000001 
+			SetF     *Array[0] *Fixed[50.0] 
+			Wait     00000001 
+			SetF     *Array[0] *Fixed[80.0] 
+			Wait     00000001 
+			SetF     *Array[0] *Fixed[70.0] 
+			Wait     00000001 
+			SetF     *Array[0] *Fixed[60.0] 
+			Wait     00000001 
+			SetF     *Array[0] *Fixed[50.0] 
+			Wait     00000001 
+		EndLoop
+		Goto     00000000 
+	EndThread
+	SetF     *Var[0] *Fixed[100.0] 
+	Label    00000001 
+	Loop     00000032 
+		AddF     *Var[0] *Fixed[0.80078125] 
+		Call     802CFD30 ( FFFFFFFF 0000000D 00000000 *Array[0] *MapVar[1] *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Loop     00000032 
+		AddF     *Var[0] *Fixed[-0.7998047] 
+		Call     802CFD30 ( FFFFFFFF 0000000D 00000000 *Array[0] *MapVar[1] *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Goto     00000001 
+	Return
+	End
+}
+
+
+#new:Function $Function_802440FC
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S0, 18 (SP)
+    8:  COPY      S0, A0
+    C:  BEQ       A1, R0, .o98
+   10:  SW        RA, 1C (SP)
+   14:  JAL       ~Func:get_model_list_index_from_tree_index
+   18:  LI        A0, 2B
+   1C:  JAL       ~Func:get_model_from_list_index
+   20:  COPY      A0, V0
+   24:  COPY      A0, V0
+   28:  LI        A1, FFFF
+   2C:  JAL       ~Func:set_mdl_custom_gfx_set
+   30:  LI        A2, 3
+   34:  JAL       ~Func:get_model_list_index_from_tree_index
+   38:  LI        A0, 2A
+   3C:  JAL       ~Func:get_model_from_list_index
+   40:  COPY      A0, V0
+   44:  COPY      A0, V0
+   48:  LI        A1, FFFF
+   4C:  JAL       ~Func:set_mdl_custom_gfx_set
+   50:  LI        A2, 3
+   54:  JAL       ~Func:get_model_list_index_from_tree_index
+   58:  LI        A0, 29
+   5C:  JAL       ~Func:get_model_from_list_index
+   60:  COPY      A0, V0
+   64:  COPY      A0, V0
+   68:  LI        A1, FFFF
+   6C:  JAL       ~Func:set_mdl_custom_gfx_set
+   70:  LI        A2, 3
+   74:  LI        A0, FF
+   78:  COPY      A1, A0
+   7C:  COPY      A2, A0
+   80:  CLEAR     A3
+   84:  SW        R0, 10 (SP)
+   88:  JAL       ~Func:set_model_env_color_parameters
+   8C:  SW        R0, 14 (SP)
+   90:  LI        V0, FF
+   94:  SW        V0, 70 (S0)
+        .o98
+   98:  LW        V0, 70 (S0)
+   9C:  ADDIU     V0, V0, FFFC
+   A0:  SW        V0, 70 (S0)
+   A4:  SLTI      V0, V0, 40
+   A8:  BEQ       V0, R0, .oB4
+   AC:  LI        V0, 40
+   B0:  SW        V0, 70 (S0)
+        .oB4
+   B4:  LBU       A0, 73 (S0)
+   B8:  CLEAR     A3
+   BC:  SW        R0, 10 (SP)
+   C0:  SW        R0, 14 (SP)
+   C4:  COPY      A1, A0
+   C8:  JAL       ~Func:set_model_env_color_parameters
+   CC:  COPY      A2, A0
+   D0:  LW        V0, 70 (S0)
+   D4:  LW        RA, 1C (SP)
+   D8:  LW        S0, 18 (SP)
+   DC:  XORI      V0, V0, 40
+   E0:  SLTIU     V0, V0, 1
+   E4:  SLL       V0, V0, 1
+   E8:  JR        RA
+   EC:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_802441EC
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S0, 18 (SP)
+    8:  COPY      S0, A0
+    C:  BEQ       A1, R0, .o24
+   10:  SW        RA, 1C (SP)
+   14:  LI        V0, 40
+   18:  SW        V0, 70 (S0)
+   1C:  SW        V0, 78 (S0)
+   20:  SW        R0, 74 (S0)
+        .o24
+   24:  LW        V0, 74 (S0)
+   28:  BNE       V0, R0, .o94
+   2C:  NOP
+   30:  LW        V0, 70 (S0)
+   34:  ADDIU     V0, V0, 4
+   38:  SW        V0, 70 (S0)
+   3C:  LW        V0, 78 (S0)
+   40:  LW        V1, 70 (S0)
+   44:  ADDIU     V0, V0, 4
+   48:  SLTI      V1, V1, 80
+   4C:  BNE       V1, R0, .o5C
+   50:  SW        V0, 78 (S0)
+   54:  LI        V0, 7F
+   58:  SW        V0, 70 (S0)
+        .o5C
+   5C:  LW        V0, 78 (S0)
+   60:  SLTI      V0, V0, 80
+   64:  BNE       V0, R0, .o70
+   68:  LI        V0, 7F
+   6C:  SW        V0, 78 (S0)
+        .o70
+   70:  LW        V1, 70 (S0)
+   74:  LI        V0, 7F
+   78:  BNE       V1, V0, .oCC
+   7C:  NOP
+   80:  LW        V0, 78 (S0)
+   84:  BNE       V0, V1, .oCC
+   88:  LI        V0, 1
+   8C:  BEQ       R0, R0, .oCC
+   90:  SW        V0, 74 (S0)
+        .o94
+   94:  LW        V0, 70 (S0)
+   98:  ADDIU     V0, V0, FFFC
+   9C:  SW        V0, 70 (S0)
+   A0:  LW        V0, 78 (S0)
+   A4:  LW        V1, 70 (S0)
+   A8:  ADDIU     V0, V0, FFFC
+   AC:  SLTI      V1, V1, 40
+   B0:  BEQ       V1, R0, .oC0
+   B4:  SW        V0, 78 (S0)
+   B8:  LI        V0, 40
+   BC:  SW        V0, 70 (S0)
+        .oC0
+   C0:  LW        V0, 78 (S0)
+   C4:  BLTZL     V0, .oCC
+   C8:  SW        R0, 78 (S0)
+        .oCC
+   CC:  LBU       A0, 73 (S0)
+   D0:  LBU       A3, 7B (S0)
+   D4:  COPY      A1, A0
+   D8:  SW        A3, 10 (SP)
+   DC:  LBU       V0, 7B (S0)
+   E0:  COPY      A2, A0
+   E4:  JAL       ~Func:set_model_env_color_parameters
+   E8:  SW        V0, 14 (SP)
+   EC:  LW        V1, 70 (S0)
+   F0:  LI        V0, 40
+   F4:  BNE       V1, V0, .o10C
+   F8:  CLEAR     V0
+   FC:  LW        V1, 78 (S0)
+  100:  BEQ       V1, R0, .o10C
+  104:  LI        V0, 2
+  108:  CLEAR     V0
+        .o10C
+  10C:  LW        RA, 1C (SP)
+  110:  LW        S0, 18 (SP)
+  114:  JR        RA
+  118:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_80244308
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S0, 18 (SP)
+    8:  COPY      S0, A0
+    C:  BEQ       A1, R0, .o1C
+   10:  SW        RA, 1C (SP)
+   14:  LI        V0, 40
+   18:  SW        V0, 70 (S0)
+        .o1C
+   1C:  LW        V0, 70 (S0)
+   20:  ADDIU     V0, V0, 4
+   24:  SW        V0, 70 (S0)
+   28:  SLTI      V0, V0, 100
+   2C:  BNE       V0, R0, .o38
+   30:  LI        V0, FF
+   34:  SW        V0, 70 (S0)
+        .o38
+   38:  LBU       A0, 73 (S0)
+   3C:  CLEAR     A3
+   40:  SW        R0, 10 (SP)
+   44:  SW        R0, 14 (SP)
+   48:  COPY      A1, A0
+   4C:  JAL       ~Func:set_model_env_color_parameters
+   50:  COPY      A2, A0
+   54:  LW        V1, 70 (S0)
+   58:  LI        V0, FF
+   5C:  BNE       V1, V0, .oC8
+   60:  CLEAR     V0
+   64:  JAL       ~Func:get_model_list_index_from_tree_index
+   68:  LI        A0, 2B
+   6C:  JAL       ~Func:get_model_from_list_index
+   70:  COPY      A0, V0
+   74:  COPY      A0, V0
+   78:  LI        A1, FFFF
+   7C:  JAL       ~Func:set_mdl_custom_gfx_set
+   80:  CLEAR     A2
+   84:  JAL       ~Func:get_model_list_index_from_tree_index
+   88:  LI        A0, 2A
+   8C:  JAL       ~Func:get_model_from_list_index
+   90:  COPY      A0, V0
+   94:  COPY      A0, V0
+   98:  LI        A1, FFFF
+   9C:  JAL       ~Func:set_mdl_custom_gfx_set
+   A0:  CLEAR     A2
+   A4:  JAL       ~Func:get_model_list_index_from_tree_index
+   A8:  LI        A0, 29
+   AC:  JAL       ~Func:get_model_from_list_index
+   B0:  COPY      A0, V0
+   B4:  COPY      A0, V0
+   B8:  LI        A1, FFFF
+   BC:  JAL       ~Func:set_mdl_custom_gfx_set
+   C0:  CLEAR     A2
+   C4:  LI        V0, 2
+        .oC8
+   C8:  LW        RA, 1C (SP)
+   CC:  LW        S0, 18 (SP)
+   D0:  JR        RA
+   D4:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_802446AC
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  LW        A0, C (V0)
+   18:  LW        V1, 1C (A0)
+   1C:  ADDIU     V1, V1, 1
+   20:  SW        V1, 1C (A0)
+   24:  LW        RA, 10 (SP)
+   28:  LI        V0, 2
+   2C:  JR        RA
+   30:  ADDIU     SP, SP, 18
+}
+
+
+
+
+#new:Function $Function_802443E0
+{
+    0:  ADDIU     SP, SP, FF08
+    4:  SW        S3, B4 (SP)
+    8:  SW        RA, C0 (SP)
+    C:  SW        S5, BC (SP)
+   10:  SW        S4, B8 (SP)
+   14:  SW        S2, B0 (SP)
+   18:  SW        S1, AC (SP)
+   1C:  SW        S0, A8 (SP)
+   20:  SDC1      F30, F0 (SP)
+   24:  SDC1      F28, E8 (SP)
+   28:  SDC1      F26, E0 (SP)
+   2C:  SDC1      F24, D8 (SP)
+   30:  SDC1      F22, D0 (SP)
+   34:  SDC1      F20, C8 (SP)
+   38:  BEQ       A1, R0, .o80
+   3C:  COPY      S3, A0
+   40:  LI        A1, *Array[3]
+   48:  LI        V0, B4
+   4C:  JAL       ~Func:get_variable
+   50:  SW        V0, 70 (S3)
+   54:  COPY      A0, S3
+   58:  LI        A1, *Array[4]
+   60:  JAL       ~Func:get_variable
+   64:  SW        V0, 74 (S3)
+   68:  COPY      A0, S3
+   6C:  LI        A1, *Array[5]
+   74:  JAL       ~Func:get_variable
+   78:  SW        V0, 78 (S3)
+   7C:  SW        V0, 7C (S3)
+        .o80
+   80:  CLEAR     S1
+   84:  LW        V0, 74 (S3)
+   88:  LIF       F20, 10.0
+   90:  ADDIU     S0, SP, 28
+   94:  SW        V0, 18 (SP)
+   98:  LW        V0, 78 (S3)
+   9C:  LA        S5, 800B1D80
+   A4:  SW        V0, 1C (SP)
+   A8:  LW        V0, 7C (S3)
+   AC:  SW        V0, 20 (SP)
+   B0:  LWC1      F12, 70 (S3)
+   B4:  CVT.S.W   F12, F12
+   B8:  JAL       ~Func:sin_deg
+   BC:  ADDIU     S2, SP, 68
+   C0:  MUL.S     F0, F0, F20
+   C4:  NOP
+   C8:  COPY      S4, S1
+   CC:  LWC1      F12, 70 (S3)
+   D0:  CVT.S.W   F12, F12
+   D4:  MTC1      R0, F22
+   D8:  LIF       F26, 1.0
+   E0:  JAL       ~Func:sin_deg
+   E4:  ADD.S     F30, F0, F20
+   E8:  LIF       F2, 25.0
+   F0:  LW        V1, 70 (S3)
+   F4:  MUL.S     F0, F0, F2
+   F8:  NOP
+   FC:  SLL       V0, V1, 2
+  100:  ADDU      V0, V0, V1
+  104:  SLL       V0, V0, 1
+  108:  MTC1      V0, F24
+  10C:  NOP
+  110:  CVT.S.W   F24, F24
+  114:  ADD.S     F28, F0, F20
+        .o118
+  118:  LAW       V1, 80077410
+  120:  MFC1      A2, F22
+  124:  SLL       V0, V1, 2
+  128:  ADDU      V0, V0, V1
+  12C:  SLL       V0, V0, 2
+  130:  SUBU      V0, V0, V1
+  134:  SLL       V1, V0, 3
+  138:  ADDU      V0, V0, V1
+  13C:  SLL       V0, V0, 3
+  140:  ADDU      V0, V0, S5
+  144:  LWC1      F0, 6C (V0)
+  148:  MFC1      A3, F26
+  14C:  NEG.S     F0, F0
+  150:  MFC1      A1, F0
+  154:  COPY      A0, S0
+  158:  JAL       ~Func:guRotateF
+  15C:  SWC1      F22, 10 (SP)
+  160:  MTC1      S4, F4
+  164:  NOP
+  168:  CVT.S.W   F4, F4
+  16C:  MFC1      A2, F22
+  170:  MFC1      A3, F22
+  174:  MFC1      A1, F4
+  178:  COPY      A0, S2
+  17C:  JAL       ~Func:guRotateF
+  180:  SWC1      F26, 10 (SP)
+  184:  COPY      A0, S2
+  188:  COPY      A1, S0
+  18C:  JAL       ~Func:guMtxCatF
+  190:  COPY      A2, S0
+  194:  JAL       ~Func:sin_deg
+  198:  MOV.S     F12, F24
+  19C:  MUL.S     F20, F30, F0
+  1A0:  NOP
+  1A4:  JAL       ~Func:cos_deg
+  1A8:  MOV.S     F12, F24
+  1AC:  MUL.S     F0, F28, F0
+  1B0:  NOP
+  1B4:  MFC1      A3, F22
+  1B8:  MFC1      A2, F0
+  1BC:  MFC1      A1, F20
+  1C0:  JAL       ~Func:guTranslateF
+  1C4:  COPY      A0, S2
+  1C8:  COPY      A0, S2
+  1CC:  COPY      A1, S0
+  1D0:  JAL       ~Func:guMtxCatF
+  1D4:  COPY      A2, S0
+  1D8:  SLL       V1, S1, 2
+  1DC:  ADDIU     A0, SP, 18
+  1E0:  ADDU      V1, A0, V1
+  1E4:  LW        V0, 0 (V1)
+  1E8:  LWC1      F0, 58 (SP)
+  1EC:  LW        V0, C (V0)
+  1F0:  SWC1      F0, 10 (V0)
+  1F4:  LW        V0, 0 (V1)
+  1F8:  LWC1      F0, 5C (SP)
+  1FC:  LW        V0, C (V0)
+  200:  SWC1      F0, 14 (V0)
+  204:  LW        V0, 0 (V1)
+  208:  LWC1      F0, 60 (SP)
+  20C:  LW        V0, C (V0)
+  210:  ADDIU     S1, S1, 1
+  214:  SWC1      F0, 18 (V0)
+  218:  SLTI      V0, S1, 3
+  21C:  BNE       V0, R0, .o118
+  220:  ADDIU     S4, S4, 78
+  224:  LW        V0, 70 (S3)
+  228:  ADDIU     V0, V0, FFFF
+  22C:  SW        V0, 70 (S3)
+  230:  SLTI      V0, V0, 10
+  234:  BEQ       V0, R0, .o260
+  238:  NOP
+  23C:  CLEAR     S1
+        .o240
+  240:  LW        V0, 0 (A0)
+  244:  LW        V1, C (V0)
+  248:  LW        V0, 70 (S3)
+  24C:  ADDIU     S1, S1, 1
+  250:  SW        V0, 4C (V1)
+  254:  SLTI      V0, S1, 3
+  258:  BNE       V0, R0, .o240
+  25C:  ADDIU     A0, A0, 4
+        .o260
+  260:  LW        V0, 70 (S3)
+  264:  BGEZ      V0, .o290
+  268:  CLEAR     V0
+  26C:  CLEAR     S1
+  270:  ADDIU     S0, SP, 18
+        .o274
+  274:  LW        A0, 0 (S0)
+  278:  ADDIU     S0, S0, 4
+  27C:  JAL       ~Func:remove_effect
+  280:  ADDIU     S1, S1, 1
+  284:  SLTI      V0, S1, 3
+  288:  BNE       V0, R0, .o274
+  28C:  LI        V0, 2
+        .o290
+  290:  LW        RA, C0 (SP)
+  294:  LW        S5, BC (SP)
+  298:  LW        S4, B8 (SP)
+  29C:  LW        S3, B4 (SP)
+  2A0:  LW        S2, B0 (SP)
+  2A4:  LW        S1, AC (SP)
+  2A8:  LW        S0, A8 (SP)
+  2AC:  LDC1      F30, F0 (SP)
+  2B0:  LDC1      F28, E8 (SP)
+  2B4:  LDC1      F26, E0 (SP)
+  2B8:  LDC1      F24, D8 (SP)
+  2BC:  LDC1      F22, D0 (SP)
+  2C0:  LDC1      F20, C8 (SP)
+  2C4:  JR        RA
+  2C8:  ADDIU     SP, SP, F8
+}

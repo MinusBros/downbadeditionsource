@@ -15,10 +15,11 @@
 	[40]  Wait 50`
 }
 
-
+#import AutoSave.mpat
 
 @	$Script_Main
 {
+		Call $SetFlagCarryOverworldMusicToBattle()
     0:  Set   *GB_WorldLocation  .Location:DryDryDesert
    10:  Call  SetSpriteShading  ( .Shading:None )
    20:  If  *GB_StoryProgress  ==  .Story:Ch2_GotPulseStone % FFFFFFC1
@@ -49,8 +50,136 @@
   1B4:  	Default
   1BC:  		Call  $Function_80240338 ( )
   1C8:  EndSwitch
+		Exec  $AutoSave
+		If  *TeeheeValleyTheme == .False
+			Thread
+				Call  SetPlayerFlagBits ( 000000C0 .True )
+				Wait  50`
+				Set   *TeeheeValleyTheme  .True
+				Call  ShowMessageAtScreenPos    ( 001F0095  160`  40` ) % Display song title
+				Wait  10`
+				Call  SetPlayerFlagBits ( 000000C0 .False )
+			EndThread
+		EndIf
   1D0:  Return
   1D8:  End
+}
+
+
+
+
+%The way the Kolorado's text updates is stupid, so give him all like 7 of his lines at once.
+
+@	$Script_Interact_80242BE4
+{
+    0:  Call  GetNpcAnimation   ( .Npc:Self *Var9 )
+   14:  Call  SetNpcAnimation   ( .Npc:Self 00B60001 )
+   28:  If  *GF_SBK30_Met_Kolorado  ==  .False
+   38:  	Call  AdjustCam     ( .Cam:Default *Fixed[4.0]  0` *Fixed[300.0] *Fixed[15.0] *Fixed[-7.5] )
+   5C:  	Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0037 ) % Well, hello there, old boy! How goes the travels,  ...
+   7C:  	Call  ResetCam      ( .Cam:Default  4` )
+   90:  	Set   *GF_SBK30_Met_Kolorado  .True
+   A0:  	Goto  32
+   AC:  EndIf
+   B4:  If  *GF_SBK_GaveArtifactToKolorado  ==  .True
+   C4:  	Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0046 ) % Archaeology is about mystery. And you know, withou ...
+   E4:  	Goto  32
+   F0:  EndIf
+   F8:  Call  HasKeyItem    ( .Item:Artifact *Var0 )
+  10C:  If  *Var0  ==  00000001
+  11C:  	If  *GF_SBK_KeptArtifactFromKolorado  ==  .True
+  12C:  		Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0043 ) % Mario, if you could see to it to have a change of  ...
+  14C:  	Else
+  154:  		Set   *GF_SBK_KeptArtifactFromKolorado  .True
+  164:  		Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0040 ) % Well, what ill luck! No clues about the ruins! I'm ...
+  184:  	EndIf
+  18C:  	Set   *Var0  $???_80242B40
+  19C:  	Set   *Var1  00000000
+  1AC:  	ExecWait  $Script_802421A4
+  1B8:  	Switch  *Var0
+  1C4:  		Case  >=  00000001
+  1D0:  			ExecWait  $Script_80242B48
+  1DC:  			Goto  32
+  1E8:  		Default
+  1F0:  			Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0041 ) % Hmmm... Hmmm... Are you quite sure?
+  210:  			Set   *Var0  $???_80242B40
+  220:  			Set   *Var1  00000000
+  230:  			ExecWait  $Script_802421A4
+  23C:  			Switch  *Var0
+  248:  				Case  >=  00000001
+  254:  					ExecWait  $Script_80242B48
+  260:  				Default
+  268:  					Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0042 ) % Oh, bother. Well, I can't force you. I'll just suf ...
+  288:  					Goto  32
+  294:  			EndSwitch
+  29C:  	EndSwitch
+  2A4:  EndIf
+				If  *AreaFlag[008]  ==  .True
+  480:  				Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D003F ) % You know, time and again my mind returns to the im ...
+  45C:  				Set   *AreaFlag[008]  .True
+  46C:  				Goto  32
+				EndIf
+				If  *AreaFlag[007]  ==  .True
+  480:  				Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D003E ) % But I tell you, old boy, I'm having a devil of a t ...
+  45C:  				Set   *AreaFlag[008]  .True
+  46C:  				Goto  32
+				EndIf
+				If  *GF_SBK30_Kolorado_SharedRumorAboutMoustafa == .True
+  43C:  				Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D003D ) % Hello there, old chum! How are you holding up in t ...
+  45C:  				Set   *AreaFlag[007]  .True
+  46C:  				Goto  32
+				EndIf
+  36C:  		If  *AreaFlag[006]  ==  .True
+  3D0:  			Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D003C ) % What kind of chap do you think this Moustafa is? H ...
+  39C:  			Set   *GF_SBK30_Kolorado_SharedRumorAboutMoustafa  .True
+  3BC:  			Goto  32
+  3C8:  		EndIf
+  36C:  		If  *AreaFlag[005]  ==  .True
+  37C:  			Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D003B ) % Hey, old boy. Doing well, I trust? It's barely a m ...
+  3AC:  			Set   *AreaFlag[006]  .True
+  3BC:  			Goto  32
+  3C8:  		EndIf
+  2CC:  		If  *AreaFlag[004]  ==  .False
+  2DC:  			Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0039 ) % Well, how goes it, old man? I'm still neck deep in ...
+  2FC:  			Set   *AreaFlag[004]  .True
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  GetCurrentPartnerID   ( *Var0 )
+					Switch  *Var0
+						Case  ==  .Partner:Goombario % 1
+							Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D0114 )
+							Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0115 )
+						Case  ==  .Partner:Kooper % 2
+							Call  SpeakToPlayer ( .Npc:Partner 0002000D 00020003 00000005 000D0116 )
+							Call  SpeakToPlayer ( .Npc:Self 00B6000F 00B60010 00000000 000D0117 )
+					EndSwitch
+					Call  EnablePartnerAI ( )
+  30C:  			Goto  32
+  318:  		Else
+  320:  			Call  SpeakToPlayer ( .Npc:Self 00B6000F 00B60010 00000000 000D003A ) % You know, old bean, gossip can be one of the most  ...
+					Set   *AreaFlag[005]  .True
+  340:  			Goto  32
+  3FC:  		EndIf
+  518:  Label  32
+  524:  Label  5A
+  530:  Call  GetCurrentPartnerID   ( *Var0 )
+  540:  If  *Var0  ==  .Partner:Kooper % 2
+  550:  	If  *GF_SBK30_KooperMetKolorado  ==  .False
+  560:  		Set   *GF_SBK30_KooperMetKolorado  .True
+  570:  		Call  DisablePartnerAI  ( 00000000 )
+  580:  		Call  SpeakToNpc    ( .Npc:Partner 00020011 00020003 00000000 .Npc:Self 000D0047 ) % What!? Whoa! You're Professor Kolorado!! It's Koop ...
+  5A4:  		Call  SpeakToNpc    ( .Npc:Self 00B60008 00B60001 00000000 .Npc:Partner 000D0048 ) % Hello there, Kooper. It's been ages! So... If you' ...
+  5C8:  		Call  SpeakToNpc    ( .Npc:Partner 00020011 00020003 00000000 .Npc:Self 000D0049 ) % Whoa! OK! As soon as we're done saving the princes ...
+  5EC:  		Call  EnablePartnerAI ( )
+  5F8:  	EndIf
+  600:  EndIf
+  608:  Call  SetNpcAnimation   ( .Npc:Self *Var9 )
+  61C:  ExecWait  $Script_80242A8C
+  628:  ExecWait  $Script_80242ADC
+  634:  If  *VarC  !=  00000000
+  644:  	Return
+  64C:  EndIf
+  654:  Return
+  65C:  End
 }
 
 %Let's add a surprise Mr. Trooper fight to throw off the player.
@@ -116,6 +245,7 @@
 			Thread
 			Call  NpcMoveTo ( .Npc:Partner -277 0 0` )
 			EndThread
+			Call $ClearFlagCarryOverworldMusicToBattle()
 			Call  SetPlayerAnimation    ( 00010002 )
 			Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
 			Call  DisablePlayerPhysics  ( .False )
@@ -188,6 +318,7 @@
 		Call  DisablePlayerInput    ( .False )
 		Call  SetMusicTrack ( 00000000 .Song:DryDryDesert 00000000 00000008 )
 		Set   *GF_SBK30_MrTrooper .True
+		Call $SetFlagCarryOverworldMusicToBattle()
 		Call  EnablePartnerAI  ( )
   104:  Call  RemoveNpc ( .Npc:Self )
   114:  Return

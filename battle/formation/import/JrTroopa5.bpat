@@ -444,6 +444,9 @@
    80:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
    98:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
 		Call  SetActorVar 	( .Actor:Self 00000004 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $JrTroopa5 97` )
+		EndIf
    B0:  Return
    B8:  End
 }
@@ -614,6 +617,10 @@
   144:  Add   *Var1  *Var4 
   154:  Call  PlayEffect        ( ~FX:GatherEnergyPink *Var0 *Var1 *Var2 *Var5 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
   198:  Wait  10`
+		Call     RandInt     	( 00000001 *Var0 )
+		If *Var0 == 1`
+			Wait  5`
+		EndIf
 		If	  *GB_JrTroopaBattle == 00000001
 			Call  SetAnimation      ( .Actor:Self 00000003 00240007 )
 		Else 
@@ -676,6 +683,10 @@
 			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce 00000000 00000000 00000008 00000020 )
 			Wait  6`
 		EndIf
+		Call     RandInt     	( 00000001 *Var0 )
+		If *Var0 == 1`
+			Wait  10`
+		EndIf
   400:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast2 )
   414:  Call  GetActorPos       ( .Actor:Player *Var3 *Var4 *Var5 )
   430:  Add   *Var4  00000014 
@@ -700,6 +711,10 @@
 		Else 
 			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce 00000000 00000000 00000008 00000020 )
 			Wait  3`
+		EndIf
+		Call     RandInt     	( 00000001 *Var0 )
+		If *Var0 == 1`
+			Wait  10`
 		EndIf
     400:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast2 )
   414:  Call  GetActorPos       ( .Actor:Player *Var3 *Var4 *Var5 )
@@ -794,6 +809,10 @@
   2B0:  Add   *Var0  00000032 
   2C0:  Set   *Var1  000000C8 
   2D0:  Call  PlaySoundAtActor  ( .Actor:Self 00000366 )
+		Call     RandInt     	( 00000001 *Var0 )
+		If *Var0 == 1`
+			Wait  5`
+		EndIf
   2E4:  Call  EnemyTestTarget   ( .Actor:Self *VarA ~Flags:DamageType:NoContact 00000000 00000001 00000010 )
   308:  Switch  *VarA 
   314:  	Case  ==  .HitResult:Miss % 6
@@ -908,6 +927,9 @@
      		Call  ActorSpeak    ( 00120170 .Actor:Self 00000001 0024000F 0024000F ) % Darn
  			Call  SetAnimation  ( .Actor:Self 00000001 00240002 )
 			Wait  5`
+			If    *Byte_Settings_Difficulty == 2`
+				ExecWait  $Script_VanishSelf
+			EndIf
     EndIf
 	Set		*Var[8]  *Var[0]
 		Label 69
@@ -1005,6 +1027,42 @@
     End
 }
 
+
+%Port this hilarious script from Master Quest
+#new:Script $Script_VanishSelf
+{
+	Call     UseIdleAnimation 	( .Actor:Self .False )
+	Call     EnableIdleScript 	( .Actor:Self 00000000 )
+	Call     SetAnimation 	( .Actor:Self 00000001 00240006 ) % cast
+	Wait     00000005
+	Call     PlaySoundAtActor 	( .Actor:Self 000020D4 )
+	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Call     GetStatusFlags ( .Actor:Self *Var[3] )
+	If       *Var[3] !&  00080000
+		Add      *Var[1] 00000010
+	Else
+		Add      *Var[1] 00000006
+	EndIf
+	Call     PlayEffect  	( 00000013 00000000 *Var[0] *Var[1] *Var[2] 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call     PlayEffect  	( 00000013 00000001 *Var[0] *Var[1] *Var[2] 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Thread
+		Wait     0000000A
+		Call     PlaySoundAtActor 	( .Actor:Self 000002DB )
+	EndThread
+	Thread
+		Call     8026BF48 ( 00000001 )
+		Call     VanishActor ( .Actor:Self 00000002 )
+		Call     8026BF48 ( 00000000 )
+		Call     SetAnimation 	( .Actor:Self 00000001 00240002 ) % idle
+	EndThread
+	Wait     0000001E
+	Wait     00000005
+	Call     EnableIdleScript 	( .Actor:Self 00000001 )
+	Call     UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+
 %Lightning is less likely, but it can still happen.
 
 #new:Script $Script_TakeTurn_8022B4F0_02 
@@ -1017,8 +1075,10 @@
     EndIf
 	Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
 	If  *Var0  ==  00000000 
-        Call  GetActorHP    ( .Actor:Self *Var0 )
-        If  *Var0  <=  00000028 
+		Call  GetEnemyMaxHP ( .Actor:Self *Var0 )
+		Div  *Var0  3`
+        Call  GetActorHP    ( .Actor:Self *Var1 )
+        If  *Var1  <=  *Var0 
 			ExecWait $Script_BufforHeal
         EndIf
     EndIf

@@ -1,6 +1,109 @@
+#import  AutoSave.mpat
+
+@	$Script_Main_EnterWalk
+{
+		Exec  $AutoSave
+    0:  Set   *GB_WorldLocation  .Location:MtLavalava
+   10:  Call  SetSpriteShading  ( .Shading:kzn_10 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Thread
+   78:  	Call  GetEntryID    ( *Var0 )
+   88:  	If  *Var0  ==  ~Entry:Entry0
+   98:  		Call  UseSettingsFrom   ( .Cam:Default  -445`  -13`  0` )
+   B4:  		Call  SetPanTarget      ( .Cam:Default  -445`  -13`  0` )
+   D0:  	Else
+   D8:  		Call  UseSettingsFrom   ( .Cam:Default  425`  -246`  0` )
+   F4:  		Call  SetPanTarget      ( .Cam:Default  425`  -246`  0` )
+  110:  	EndIf
+  118:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  12C:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  144:  	Wait  2`
+  150:  	Call  $Function_8024030C ( )
+  15C:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  174:  EndThread
+  17C:  Set   *Var0  $Script_80240ABC
+  18C:  Exec  EnterWalk
+  198:  Wait  1`		
+  1A4:  Call  SetMusicTrack     ( 00000000 .Song:MtLavalava 00000000 00000008 )
+  1C0:  Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
+  1D0:  Exec  $Script_80241464
+  1DC:  Set   *Var0  0000002C
+  1EC:  Exec  $Script_802407CC
+  1F8:  Return
+  200:  End
+}
+
+
 @	$Script_80241464
 {
   [418]  Wait  5`
   [494]  Call  MakeLerp      ( FFFFFE2B 000001A2 00000044 .Easing:QuadraticIn )
   [B28]  Wait  5`
+}
+
+@	$Script_80240D10
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Label  A
+   1C:  Call  GetCurrentPartner     ( *Var0 )
+   2C:  If  *Var0  !=  00000000
+   3C:  	Call  802D2B6C ( )
+   48:  EndIf
+   50:  Label  0
+   5C:  Wait  1`
+   68:  Call  GetCurrentPartner ( *Var0 )
+   78:  If  *Var0  !=  00000000
+   88:  	Call  GetCurrentPartnerID   ( *Var0 )
+   98:  	If  *Var0  ==  .Partner:Bow % 9
+   A8:  		Goto  2
+   B4:  	Else
+   BC:  		Goto  A
+   C8:  	EndIf
+   D0:  EndIf
+   D8:  Call  GetPlayerActionState  ( *Var0 )
+   E8:  If  *Var0  !=  .ActionState:Idle % 0
+   F8:  	Goto  0
+  104:  EndIf
+  10C:  Call  GetPlayerTargetYaw    ( *Var0 )
+  11C:  If  *Var0  <  000000B4
+  12C:  	Call  InterpPlayerYaw       (  90`  1` )
+  140:  	Wait  1`
+  14C:  	Call  $Function_802404B4    ( 00000014 )
+  15C:  Else
+  164:  	Call  InterpPlayerYaw       (  270`  1` )
+  178:  	Wait  1`
+  184:  	Call  $Function_802404B4    ( FFFFFFEC )
+  194:  EndIf	
+		Call  FadeOutMusic  ( 00000000 000000F8 )
+  19C:  Call  SetPlayerAnimation    ( .PlayerAnim:DeadStill )
+  1AC:  Wait  1`
+  1B8:  Call  $Function_80240330 ( )
+  1C4:  Call  802D2520  ( 0001000F 00000004 *Fixed[3.0] *Fixed[3.0] 00000000 00000000 )
+  1E8:  Label  1
+  1F4:  Wait  1`
+  200:  If  *AreaFlag[002]  ==  .False
+  210:  	Goto  1
+  21C:  EndIf
+  224:  Wait  30`
+  230:  Call  802D2520  ( 0001000F 00000000 00000000 00000000 00000000 00000000 )
+		Wait  100`
+		Call  GotoMap   ( "gv_01" 00000000 )
+		Wait  80`
+  290:  Return
+  298:  End
+}
+
+
+@	$Function_80240330
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:subtract_hp
+    C:  LI        A0, 99`
+   10:  LW        RA, 10 (SP)
+   14:  LI        V0, 2
+   18:  JR        RA
+   1C:  ADDIU     SP, SP, 18
 }

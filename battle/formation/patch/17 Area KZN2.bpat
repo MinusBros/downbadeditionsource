@@ -4,6 +4,107 @@
 	[MaxHP]        55`b
 }
 
+
+@	$Script_Init_8021D264
+{
+    0:  UseArray  $End[788]
+    C:  Call  EnableGroup       ( 00000017 .True )
+   20:  Call  EnableGroup       ( 0000001C .False )
+   34:  Call  SetActorVar       ( .Actor:Self 00000000 00000000 )
+   4C:  Call  SetActorVar       ( .Actor:Self 00000005 00000000 )
+   64:  Call  SetActorVar       ( .Actor:Self 00000006 00000000 )
+   7C:  Call  SetActorVar       ( .Actor:Self 0000000B 00000000 )
+   94:  Call  SetActorVar       ( .Actor:Self 0000000D 00000000 )
+   AC:  Call  SetActorVar       ( .Actor:Self 00000001 00000000 )
+   C4:  Call  SetActorVar       ( .Actor:Self 00000002 00000000 )
+   DC:  Set   *Var0  0000001E
+   EC:  Call  SetActorVar       ( .Actor:Self 0000000D *Var0 )
+  104:  Call  SetActorVar       ( .Actor:Self 00000007 00790003 )
+  11C:  Call  SetActorVar       ( .Actor:Self 00000008 00790009 )
+  134:  Call  ForceHomePos      ( .Actor:Self  61`  61`  0` )
+  150:  Call  LoadAnimatedModel ( 00000000 $AnimatedModelTree_8021C4C0 )
+  164:  Call  OverrideBattleDmaDest ( $End[9230] )
+  174:  Call  LoadBattleDmaData ( 00000000 )
+  184:  Call  PlayModelAnimation    ( 00000000 $End[9230] )
+  198:  Call  SetAnimatedModelRootPosition  ( 00000000 00000000 00000000 00000000 )
+  1B4:  Call  SetAnimatorFlags  ( 00000000 00000080 00000001 )
+  1CC:  Call  LoadAnimatedModel ( 00000001 $AnimatedModelTree_8021C650 )
+  1E0:  Call  OverrideBattleDmaDest ( $End[6230] )
+  1F0:  Call  LoadBattleDmaData ( 0000001F )
+  200:  Call  PlayModelAnimation    ( 00000001 $End[6230] )
+  214:  Call  SetAnimatedModelRootPosition  ( 00000001 00000000 00000000 00000000 )
+  230:  Call  SetAnimatorFlags  ( 00000001 00000080 00000001 )
+  248:  Call  LoadAnimatedModel ( 00000002 $AnimatedModelTree_8021C650 )
+  25C:  Call  OverrideBattleDmaDest ( $End[3230] )
+  26C:  Call  LoadBattleDmaData ( 0000001F )
+  27C:  Call  PlayModelAnimation    ( 00000002 $End[3230] )
+  290:  Call  SetAnimatedModelRootPosition  ( 00000002 00000032 0000000E 00000014 )
+  2AC:  Call  SetAnimatorFlags  ( 00000002 00000080 00000001 )
+  2C4:  Call  LoadAnimatedModel ( 00000003 $AnimatedModelTree_8021C780 )
+  2D8:  Call  OverrideBattleDmaDest ( $End[1230] )
+  2E8:  Call  LoadBattleDmaData ( 00000022 )
+  2F8:  Call  PlayModelAnimation    ( 00000003 $End[1230] )
+  30C:  Call  SetAnimatedModelRootPosition  ( 00000003 00000000 00000000 00000003 )
+  328:  Call  SetAnimatorFlags  ( 00000003 00000080 00000001 )
+  340:  Call  SummonEnemy       ( $SpecialFormation_8021FF04 00000000 )
+  354:  Call  SummonEnemy       ( $SpecialFormation_8021FF20 00000000 )
+  368:  Wait  2`
+  374:  Exec  $Script_8021DEEC
+  380:  Call  CreateNpc ( 00000000 00B70000 )
+  394:  Call  SetNpcYaw ( 00000000  90` )
+  3A8:  Call  SetNpcPos ( 00000000  -300`  0`  0` )
+  3C4:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021FC10 )
+  3D8:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021D6EC )
+  3EC:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021F5A4 )
+  400:  Call  BindNextTurn      ( .Actor:Self $Script_NextTurn_8021D8EC )
+  414:  Call  ForceHomePos      ( .Actor:Enemy1  57`  57`  0` )
+  430:  Call  ForceHomePos      ( .Actor:Enemy2  107`  71`  20` )
+  44C:  Call  HPBarToHome       ( .Actor:Enemy1 )
+  45C:  Call  HPBarToHome       ( .Actor:Enemy2 )
+  46C:  Call  $Function_802188FC ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $LavaPiranha 74` )
+		EndIf
+		Exec   $MonitorPos
+  478:  Return
+  480:  End
+}
+
+#new:Script  $MonitorPos
+{
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -85`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+	EndLoop
+	Set  *MoltenPiranhaTurn .True
+	Exec  $ShowSong
+	Call  SetMusicTrack ( 00000000 .Song:UnusedOpening 00000000 00000008 )
+	Return
+	End
+}
+
+#new:Script $ShowSong
+{
+	Call  ActorSpeak        ( 001F0074 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return 
+	End
+}
+
+#new:Script $ShowSong2
+{
+	Call  ActorSpeak        ( 001F0075 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return 
+	End
+}
+
 %Water and ice have reverse effects on Lava
 %Piranha's second form now, making the fight
 %less easy to cheese.
@@ -54,6 +155,10 @@
 
 @	$Script_TakeTurn_8021FC10
 {
+		If  *MoltenPiranhaTurn == .False
+			Set  *MoltenPiranhaTurn .True
+			Call  SetMusicTrack ( 00000000 .Song:UnusedOpening 00000000 00000008 )
+		EndIf
     0:  Call  GetActorFlags ( .Actor:Self *Var0 )
    14:  If  *Var0  &  00400000
    24:  	Return
@@ -1054,6 +1159,7 @@
  1474:  	Call  LoadBattleDmaData     ( 0000001F )
  1484:  	Call  PlayModelAnimation    ( 00000001 $End[6230] )
  1498:  	Wait  30`
+			Exec  $ShowSong2
  14A4:  	Call  OverrideBattleDmaDest ( $End[1230] )
  14B4:  	Call  LoadBattleDmaData     ( 00000022 )
  14C4:  	Call  PlayModelAnimation    ( 00000003 $End[1230] )

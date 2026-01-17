@@ -1,4 +1,19 @@
+#define .NpcID:Koopa_04             04
+#define .NpcID:Koopa_05             05
+#define .NpcID:Koopa_06             06
+#define .NpcID:Kolorado_07          07
+#define .NpcID:KoloradoWife_08      08
 #define .NpcID:KoopaKoot_09         09
+#define .NpcID:WorldKooper_10       0A
+#define .NpcID:WorldKooper_11       0B
+#define .NpcID:Fuzzy_12             0C
+#define .NpcID:Fuzzy_13             0D
+#define .NpcID:Fuzzy_14             0E
+#define .NpcID:Fuzzy_15             0F
+#define .NpcID:WorldBombomb_16      10
+#define .NpcID:WorldBombomb_17      11
+#define .NpcID:WorldBombomb_18      12
+#define .NpcID:ChuckQuizmo_19       13
 
 %Removing Koopa Koot to improve the Star Piece economy
 %His text also updates after the Koopa Koot boss fight.
@@ -28,6 +43,77 @@
 }
 
 
+
+@	$Script_Main
+{
+		Exec  $MoveGrass
+    0:  Set   *GB_WorldLocation  .Location:KoopaVillage
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  GetEntryID        ( *Var0 )
+   94:  If  *Var0  ==  ~Entry:Entry3
+   A4:  	Call  MakeNpcs      ( .False $NpcGroupList_80251B24 )
+   B8:  	ExecWait  $Script_MakeEntities
+   C4:  	Exec  $Script_802456E0
+   D0:  	Exec  $Script_802543B0
+   DC:  	Call  FadeInMusic   ( 00000000 .Song:KoopaVillage 00000000 00000BB8 00000000 0000007F )
+  100:  	Wait  1`
+  10C:  	Return
+  114:  EndIf
+  11C:  Set   *AreaFlag[00F]  .False
+  12C:  Set   *AreaFlag[010]  .False
+  13C:  Set   *AreaFlag[012]  .False
+  14C:  Set   *GF_NOK02_Bush1_KoopaLeaf  .False
+  15C:  Set   *AreaFlag[013]  .False
+  16C:  If  *GB_StoryProgress  >=  .Story:Ch1_KooperJoinedParty % FFFFFFA4
+  17C:  	Set   *GF_NOK02_RecoveredShellA  .True
+  18C:  	Set   *GF_NOK02_RecoveredShellB  .True
+  19C:  EndIf
+  1A4:  If  *GB_StoryProgress  <  .Story:Ch1_KooperJoinedParty % FFFFFFA4
+  1B4:  	Call  MakeNpcs  ( .False $NpcGroupList_80251AAC )
+  1C8:  Else
+  1D0:  	Call  MakeNpcs  ( .False $NpcGroupList_80251AE8 )
+  1E4:  EndIf
+  1EC:  Call  ClearDefeatedEnemies ( )
+  1F8:  ExecWait  $Script_MakeEntities
+  204:  ExecWait  $Script_8025422C
+  210:  Exec  $Script_802456E0
+  21C:  Bind  $Script_80246E20 .Trigger:WallPressA ~Collider:o236 00000001 00000000
+  238:  ExecWait  $Script_80246B50
+  244:  Call  GetDemoState  ( *Var0 )
+  254:  If  *Var0  !=  00000000
+  264:  	ExecWait  $Script_802523B8
+  270:  	Return
+  278:  EndIf
+  280:  Exec  $Script_80244630
+  28C:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  2A4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitn 7FFFFE00 )
+  2BC:  Exec  $Script_EnterWalk_80245868
+  2C8:  Wait  1`
+  2D4:  Return
+  2DC:  End
+}
+
+#new:Script	$MoveGrass
+{
+		Call  MakeLerp      ( 25` 0` 30` .Easing:CosInOut )
+		Loop
+			Call  UpdateLerp ( )
+			Call  RotateModel   ( ~Model:o443 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o444 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o445 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o446 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o447 *Var0 -1` 00000000 00000000 )
+			Call  RotateModel   ( ~Model:o448 *Var0 -1` 00000000 00000000 )
+			Wait  2`
+		EndLoop
+  160:  Return
+  168:  End
+}
+
 @	$NpcGroup_80250B2C
 {
 	.NpcID:KoopaKoot_09 $NpcSettings_80247070 ~Vec3f:NPC_KoopaKoot_09 % 330 0 -100
@@ -54,8 +140,10 @@
    B4:  			Set   *MapVar[A]  *Var0
    C4:  		EndIf
    CC:  EndSwitch
-   D4:  Call  CreatePushBlockGrid   ( 00000000 ~PushGrid:Grid_80245E38 00000000 )
-   FC:  Call  SetPushBlock  ( 00000000  0`  0` 00000001 )
+		If  *GB_StoryProgress  <  .Story:Ch1_KooperJoinedParty 
+   D4:  	Call  CreatePushBlockGrid   ( 00000000 ~PushGrid:Grid_80245E38 00000000 )
+   FC:  	Call  SetPushBlock  ( 00000000  0`  0` 00000001 )
+		EndIf
   118:  If  *GF_NOK02_WarpPipe  ==  .False
   128:  	If  *GF_TIK01_WarpPipes  ==  .True
   138:  		Call  GetEntryID    ( *Var0 )
@@ -71,6 +159,58 @@
 }
 
 
+
+
+
+@	$NpcGroup_8024FD9C
+{
+	00000000 $NpcSettings_80246EC0 ~Vec3f:NPC_8024FD9C % -109 0 191
+	00002D09 $Script_Init_8024CCF0 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_8024FD9C
+	~AnimationTable:NPC_8024FD9C % .Sprite:Koopa
+	00000000 00000000 00000000 001A0076 % He's a Koopa Troopa from Koopa Village. You know,  ...
+	%
+	% $NpcGroup_8024FD9C[1F0]
+	00000003 $NpcSettings_80246EC0 ~Vec3f:NPC_8024FF8C % 200 0 117
+	00002D09 $Script_Init_8024CE14 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_8024FF8C
+	~AnimationTable:NPC_8024FF8C % .Sprite:Koopa
+	00000000 00000000 00000000 001A0077 % He's a Koopa Troopa from Koopa Village. As you can ...
+	%
+	% $NpcGroup_8024FD9C[3E0]
+	.NpcID:WorldBombomb_16 $NpcSettings_8024709C ~Vec3f:NPC_WorldBombomb_16 % 0 0 -333
+	00402909 $Script_Init_8024DB48 00000000 00000000 000000B4
+	~NoDrops
+	~Movement:NPC_WorldBombomb_16
+	~AnimationTable:NPC_WorldBombomb_16 % .Sprite:WorldBombomb
+	00000000 00000000 00000000 001A007A % He's a Bob-omb. He was jailed at Koopa Bros. Fortr ...
+	%
+	% $NpcGroup_8024FD9C[5D0]
+	.NpcID:WorldBombomb_17 $NpcSettings_8024709C ~Vec3f:NPC_WorldBombomb_17 % -7 0 -285
+	00402909 $Script_Init_8024DBA0 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_WorldBombomb_17
+	~AnimationTable:NPC_WorldBombomb_17 % .Sprite:WorldBombomb
+	00000000 00000000 00000000 001A007B % This Bob-omb was in jail at Koopa Bros. Fortress.  ...
+	%
+	% $NpcGroup_8024FD9C[7C0]
+	.NpcID:WorldBombomb_18 $NpcSettings_8024709C ~Vec3f:NPC_WorldBombomb_18 % 47 0 -140
+	00002909 $Script_Init_8024DC48 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldBombomb_18
+	~AnimationTable:NPC_WorldBombomb_18 % .Sprite:WorldBombomb
+	00000000 00000000 00000000 001A007C % He's a Bob-omb who was in jail at Koopa Bros. Fort ...
+	%
+	% $NpcGroup_8024FD9C[9B0]
+	.NpcID:Kolorado_07 $NpcSettings_80246FEC ~Vec3f:NPC_Kolorado_07 % -240 0 -70
+	00002D09 $Script_Init_8024E090 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_Kolorado_07
+	~AnimationTable:NPC_Kolorado_07 % .Sprite:Kolorado
+	00000000 00000000 00000000 001A0138 % He's the archaeologist, Kolorado. He's famous as b ...
+}
 
 
 

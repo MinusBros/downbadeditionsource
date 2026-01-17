@@ -51,3 +51,56 @@
 	J		8024C13C
 	NOP
 } 
+
+
+
+
+
+
+%I found the "move table"
+%The "move table" is actually just a blob of code in 800E9D48 / 80438450
+%It checks specific badge values
+
+%So I guess I'll just use the custom badge function rather than change the move table
+
+
+%New mechanic: Air lift is a 100% chance (*if enemy is at least 25% to airlift)
+%	but can only be used once
+
+
+#export:Data $AirLiftBool
+{
+	00000000
+}
+
+%Copied from black pit code
+/%
+Parakarry - Air Lift
+%/
+@Hook 192360 % 80263A80
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    LAW     V0, $AirLiftBool
+    BEQ     V0, R0, .End
+    NOP
+	%used move, is it time to disable the move?
+    LABU    V0, 8010F2A2 % load current partner
+    ORI     V1, R0, 4 % Parakarry
+    BEQ     V0, V1, .Parakarry
+    NOP
+    % Isn't any of those partners so just finish
+    BEQ     R0, R0, .End
+    NOP
+    .Parakarry
+    ORI     V1, R0, 2 % Air Lift
+    BNE     S1, V1, .End
+    NOP
+    BEQ     R0, R0, .End
+    CLEAR   S6 % Lock this move
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    SB	    S6, 01F6 (S2)
+    ORI     S6, R0, 1
+    J       80263A88
+    LB	    V0, 040C (S5)
+}

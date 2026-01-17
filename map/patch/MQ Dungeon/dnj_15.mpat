@@ -1,0 +1,153 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000001 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]Take a long look at that path.[BR]
+I just know that we'll need[BR]
+to have it memorized for[BR]
+something later.[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+		
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	Call     ModifyColliderFlags ( 00000003 ~Collider:lava 00000002 )
+		   Exec     $Script_SandFlow
+   Thread
+	Call     ResetFromLava 	( $Demo_LavaResetList )
+   EndThread
+	If *GF_DNJ13_FlagA == 00000000
+				ExecWait $Script_CreateEntities
+	EndIf
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+
+	#new:Script $Script_SandFlow
+{
+	Call     EnableTexPanning 	( ~Model:lavamodel .True )
+	Set      *Var[0] 00000000 
+	Loop     
+		Add      *Var[0] 100`  
+		Call     802C9364 ( 00000001 00000000 00000000 *Var[0] )
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+		
+#new:LavaResetList $Demo_LavaResetList
+{
+~Collider:Lava1 ~Vec3f:Lava1
+~Collider:Lava2 ~Vec3f:Lava2
+FFFFFFFF 00000000 00000000 00000000	
+}
+	
+	#new:Script $Script_CreateEntities
+{
+		Call	MakeEntity		( .Entity:BlueSwitch ~Vec4d:switch 80000000 )
+	    Call	AssignScript	( $Script_TriggerLeft )
+		Return
+		End
+}
+		
+	#new:Script $Script_TriggerLeft
+{
+    Set *GF_DNJ13_FlagA 00000001
+	If *GF_DNJ13_FlagB == 00000001
+		ExecWait $ShakeIt
+	EndIf
+	Return
+	End
+}
+	
+	#new:Script $ShakeIt
+{
+Call	 DisablePlayerInput ( .True )
+	Thread
+   		Call     PlaySoundAtCollider 	( ~Collider:this1 00000187 00000000 )
+	EndThread
+		Call     ShakeCam    	( .Cam:Default 00000000 00000028 *Fixed[1.0] )
+    	Wait     00000014 
+		%Call     SetPlayerAnimation 	( 0001002A )
+		%Call     PlaySoundAtPlayer 	( 00000263 00000000 )
+		%Call     ShowEmote   	( 00000000 .Emote:Question 00000000 00000014 00000000 00000000 00000000 00000000 00000000 )
+		%Wait 0000001F
+Call	 DisablePlayerInput ( .False )
+Return
+End
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_14" 00000000 )
+	Wait     00000064 
+	Return
+	End	
+}
+	

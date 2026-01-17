@@ -47,7 +47,11 @@
   [1A8]  Call  SpeakToPlayer ( .Npc:Self 00830404 00830401 00000000 *Var0 ) % variable string ID
 }
 
-
+%ThreeSisters_02
+@	$Script_Interact_80249B24
+{
+  [1A8]  Call  SpeakToPlayer ( .Npc:Self 00840404 00840401 00000000 *Var0 ) % variable string ID
+}
 
 %Toad_03
 @	$Script_Interact_80249D30
@@ -66,14 +70,14 @@
 %ThreeSisters_08
 @	$Script_Interact_8024A54C
 {
-  [278]  Call  SpeakToPlayer ( .Npc:Self 00840404 00840401 00000000 *Var0 ) % variable string ID
+  [278]  Call  SpeakToPlayer ( .Npc:Self 00840B04 00840B01 00000000 *Var0 ) % variable string ID
 }
 
 
 @	$Script_Main
 {
     0:  Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Exec  $DarknessFollow
    88:  	Default
 				Call  EnableGroup   ( ~Model:darkness .False )
@@ -386,7 +390,7 @@
    20:  	Switch  *GB_StoryProgress
    2C:  		Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
    3C:  			Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
-				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
+				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 					Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
    58:  		Default
    60:  			Exec  $Script_8024F4E8
@@ -441,10 +445,14 @@
 		  3CC:  EndThread
 	Loop
 		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
-		Sub   *Var2   105`
+		Sub   *Var2   150`
 		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
 		%Call  GetCamPosition    ( .Cam:Default *Var0 *Var1 *Var2 )
+		%Add   *Var0  90`
 		%Call  RotateModel   ( ~Model:fgdarkness 000000DF *Var0 *Var1 *Var2 )
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var0   5`
+		Call  TranslateModel        ( ~Model:fgdarkness2 *Var0 0` *Var2 )
 		Wait  1`
 	EndLoop
 	Return
@@ -570,12 +578,12 @@
 
 @	$ShopInventory_80243C6C
 {
-	.Item:CakeMix         8` 00230020
+	.Item:CakeMix        10` 00230020
 	.Item:Egg             6` 002300DA %use the description from the Peach Egg item for no reason
-	.Item:ThunderRage    18` 00240002 % Lightning that strikes all enemies. Attack Power:  ...
+	.Item:ThunderRage    20` 00240002 % Lightning that strikes all enemies. Attack Power:  ...
 	.Item:KoopaTea        9` 00230046 
-	.Item:VoltShroom     15` 00240008 % Electrifies Mario briefly and damages enemies who  ...
-	.Item:SuperShroom    12` 0024000A % A truly super Mushroom. Restores 10 HP.
+	.Item:VoltShroom     25` 00240008 % Electrifies Mario briefly and damages enemies who  ...
+	.Item:SuperShroom    15` 0024000A % A truly super Mushroom. Restores 10 HP.
 	.Item:GoldBar       100` 0023013E
 	.Item:GoldBarX3     300` 0023013F
 	00000000 00000000 00000000
@@ -623,8 +631,84 @@
 }
 
 
+%Let's axe all of the repeated dialogue and have it update every chapter instead
+@	$Script_Interact_8024A128
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   28:  		Set   *Var0  0006003A
+   38:  		Set   *Var1  0006003B
+   48:  		Set   *Var2  0006003C
+   98:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   A4:  		Set   *Var0  00060040
+   B4:  		Set   *Var1  00060041
+   C4:  		Set   *Var2  00060042
+  160:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  16C:  		Set   *Var0  00060049
+  17C:  		Set   *Var1  0006004A
+  18C:  		Set   *Var2  0006004B
+  1D8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  1E4:  		Set   *Var0  0006004F
+  1F4:  		Set   *Var1  00060050
+  204:  		Set   *Var2  00060051
+  250:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  25C:  		Set   *Var0  00060055
+  26C:  		Set   *Var1  00060056
+  27C:  		Set   *Var2  00060057
+  2C8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  2D4:  		Set   *Var0  0006005B
+  2E4:  		Set   *Var1  0006005C
+  2F4:  		Set   *Var2  0006005D
+  304:  	Case  <  .Story:Epilogue % 60
+  310:  		Set   *Var0  0006005E
+  320:  		Set   *Var1  0006005F
+  330:  		Set   *Var2  00060060
+  340:  EndSwitch
+  348:  Call  SpeakToPlayer ( .NpcID:ToadKid_05 00860004 00860001 00000000 *Var0 ) % variable string ID
+  368:  Call  SpeakToPlayer ( .NpcID:ToadKid_06 00860304 00860301 00000000 *Var1 ) % variable string ID
+  388:  Call  SpeakToPlayer ( .NpcID:ToadKid_07 00860104 00860101 00000000 *Var2 ) % variable string ID
+  3A8:  Return
+  3B0:  End
+}
 
-
+@	$Script_Interact_8024AA54
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   28:  			Set   *Var0  00060081
+   38:  			Set   *Var1  00060082
+   48:  			Set   *Var2  00060083
+   98:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   A4:  		Set   *Var0  00060087
+   B4:  		Set   *Var1  00060088
+   C4:  		Set   *Var2  00060089
+  160:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  16C:  		Set   *Var0  00060090
+  17C:  		Set   *Var1  00060091
+  18C:  		Set   *Var2  00060092
+  1D8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  1E4:  		Set   *Var0  00060096
+  1F4:  		Set   *Var1  00060097
+  204:  		Set   *Var2  00060098
+  250:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  25C:  		Set   *Var0  0006009C
+  26C:  		Set   *Var1  0006009D
+  27C:  		Set   *Var2  0006009E
+  2C8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  2D4:  		Set   *Var0  000600A2
+  2E4:  		Set   *Var1  000600A3
+  2F4:  		Set   *Var2  000600A4
+  304:  	Case  <  .Story:Epilogue % 60
+  310:  		Set   *Var0  000600A5
+  320:  		Set   *Var1  000600A6
+  330:  		Set   *Var2  000600A7
+  340:  EndSwitch
+  348:  Call  SpeakToPlayer ( 0000000A 00830104 00830101 00000000 *Var0 ) % variable string ID
+  368:  Call  SpeakToPlayer ( 0000000B 00830004 00830001 00000000 *Var1 ) % variable string ID
+  388:  Call  SpeakToPlayer ( 0000000C 00830304 00830301 00000000 *Var2 ) % variable string ID
+  3A8:  Return
+  3B0:  End
+}
 
 
 
@@ -749,6 +833,7 @@
 @	$Script_8024DED0
 {
    [EC]  Wait  10`
+   [F8]  Call  SpeakToPlayer     ( .NpcID:ToadKid_21 00860604 00860606 00000000 000A0070 )
   [118]  Wait  3`
   [138]  Wait  80`
 }

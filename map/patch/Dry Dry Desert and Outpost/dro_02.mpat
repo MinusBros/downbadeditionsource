@@ -11,6 +11,8 @@
 #define .NpcID:ChuckQuizmo_10       0A
 #define .NpcID:Dryite_11            0B
 
+#import DonloninaBottle.mpat
+
 %Just gonna outright remove Merlee for plot reasons.
 %Also adding a second Group Focus to make star power
 %regen with partners way better.
@@ -172,6 +174,106 @@
     Exec    $Script_MakeExits
     Return
     End
+}
+
+
+@	 $Script_80243B70
+{
+    0:  Call  SetMusicTrack ( 00000000 .Song:TakingRest 00000001 00000008 )
+   1C:  Return
+   24:  End
+}
+
+@	$Script_OpenDoor_8024451C
+{
+		If   *ShopState != 0`
+			Set  *ShopState 0`
+			Exec $Script_80243AF0
+		EndIf
+    0:  Call  RotateModel   ( ~Model:4_doa *Var0 00000000 00000001 00000000 )
+   20:  Return
+   28:  End
+}
+
+
+@	$Script_8024D700
+{
+		Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )  %Sailor Mercury song
+		Set   *ShopState  1`
+    0:  Call  HidePlayerShadow  ( .False )
+   10:  Call  802D2520  ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+   34:  Call  SetPlayerPos      (  -187`  0`  -240` )
+   4C:  Call  SetPlayerSpeed    ( *Fixed[4.0] )
+   5C:  Call  PlayerMoveTo      (  -168`  -195`  0` )
+   80:  Return
+   88:  End
+}
+
+@	$Script_Interact_8024ADE4
+{
+    0:  Call  $Function_80243698    ( 00000000 00000000 00000000 )
+   18:  ExecWait  $Script_8024D434
+   24:  If  *Var0  ==  00000000
+   34:  	Return
+   3C:  EndIf
+   44:  Set   *Var9  *Var1
+   54:  Set   *VarA  *Var2
+   64:  Set   *VarB  *Var3
+   74:  Call  $Function_80243644 ( )
+   80:  If  *Var1  ==  00000000
+   90:  	Set   *Var8  *Var0
+   A0:  EndIf
+   A8:  Call  SpeakToPlayer ( .Npc:Self 00830F04 00830F01 00000000 *Var8 ) % variable string ID
+   C8:  Call  ShowChoice    ( 001E0006 ) % Take a nap Not now
+   D8:  Wait  3`
+   E4:  If  *Var0  ==  00000001
+   F4:  	Call  ContinueSpeech    ( .Npc:Self 00830F04 00830F01 00000000 *Var9 ) % variable string ID
+  114:  	Return
+  11C:  EndIf
+  124:  Call  ContinueSpeech        ( .Npc:Self 00830F04 00830F01 00000000 *VarA ) % variable string ID
+  144:  Call  SetPlayerJumpscale    (  1` )
+  154:  Call  DisablePlayerPhysics  ( .True )
+  164:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .True )
+  17C:  Call  $Function_80243484 ( )
+  188:  If  *Var4  !=  00000000
+  198:  	Exec  $Script_8024AC8C
+  1A4:  EndIf
+  1AC:  Call  $Function_80243714    ( *VarA )
+  1BC:  Wait  20`
+  1C8:  ExecWait  $Script_8024D494
+  1D4:  Thread
+  1DC:  	Call  MakeLerp  ( 00000000 000000FF 0000003C .Easing:Linear )
+  1F8:  	Label  0
+  204:  	Call  UpdateLerp ( )
+  210:  	Call  $Function_802434CC    ( 00000003 *Var0 )
+  224:  	Wait  1`
+  230:  	If  *Var1  ==  00000001
+  240:  		Goto  0
+  24C:  	EndIf
+  254:  	Call  FullyRestoreHPandFP ( )
+  260:  	Call  FullyRestoreSP ( )
+  26C:  	If  *Var4  !=  00000000
+  27C:  		Exec  $Script_8024AC14
+  288:  	EndIf
+  290:  	Call  $Function_80243748    ( *VarA )
+  2A0:  	Wait  45`
+  2AC:  	Call  MakeLerp  ( 000000FF 00000000 0000001E .Easing:Linear )
+  2C8:  	Label  1
+  2D4:  	Call  UpdateLerp ( )
+  2E0:  	Call  $Function_802434CC    ( 00000000 *Var0 )
+  2F4:  	Wait  1`
+  300:  	If  *Var1  ==  00000001
+  310:  		Goto  1
+  31C:  	EndIf
+  324:  EndThread
+  32C:  Wait  105`
+  338:  ExecWait  $Script_8024D700
+  344:  Call  DisablePlayerPhysics  ( .False )
+  354:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .False )
+  36C:  Call  SpeakToPlayer ( .Npc:Self 00830F04 00830F01 00000000 *VarB ) % variable string ID
+  38C:  Call  $Function_802434A4 ( )
+  398:  Return
+  3A0:  End
 }
 
 
@@ -361,6 +463,13 @@
   B58:  End
 }
 
+
+@	$NpcGroupList_8024EEF4
+{
+	0000000C $NpcGroup_8024D7B4 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
 
 @	$NpcGroup_8024D7B4
 {

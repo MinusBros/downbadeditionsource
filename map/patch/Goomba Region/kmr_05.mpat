@@ -28,3 +28,59 @@
 00000001 $NpcGroup_8024261C 00080004 % remove tutorial enemy group
 00000000 00000000 00000000 
 }
+
+@	 $Script_80242890
+{
+    0:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item80242890 .ItemSpawnMode:Fixed_NeverVanish *GF_KMR05_Item_StarPiece )
+   24:  Return
+   2C:  End
+}
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:GoombaVillage
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  If  *GF_KMR02_ReturnedWithGoompa  ==  .False
+   80:  	Call  MakeNpcs  ( .False $NpcGroupList_8024280C )
+   94:  Else
+   9C:  	Call  MakeNpcs  ( .False $NpcGroupList_80242848 )
+   B0:  EndIf
+		Exec  $Script_GoompaBlurb
+   B8:  ExecWait  $Script_80242890
+   C4:  Exec  $Script_802417E0
+   D0:  ExecWait  $Script_802433D8
+   DC:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilit1 7FFFFE00 )
+   F4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilit2 7FFFFE00 )
+  10C:  Set   *Var0  $Script_802418C8
+  11C:  Exec  EnterWalk
+  128:  Wait  1`
+  134:  Call  GetEntryID    ( *Var0 )
+  144:  If  *Var0  ==  ~Entry:Entry0
+  154:  	If  *GF_KMR05_EnemyWarning  ==  .False
+  164:  		Exec  $Script_80241C8C
+  170:  		Set   *GF_KMR05_EnemyWarning  .True
+  180:  	EndIf
+  188:  EndIf
+  190:  Return
+  198:  End
+}
+
+
+#new:Script  $Script_GoompaBlurb
+{
+				Label 0
+				If  *GF_KMR05_Item_StarPiece == .False
+					Wait  1`
+					Goto  0
+				EndIf
+				Wait  40`
+  2E0:  		Call  GetCurrentPartnerID   ( *Var0 )
+  2F0:  		If  *Var0  ==  .Partner:Goompa
+					Call  SpeakToPlayer ( .Npc:Partner 009D0008 009D0001 00000000 000B010C )
+				EndIf
+				Return
+				End
+}

@@ -6,7 +6,7 @@
 #new:Actor $RoseGoomba {
 % stats
 [Index]         6Db 
-[Level]         43`b 
+[Level]         47`b 
 [MaxHP]         20`b 
 [Coins]         3`b 
 [Flags]       00000000 
@@ -265,6 +265,9 @@
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021BDDC_00 )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021B1B8_00 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021B494_00 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $RoseGoomba 55` )
+		EndIf
    3C:  Return
    44:  End
 }
@@ -466,9 +469,29 @@
 0.999391 0.999848 1.0
 }
 
+%Way less likely than Boos, but Rose Goombas might hesitate to attack if Goombarius is out
 #new:Script $Script_TakeTurn_8021BDDC_00 {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+ 	Call  GetCurrentPartnerID   ( *Var0 )
+    If  *Var0  ==  .Partner:Goombario
+		Call	RandInt			( 48` *Var[0] )	
+		If  *Var0 < 14`
+  338:  			Call  UseBattleCamPreset    ( 0000000E )
+  348:  			Call  BattleCamTargetActor  ( .Actor:Self )
+  358:  			Call  MoveBattleCamOver     (  40` )
+				Wait  12`
+   94:  		Call  PlaySoundAtActor  ( .Actor:Self 00000263 )
+   A8:  		Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+   C4:  		Add   *Var1  0000001E 
+   D4:  		Call  ShowEmote     ( 00000000 .Emote:Question  -45`  30` 00000002 *Var0 *Var1 *Var2  5` )
+  104:  		Wait  25`
+				Call  ActorSpeak        ( 001300D5 .Actor:Self 00000001 00270906 00270906 ) 
+				Call  UseBattleCamPreset    ( 00000002 )
+				Wait  15`
+				Return
+		EndIf
+    EndIf
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  UseBattleCamPreset    ( 0000003F )
    4C:  Call  BattleCamTargetActor  ( .Actor:Self )

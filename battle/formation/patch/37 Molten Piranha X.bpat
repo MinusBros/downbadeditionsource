@@ -120,8 +120,8 @@
 {
 	% stats
 	[Index]        EDb
-	[Level]        45`b
-	[MaxHP]        90`b
+	[Level]         0`b
+	[MaxHP]        95`b
 	[Coins]         0`b
 	[Flags]       00000000
 	[StatusTable] $StatusTable_8021D148
@@ -980,7 +980,6 @@
   780:  	Call  SetAnimatedModelRootPosition  ( 00000001 00000000 FFFFFF06 00000000 )
   79C:  	Call  SetAnimatedModelRootPosition  ( 00000002 00000000 FFFFFF06 00000000 )
   7B8:  	Call  SetActorPos   ( .Actor:Self  100`  0`  0` )
-  7D4:  	Call  DropStarPoints        ( .Actor:Self )
   7E4:  	Call  PlaySoundAtActor      ( .Actor:Self .Sound:Death )
   7F8:  	Call  ForceHomePos  ( .Actor:Self  61`  61`  0` )
   814:  	Wait  65`
@@ -1306,7 +1305,6 @@
  1F2C:  	EndThread
  1F34:  	Wait  3`
  1F40:  	Call  SetActorPos       ( .Actor:Self  -60`  0`  0` )
- 1F5C:  	Call  DropStarPoints    ( .Actor:Self )
  1F6C:  	Call  PlaySoundAtActor  ( .Actor:Self .Sound:Death )
  1F80:  	Wait  15`
  1F8C:  	Call  GetActorVar       ( .Actor:Self 00000006 *Var0 )
@@ -1715,7 +1713,6 @@
     0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_PetitPiranha )
    14:  Call  BindIdle      ( .Actor:Self $Script_Idle_802240A8 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_802240DC )
-   3C:  Call  SetEnemyHP    ( .Actor:Self  1` )
    50:  Return
    58:  End
 }
@@ -2606,14 +2603,6 @@
   22C:  	Call  SetPartEventBits  ( .Actor:Self 00000002 00000002 .False )
   248:  	Wait  29`
   254:  	Call  PlaySoundAtActor  ( .Actor:Self 000003C7 )
-			If *GB_EnemyDefense == 0`
-				Set *GB_EnemyDefense 1`
-			EndIf
-			If *GB_EnemyDefense == 1`
-				Set *GB_EnemyDefense 2`
-				Call  SetDefenseTable   ( .Actor:Enemy0 00000001 $DefenseTable_LavaPiranhaBudsDown )
-				
-			EndIf
   268:  	Call  GetActorVar       ( .Actor:Self 00000000 *Var0 )
   280:  	If  *Var0  ==  00000001
   290:  		Call  OverrideBattleDmaDest ( $End[6230] )
@@ -2632,6 +2621,14 @@
   344:  EndIf
   34C:  Call  GetActorVar   ( .Actor:Self 00000005 *Var0 )
   364:  If  *Var0  ==  00000000
+			If *GB_EnemyDefense == 1`
+				Set *GB_EnemyDefense 2`
+				Call  SetDefenseTable   ( .Actor:Enemy0 00000001 $DefenseTable_LavaPiranhaBudsDown )				
+				Call  SetDefenseTable   ( .Actor:Enemy0 00000002 $DefenseTable_LavaPiranhaBudsDown )	
+			EndIf
+			If *GB_EnemyDefense == 0`
+				Set *GB_EnemyDefense 1`
+			EndIf
   374:  	Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
   38C:  	If  *Var0  ==  00000001
   39C:  		Call  OverrideBattleDmaDest ( $End[6230] )
@@ -3962,7 +3959,7 @@
   1A8:  End
 }
 
-#new:Script $Script_BeforeBattle_8022A36C
+#new:Script $Script_BeforeBattle_MoltenPiranha
 {
     0:  Call  SetSpriteShading  ( FFFFFFFF )
    10:  Call  SetCamBGColor ( .Cam:Battle  0`  0`  0` )
@@ -3984,6 +3981,9 @@
   108:  Set   *Var0  0000001B
   118:  Set   *Var1  00000005
   128:  Exec  $Script_8022A10C
+   2C:  Set   *Var0  0000005A
+   3C:  Set   *Var1  00000000
+   4C:  Exec  $Script_8022A040
   134:  Call  EnableModel   ( ~Model:kzn_bt05:p00 .False )
   148:  Call  EnableModel   ( ~Model:kzn_bt05:p01 .False )
   15C:  Call  EnableModel   ( ~Model:kzn_bt05:p02 .False )
@@ -4058,7 +4058,7 @@
 	$ASCII_8022AD60  % kzn_tex
 	$ASCII_8022AD50  % kzn_bt06_shape
 	$ASCII_8022AD40  % kzn_bt06_hit
-	$Script_BeforeBattle_8022A36C
+	$Script_BeforeBattle_MoltenPiranha
 	$Script_AfterBattle_8022A94C
 	00000000
 	00000000

@@ -1,0 +1,148 @@
+#define .NpcID:Kolorado_00          00
+#define .NpcID:Kolorado_01          01
+#define .NpcID:SpikeTop_02          02
+#define .NpcID:PutridPiranha_03     03
+#define .NpcID:PutridPiranha_04     04
+
+@	$Script_80244470
+{
+    0:  Call  GetCurrentPartner ( *Var9 )
+   10:  If  *Var9  ==  00000002
+   20:  	Return
+   28:  EndIf
+   30:  If  *Var9  ==  00000003
+   40:  	Return
+   48:  EndIf
+   50:  UseArray  *Var0
+   5C:  Call  DisablePlayerInput    ( .True )
+   6C:  Call  DisablePlayerPhysics  ( .True )
+   7C:  Call  SetPlayerActionState  ( .ActionState:Jump )
+   8C:  Wait  1`
+   98:  Exec  $Script_80244408 *Var9
+   A8:  Thread
+   B0:  	Wait  7`
+   BC:  	Call  DisablePartnerAI  ( 00000000 )
+   CC:  	Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+   E4:  	Call  SetNpcFlagBits    ( .Npc:Partner 00000140 .True )
+   FC:  	Set   *Var0  *Array[4]
+  10C:  	Sub   *Var0  0000000A
+  11C:  	Set   *Var1  *Array[5]
+  12C:  	Add   *Var1  FFFFFFFB
+  13C:  	Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.5] )
+  150:  	Call  NpcJump0  ( .Npc:Partner *Array[3] *Var0 *Var1  8` )
+  170:  	Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+  184:  EndThread
+  18C:  Call  SetPlayerJumpscale    ( *Fixed[0.2] )
+  19C:  Call  PlayerJump    ( ~Vec3d:JumpDest_8024460C  5` )
+  1B8:  Call  SetPlayerActionState  ( .ActionState:Land )
+  1C8:  Wait  1`
+  1D4:  Call  SetPlayerAnimation    ( 0008000D )
+  1E4:  Wait  10`
+  1F0:  Call  GetPlayerPos  ( *Var2 *Var3 *Var4 )
+  208:  Call  PlaySound ( 80000019 )
+  218:  ChildThread
+  220:  	Set   *MapFlag[0A]  .True
+  230:  	Set   *Var0  *Array[6]
+  240:  	Set   *AreaByte[0]  *Array[6]
+  250:  	Loop
+  25C:  		Call  GetNpcPos ( *Var0 *Var1 *Var2 *Var3 )
+  278:  		Call  $Function_80240D40    ( *MapFlag[0A] *Var1 *Var2 *Var3 )
+  294:  		If  *AreaByte[0]  !=  *Var0
+  2A4:  			BreakLoop
+  2AC:  		EndIf
+  2B4:  		Wait  1`
+  2C0:  	EndLoop
+  2C8:  EndChildThread
+  2D0:  Call  MakeLerp  ( 00000000 000003E8 00000046 .Easing:QuadraticIn )
+  2EC:  Label  0
+  2F8:  Call  UpdateLerp ( )
+  304:  Call  $Function_80240E88    ( 00000000 )
+  314:  Call  TranslateModel    ( *Array[1] *Var5 *Var6 *Var7 )
+  330:  Call  TranslateModel    ( *Array[2] *Var5 *Var6 *Var7 )
+  34C:  Wait  1`
+  358:  Call  $Function_80241000 ( )
+  364:  If  *Var8  ==  00008000
+  374:  	Goto  A
+  380:  EndIf
+  388:  If  *Var1  ==  00000001
+  398:  	Goto  0
+  3A4:  EndIf
+  3AC:  Call  PlaySound ( 00002087 )
+  18C:  Call  SetPlayerJumpscale    ( *Fixed[0.2] )
+		Call  StopSound ( 80000019 )
+		Call  SetPlayerAnimation    ( 0008002B )  %Unique anim
+  19C:  Call  PlayerJump    ( ~Vec3d:DeathPlane  6` )	
+  19C:  	Wait  6`
+			
+			Call  FadeOutMusic  ( 00000000 000000F8 )
+			Call  DisablePlayerPhysics  ( .True )
+			%Call  SetPlayerFlagBits     ( 00002000 .True )
+  1E8:  	Wait  1`
+			Call  PlaySound ( 000000FA )
+  1F4:  	Call  SetPlayerPos  ( 456` 848` 0` )
+			Wait  60`
+			Call  GotoMap  ( "gv_01" 0` )
+			Wait  100`
+			Return
+  3BC:  Label  A
+  3C8:  Call  SetPlayerFlagBits ( 00800000 .True )
+  3DC:  Set   *MapFlag[0A]  .False
+  3EC:  Call  StopSound ( 80000019 )
+  3FC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000040 .False )
+  414:  Call  EnablePartnerAI ( )
+  420:  Call  DisablePlayerPhysics  ( .False )
+  430:  Call  DisablePlayerInput    ( .False )
+  440:  Kill  *Var9
+  44C:  Wait  20`
+  458:  Call  PlaySound ( 8000001A )
+  468:  ChildThread
+  470:  	Set   *MapFlag[0B]  .True
+  480:  	Set   *Var0  *Array[6]
+  490:  	Set   *AreaByte[1]  *Array[6]
+  4A0:  	Loop
+  4AC:  		Call  GetNpcPos ( *Var0 *Var1 *Var2 *Var3 )
+  4C8:  		Call  $Function_80240DE4    ( *MapFlag[0B] *Var1 *Var2 *Var3 )
+  4E4:  		If  *AreaByte[1]  !=  *Var0
+  4F4:  			BreakLoop
+  4FC:  		EndIf
+  504:  		Wait  1`
+  510:  	EndLoop
+  518:  EndChildThread
+  520:  Set   *Var2  *Var0
+  530:  Div   *Var2  0000000A
+  540:  Call  MakeLerp  ( *Var0 00000000 *Var2 .Easing:Linear )
+  55C:  Label  1
+  568:  Call  UpdateLerp ( )
+  574:  Call  $Function_80240E88    ( 00000001 )
+  584:  Call  TranslateModel    ( *Array[1] *Var5 *Var6 *Var7 )
+  5A0:  Call  TranslateModel    ( *Array[2] *Var5 *Var6 *Var7 )
+  5BC:  Wait  1`
+  5C8:  If  *Var1  ==  00000001
+  5D8:  	Goto  1
+  5E4:  EndIf
+  5EC:  Set   *MapFlag[0B]  .False
+  5FC:  Call  StopSound ( 8000001A )
+  60C:  Return
+  614:  End
+}
+
+
+
+
+@	$NpcGroup_8024687C
+{
+	.NpcID:Kolorado_00 $NpcSettings_80244B50 ~Vec3f:NPC_Kolorado_00 % 0 -1000 0
+	00510709 $Script_Init_80246714 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Kolorado_00
+	~AnimationTable:NPC_Kolorado_00 % .Sprite:Kolorado
+	00000000 00000000 00000000 001A0131 % He's the archaeologist, Kolorado. He's famous as b ...
+	%
+	% $NpcGroup_8024687C[1F0]
+	.NpcID:Kolorado_01 $NpcSettings_80245224 ~Vec3f:NPC_Kolorado_01 % 0 -1000 0
+	00200F01 $Script_Init_80246838 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Kolorado_01
+	~AnimationTable:NPC_Kolorado_01 % .Sprite:Kolorado
+	00000000 00000000 00000000 001A0131 % He's the archaeologist, Kolorado. He's famous as b ...
+}

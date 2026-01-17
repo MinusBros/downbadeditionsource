@@ -15,12 +15,16 @@
 #define .NpcID:ChuckQuizmo_17       11
 
 
-
-
-
+@	$Script_Main_EnterWalk
+{
+   [10]  Call  SetSpriteShading  ( .Shading:mim_01 )
+}
 
 @	$Script_MakeEntities
 {
+		If  *GB_StoryProgress < .Story:Ch7_MayorMurderSolved
+			Call  EnableGroup   ( ~Model:fireplace .False )
+		EndIf
     0:  If  *GF_SAM11_UnlockedDoor  ==  .False
    10:  	Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80244CF8 80000000 )
    34:  	Call  AssignScript  ( $Script_80244CBC )
@@ -36,12 +40,157 @@
    CC:  Bind  $Script_80243EB4 .Trigger:FloorTouch ~Collider:o570 00000001 00000000
    E8:  Bind  $Script_802442D8 .Trigger:FloorTouch ~Collider:g_yuki2 00000001 00000000
   104:  Call  MakeItemEntity    ( .Item:WarehouseKey ~Vec3d:Item80244DEC 00000000 *GF_SAM11_Item_WarehouseKey )
-		Call  MakeItemEntity   ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_JAN00_StarPiece )
+		Call  MakeItemEntity   ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_SAM11_StarPiece ) %Had it set to JAN00 for some reason
   128:  Return
   130:  End
 }
 
 
+@	$Script_802442D8
+{
+    0:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   18:  If  *Var0  <  FFFFFF29
+   28:  	Return
+   30:  EndIf
+   38:  If  *Var0  >  FFFFFF33
+   48:  	Return
+   50:  EndIf
+   58:  If  *Var2  <  FFFFFE7A
+   68:  	Return
+   70:  EndIf
+   78:  If  *Var2  >  FFFFFE89
+   88:  	Return
+   90:  EndIf
+   98:  Call  $Function_8024072C ( )
+   A4:  If  *Var0  ==  00000001
+   B4:  	Return
+   BC:  EndIf
+   C4:  Call  DisablePlayerInput    ( .True )
+   D4:  Call  DisablePlayerPhysics  ( .True )
+   E4:  Call  GetCurrentPartner     ( *Var0 )
+   F4:  If  *Var0  !=  00000000
+  104:  	Call  802D2B6C ( )
+  110:  	Wait  20`
+  11C:  EndIf
+  124:  Call  DisablePartnerAI  ( 00000000 )
+  134:  Wait  1`
+  140:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  158:  Call  SetPlayerPos      (  -210` *Var1  -380` )
+  170:  Call  SetPlayerAnimation    ( 0001002B )
+  180:  Wait  30`
+  18C:  Loop  0000000A
+  198:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  1B0:  	Sub   *Var1  00000005
+  1C0:  	Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  1D8:  	Call  SetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+  1F4:  	Wait  1`
+  200:  EndLoop
+  208:  Call  SetPlayerPos  (  0`  -1000`  0` )
+  220:  Call  SetNpcPos     ( .Npc:Partner  0`  -1000`  0` )
+  23C:  Wait  20`
+  248:  Call  PlaySoundAtPlayer ( 00000162 00000000 )
+  25C:  Call  ShakeCam      ( .Cam:Default 00000001  10` *Fixed[1.0] )
+  278:  Wait  10`
+  284:  Call  SetNpcPos     ( .Npc:Partner  -214`  150`  -375` )
+  2A0:  Call  SetPlayerPos  (  -214`  150`  -370` )
+  2B8:  Call  SetPlayerAnimation    ( .PlayerAnim:Charred )
+  2C8:  Wait  10`
+  2D4:  Exec  $Script_802440F8
+  2E0:  ExecWait  $Script_80243C40
+  2EC:  ExecWait  $Script_80243DBC
+  2F8:  Exec  $Script_80243D70
+  304:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  31C:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  338:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  354:  Call  SetCamDistance    ( .Cam:Default *Fixed[200.0] )
+  368:  Call  SetCamPosA    ( .Cam:Default *Fixed[-165.0] *Fixed[-140.0] )
+  380:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-12.0] )
+  398:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  3AC:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  3C4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		%Come in through the fireplace after the murder mystery to die
+  3E4:  If  *GB_StoryProgress  >=  .Story:Ch7_SpokeWithHerringway % 41
+			Call  FadeOutMusic  ( 00000000 000000F8 ) 
+			Wait  40`
+			Call  PlaySoundAtPlayer ( 000002D2 00000000 )
+			Call  SetPlayerAnimation    ( 00080029 )
+			Wait  50`
+			Call  SpeakToPlayer ( .NpcID:Herringway_02 00830004 00830001 00000005 00120217 ) 
+			Wait  60`
+			Call  GotoMap   ( "gv_01" 00000000 )
+			Wait  80`			
+  448:  	Return
+  450:  EndIf
+		Wait  30`
+  458:  Call  NpcFacePlayer ( .NpcID:Herringway_02 00000000 )
+  46C:  Wait  10`
+  478:  Call  SpeakToPlayer ( .NpcID:Herringway_02 00830004 00830001 00000000 001200CC ) % What in the...?
+  498:  Call  GetNpcPos     ( .NpcID:Herringway_02 *Var0 *Var1 *Var2 )
+  4B4:  Call  SetCamDistance        ( .Cam:Default *Fixed[200.0] )
+  4C8:  Call  SetCamPosA    ( .Cam:Default *Fixed[-224.0] *Fixed[-132.0] )
+  4E0:  Call  SetCamPosB    ( .Cam:Default *Fixed[-127.0] *Fixed[-314.0] )
+  4F8:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  514:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-9.0] )
+  52C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+  540:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  558:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  56C:  Call  SpeakToPlayer ( .NpcID:Herringway_02 00830004 00830001 00000000 001200CD ) % Why are you in my fireplace? You found my secret r ...
+  58C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  5A4:  Call  SetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+  5C0:  Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+  5DC:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  5F8:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  60C:  Wait  1`
+  618:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  630:  Call  DisablePlayerInput    ( .False )
+  640:  Call  DisablePlayerPhysics  ( .False )
+  650:  Call  EnablePartnerAI ( )
+  65C:  Call  SetPlayerAnimation    ( 00010002 )
+  66C:  Call  SetPlayerActionState  ( .ActionState:Idle )
+  67C:  Return
+  684:  End
+}
+
+%The maids + Goombarius flirting scene
+@	$Script_Interact_802487DC
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch7_ShatteredFrozenPond % 40
+   18:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_08 00840804 00840801 00000005 001200BE ) % When you hear about Shiver City, ice skating is th ...
+   38:  		Wait  10`
+   44:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_09 00840804 00840801 00000005 001200BF ) % Well, skiing's nice, too, but not when a monster's ...
+   64:  		Wait  10`
+   70:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_10 00840804 00840801 00000005 001200C0 ) % It's scary out in the snow, so city-skating we wil ...
+   90:  	Case  <  .Story:Ch7_ArrivedAtStarbornValley % 46
+   9C:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_08 00840804 00840801 00000005 001200C1 ) % Ahhhhhhhhhhhhh!! The ice on the lake broke!!
+   BC:  		Wait  10`
+   C8:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_09 00840806 00840801 00000005 001200C2 ) % We were just about to go ice skating!!
+   E8:  		Wait  10`
+   F4:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_10 00840805 00840801 00000005 001200C3 ) % Nooo! This is totally unfair! I was so looking for ...
+  114:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  120:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_08 00840805 00840801 00000005 001200C4 ) % Cold... It's cold here! It's too cooooold! Brrrrr! ...
+  140:  		Wait  10`
+  14C:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_09 00840805 00840801 00000005 001200C5 ) % Hey, didn't you hear? That monster's gone now! Let ...
+  16C:  		Wait  10`
+  178:  		Call  SpeakToPlayer ( .NpcID:ThreeSisters_10 00840805 00840801 00000005 001200C6 ) % That'll be great! Skiing in a world of snow, ice,  ...
+  198:  EndSwitch
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 2
+				Wait  4`
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 0012018F ) % 
+				Call  SetNpcAnimation   ( .Npc:Partner 00010013 )
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_08 00840806 00840808 00000000 00120190 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_09 00840804 00840808 00000000 00120191 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_10 00840806 00840801 00000000 00120192 ) 
+				Call  SpeakToPlayer    ( .Npc:Partner 0001000C 0001000B 00000005 00120193 ) % 
+				Call  EnablePartnerAI ( )
+		EndIf
+  1A0:  Return
+  1A8:  End
+}
 
 
 @	$Script_Interact_80247878
@@ -113,21 +262,17 @@
   5E0:  EndLoop
 		Call  SetNpcPos ( .Npc:Self  -217`  -1000`  -38` )
   418:  Wait  25`				
-  %454:  		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
-  %46C:  		Call  SetNpcAnimation   ( .Npc:Self 00D10002 )
-  %480:  		Call  NpcMoveTo ( .Npc:Self  -215`  -245`  0` )
-  %49C:  		Thread
-  %4A4:  			Call  NpcMoveTo ( .Npc:Self  -215`  -184`  0` )
-  %4C0:  			Call  SetNpcAnimation   ( .Npc:Self 00D10001 )
-  %4D4:  			Call  SetNpcPos ( .Npc:Self  -217`  0`  -38` )
-  %4F0:  		EndThread
-  %4F8:  		Call  802CFD30  ( FFFFFFFF 00000007 00000000 00000000 00000000 00000000 )
+				Call  PushSong  ( 00000082 00000000 )
+ 16BC: 			Wait  3`
+ 16C8:  		Call  ShowMessageAtScreenPos    ( 0012020C  160`  40` ) % Goombario joined your party!! Press to have him te ...
+				Thread
+    0:  			Call  FadeOutMusic  ( 00000000 000001F4 )
+					Wait  15`
+   20:  			Call  PopSong ( )
+				EndThread				
   51C:  		Set   *GB_StoryProgress  .Story:Ch7_SpokeWithHerringway
-  %52C:  	Case  <  .Story:Ch7_MayorMurderSolved % 43
-  %538:  		Call  SpeakToPlayer ( .Npc:Self 00D10004 00D10001 00000000 001200D3 ) % There's no time to lose. To the Mayor's house!
-  558:  	Case  <  .Story:Ch7_DefeatedJrTroopa % 44
-  564:  		Call  SpeakToPlayer ( .Npc:Self 00D10004 00D10001 00000000 001200D5 ) % That's just like the Mayor, hitting his head on th ...
   584:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+				Call  SpeakToPlayer ( .Npc:Self 00D10004 00D10001 00000000 001200D5 ) % That's just like the Mayor, hitting his head on th ...
   590:  		Call  SpeakToPlayer ( .Npc:Self 00D10004 00D10001 00000000 001200D6 ) % My secret room's exposed now. The penguins of the  ...
   5B0:  	Case  >=  .Story:Ch7_StarSpritDeparted % 59
   5BC:  		Call  SpeakToPlayer ( .Npc:Self 00D10004 00D10001 00000000 001200D7 ) % You saved the last Star Spirit! Everybody's talkin ...
@@ -169,6 +314,7 @@
 				EndThread
    18:  		Set   *AreaFlag[001]  .False
    28:  		Call  SetGroupEnabled   ( ~Model:g_naiso 00000001 )
+				Call  SetGroupEnabled   ( ~Model:fireplace .True )
    3C:  		If  *GB_StoryProgress  <  .Story:Ch7_SpokeWithHerringway % 41
    4C:  		Else
    54:  			Call  EnableModel   ( ~Model:ana .False )
@@ -201,6 +347,7 @@
   1E4:  		Set   *AreaFlag[001]  .True
   1F4:  		Call  SetGroupEnabled   ( ~Model:g_naiso 00000000 )
   208:  		Call  EnableModel       ( ~Model:gn_dan1 .True )
+				Call  SetGroupEnabled   ( ~Model:fireplace .False )
   21C:  		If  *GB_StoryProgress  ==  .Story:Ch7_SpokeWithHerringway % 41
   22C:  			If  *GF_SAM11_LeftHerringwaysHouse  ==  .False
   23C:  				Thread
@@ -211,6 +358,171 @@
   26C:  EndSwitch
   274:  Return
   27C:  End
+}
+
+
+%Give Herringway a different tattle if you haven't learned his real name yet
+@	$Script_Init_80248AC4
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80247878 )
+   14:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80247E6C )
+   28:  Switch  *GB_StoryProgress
+   34:  	Case  <  .Story:Ch7_SpokeWithHerringway % 41
+   40:  		Call  SetNpcPos ( .Npc:Self  -110`  150`  -323` )
+				Call  SetTattleString   ( .NpcID:Herringway_02  001A0058 )
+   5C:  	Case  <  .Story:Ch7_MayorMurderSolved % 43
+   68:  		Call  SetNpcFlagBits    ( .Npc:Self 00000004 .True )
+   80:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   9C:  	Case  >=  .Story:Ch7_MayorMurderSolved % 43
+   A8:  		Call  SetNpcPos ( .Npc:Self  -110`  150`  -323` )
+   C4:  EndSwitch
+   CC:  Return
+   D4:  End
+}
+
+
+@	$Script_8024C65C
+{
+    0:  If  *MapVar[7]  ==  00000001
+   10:  	Return
+   18:  EndIf
+   20:  Set   *MapVar[7]  00000001
+   30:  Add   *GB_SAM11_FrozenPondDamage  00000001
+   40:  Switch  *GB_SAM11_FrozenPondDamage
+   4C:  	Case  ==  00000001
+   58:  		Call  DisablePlayerInput    ( .True )
+   68:  		Call  PlaySoundAtCollider   ( ~Collider:suimen 00000389 00000000 )
+   80:  		Call  EnableModel   ( ~Model:ice01 .False )
+   94:  		Call  EnableModel   ( ~Model:ice02 .True )
+   A8:  		Call  SetNpcFlagBits    ( .NpcID:PenguinPatrol_00 00000300 .True )
+   C0:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00003 )
+   D4:  		Call  GetNpcPos     ( .NpcID:PenguinPatrol_00 *Var7 *Var8 *Var9 )
+   F0:  		Call  SetNpcSpeed   ( .NpcID:PenguinPatrol_00 *Fixed[9.0] )
+  104:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00  -207`  110`  0` )
+  120:  		Call  GetAngleToNPC ( .NpcID:PenguinPatrol_00 *Var0 )
+  134:  		Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+  14C:  		Call  AddVectorPolar    ( *Var1 *Var3 *Fixed[40.0] *Var0 )
+  168:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00 *Var1 *Var3  0` )
+  184:  		Call  PlayerFaceNpc ( .NpcID:PenguinPatrol_00 .False )
+  198:  		Call  SpeakToPlayer ( .NpcID:PenguinPatrol_00 00D00004 00D00001 00000000 001200B6 ) % What're you doing? Stop that! Have you lost your w ...
+  1B8:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00  -207`  110`  0` )
+  1D4:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00 *Var7 *Var9  0` )
+  1F0:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00001 )
+  204:  		Call  SetNpcFlagBits    ( .NpcID:PenguinPatrol_00 00000300 .False )
+  21C:  		Call  DisablePlayerInput    ( .False )
+  22C:  	Case  ==  00000002
+  238:  		Call  DisablePlayerInput    ( .True )
+  248:  		Call  802D2B6C ( )
+  254:  		Call  PlaySoundAtCollider   ( ~Collider:suimen 0000038A 00000000 )
+  26C:  		Call  EnableModel   ( ~Model:ice02 .False )
+  280:  		Call  EnableModel   ( ~Model:ice03 .True )
+  294:  		Thread
+  29C:  			Wait  10`
+  2A8:  			Call  PlaySoundAtNpc    ( .NpcID:PenguinPatrol_00 00000397 00000000 )
+  2C0:  		EndThread
+  2C8:  		Call  SetNpcFlagBits    ( .NpcID:PenguinPatrol_00 00000300 .True )
+  2E0:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00003 )
+  2F4:  		Call  GetNpcPos     ( .NpcID:PenguinPatrol_00 *Var7 *Var8 *Var9 )
+  310:  		Call  SetNpcSpeed   ( .NpcID:PenguinPatrol_00 *Fixed[9.0] )
+  324:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00  -207`  110`  0` )
+  340:  		Call  GetAngleToNPC ( .NpcID:PenguinPatrol_00 *Var0 )
+  354:  		Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+  36C:  		Call  AddVectorPolar    ( *Var1 *Var3 *Fixed[40.0] *Var0 )
+  388:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00 *Var1 *Var3  0` )
+  3A4:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00001 )
+  3B8:  		Call  PlayerFaceNpc ( .NpcID:PenguinPatrol_00 .False )
+  3CC:  		Call  SpeakToPlayer ( .NpcID:PenguinPatrol_00 00D00004 00D00001 00000000 001200B7 ) % No! Are you a complete idiot? I told you not to do ...
+				Call  DisablePartnerAI  ( 00000000 )
+  3EC:  		Call  SetNpcFlagBits    ( .NpcID:PenguinPatrol_00 00000300 .True )
+  404:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00002 )
+  418:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  430:  		Sub   *Var0  00000014
+  440:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00 *Var0 *Var2  0` )
+  45C:  		Thread
+  464:  			Call  DisablePlayerPhysics  ( .True )
+  474:  			Call  PlaySoundAtPlayer     ( 00000398 00000000 )
+  488:  			Call  InterpPlayerYaw       (  90`  0` )
+  49C:  			Call  SetPlayerAnimation    ( 0008001A )
+  4AC:  			Set   *MapFlag[01]  .False
+  4BC:  			Loop
+  4C8:  				If  *MapFlag[01]  ==  .True
+  4D8:  					BreakLoop
+  4E0:  				EndIf
+  4E8:  				Call  GetAngleToPlayer  ( .NpcID:PenguinPatrol_00 *Var0 )
+  4FC:  				Call  GetNpcPos     ( .NpcID:PenguinPatrol_00 *Var1 *Var2 *Var3 )
+  518:  				Call  AddVectorPolar    ( *Var1 *Var3 *Fixed[20.0] *Var0 )
+  534:  				Call  SetPlayerPos  ( *Var1  0` *Var3 )
+  54C:  				Call  $Function_80241FE8 ( )
+  558:  				Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  570:  				Call  SetCamTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  58C:  				Wait  1`
+  598:  			EndLoop
+  5A0:  		EndThread
+  5A8:  		Call  SetNpcSpeed   ( .NpcID:PenguinPatrol_00 *Fixed[3.8] )
+  5BC:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00  -207`  110`  0` )
+  5D8:  		Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00  -450`  0`  0` )
+  5F4:  		Set   *MapFlag[01]  .True
+  604:  		Call  StopSound     ( 00000398 )
+				Call  NpcMoveTo     ( .NpcID:PenguinPatrol_00  -472`  0`  0` )
+  614:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00001 )
+  628:  		Call  SetPlayerAnimation    ( 00080016 )
+  638:  		Call  SpeakToPlayer ( .NpcID:PenguinPatrol_00 00D00004 00D00001 00000000 001200B8 ) % Don't you ever listen? You're a public nuisance! T ...
+				Call  PlaySoundAtPlayer ( 0000206C 00000000 )
+  658:  		Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00008 )
+				Wait  10`
+				
+				
+				Call  SetNpcAnimation   ( .NpcID:PenguinPatrol_00 00D00009 )
+				Wait  10`
+				Thread
+					Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[1.0] )
+				EndThread
+				Call  PlaySoundAtPlayer ( 00002008 00000000 )
+				Call  PlaySoundAtPlayer ( 00002010 00000000 )
+				Call  FadeOutMusic  ( 00000000 000000E8 )
+  73C:  			Call  SetPlayerJumpscale    ( *Fixed[0.9] )
+					Thread
+						Wait  1`
+						Call  SetPlayerAnimation    ( 00010017 )
+					EndThread
+  75C:  			Call  PlayerJump1   (  -350`  1`  0`  20` )
+					Call  SetPlayerAnimation    ( 00080009 )
+					Call  PlaySoundAtPlayer     ( 00000171 00000000 )
+					Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[1.0] )
+				Wait  100`
+				Call  GotoMap   ( "gv_01" 00000000 )
+				Wait  80`
+  7DC:  EndSwitch
+  7E4:  Return
+  7EC:  End
+}
+
+
+
+@	$NpcGroup_8024A150
+{
+	.NpcID:ThreeSisters_08 $NpcSettings_80244EC8 ~Vec3f:NPC_ThreeSisters_08 % -400 0 230
+	00402D09 $Script_Init_80248CF4 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_ThreeSisters_08
+	~AnimationTable:NPC_ThreeSisters_08 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0003 % This Toad is one of the castle maids. Seeing as th ...
+	%
+	% $NpcGroup_8024A150[1F0]
+	.NpcID:ThreeSisters_09 $NpcSettings_80244EC8 ~Vec3f:NPC_ThreeSisters_09 % -350 0 230
+	00402D09 $Script_Init_80248D48 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_ThreeSisters_09
+	~AnimationTable:NPC_ThreeSisters_09 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0004 % This Toad is one of the castle maids. They're all  ...
+	%
+	% $NpcGroup_8024A150[3E0]
+	.NpcID:ThreeSisters_10 $NpcSettings_80244EC8 ~Vec3f:NPC_ThreeSisters_10 % -375 0 220
+	00402D09 $Script_Init_80248D9C 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_ThreeSisters_10
+	~AnimationTable:NPC_ThreeSisters_10 % .Sprite:ThreeSisters
+	00000000 00000000 00000000 001A0005 % This Toad is one of the castle maids. She's always ...
 }
 
 

@@ -1,0 +1,102 @@
+#import AutoSave.mpat
+
+
+@	$Script_Defeat_802408E8
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		If  *GF_ISK07_Defeated_Mummies  ==  .False
+   38:  			Thread
+   40:  				Call  $Function_80240014 ( )
+   4C:  				If  *Var1  ==  00000001
+   5C:  					Call  DisablePlayerInput    ( .True )
+   6C:  					Call  PlaySound ( 0000000B )
+   7C:  					Wait  30`
+   88:  					Call  SetTimeFreezeMode ( 00000001 )
+   98:  					Call  SetCamSpeed       ( .Cam:Default *Fixed[2.0] )
+   AC:  					Call  UseSettingsFrom   ( .Cam:Default  -150`  -390`  571` )
+   C8:  					Call  UseSettingsFrom   ( .Cam:Default  -251`  -390`  553` )
+   E4:  					Call  SetPanTarget      ( .Cam:Default  -251`  -390`  553` )
+  100:  					Wait  1`
+  10C:  					Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  124:  					Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+  138:  					Wait  45`
+  144:  					Call  MakeItemEntity    ( .Item:RuinsKey ~Vec3d:Item80240A2C .ItemSpawnMode:Fall_NeverVanish *GF_ISK07_Item_RuinsKey )
+  168:  					Set   *GF_ISK07_Defeated_Mummies  .True
+  178:  					ExecWait  $Script_80241E84
+  184:  					Wait  60`
+  190:  					Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+  1A4:  					Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  1BC:  					Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  1D8:  					Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+  1F4:  					Wait  1`
+  200:  					Call  PanToTarget       ( .Cam:Default 00000000 00000000 )
+  218:  					Call  SetTimeFreezeMode ( 00000000 )
+  228:  					Call  DisablePlayerInput    ( .False )
+							Exec  $AutoSave
+  238:  				EndIf
+  240:  			EndThread
+  248:  		EndIf
+  250:  		Call  DoNpcDefeat ( )
+  25C:  	Case  ==  .Outcome:PlayerFled % 2
+  268:  		Call  80045900  ( 00000000 )
+  278:  	Case  ==  .Outcome:EnemyFled % 3
+  284:  		Call  SetEnemyFlagBits  ( .Npc:Self 00000010 00000001 )
+  29C:  		Call  RemoveNpc ( .Npc:Self )
+  2AC:  EndSwitch
+  2B4:  Return
+  2BC:  End
+}
+
+
+
+@	$AISettings_80240860
+{
+    2.9 % move speed
+    40` % move time
+    10` % wait time
+  120.0 % alert radius
+    0.0
+    3`
+    4.5 % chase speed
+    45`
+    6`
+  300.0 % chase radius
+    0.0
+    1`
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_ISK07_UnlockedDoor  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80240470 80000000 )
+   34:  	Set   *MapVar[0]  *Var0
+   44:  EndIf
+   4C:  If  *GF_ISK07_Hammer2Block  ==  .False
+   5C:  	Call  MakeEntity    ( .Entity:Hammer2BlockWide ~Vec4d:Entity802404BC 80000000 )
+   80:  	Call  AssignScript  ( $Script_80240440 )
+   90:  EndIf
+   98:  If  *GF_ISK07_OpenedSarcophagi  ==  .False
+   A8:  	Call  MakeEntity    ( .Entity:SingleTriggerBlock ~Vec4d:Entity80240508 80000000 )
+   CC:  	Call  AssignScript  ( $Script_80240420 )
+   DC:  EndIf
+   E4:  If  *GF_ISK07_Defeated_Mummies  ==  .True
+   F4:  	Call  MakeItemEntity    ( .Item:RuinsKey ~Vec3d:Item80240554 00000000 *GF_ISK07_Item_RuinsKey )
+  118:  EndIf
+  120:  Call  PlayEffect    ( ~FX:Fire:LargeRed 0000019F FFFFFF3F 00000123 *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  164:  Call  PlayEffect    ( ~FX:Fire:LargeRed 00000123 FFFFFF3F 0000019F *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  1A8:  Call  PlayEffect    ( ~FX:Fire:LargeRed 00000083 FFFFFF3F 000001E9 *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  1EC:  Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFFD4 FFFFFF3F 000001F9 *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  230:  Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFF2A FFFFFF3F 000001CB *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  274:  Call  PlayEffect    ( ~FX:Fire:LargeRed 0000019F FFFFFEBD 00000123 *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  2B8:  Call  PlayEffect    ( ~FX:Fire:LargeRed 00000123 FFFFFEBD 0000019F *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  2FC:  Call  PlayEffect    ( ~FX:Fire:LargeRed 00000083 FFFFFEBD 000001E9 *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  340:  Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFFD4 FFFFFEBD 000001F9 *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  384:  Call  PlayEffect    ( ~FX:Fire:LargeRed FFFFFF2A FFFFFEBD 000001CB *Fixed[0.3] *Var0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call  MakeItemEntity    ( .Item:Artifact ~Vec3d:Item80240828 .ItemSpawnMode:Fixed_NeverVanish *GF_ISK07_Item_Artifact )
+  3C8:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_ISK07_StarPiece )
+  3EC:  Return
+  3F4:  End
+}

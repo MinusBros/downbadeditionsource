@@ -8,16 +8,72 @@
 Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 )
 Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
 
-
-%Code used for adding new Save Blocks.
-		
-	Call  GetLoadType   ( *Var1 )
-	If  *Var1  ==  00000001
+    Call  GetLoadType   ( *Var1 )
+    If  *Var1  ==  00000001
 		Exec  EnterSavePoint
-		Exec  $Script_80241DA4
+		%Exec  BindLoadingZoneScript
 		Return
-	EndIf
+    EndIf
 
+%Add new Star Pieces into any map
+Call  MakeItemEntity ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *GF_FLO07_StarPiece )
+
+%Make NPC ignore collision with Mario
+%Call  SetNpcFlagBits    ( .NpcID:WorldBombomb_02 00000100 .True )
+
+%Cancel partner usage
+Call  SetPlayerFlagBits ( 000000C0 .True )
+
+%Much better way of forcing Goombarius out
+Call  BringPartnerOut   ( .Partner:Goombario )
+Call  PutPartnerAway ( ) 
+
+#new:Script  $Script_PartnerBlurb
+{
+			Wait  30`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SetPlayerFlagBits ( 000000C0 .True )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000C0140 )
+					Wait  80`
+					Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E0141 ) 
+			EndSwitch
+			Return
+			End
+}
+
+
+%Full ver
+		Call  GetCurrentPartnerID   ( *Var0 )
+		Switch  *Var0
+			Case  ==  .Partner:Goombario % 1
+				Call  SetPlayerFlagBits ( 000000C0 .True )
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 0013001B )
+				Wait  80`
+				Call  SetPlayerFlagBits ( 000000C0 .False )
+			Case  ==  .Partner:Kooper % 2
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 0013001C )
+			Case  ==  .Partner:Bombette % 3
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 0013001D ) 
+			Case  ==  .Partner:Parakarry % 4
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 0013001E ) 
+			Case  ==  .Partner:Bow % 9
+				Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 0013001F )
+			Case  ==  .Partner:Watt % 6
+				Call  SpeakToPlayer ( .Npc:Partner 00060004 00060001 00000005 00130020 ) 
+			Case  ==  .Partner:Sushie % 7
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 00130021 ) 
+			Case  ==  .Partner:Lakilester % 8
+				Call  SpeakToPlayer ( .Npc:Partner 00080009 00080001 00000005 00130022 ) 
+			EndSwitch
+
+			%Change tattles whenever
+			Call  SetTattleString   ( .NpcID:Chanterelle_09 001A0058 )
+
+			Call  ContinueSpeech    ( .Npc:Partner 00010008 00010001 00000005 0011007D )
 
 %If Goombarius is active, add unique dialogue.
 

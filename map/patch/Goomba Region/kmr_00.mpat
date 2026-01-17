@@ -30,6 +30,19 @@
 }
 
 
+@	$Script_80240DC0
+{
+		Switch  *GB_StoryProgress
+    0:  	Case  .Story:Ch0_MetInnkeeper to .Story:Ch0_MetGoompa % FFFFFF82
+				Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )  %Sailor Mercury song
+			Case  >= .Story:Ch0_GateCrushed 
+   10:  		Call  SetMusicTrack     ( 00000000 .Song:GoombaVillage 00000000 00000008 )
+   2C:  		Call  PlayAmbientSounds ( .AmbientSounds:Birds )
+   3C:  EndSwitch
+   44:  Return
+   4C:  End
+}
+
 @	$Script_MakeEntities
 {
     0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity80244080 ~Model:ji_3 80000000 )
@@ -136,6 +149,16 @@ End
 }
 
 
+%Alright, change of plans. We're enabling action commands first thing in the game.
+%Might have to retweak some bosses cuz of that though.
+#new:Function $EnableActionCommands
+{
+    0:  LI        V0, 1
+    4:  SAB       V0, 8010F29A
+    C:  JR        RA
+   10:  LI        V0, 2
+}
+
 @	$Script_80241050
 {
     0:  If  *GB_StoryProgress  >=  .Story:Ch0_WakeUp % FFFFFF81
@@ -171,6 +194,7 @@ End
   248:  Call  802D4D14  ( 000000B4 )
   258:  Call  SetPlayerPos      (  0`  2`  0` )
   270:  Call  SetPlayerAnimation    ( .PlayerAnim:DeadStill )
+		Call  $EnableActionCommands ( )
   280:  Wait  60`
   28C:  Call  SetCamSpeed       ( .Cam:Default *Fixed[0.7] )
   2A0:  Call  SetCamDistance    ( .Cam:Default  -350` )

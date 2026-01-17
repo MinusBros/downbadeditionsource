@@ -40,6 +40,11 @@
     [0]  Call  SetMusicTrack ( 00000000 .Song:StarShop 00000000 00000008 )
 }
 
+@	$Script_8024365C
+{
+    [0]  Call  SetMusicTrack ( 00000000 .Song:TakingRest 00000003 00000008 )
+}
+
 
 @ $Script_MakeEntities
 {
@@ -71,12 +76,12 @@
 
 @	$ShopInventory_8024BB5C
 {
-	.Item:UltraShroom    0000003C 0023000B %
-	.Item:JamminJelly    0000003C 00230018 %
-	.Item:LifeShroom     00000096 0024000C %
-	.Item:ShootingStar   00000032 00240004 %
-	.Item:HustleDrink    00000064 0023010D %
-	.Item:RepelGel       00000064 0023002C %
+	.Item:UltraShroom    60` 0023000B %
+	.Item:JamminJelly    70` 00230018 %
+	.Item:ShootingStar   35` 00240004 %
+	.Item:TarundaGem     64` 00230128
+	.Item:RakundaGem     64` 00230129
+	.Item:HustleDrink   175` 0023010D %
 	00000000 00000000 00000000
 }
 
@@ -123,11 +128,51 @@
   1B4:  Exec  $Script_802456C4
   1C0:  Exec  $Script_80243790
 		Exec  $Script_SetupTexturePan
+		Call  RandInt       ( 1` *Var2 )
+		If    *Var2  == 0`
+			Exec  $PartnerShopBlurb
+		EndIf
   1CC:  Return
   1D4:  End
 }
 
-
+#new:Script  $PartnerShopBlurb
+{
+		Label 0
+		Wait  1`
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		If  *Var1 > 174`
+			If  *Var2  < 130`
+				Goto  1
+			EndIf
+		EndIf
+		Goto  0
+		Label 1
+		Call  GetCurrentPartnerID   ( *Var0 )
+		Switch  *Var0
+			Case  ==  .Partner:Goombario % 1
+				Call  SetPlayerFlagBits ( 000000C0 .True )
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000A0078 )
+				Wait  60`
+				Call  SetPlayerFlagBits ( 000000C0 .False )
+			Case  ==  .Partner:Kooper % 2
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000A0079 )
+			Case  ==  .Partner:Bombette % 3
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000A007A ) 
+			Case  ==  .Partner:Parakarry % 4
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000A007B ) 
+			Case  ==  .Partner:Bow % 9
+				Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 000A007C )
+			Case  ==  .Partner:Watt % 6
+				Call  SpeakToPlayer ( .Npc:Partner 00060004 00060001 00000005 000A007D ) 
+			Case  ==  .Partner:Sushie % 7
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000A007E ) 
+			Case  ==  .Partner:Lakilester % 8
+				Call  SpeakToPlayer ( .Npc:Partner 00080009 00080001 00000005 000A007F ) 
+			EndSwitch
+			Return
+			End
+}
 
 #new:Script $Script_UseBluePipe
 {

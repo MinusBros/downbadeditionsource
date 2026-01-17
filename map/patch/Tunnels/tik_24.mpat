@@ -1,6 +1,19 @@
 #define .NpcID:KoopaTroopa_00       00
 #define .NpcID:KoopaTroopa_01       01
 
+#new:Function $Function_MuteSongChannel
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014AB60
+   10:  LI        A1, 2
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
 @	$AISettings_80241FA0
 {
     2.5 % move speed
@@ -22,11 +35,19 @@
 {
     0:  Call  SetMusicTrack ( 00000000 .Song:ToadTownTunnels 00000000 00000008 )
 		Thread
-			  Wait 30`
-			  Call  802D5FA4  ( 00000002 )
-		EndThread
+			  Wait 25`
+			  Call  $Function_MuteSongChannel ( )
+			  Call  ClearAmbientSounds ( 250` )
+			  Call    StopSound ( 0021 )
+		EndThread	
    1C:  Return
    24:  End
+}
+
+@	$Script_ExitWalk_80241038
+{
+   [2C]  Call  GotoMap   ( "tik_28" 00000003 )
+   [40]  Wait  80`
 }
 
 

@@ -1,0 +1,149 @@
+%% This file handle all the hooks that needs to be running at all time (And a few other misc stuff)
+
+
+%%%% Printing Code made by Rain %%%%%
+#new:Data $PointerToStoreAsciiTo
+{
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 %allocate space to store result
+}
+
+#new:Data $PointerToStoreStringTo
+{
+FF0D0F0F % set font to 0F width, 0F height
+FF0500F7 % set color to 00 (black)
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+}
+
+#new:Data $Formatters
+{
+20202020 20202020 20202020 20202564 00000000
+%above hex is ascii for: "        %d"
+}
+
+#string $String_x
+{
+x[End]
+}
+
+% Made by Rain
+#new:Function $ConvertAsciiToPM64String %takes args a0, a1
+{
+% a0 = where to store converted result
+% a1 = where to read from
+PUSH a0, a1
+ORI t1, r0, 0020 %space
+.loop
+LB t0, 0000 (a1)
+BEQ t0, r0, .endofascii
+NOP
+BEQ t0, t1, .isspace
+NOP
+ADDIU t0, t0, FFE0 %subtract 0x20 from ascii to get pm64 string hex
+.store
+SB t0, 0008 (a0)
+ADDIU a0, a0, 0001
+BEQ r0, r0, .loop
+ADDIU a1, a1, 0001
+.endofascii
+ORI t0, r0, 00FD %pm64 string terminator
+SB t0, 0008 (a0) %store terminator
+POP a0, a1
+JR RA
+NOP
+.isspace
+BEQ r0, r0, .store
+ORI t0, r0, 00F7
+}
+
+#export $ConvertAsciiToPM64String
+
+#new:ASCII $ASCII_Format_Half
+{
+"%5u"
+}
+
+#new:ASCII $ASCII_Format_Byte
+{
+"%3u"
+}
+
+#new:ASCII $ASCII_Format_Time
+{
+"%02u"
+}
+
+#new:ASCII $ASCII_Buffer
+{
+"          "
+}
+
+#string $String_Buffer
+{
+[Color:00]             [END]
+}
+
+#new:ASCII $ASCII_Format_UByte
+{
+"%2u"
+}
+
+#string $String_Buffer_Color0A
+{
+[Color:0A]             [END]
+}
+
+#export $ASCII_Buffer
+#export $ASCII_Format_UByte % used by PartnersHP.patch
+#export $String_Buffer_Color0A % used by PartnersHP.patch
+
+
+% Track an input by using a function instead of only scripting (it still need some scripting tho)
+% Save a bool as true if the tracked input was pressed
+#new:Function $TrackInput
+{
+PUSH    RA, A0, A1, A2, A3, T0, T1, T2, V0
+LIO     A1, *TrackInput
+JAL     ~Func:get_variable
+RESERVED
+BEQ     V0, R0, .End
+NOP
+% Check if the Tracker has been initialitated, if not turn the tracker off and end the function
+LIO     T0, $Data_Inputs % save address
+LW      T2, 4 (T0)
+BNE     T2, R0, .StartTracker
+NOP
+% The track ins't initializated
+SW      R0, 0 (T0)
+SW      R0, 4 (T0)
+LIO     A1, *TrackInput
+JAL     ~Func:set_variable
+CLEAR   A2
+BEQ     R0, R0, .End
+NOP
+.StartTracker
+LIO     T0, $Data_Inputs % save address
+LBU     T1, 1 (T0) % Load Input to Track
+LW      T2, 4 (T0)
+LBU     T2, 0 (T2) % Load Address to Track
+BNE     T1, T2, .End
+NOP
+% Save Bool as true
+ORI     T0, R0, 1
+SAB     T0, $Data_Inputs
+.End
+POP     RA, A0, A1, A2, A3, T0, T1, T2, V0
+JR      RA
+ORI     V0, R0, 2
+}
+
+% XX000000 00000000 = Input pressed bool
+% 00XX0000 00000000 = Button to be tracked
+% 0000XX00 00000000 = Amount of Stylish made on last move
+% 000000XX 00000000 = unused
+% 00000000 XXXXXXXX = Address to track (will always load a single byte)
+#new:Data $Data_Inputs
+{ 00000000 00000000 }
+
+#export $Data_Inputs

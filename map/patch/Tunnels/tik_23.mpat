@@ -3,26 +3,64 @@
 #define .NpcID:Spiny_02             02
 
 
+#new:Function $Function_MuteSongChannel
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014AB60
+   10:  LI        A1, 2
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+
 
 @	$Script_802411A0
 {
+	
     0:  Call  SetMusicTrack ( 00000000 .Song:ToadTownTunnels 00000000 00000008 )
 		Thread
-			  Wait 30`
-			  Call  802D5FA4  ( 00000002 )
-		EndThread
+			  Wait 25`
+			  Call  $Function_MuteSongChannel  ( )
+			  Call  ClearAmbientSounds ( 250` )
+			  Call    StopSound ( 0021 )
+		EndThread	
    1C:  Return
    24:  End
+}
+
+
+@	$Script_ExitWalk_80241F9C
+{
+   [2C]  Call  GotoMap   ( "tik_28" 00000000 )
+   [40]  Wait  80`
 }
 
 
 
 @	$Script_MakeEntities
 {
-   [6C]  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242E74 .Item:HealthyJuice 80000000 )
-   [A4]  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242EAC .Item:StopWatch 80000000 )
-   [DC]  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242EE4 .Item:EggMissile 80000000 )
-  [114]  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80242F1C .Item:HustleDrink 80000000 )
+    0:  If  *GF_TIK23_Hammer2Block  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Hammer2Block ~Vec4d:Entity80242E18 80000000 )
+   34:  	Call  AssignScript  ( $Script_80242DD0 )
+   44:  Else
+   4C:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o102 7FFFFE00 )
+   64:  EndIf
+   6C:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242E74 .Item:HealthyJuice 80000000 )
+   94:  Call  AssignBlockFlag   ( *GF_TIK23_HiddenItem_MapleSyrup )
+   A4:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242EAC .Item:StopWatch 80000000 )
+   CC:  Call  AssignBlockFlag   ( *GF_TIK23_HiddenItem_StopWatch )
+   DC:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242EE4 .Item:EggMissile 80000000 )
+  104:  Call  AssignBlockFlag   ( *GF_TIK23_HiddenItem_VoltShroom )
+  114:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity80242F1C .Item:HustleDrink 80000000 )
+  13C:  Call  AssignBlockFlag   ( *GF_TIK23_ItemBlock_Coin )
+  188:  Call  MakeEntity   		 ( .Entity:MultiCoinBrick ~Vec4d:NewBlock 80000000 )
+  1AC:  Call  AssignBlockFlag   ( *GF_TIK23_MulticoinBlock )	
+  14C:  Return
+  154:  End
 }
 
 @	$AISettings_80242F70

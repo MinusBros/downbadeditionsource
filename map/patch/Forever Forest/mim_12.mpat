@@ -1,3 +1,6 @@
+#define .NpcID:Boo_00               00
+#define .NpcID:Boo_01               01
+
 @   $Script_80240640
 {
     0:  Switch  *GB_StoryProgress
@@ -8,6 +11,8 @@
    58:  EndSwitch
    60:  Call  ClearAmbientSounds    ( 000000FA )
 		Call $ClearFlagCarryOverworldMusicToBattle()
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0
    70:  Return
    78:  End
 }
@@ -16,6 +21,8 @@
 
 @	$Script_802406C0
 {
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
     0:  Switch  *GB_StoryProgress
     C:  	Case  <  .Story:Ch3_TubbaWokeUp % FFFFFFE3
    18:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
@@ -28,4 +35,90 @@
    88:  Call  PlayAmbientSounds ( .AmbientSounds:Wind )
    98:  Return
    A0:  End
+}
+
+@	$Script_8024175C
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Wait  10`
+   1C:  Call  GetCurrentPartnerID   ( *Var6 )
+   2C:  Call  BringPartnerOut       ( .Partner:Bow )
+   3C:  If  *Var6  !=  .Partner:Bow % 9
+   4C:  	Call  SetNpcAnimation   ( .Npc:Partner 00050002 )
+   60:  	Call  GetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   7C:  	Loop  0000000A
+   88:  		Add   *Var1  00000002
+   98:  		Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   B4:  		Wait  1`
+   C0:  	EndLoop
+   C8:  EndIf
+   D0:  Wait  3`
+   DC:  Call  DisablePartnerAI  ( 00000000 )
+   EC:  Call  SpeakToPlayer     ( .Npc:Partner 00050004 00050001 00000004 000E006C ) % Go ahead, open it.
+  10C:  Call  EnablePartnerAI ( )
+  118:  Call  SetNpcPos ( .NpcID:Boo_00  -103`  65`  64` )
+  134:  Call  SetNpcPos ( .NpcID:Boo_01  -45`  65`  -66` )
+  150:  Call  PlaySoundAtNpc    ( .NpcID:Boo_00 .Sound:BooVanish 00000000 )
+  168:  SetF  *Var0  *Fixed[0.0]
+  178:  Loop  00000014
+  184:  	AddF  *Var0  *Fixed[12.0]
+  194:  	Call  802CFD30  ( 00000000 00000007 *Var0 00000000 00000000 00000000 )
+  1B8:  	Call  802CFD30  ( 00000001 00000007 *Var0 00000000 00000000 00000000 )
+  1DC:  	Wait  1`
+  1E8:  EndLoop
+  1F0:  Wait  3`
+  1FC:  ExecWait  $Script_80241478
+  208:  Exec  $Script_80240FC8
+  214:  Set   *Var2  00000001
+  224:  Exec  $Script_80241060
+  230:  ExecWait  $Script_8024150C
+  23C:  Wait  3`
+  248:  Thread
+  250:  	Call  PlayerMoveTo  (  25`  0`  60` )
+  268:  EndThread
+  270:  Wait  3`
+  27C:  Call  GetCurrentPartnerID   ( *Var6 )
+  28C:  If  *Var6  !=  .Partner:Bow % 9
+  29C:  	Call  NpcMoveTo ( .Npc:Partner  -38`  23`  60` )
+  2B8:  Else
+  2C0:  	Wait  60`
+  2CC:  EndIf
+  2D4:  Set   *Var2  00000001
+  2E4:  Exec  $Script_80241164
+  2F0:  ExecWait  $Script_802406C0
+  2FC:  ExecWait  $Script_80241634
+  308:  Wait  3`
+  314:  Call  PlaySoundAtNpc    ( .NpcID:Boo_00 .Sound:BooAppear 00000000 )
+  32C:  SetF  *Var0  *Fixed[240.0]
+  33C:  Loop  00000014
+  348:  	SubF  *Var0  *Fixed[12.0]
+  358:  	Call  802CFD30  ( 00000000 00000007 *Var0 00000000 00000000 00000000 )
+  37C:  	Call  802CFD30  ( 00000001 00000007 *Var0 00000000 00000000 00000000 )
+  3A0:  	Wait  1`
+  3AC:  EndLoop
+  3B4:  Call  SetNpcPos ( .NpcID:Boo_00  0`  -1000`  0` )
+  3D0:  Call  SetNpcPos ( .NpcID:Boo_01  0`  -1000`  0` )
+  3EC:  Wait  3`
+  3F8:  Call  DisablePartnerAI      ( 00000000 )
+  408:  Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000000 000E006D ) % So, Mario, we're on our way. Are you scared?
+  428:  Call  EnablePartnerAI ( )
+  434:  Wait  2`
+  440:  Call  DisablePlayerPhysics  ( .True )
+  450:  Call  SetPlayerAnimation    ( .PlayerAnim:MidairStill )
+  460:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  478:  Call  SetPlayerJumpscale    ( *Fixed[1.5] )
+  488:  Call  PlayerJump    ( *Var0 *Var1 *Var2  14` )
+  4A4:  Call  SetPlayerAnimation    ( 00010009 )
+  4B4:  Call  DisablePlayerPhysics  ( .False )
+  4C4:  Wait  3`
+  4D0:  Set   *GB_StoryProgress  .Story:Ch3_UnlockedGustyGulch
+  4E0:  Call  PutPartnerAway ( )
+  4EC:  Call  DisablePlayerInput    ( .False )
+  4FC:  Set   *AreaFlag[003]  .True
+  50C:  Bind  $Script_802413D8 .Trigger:WallPressA ~Collider:o67 00000001 00000000
+		Thread
+			Call  ShowMessageAtScreenPos    ( 001F00A2  160`  40` )  %Song name
+		EndThread
+  528:  Return
+  530:  End
 }

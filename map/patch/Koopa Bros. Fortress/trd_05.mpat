@@ -213,8 +213,48 @@
   CFC:  ExecWait  $Script_EnterDoubleDoor_80240B88
   D08:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
   D20:  Set   *GB_StoryProgress  .Story:Ch1_KoopaBrosSetTrap
+		Exec  $Script_PartnerBlurb
   D30:  Return
   D38:  End
+}
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:KoopaBrosFortress
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_8024303C )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  If  *GF_TRD05_BombedWall  ==  .False
+   B4:  	Call  SetGroupEnabled   ( ~Model:ana2 00000000 )
+   C8:  	Bind  $Script_80240CE4 .Trigger:PointBomb $TriggerCoord_80240CD4 00000001 00000000
+   E4:  Else
+   EC:  	Call  SetGroupEnabled       ( ~Model:ana3 00000000 )
+  100:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tte 7FFFFE00 )
+  118:  EndIf
+  120:  Exec  $Script_802407F0
+  12C:  Exec  $Script_80240DF4
+  138:  Call  EnableModel       ( ~Model:o95 .False )
+  14C:  Call  EnableModel       ( ~Model:o96 .False )
+  160:  Call  SetGroupEnabled   ( ~Model:kesu 00000000 )
+  174:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o103 7FFFFE00 )
+  18C:  If  *GB_StoryProgress  <  .Story:Ch1_KoopaBrosSetTrap % FFFFFFAB
+  19C:  	Wait  10`
+  1A8:  	Call  $Function_80240000 ( )
+  1B4:  	Exec  $Script_80241ECC
+  1C0:  Else
+  1C8:  	Exec  $Script_EnterDoubleDoor_80240B88
+  1D4:  EndIf
+		If  *GB_StoryProgress  >=  .Story:Ch1_KoopaBrosSetTrap
+			Exec  $Script_PartnerBlurb
+		EndIf
+  1DC:  Wait  1`
+  1E8:  Return
+  1F0:  End
 }
 
 
@@ -325,4 +365,38 @@
   674:  Wait  80`
   680:  Return
   688:  End
+}
+
+
+  
+#new:Script  $Script_PartnerBlurb
+{
+			Wait  150`
+			Call  RandInt   ( 00000002 *Var6 )
+			If    *Var6 == 0`
+				Return
+			EndIf
+			If    *GB_StoryProgress < .Story:Ch1_MarioActivatedTrap
+				Call  GetCurrentPartnerID   ( *Var0 )
+				Switch  *Var0
+					Case  ==  .Partner:Goombario % 1
+						Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000C0146 ) % 
+					Case  ==  .Partner:Kooper % 2
+						Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0147 ) % 
+				EndSwitch
+			Return
+			EndIf
+			If    *GB_StoryProgress < .Story:Ch1_DefeatedKoopaBros
+				Call  GetCurrentPartnerID   ( *Var0 )
+				Switch  *Var0
+					Case  ==  .Partner:Goombario % 1
+						Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000C0148 ) % Hey, we made it, Mario! We got out of the forest!  ...
+					Case  ==  .Partner:Kooper % 2
+						Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0149 ) % Phew! Well, it looks like we finally made it out o ...
+					Case  ==  .Partner:Bombette
+						Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C014A ) % Phew! Well, it looks like we finally made it out o ...
+				EndSwitch
+			EndIf
+			Return
+			End
 }

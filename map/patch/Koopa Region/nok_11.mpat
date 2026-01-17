@@ -19,6 +19,8 @@
 }
 
 
+#import AutoSave.mpat
+
 @	$Script_Main_EnterWalk
 {
     0:  Switch  *GB_StoryProgress
@@ -35,6 +37,7 @@
    70:  Set   *GF_Map_PleasantPath  .True
    80:  If  *GB_StoryProgress  ==  .Story:Ch1_StarSpritDeparted % FFFFFFB5
    90:  	Call  MakeNpcs  ( .False $NpcGroupList_80245CAC )
+			Exec  $Script_GoombariusBlurb
    A4:  Else
    AC:  	If  *GB_StoryProgress  >=  .Story:Ch5_ReturnedToToadTown % 29
    BC:  		If  *GF_NOK11_Defeated_KentC  ==  .False
@@ -54,9 +57,30 @@
   170:  Set   *Var0  $Script_80242400
   180:  Exec  EnterWalk
   18C:  Wait  1`
+		Exec  $AutoSave
+		If  *IntotheThickofIt == .False
+			Thread
+				Wait  60`
+				Set   *IntotheThickofIt  .True
+				Call  ShowMessageAtScreenPos    ( 001F0086  160`  40` ) % Display song title
+			EndThread
+		EndIf
   198:  Return
   1A0:  End
 }
+
+
+#new:Script  $Script_GoombariusBlurb
+{
+				Wait  100`
+  2E0:  		Call  GetCurrentPartnerID   ( *Var0 )
+  2F0:  		If  *Var0  ==  .Partner:Goombario
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0158 )
+				EndIf
+				Return
+				End
+}
+
 
 @ $EntryList
 {
@@ -140,6 +164,7 @@
    9C:  	Wait  1`
    A8:  	Goto  A
    B4:  EndChildThread
+		Kill  $Script_GoombariusBlurb
    BC:  Exec  $Script_80241FDC
    C8:  Call  SpeakToPlayer     ( .Npc:Self 00210016 00210003 00000005 000C011E ) % Hold it right there, Mario! I've been waiting for  ...
    E8:  Wait  10`

@@ -17,9 +17,43 @@
 }
 
 
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3C5
+	JAL       8011BB74
+	ADDIU     A1, R0, 3D6
+	ADDIU     A0, R0, A
+	ADDIU     A1, R0, A
+	ADDIU     A2, R0, A
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
+
 @	$Script_Main
 {
-   [10]  Call  SetSpriteShading  ( .Shading:mim_01 )
+		Call  SetSpriteShading  ( .Shading:mim_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80242C94 )
+   98:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1309 00000008 )
+   B0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1293 00000008 )
+   C8:  Call  PlayEffect        ( ~FX:Snowfall 00000078 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  10C:  Call  $Function_80240814 ( )
+  118:  Exec  $Script_80240890
+  124:  Exec  $Script_80241258
+		Call  $Function_SetupFog
+  130:  Wait  1`
+  13C:  Return
+  144:  End
 }
 
 
@@ -37,6 +71,7 @@
 		Set     *Byte_Settings_BGM *Var0
    68:  Call  DisablePlayerInput    ( .True )
    78:  Call  802D2B6C ( )
+		Call  SetPlayerAnimation    ( 00010036 )
    84:  Call  SetMusicTrack ( 00000000 .Song:CrystalKingTheme 00000000 00000008 )
    A0:  Call  ShowMessageAtScreenPos    ( 0012016A  160`  40` ) % Who comes to my palace!?
    B8:  Call  SetNpcPos     ( .NpcID:CrystalKing_00  588`  200`  116` )
@@ -50,7 +85,7 @@
   188:  Call  SetCamDistance        ( .Cam:Default *Fixed[400.0] )
   19C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   1B4:  Wait  30`
-  1C0:  Call  SetPlayerAnimation    ( .PlayerAnim:BeforeJump )
+  1C0:  Call  SetPlayerAnimation    ( 0001003A )
   1D0:  Call  SetPlayerPos  (  475`  100`  116` )
   1E8:  Call  DisablePartnerAI      ( 00000000 )
   1F8:  Call  PartnerIsFlying       ( *Var4 )
@@ -102,17 +137,51 @@
   6F0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
   70C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   720:  Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F0009 007F0009 00000000 0012016B ) % Mario... You finally arrived! Heh, heh, heh, heh.. ...
+		Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F0010 007F0009 00000000 00120194 ) % Mario... You finally arrived! Heh, heh, heh, heh.. ...
+   98:  		Call  UseSettingsFrom   ( .Cam:Default  460`  150`  116` )
+   B4:  		Call  UseSettingsFrom   ( .Cam:Default  460`  150`  116` )
+				Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+				Call  SetCamDistance    ( .Cam:Default *Fixed[900.0] )
+		Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F0009 007F0009 00000000 00120195 ) % Mario... You finally arrived! Heh, heh, heh, heh.. ...
+  66C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  684:  Call  GetNpcPos     ( .NpcID:CrystalKing_00 *Var3 *Var4 *Var5 )
+  6A0:  Call  SetNpcPos     ( .Npc:Self *Var3 *Var4 *Var2 )
+  6BC:  Add   *Var0  *Var3
+  6CC:  Div   *Var0  00000002
+		Add   *Var1  32`
+  6DC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[45.0] )
+  6F0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+		Call  SetCamDistance    ( .Cam:Default *Fixed[320.0] )
+  70C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F001D 007F001E 00000000 00120196 ) % Mario... You finally arrived! Heh, heh, heh, heh.. ...
+  4CC:  Call  GetCurrentPartnerID   ( *Var0 )
+  4DC:  Switch  *Var0
+  4E8:  	Case  ==  .Partner:Goombario % 1
+  4F4:  		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010012 00000005 00120197 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 00010016 )
+				Call  EndSpeech     ( .Npc:Partner 00010008 00010016 00000005 )
+				Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F0011 007F0010 00000000 00120198 ) 
+				Call  SetNpcAnimation   ( .Npc:Partner 00010017 )
+				Call  SpeakToPlayer ( .Npc:Partner 00010018 00010017 00000000 00120199 ) 
+  514:  	Case  ==  .Partner:Kooper % 2
+  520:  		Call  SpeakToPlayer ( .Npc:Partner 00020015 00020014 00000005 0012019A )
+				Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F001D 007F001E 00000000 0012019B ) 
+  540:  	Case  ==  .Partner:Bombette % 3
+  54C:  		Call  SpeakToPlayer ( .Npc:Partner 00030014 00030014 00000005 0012019C )
+				Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F0010 007F0009 00000000 0012019D ) 
+  648:  EndSwitch		
   740:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
 		Call  ClearAmbientSounds    ( 000000FA )
-  758:  Call  SetPlayerAnimation    ( .PlayerAnim:Running )
+  758:  Call  SetPlayerAnimation    ( 00060003 )
   768:  Call  SetPlayerSpeed        ( *Fixed[2.5] )
   778:  Thread
   780:  	Wait  10`
   78C:  	Call  ModifyColliderFlags   ( 00000003 ~Collider:o1309 00000000 )
   7A4:  	Call  PlayerMoveTo  (  564`  116`  0` )
   7BC:  EndThread
-		Call  SetMusicTrack ( 00000000 .Song:CrystalKingBattle 00000000 00000008 )
-  7C4:  Call  StartBossBattle   ( .Song:CrystalKingBattle )
+		Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
+		Wait  3`
+  7C4:  Call  StartBossBattle   ( .Song:Deadline )
   7D4:  Return
   7DC:  End
 }
@@ -137,7 +206,7 @@
    EC:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
   100:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   118:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-  12C:  Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F0009 007F0009 00000000 0012016C ) % Oh no! The last Star Spirit!! King Bowser, forgive ...
+  12C:  Call  SpeakToPlayer ( .NpcID:CrystalKing_00 007F001C 007F001C 00000000 0012016C ) % Oh no! The last Star Spirit!! King Bowser, forgive ...
   14C:  Thread
   154:  	Call  802CDE68  ( 00000000 0000001E )
   168:  	Call  MakeLerp  ( 00000000 00001AB8 000000D2 .Easing:CosInOut )

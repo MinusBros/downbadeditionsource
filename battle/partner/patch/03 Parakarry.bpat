@@ -1,4 +1,4 @@
-%Parakarius will heal 1 FP when using Sky Dive, like in Dark Star Edition as of DBE 0.9.6
+%Parakarius will heal FP when using Sky Dive, like in Dark Star Edition as of DBE 0.9.6
 
 
 %Give Parakarius 1 defense to regular enemy attacks
@@ -27,6 +27,17 @@
   [138]  Call  SetActorSpeed ( .Actor:Partner *Fixed[16.0] )
 }
 
+%Make base-rank Sky Dive better. At ultra-rank he doesn't gain attack power
+%but instead gets an increase in FP regen
+@	$Script_80239E70
+{
+   [AC]  		Set   *VarE  00000001
+   [BC]  		Set   *VarF  00000003
+   [F8]  		Set   *VarE  00000002
+  [108]  		Set   *VarF  00000004
+  [144]  		Set   *VarE  00000003
+  [154]  		Set   *VarF  00000004
+}
 
 
 @ $Script_8023A4D4
@@ -90,18 +101,27 @@
   438:  Call  GetActionCommandResult    ( *Var0 )
   448:  Switch  *Var0
   454:  	Case  >  00000000
-  460:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000004 00000000 *VarF 00000070 )
-				If *VarF > 2`
+  460:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Jump 00000004 00000000 *VarF 00000070 )
+				Switch  *VarF
+				Case > 3`
 					%Recover some FP
-					Set  	*VarC 1
+					Set  	*VarC 2
 					Call 	$Function_FPHeal ( *VarC )
 					Call	GetActorPos ( .Actor:Partner *Var4 *Var5 *Var6 )
 					Add		*Var4 10
 					Add		*Var5 12
 					Call	PlayEffect ( 00000040 00000001 *Var4 *Var5 *Var6 *VarC 00000000 00000000 00000000 00000000 00000000 00000000 )				
-				EndIf
+				Case > 2`
+					Set  	*VarC 1
+					Call 	$Function_FPHeal ( *VarC )
+					Call	GetActorPos ( .Actor:Partner *Var4 *Var5 *Var6 )
+					Add		*Var4 10
+					Add		*Var5 12
+					Call	PlayEffect ( 00000040 00000001 *Var4 *Var5 *Var6 *VarC 00000000 00000000 00000000 00000000 00000000 00000000 )						
+	
+				EndSwitch
   484:  	Default
-  48C:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000004 00000000 *VarE 00000030 )
+  48C:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Jump 00000004 00000000 *VarE 00000030 )
   4B0:  EndSwitch
   4B8:  Call  PlaySoundAtActor  ( .Actor:Partner 00000000 )
   4CC:  Switch  *Var0
@@ -122,6 +142,209 @@
   588:  End
 }
 
+%Make Ultra Rank Shell Shot do 8 damage
+@	$Function_80238C88
+{
+   [3C]  LI        A1, 8
+}
+
+
+
+%Airlift
+%Removes enemies with 100% chance if they are at least 25% suseptible
+%However, Airlift can only be used (successfully) once per battle
+
+#new:Function $DisableAirLift
+{
+PUSH	RA
+ADDI	V0, R0, 1
+SAB		V0, $AirLiftBool
+POP		RA
+JR		RA
+ORI		V0, R0, 2
+}
+
+
+@ $Script_8023AF7C
+{
+    0:  Call  InitTargetIterator ( )
+    C:  Call  $Function_80238CE0 ( )
+		If    *Var0 < 50`
+			Set *Var0 0`
+		Else
+			Set *Var0 100`
+		EndIf
+   18:  Call  LoadActionCommand ( .ActionCommand:AirLift )
+   28:  Call  802A9000  ( *Var0 )
+   38:  Call  SetupMashMeter    ( 00000001 00000064 00000000 00000000 00000000 00000000 )
+   5C:  Call  80269344  ( 00000000 )
+   6C:  Call  InitTargetIterator ( )
+   78:  Call  SetGoalToTarget   ( .Actor:Partner )
+   88:  Call  GetDistanceToGoal ( .Actor:Partner *Var0 )
+   9C:  Div   *Var0  00000004
+   AC:  Call  UseBattleCamPreset    ( 00000034 )
+   BC:  Call  SetBattleCamOffsetZ   ( 00000008 )
+   CC:  Call  MoveBattleCamOver ( *Var0 )
+   DC:  Sub   *Var0  0000000C
+   EC:  If  *Var0  <  00000000
+   FC:  	Set   *Var0  00000000
+  10C:  EndIf
+  114:  Call  80269344  ( *Var0 )
+  124:  Call  SetActorSpeed     ( .Actor:Partner *Fixed[5.0] )
+  138:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000C0003 )
+  150:  Call  FlyToGoal ( .Actor:Partner 00000000 FFFFFFFC .Easing:CosInOut )
+  16C:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000C0001 )
+  184:  Wait  15`
+  190:  Call  SetBattleCamOffsetZ   ( 00000000 )
+  1A0:  Call  AddBattleCamZoom  ( FFFFFF60 )
+  1B0:  Call  MoveBattleCamOver ( 00000014 )
+  1C0:  Call  SetAnimation      ( .Actor:Partner FFFFFFFF 000C0015 )
+  1D8:  Call  SetAnimationRate  ( .Actor:Partner 00000000 *Fixed[2.0] )
+  1F0:  Wait  2`
+  1FC:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000004 00000000 00000001 00000010 )
+  220:  If  *Var0  ==  .HitResult:Miss % 6
+  230:  	Call  CloseActionCommandInfo ( )
+  23C:  	Call  UseBattleCamPreset    ( 00000033 )
+  24C:  	Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+  268:  	Add   *Var1  00000014
+  278:  	Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  294:  	Call  FlyToGoal     ( .Actor:Partner 0000000A FFFFFFF6 .Easing:CosIn )
+  2B0:  	Call  SetAnimationRate      ( .Actor:Partner 00000000 *Fixed[8.0] )
+  2C8:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0001 )
+  2E0:  	Wait  10`
+  2EC:  	Call  SetGoalToHome ( .Actor:Partner )
+  2FC:  	Call  SetActorSpeed ( .Actor:Partner *Fixed[4.0] )
+  310:  	Call  SetAnimationRate      ( .Actor:Partner 00000000 *Fixed[1.0] )
+  328:  	Call  SetActorYaw   ( .Actor:Self 000000B4 )
+  33C:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0003 )
+  354:  	Call  FlyToGoal     ( .Actor:Partner 00000000 00000000 .Easing:Linear )
+  370:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0002 )
+  388:  	Return
+  390:  EndIf
+  398:  Wait  3`
+  3A4:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:8000 00000004 00000000 00000000 00000030 )		%weird flags
+  3C8:  Call  $Function_80238CE0 ( )
+		If *Var0 > 0`			%can it return negative numbers? (probably not, looking at the function)
+			If    *Var0 < 50`
+				Set *Var0 0`
+			Else
+				Set *Var0 100`
+			EndIf
+		EndIf
+  3D4:  If  *Var0  !=  .HitResult:TriggeredExplode % FFFFFFFF
+  3E4:  	Call  802A9184  ( 00000000 00000057 00000003 00000000 )
+  400:  	Call  SetBattleFlagBits ( 00004000 .False )
+  414:  	ChildThread
+  41C:  		Wait  1`
+  428:  		Call  GetActionResult   ( *Var1 )
+  438:  		Div   *Var1  0000000A
+  448:  		Add   *Var1  00000001
+  458:  		Loop  00000058
+  464:  			Call  GetActionResult   ( *Var0 )
+  474:  			Set   *Var2  *Var1
+  484:  			Mul   *Var2  0000000A
+  494:  			If  *Var0  >  *Var2								%camera zoom level?
+  4A4:  				Call  SetBattleCamOffsetZ   ( 00000000 )
+  4B4:  				Call  AddBattleCamZoom      ( FFFFFFFE )
+  4C4:  				Call  MoveBattleCamOver     ( 0000000A )
+  4D4:  				Add   *Var1  00000001
+  4E4:  			EndIf
+  4EC:  			Wait  1`
+  4F8:  		EndLoop
+  500:  	EndChildThread
+  508:  	Wait  90`
+  514:  	Call  GetActionSuccessCopy  ( *Var0 )
+  524:  Else
+  52C:  	Call  CloseActionCommandInfo ( )
+  538:  	Set   *Var0  00000000
+  548:  EndIf
+  550:  Switch  *Var0			%Success or fail?
+  55C:  	Case  ==  00000001
+				Call 	GetActorPos 	( .Actor:Partner *Var5 *Var6 *Var7 )
+				Add 	*Var6 25`
+				Call 	$Function_StarEffect ( *Var5 *Var6 *Var7 )
+				Call 	$Function_AddSP ( 00000100 )
+  568:  		Call  UseBattleCamPreset    ( 00000003 )
+  578:  		Call  GetOwnerTarget    ( *Var0 *Var1 )
+  58C:  		Call  DispatchEvent     ( *Var0 .Event:BlowAway )
+  5A0:  		Call  $Function_80238E24    ( *Var0 )
+  5B0:  		Wait  30`
+  5BC:  		Call  GetOwnerTarget    ( *Var0 *Var1 )
+  5D0:  		Call  SetBattleFlagBits ( 01000000 .True )
+  5E4:  		Call  RemoveActor       ( *Var0 )
+				Call  $DisableAirLift   ( )
+  5F4:  	Default
+  5FC:  		Call  GetOwnerTarget        ( *Var0 *Var1 )
+  610:  		Call  DispatchEvent ( *Var0 .Event:AirLiftFailed )
+  624:  		Call  UseBattleCamPreset    ( 00000033 )
+  634:  		Call  GetActorPos   ( .Actor:Partner *Var0 *Var1 *Var2 )
+  650:  		Add   *Var1  00000014
+  660:  		Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  67C:  		Call  FlyToGoal     ( .Actor:Partner 00000005 FFFFFFF6 .Easing:CosIn )
+  698:  		Call  SetAnimationRate      ( .Actor:Partner 00000000 *Fixed[8.0] )
+  6B0:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0001 )
+  6C8:  		Wait  10`
+				Call  $FreeTurn ( )
+  6D4:  EndSwitch
+  6DC:  Call  80280818 ( )
+  6E8:  Call  SetGoalToHome ( .Actor:Partner )
+  6F8:  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+  70C:  Call  SetAnimationRate  ( .Actor:Partner 00000000 *Fixed[1.0] )
+  724:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0003 )
+  73C:  Call  FlyToGoal     ( .Actor:Partner 00000000 00000000 .Easing:Linear )
+  758:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000C0002 )
+  770:  Return
+  778:  End
+}
+
+
+
+#new:Function $Function_StarEffect
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 24 (SP)
+   10:  SW        S2, 20 (SP)
+   14:  SW        S0, 18 (SP)
+   18:  LW        S0, C (S1)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  LW        A1, 0 (S0)
+   2C:  ADDIU     S0, S0, 4
+   30:  COPY      A0, S1
+   34:  JAL       ~Func:get_variable
+   38:  COPY      S2, V0
+   3C:  COPY      A0, S1
+   40:  LW        A1, 0 (S0)
+   44:  JAL       ~Func:get_variable
+   48:  COPY      S0, V0
+   4C:  MTC1      S2, F2
+   50:  NOP
+   54:  CVT.S.W   F2, F2
+   58:  MFC1      A1, F2
+   5C:  MTC1      S0, F2
+   60:  NOP
+   64:  CVT.S.W   F2, F2
+   68:  MFC1      A2, F2
+   6C:  MTC1      V0, F2
+   70:  NOP
+   74:  CVT.S.W   F2, F2
+   78:  LIF       F0, 40.0
+   80:  MFC1      A3, F2
+   84:  CLEAR     A0
+   88:  JAL       8006FEF0
+   8C:  SWC1      F0, 10 (SP)
+   90:  LW        RA, 24 (SP)
+   94:  LW        S2, 20 (SP)
+   98:  LW        S1, 1C (SP)
+   9C:  LW        S0, 18 (SP)
+   A0:  LI        V0, 2
+   A4:  JR        RA
+   A8:  ADDIU     SP, SP, 28
+}
+
 @	$Script_8023AA64
 {
    [2C]  Wait  5`
@@ -130,4 +353,15 @@
   [2C4]  		Call  FlyToGoal ( .Actor:Partner  3`  0` .Easing:Linear )
   [378]  		Call  FlyToGoal ( .Actor:Partner  3`  0` .Easing:Linear )
   [3D4]  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Throw 0000009F 00000000 *VarF 00000070 )
+}
+
+
+@	$Script_8023B6FC
+{
+   [E0]  Call  FlyToGoal     ( .Actor:Partner  11`  -2` .Easing:Linear )
+  [140]  Wait  1`
+  [1CC]  Call  FlyToGoal     ( .Actor:Partner  9`  -10` .Easing:CosInOut )
+  [1E8]  Wait  1`
+  [454]  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|NoOtherDamagePopups|Throw 00000019 00000000 *VarF 00000070 )
+  [494]  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|NoOtherDamagePopups|Throw 00000019 00000000 *VarF 00000030 )
 }

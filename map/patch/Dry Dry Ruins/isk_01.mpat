@@ -14,6 +14,7 @@
 				Call  FadeOutMusic      ( 00000000 000007D0 )
 				Thread		
 					Wait  60`
+					Call  ShowMessageAtScreenPos    ( 001F009A  160`  40` )  %Song name
 					Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
 					Wait  25`
 					Call  802D5FA4  ( 00000004 )
@@ -42,4 +43,36 @@
   1A4:  EndSwitch
   1AC:  Return
   1B4:  End
+}
+
+
+@	$Script_Main
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+    0:  Set   *GB_WorldLocation  .Location:DryDryRuins
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Set   *GF_Map_DryDryRuins  .True
+   94:  ExecWait  $Script_MakeEntities
+   A0:  Exec  $Script_80240060
+   AC:  Exec  $Script_80240490
+   B8:  Exec  $Script_EnterWalk_80240320
+   C4:  Wait  1`
+   D0:  Return
+   D8:  End
+}
+
+@	$Script_ExitWalk_80240220
+{
+		Call $SetFlagCarryOverworldMusicToBattle()
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 00000028 ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_802405C0 00000004 ) % sbk_02
+   40:  Wait  80`
+   4C:  Return
+   54:  End
 }

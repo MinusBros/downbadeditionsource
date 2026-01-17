@@ -121,7 +121,90 @@
 @	$ExtraAnimationList_8024213C
 {
 	00800000 00800002 00800004 00800005 00800006 00800007 0080000A 0080000B 00800012 00800013 
-	00800014 00800018 0080000F 00800019 0080001B 00800021 FFFFFFFF
+	00800014 00800018 0080000F 00800019 0080001B 00800021 00800010 FFFFFFFF
+}
+
+
+@	$Script_Defeat_80241F4C
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  SetEncounterStatusFlags   ( 00000002 .True )
+   3C:  		Exec  $Script_80241C98
+   48:  	Case  ==  .Outcome:PlayerLost % 1
+				Exec  $LosetoBower
+   54:  	Case  ==  .Outcome:PlayerFled % 2
+   60:  EndSwitch
+   68:  Return
+   70:  End
+}
+
+
+
+@	$Script_80243784
+{
+    [0]  Call  GetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+}
+
+%Splice in this script from the opening that is now unused
+
+#new:Script   $LosetoBower
+{
+    0:  Call  DisablePlayerInput    ( .True )
+  E9C:  Call  SetPlayerAnimation    ( .PlayerAnim:FallDown )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0  ==  .Partner:Goombario % 2
+		Call  DisablePartnerAI  ( 00000000 )
+  EAC:  Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
+  EC0:  Call  SetNpcAnimation   ( 00000000 0080000E )
+  ED4:  ExecWait  $Script_80243784
+  EE0:  Wait  10`
+  EEC:  Call  SpeakToPlayer ( .Npc:Partner 0001000C 0001000B 00000005 001300E1 ) % Oh no! Mario! Get up!
+  F0C:  Wait  10`
+		EndIf
+  FA8:  Wait  10`
+  FB4:  Call  SpeakToPlayer ( 00000000 0080000E 0080000E 00000005 001300E2 ) % Yes! Oh, yeah! I did it! I finally did it! I beat  ...
+ 1038:  Call  SetNpcAnimation   ( 00000000 00800010 )
+ 104C:  Wait  20`
+ 1058:  Call  SetNpcAnimation   ( 00000000 00800003 )
+ 106C:  Call  SpeakToPlayer    ( 00000000 00800009 00800003 00000005 001300E3 ) % As long as I have this Star Rod, everything I wish ...
+ 1090:  Wait  10`
+ 109C:  Set   *Var0  *Fixed[90.0]
+ 1130:  Call  FadeOutMusic  ( 00000000 000001F4 )
+ 1144:  Call  PlaySoundAtNpc    ( 00000000 00002121 00000000 )
+ 115C:  Call  PlayEffect    ( ~FX:GatherEnergyPink 0000030C 0000005F 0000001B 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+ 11A0:  Wait  40`
+ 11AC:  Thread
+ 11B4:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[4.0] )
+ 11D0:  EndThread
+ 11D8:  Call  PlaySoundAtPlayer ( 00002127 00000000 )
+ 11EC:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+ 1204:  Add   *Var2  00000005
+ 1214:  Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+ 1258:  Thread
+ 1260:  	Call  PlaySoundAtPlayer     ( 00000390 00000000 )
+ 1274:  	Call  SetPlayerAnimation    ( .PlayerAnim:FallBack )
+ 1284:  	Call  LoadPath  ( 0000001E $VectorList_802436B4 00000006 .Easing:Linear )
+ 12A0:  	Set   *Var4  00000000
+ 12B0:  	Loop
+ 12BC:  		Call  GetNextPathPos ( )
+ 12C8:  		Call  SetPlayerPos      ( *Var1 *Var2 *Var3 )
+ 12E0:  		Add   *Var4  0000002D
+ 12F0:  		Call  InterpPlayerYaw   ( *Var4  0` )
+ 1304:  		Wait  1`
+ 1310:  		If  *Var0  ==  00000000
+ 1320:  			BreakLoop
+ 1328:  		EndIf
+ 1330:  	EndLoop
+ 1338:  EndThread
+ 1340:  Wait  30`
+ 134C:  Call  GotoMap   ( $ASCII_80244FC0 00000002 ) % osr_03
+ 1360:  Wait  100`
+ 136C:  Call  DisablePlayerPhysics  ( .False )
+ 137C:  Call  DisablePlayerInput    ( .False )
+ 138C:  Return
+ 1394:  End
 }
 
 @	$Script_80241C98

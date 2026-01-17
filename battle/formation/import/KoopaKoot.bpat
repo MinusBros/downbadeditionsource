@@ -9,12 +9,14 @@
 #define .AnimSwing  00B50006
 #define .AnimTalk   00B50004
 #define .AnimRun	00B50003
-#define .AnimMiss   00B50007
+#define .AnimMiss   00B5000A
+#define .AnimMissTalk   00B5000B
+#define .AnimGetUp   00B5000C
 #define .AnimHold   00B50007
 % when to heal + buff
-#define .KoopBuff1HP 100`
-#define .KoopBuff2HP 80`
-#define .KoopBuff3HP 60`
+#define .KoopBuff1HP 130`
+#define .KoopBuff2HP 100`
+#define .KoopBuff3HP 70`
 #define .KoopBuff4HP 40`
 #define .Swingcount *GameByte[035]
 
@@ -23,7 +25,7 @@
 % stats
 [Index]         58b % (new) index from ActorTable.xml
 [Level]        100`b 
-[MaxHP]        138`b 
+[MaxHP]        148`b 
 [Coins]          1`b 
 [Flags]       00000000 
 [StatusTable] $StatusTable_KoopaKoot 
@@ -38,7 +40,7 @@
 [Hurricane]     0`b % Bow's "Spook" as well
 [UpAndAway]    0`b 
 [PowerBounce]  3`b 
-[SpinSmash]     0`b % weight (0-4)
+[SpinSmash]     4`b % weight (0-4)
 % ui positions
 [Size]         24`b  24`b % width height
 [HealthBar]     0`b   0`b % dx dy
@@ -97,6 +99,20 @@
 .Status:End
 }
 
+#new:Script $ShowMessage1
+{
+	Call  ActorSpeak        ( 001F0069 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Stick It To Grandpa
+	Return 
+	End
+}
+
+#new:Script $ShowMessage2
+{
+	Call  ActorSpeak        ( 001F006A .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Bonk of Destiny
+	Return 
+	End
+}
+
 #new:Script $Script_Init_KoopaKoot
 {
 	Call     BindTakeTurn 	( .Actor:Self $Script_TakeTurn_KoopaKoot )
@@ -107,6 +123,10 @@
 	Call     SetActorVar	( .Actor:Self 00000003 00000001 ) % Heal + buff 3
 	Call     SetActorVar	( .Actor:Self 00000004 00000001 ) % Heal + buff 4
 	Call     SetActorVar    ( .Actor:Self 00000005 00000000 ) % Not sure why this is needed but here goes
+	Call     SetActorVar    ( .Actor:Self 00000006 00000000 ) % New var to determine which swing he does
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $KoopaKoot 133` )
+		EndIf
     Return
     End
 }
@@ -235,6 +255,7 @@
   6B8:  End
 }
 
+
 #new:Script $Script_TakeTurn_KoopaKoot
 {
 		        Call     GetActorVar 	( .Actor:Self 00000001 *Var[1] ) % Deny players the right to gimp boss with Star Beam
@@ -354,7 +375,12 @@ EndIf
 {
 	Call     UseIdleAnimation 	( .Actor:Self .False )
     Call     EnableIdleScript 	( .Actor:Self 00000000 )
-	Call	ActorSpeak  	( $KK_Whine3 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+	Call	RandInt			( 1` *Var[5] )
+	If   *Var5  ==  0`
+		Call	ActorSpeak  	( $KK_Whine3 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+	Else
+		Call	ActorSpeak  	( $KK_Whine3Alt .Actor:Self 00000001 .AnimTalk .AnimTalk )
+	EndIf
 	Wait 00000012
 	Call     SetAnimation 	( .Actor:Self 00000001 .AnimHold )
 	Thread
@@ -401,6 +427,7 @@ EndIf
 	
 #new:Script $Script_MultiSwing
 {
+	Exec     $ShowMessage2
 	Call     UseIdleAnimation 	( .Actor:Self .False ) % run to player
     Call     EnableIdleScript 	( .Actor:Self 00000000 )
     Call     SetTargetActor ( .Actor:Self .Actor:Player )
@@ -427,7 +454,7 @@ EndIf
 		Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
 			Wait 3`
 			Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-			Call     SetAnimation 	( .Actor:Self 00000001 .AnimMiss )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
 			Wait 8`
 			Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
 			Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
@@ -436,7 +463,7 @@ EndIf
 			Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
 			Wait 4`
 			Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-			Call     SetAnimation 	( .Actor:Self 00000001 .AnimMiss )
+			Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
 			Wait 8`
 			Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
 			Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
@@ -479,10 +506,15 @@ EndIf
     End
 }
 	
+	%The single swing has been completely reworked.
+	%The type of swing he does will be determined by his walking speed.
+	%On Gamer difficulty, there is four speeds, for more chaos.
 #new:Script $Script_SingleSwing
 {
+	Exec     $ShowMessage1
 	Call     UseIdleAnimation 	( .Actor:Self .False ) % run to player
     Call     EnableIdleScript 	( .Actor:Self 00000000 )
+	Call     SetActorVar 	( .Actor:Self 00000006 0` )
     Call     SetTargetActor ( .Actor:Self .Actor:Player )
     Call     UseBattleCamPreset 	( 0000003F )
     Call     BattleCamTargetActor ( .Actor:Self )
@@ -490,7 +522,23 @@ EndIf
     Call     SetAnimation 	( .Actor:Self 00000001 .AnimRun )
     Call     SetGoalToTarget 	( .Actor:Self )
     Call     AddGoalPos 	( .Actor:Self 00000014 00000000 00000000 ) % was 32
-    Call     SetActorSpeed 	( .Actor:Self *Fixed[9.0] )
+	If    *Byte_Settings_Difficulty == 2`
+		Call	 RandInt			( 3` *Var[6] )
+	Else
+		Call	 RandInt			( 1` *Var[6] )
+	EndIf
+	Call     SetActorVar 	( .Actor:Self 00000006 *Var[6] )
+	Call     GetActorVar 	( .Actor:Self 00000006 *Var[6] )
+	Switch   *Var6
+		Case  == 0`
+		    Call     SetActorSpeed 	( .Actor:Self *Fixed[10.5] )
+		Case  == 1`
+			Call     SetActorSpeed 	( .Actor:Self *Fixed[3.0] )
+		Case  == 2`
+			Call     SetActorSpeed 	( .Actor:Self *Fixed[18.0] )
+		Case  == 3`
+			Call     SetActorSpeed 	( .Actor:Self *Fixed[6.75] )
+	EndSwitch
     Call     RunToGoal   	( .Actor:Self 00000000 .False )
     Call     SetAnimation 	( .Actor:Self 00000001 00260001 )
     Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFF 00000000 )
@@ -503,18 +551,17 @@ EndIf
 	Switch  *Var[0] 
     	CaseOR  ==  00000006 
     	CaseOR  ==  00000005 % lucky, transparent
-			Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
-			Wait 6`
 			Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
 			Call     SetAnimation 	( .Actor:Self 00000001 .AnimMiss )
-			Wait 14`
+			Wait 10`
+			Call  PlaySoundAtActor  ( .Actor:Self 00000162 )
 			Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
-			Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
 				If       *Var[0]  !&  00001000
-					Wait	30`
-					Call	ActorSpeak  	( $KK_Whine2 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+					Wait	20`
+					Call	ActorSpeak  	( $KK_Whine2 .Actor:Self 00000001 .AnimMissTalk .AnimMissTalk )
 					Call     SetActorVar    ( .Actor:Self 00000006 00000001 )
 					Wait	5`
+					Call     SetAnimation 	( .Actor:Self 00000001 .AnimGetUp )
 					% boost attack by 1
 					Thread
 						Wait     5` 
@@ -530,16 +577,33 @@ EndIf
 			Goto 00000001
 	EndSwitch
 	Call     SetAnimation 	( .Actor:Self 00000001 .AnimHold )
-	Call	RandInt			( 1` *Var[4] ) % two set wait times
-	If	*Var[4] == 0`
-	Wait 20`
-	Else
-	Wait 10`
-	EndIf
+	Call     GetActorVar 	( .Actor:Self 00000006 *Var[6] )
+	Switch   *Var6
+		Case  == 0`
+		    Wait   26`
+			Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+			Add   *Var1  0000001C 
+			Add   *Var0  00000010
+			Call  PlaySoundAtActor      ( .Actor:Self 000020F3 )
+			Call  PlayEffect    ( ~FX:LensFlare:Rotating *Var0 *Var1 *Var2 00000007 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Wait  2`
+		Case  == 1`
+			Wait  6`
+		Case  == 2`
+			Wait   34`
+			Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+			Add   *Var1  0000001F 
+			Add   *Var0  0000000D
+			Call  PlaySoundAtActor      ( .Actor:Self 000020F3 )
+			Call  PlayEffect    ( ~FX:LensFlare:Rotating *Var0 *Var1 *Var2 00000007 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Wait  2`
+		Case  == 3`
+			Wait   16`
+	EndSwitch
 	Call     SetAnimation 	( .Actor:Self 00000001 .AnimSwing )
-	Wait  2`
-	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 00000000 00000008 00000020 )
 	Wait  5`
+	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 00000000 00000008 00000020 )
+	Wait  2`
 	Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
 	Label 00000001 % attack done, go back to home
 	Call     UseBattleCamPreset 	( 00000002 )
@@ -561,7 +625,7 @@ EndIf
 	Call     SetTargetActor ( .Actor:Self .Actor:Player )
 	Call     SetAnimation 	( .Actor:Self 00000001 .AnimTalk )
 	Call     SetGoalToTarget 	( .Actor:Self )
-	Call	RandInt			( 2` *Var[0] ) % which thing to talk about???
+	Call	RandInt			( 3` *Var[0] ) % which thing to talk about???
 	Switch *Var[0]
 		Case == 00000000
 	Call     ActorSpeak  	( $KKF1 .Actor:Self 00000001 .AnimTalk .AnimTalk )
@@ -569,6 +633,8 @@ EndIf
 	Call     ActorSpeak  	( $KKF2 .Actor:Self 00000001 .AnimTalk .AnimTalk )
 		Case == 00000002
 	Call     ActorSpeak  	( $KKF3 .Actor:Self 00000001 .AnimTalk .AnimTalk )
+		Case == 00000003
+	Call     ActorSpeak  	( $KKF4 .Actor:Self 00000001 .AnimTalk .AnimTalk )  %New
 	EndSwitch
 	Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
 	Switch  *Var[0] 
@@ -712,20 +778,48 @@ blew...........[BR]
 [Wait][End]
 }
 
+#string $KKF4
+{
+[Style Right]
+[Shake]Now lemme tell ya somethin', sonny![BR]
+[Pause 5]Back in my day, I was popping the[BR]
+cork in so many dang people, it[BR]
+wasn't even funny![BR]
+[Wait][Next]
+Okay, maybe it was a little funny,[BR]
+like that one time I grabbed that[BR]
+guy and slammed...[BR]
+he went flying...[BR]
+[Wait][Next]
+And then..... buttocks....[BR]
+was cool.... butter.... Koopas...[BR]
+but as always....[BR]
+[Wait][Next]
+............suplex.....[BR]
+.....like........and....[BR]
+............me..........[BR]
+[Wait][Next]
+........[BR]
+...................[BR]
+.....  ..........[BR]
+...  ..........[BR]
+[Wait][End]
+}
+
 #string $KK_Whine
 {
 [Style Right]
 [Shake]Hey, you weren't listening![BR]
-I'll teach you some manners![BR]
-I knew the current generation[BR]
-is terrible! Knew it![BR]
+Why, just for that, I oughta feed[BR]
+your ears to the Crowbers, you[BR]
+good-for-nothing...![BR]
 [Wait][End]
 }
 
 #string $KK_Whine2
 {
 [Style Right]
-[Shake]Oh, you think its funny that[BR]
+[Shake]Oh, you think it's funny that[BR]
 I missed? Well you won't be[BR]
 laughing when I have your head[BR]
 on a platter, dear boy!
@@ -747,6 +841,15 @@ mercy this late in the game![BR]
 soul is getting too old[BR]
 to do this. I need to[BR]
 take my medicine...[BR]
+[Wait][End]
+}
+
+#string $KK_Whine3Alt
+{
+[Style Right]
+[Shake]Ow, my head. Gotta take some[BR]
+painkillers to get rid of this[BR]
+stupid migraine of mine.[BR]
 [Wait][End]
 }
 

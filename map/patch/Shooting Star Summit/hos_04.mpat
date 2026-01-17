@@ -5,6 +5,7 @@
 
 @	$Script_80240F58
 {
+   [80]  			Call  SetMusicTrack ( 00000000 .Song:StarSanctuary 00000000 00000008 )
    [A4]  			Call  SetMusicTrack ( 00000000 .Song:StarShop 00000000 00000008 )
 }
 
@@ -17,6 +18,86 @@
 @ $Script_ExitWalk_802410AC
 {
    [40]  Wait  50`
+}
+
+@	$Script_EnterWalk_80241150
+{
+    0:  Set   *AreaFlag[0B5]  .False
+   10:  Call  GetEntryID    ( *Var0 )
+   20:  Switch  *Var0
+   2C:  	Case  ==  ~Entry:Entry0
+   38:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitnw 7FFFFE00 )
+   50:  		If  *GF_HOS04_Visited  ==  .False
+   60:  			Thread
+   68:  				Call  DisablePlayerInput    ( .True )
+   78:  				Call  SetPlayerPos  (  -630`  0`  0` )
+   90:  				Call  GetCurrentPartner     ( *Var0 )
+   A0:  				If  *Var0  ==  00000000
+   B0:  					Call  DisablePartnerAI  ( 00000000 )
+   C0:  					Call  SetNpcPos ( .Npc:Partner  -660`  0`  0` )
+   DC:  					Wait  1`
+   E8:  					Call  EnablePartnerAI ( )
+   F4:  				EndIf
+   FC:  				Call  UseSettingsFrom   ( .Cam:Default  -565`  0`  0` )
+  118:  				Call  SetPanTarget  ( .Cam:Default  -565`  0`  0` )
+  134:  				Call  SetCamDistance    ( .Cam:Default  1350` )
+  148:  				Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-25.0] )
+  160:  				Call  SetCamPosA    ( .Cam:Default *Fixed[-15.0] *Fixed[-100.0] )
+  178:  				Call  SetCamPosB    ( .Cam:Default *Fixed[87.5] *Fixed[50.0] )
+  190:  				Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  1A4:  				Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1BC:  				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1D0:  				Wait  10`
+  1DC:  				Call  SetCamPitch   ( .Cam:Default *Fixed[4.0] *Fixed[-7.5] )
+  1F4:  				Call  SetCamSpeed   ( .Cam:Default *Fixed[0.15] )
+  208:  				Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  220:  				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  234:  				Wait  30`
+  240:  				Set   *Var0  $Script_80241108
+  250:  				ExecWait  EnterWalk
+  25C:  				Wait  20`
+  268:  				Set   *GF_HOS04_Visited  .True
+  278:  				Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  290:  				Call  UseSettingsFrom   ( .Cam:Default *Var0  0` *Var2 )
+  2AC:  				Call  SetPanTarget  ( .Cam:Default *Var0  0` *Var2 )
+  2C8:  				Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  2DC:  				Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2F4:  				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  308:  				Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  320:  				Set   *AreaFlag[0B5]  .True
+						Thread
+							Wait  10`
+							Call  ShowMessageAtScreenPos    ( 001F00AA  160`  40` ) % Display song title
+						EndThread
+  330:  				Call  DisablePlayerInput    ( .False )
+  340:  			EndThread
+  348:  		Else
+  350:  			Set   *Var0  $Script_80241108
+  360:  			Exec  EnterWalk
+  36C:  			Wait  1`
+  378:  		EndIf
+  380:  	Case  ==  ~Entry:Entry1
+  38C:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitnw 7FFFFE00 )
+  3A4:  		Set   *Var0  $Script_80241108
+  3B4:  		Exec  EnterWalk
+  3C0:  	Case  ==  ~Entry:Entry2
+  3CC:  		Exec  $Script_802421E0
+  3D8:  	Case  ==  ~Entry:Entry3
+  3E4:  		ExecWait  $Script_80241E48
+  3F0:  	Case  ==  ~Entry:Entry4
+  3FC:  		ExecWait  $Script_80241B8C
+  408:  	Case  ==  00000005
+  414:  		Call  EnableGroup   ( ~Model:g1 .False )
+  428:  		Exec  $Script_802425C0
+  434:  	Case  ==  00000006
+  440:  		Call  EnableGroup   ( ~Model:g1 .False )
+  454:  		Exec  $Script_80242A64
+  460:  	Case  ==  00000007
+  46C:  		Call  EnableGroup   ( ~Model:g1 .False )
+  480:  		Exec  $Script_80242E14
+  48C:  EndSwitch
+  494:  Return
+  49C:  End
 }
 
 
@@ -58,12 +139,15 @@
   1EC:  Call  EnableTexPanning  ( ~Model:o462 .True )
   200:  Call  EnableTexPanning  ( ~Model:o469 .True )
 		Call     802C9000 	( ~Model:star1 3 )
+		Call     802C9000 	( ~Model:o469 3 )
+		Call     802C9000 	( ~Model:o462 3 )
 		Call     802C9000 	( ~Model:o275 1 )
 		Call     802C9000 	( ~Model:o405 1 )
 		Call     802C9000 	( ~Model:o412 1 )
 		Call     802C9000 	( ~Model:o416 1 )
 		Call     802C9000 	( ~Model:o444 1 )
 		Call     802C9000 	( ~Model:o442 1 )
+		Call     802C9000 	( ~Model:o443 1 )
 		Call     802C9000 	( ~Model:o444 1 )
 		Call     802C9000 	( ~Model:o445 1 )
 		Call     802C9000 	( ~Model:o446 1 )
@@ -75,8 +159,10 @@
 		Call     802C9000 	( ~Model:o452 1 )
 		Call     802C9000 	( ~Model:o453 1 )
 		Call     802C9000 	( ~Model:o455 1 )
-  214:  Call  SetModelCustomGfx ( ~Model:o469 00000000 FFFFFFFF )
-  22C:  Call  SetModelCustomGfx ( ~Model:o462 00000000 FFFFFFFF )
+		Call     802C9000 	( ~Model:o474 1 )
+		Call     802C9000 	( ~Model:o475 1 )
+		Call     802C9000 	( ~Model:o476 1 )
+		Call     802C9000 	( ~Model:o477 1 )
   244:  Call  SetModelCustomGfx ( ~Model:o465 00000001 FFFFFFFF )
   25C:  Call  SetModelCustomGfx ( ~Model:o461 00000001 FFFFFFFF )
   274:  Call  SetCustomGfxBuilders  ( 00000000 $Function_80240000 00000000 )

@@ -11,6 +11,65 @@
 	[EntryCount]  00000004
 }
 
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:MtLavalava
+   10:  Call  SetSpriteShading  ( .Shading:kzn_18 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .True $NpcGroupList_80241A4C )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_EnterWalk_80240B4C
+   9C:  Call  SetMusicTrack     ( 00000000 .Song:MtLavalava 00000000 00000008 )
+		If   *GF_KZN18_IntruderAlert  ==  .True
+			If  *GB_StoryProgress <  .Story:Ch5_DefeatedLavaPiranha
+				Call  SetMusicTrack ( 00000000 .Song:TutankoopaRevealed 00000001 00000008 )  %Boss approaching song
+			EndIf
+		EndIf
+   B8:  Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
+   C8:  If  *GB_StoryProgress  <  .Story:Ch5_OpenedEscapeRoute % 25
+   D8:  	Call  EnableModel   ( ~Model:off1 .False )
+   EC:  	Call  EnableModel   ( ~Model:o506 .False )
+  100:  	Call  EnableModel   ( ~Model:o509 .False )
+  114:  	Call  EnableModel   ( ~Model:o511 .False )
+  128:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:off1 7FFFFE00 )
+  140:  Else
+  148:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:off2 7FFFFE00 )
+  160:  EndIf
+  168:  Call  ModifyColliderFlags   ( 00000003 ~Collider:off1 00000003 )
+  180:  Thread
+  188:  	Call  ResetFromLava ( $LavaResetList_80240B2C )
+  198:  EndThread
+  1A0:  Exec  $Script_8024087C
+  1AC:  Set   *Var0  00000026
+  1BC:  Exec  $Script_802404CC
+  1C8:  Set   *Var0  00000027
+  1D8:  Exec  $Script_802405E8
+		Call  $Function_SetupFog
+  1E4:  Return
+  1EC:  End
+}
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3CF  %Distance 1
+	JAL       8011BB74
+	ADDIU     A1, R0, 39D  %Distance 2
+	ADDIU     A0, R0, 96  %R
+	ADDIU     A1, R0, 0   %G
+	ADDIU     A2, R0, 0   %B
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
+
 #import EnterViaPipe.mpat
 
 @	$Script_MakeEntities
@@ -112,7 +171,7 @@
    E0:  Call  SetCamSpeed       ( .Cam:Default *Fixed[2.5] )
    F4:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
   10C:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
-  118:  Call  SetMusicTrack ( 00000000 .Song:KammyKoopaTheme 00000000 00000008 )
+  118:  Call  SetMusicTrack ( 00000000 .Song:TutankoopaRevealed 00000001 00000008 )  %Boss approaching song
   120:  Wait  8`
   12C:  Call  SetNpcPos ( .Npc:Self  285`  25`  35` )
   148:  Call  PlaySoundAtNpc    ( .Npc:Self .Sound:MoleSurface 00000000 )

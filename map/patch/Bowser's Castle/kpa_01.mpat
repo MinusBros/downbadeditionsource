@@ -14,6 +14,48 @@
     1`
 }
 
+#import AutoSave.mpat
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .True $NpcGroupList_80241574 )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_80240B00
+   9C:  Exec  $Script_EnterWalk_80240C74
+   A8:  Wait  1`
+   B4:  Exec  $Script_80240AB0
+		Exec  $AutoSave
+		Exec  $Script_CheckPos
+   C0:  Return
+   C8:  End
+}
+
+
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -420`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  30`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
+}
 
 @	$Script_MakeEntities
 {

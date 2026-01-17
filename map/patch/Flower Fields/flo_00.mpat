@@ -5,6 +5,33 @@
 #define .NpcID:Lakilulu_07          07
 #define .Npc:MrTrooper          08
 
+
+@	$EntryList
+{
+	~Vec4f:Entry0 %    0.0    0.0 -310.0  170.0
+	~Vec4f:Entry1 % -320.0    0.0 -335.0  135.0
+	~Vec4f:Entry2 % -470.0    0.0    0.0   90.0
+	~Vec4f:Entry3 % -320.0    0.0  335.0   45.0
+	~Vec4f:Entry4 %  320.0    0.0 -335.0  225.0
+	~Vec4f:Entry5 %  465.0    0.0    0.0  270.0
+	~Vec4f:Entry6 %  320.0    0.0  335.0  315.0
+	~Vec4f:Entry7 %  -30.0    0.0  120.0  270.0
+	~Vec4f:Entry8 %  -30.0    0.0  120.0  270.0
+	~Vec4f:Entry9 % -470.0    0.0    0.0   90.0
+	~Vec4f:EntryA %   40.0    0.0  -30.0  270.0
+	~Vec4f:EntryB
+}
+
+@	$Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  0000000C
+	[Background]  80200000
+	[MapTattle]   00190114
+}
+
+
 #new:Function $Function_SwapToGoombarius
 {
     0:  ADDIU     SP, SP, FFE8
@@ -36,6 +63,7 @@
 
 @	$Script_Main
 {
+		Call $ClearFlagCarryOverworldMusicToBattle()
     0:  Set   *GB_WorldLocation  .Location:FlowerFields
    10:  Call  SetSpriteShading  ( .Shading:None )
    20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
@@ -133,6 +161,160 @@
   5E0:  EndThread
   5E8:  Return
   5F0:  End
+}
+
+
+
+@	$Script_EnterWalk_8024205C
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80241FA4
+   38:  Else
+   40:  	Call  GetEntryID    ( *Var0 )
+   50:  	If  *Var0  !=  ~Entry:Entry8
+   60:  		Set   *AreaFlag[02C]  .False
+   70:  	EndIf
+   78:  	Switch  *Var0
+   84:  		Case  ==  ~Entry:Entry0
+   90:  			Thread
+   98:  				ExecWait  $Script_80241B90
+   A4:  				Exec  $Script_80241FA4
+   B0:  			EndThread
+   B8:  		Case  ~Entry:Entry1  to  ~Entry:Entry6
+   C8:  			Set   *Var0  $Script_80241FA4
+   D8:  			Exec  EnterWalk
+   E4:  		Case  ==  ~Entry:Entry7
+   F0:  			Thread
+   F8:  				ExecWait  $Script_8024834C
+  104:  				Exec  $Script_80241FA4
+  110:  			EndThread
+  118:  		Case  ==  ~Entry:Entry8
+  124:  			Thread
+  12C:  				ExecWait  $Script_80247BCC
+  138:  				Exec  $Script_80241FA4
+  144:  			EndThread
+  14C:  		Case  ==  ~Entry:Entry9
+  158:  			Exec  $Script_80242998
+  164:  			Set   *Var0  $Script_80241FA4
+  174:  			Exec  EnterWalk
+  180:  		Case  ==  ~Entry:EntryA
+  18C:  			Exec  $Script_80241FA4
+  198:  		Case  ==  0000000B
+  1A4:  			Exec  $Script_80245EB8
+				Case  ==  ~Entry:EntryB
+					ExecWait  $Script_MarioDies
+  1B0:  	EndSwitch
+  1B8:  EndIf
+  1C0:  Bind  $Script_80242FCC .Trigger:WallPressA ~Collider:deilittn 00000001 00000000
+  1DC:  Return
+  1E4:  End
+}
+
+
+#new:Script $Script_MarioDies
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerPhysics  ( .True )
+   20:  Call  UseSettingsFrom       ( .Cam:Default  50`  0`  -200` )
+   3C:  Call  SetPanTarget  ( .Cam:Default  50`  0`  -200` )
+   58:  Call  SetCamDistance        ( .Cam:Default  700` )
+   6C:  Call  SetCamPitch   ( .Cam:Default *Fixed[10.0] *Fixed[-11.0] )
+   84:  Call  SetCamPosA    ( .Cam:Default  -27`  0` )
+   9C:  Call  SetCamPosB    ( .Cam:Default  0`  -50` )
+   B4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   C8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  SetPlayerAnimation    ( 00080013 )
+   F4:  Wait  20`
+		Call  SetPlayerJumpscale    (  1` )
+		Call  PlayerJump1   ( 40` 0` -30`  12` )
+		Call  SetPlayerAnimation    ( 00080009 )
+		Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[1.0] )
+		Call  FadeOutMusic  ( 00000000 000000E8 )
+  13C:  Wait  100`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  80`
+  148:  Return
+  150:  End
+}
+
+
+@	$Script_80242FCC
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Wait  2`
+   1C:  Call  GetPlayerActionState  ( *Var3 )
+   2C:  Set   *Var4  00000000
+   3C:  If  *Var3  ==  .ActionState:Idle % 0
+   4C:  	Add   *Var4  00000001
+   5C:  EndIf
+   64:  If  *Var3  ==  .ActionState:Walk % 1
+   74:  	Add   *Var4  00000001
+   84:  EndIf
+   8C:  If  *Var3  ==  .ActionState:Run % 2
+   9C:  	Add   *Var4  00000001
+   AC:  EndIf
+   B4:  If  *Var4  ==  00000000
+   C4:  	Call  DisablePlayerInput    ( .False )
+   D4:  	Return
+   DC:  EndIf
+   E4:  If  *GB_StoryProgress  ==  .Story:Ch6_DestroyedPuffPuffMachine % 35
+   F4:  	Call  ShowMessageAtWorldPos ( 00110006  0`  50`  -200` ) % Oh, thank you, Mario. You did a tree-mendous job.  ...
+  110:  	Set   *GB_StoryProgress  .Story:Ch6_WisterwoodGaveHint
+  120:  	Call  DisablePlayerInput    ( .False )
+  130:  	Return
+  138:  EndIf
+  140:  If  *GB_StoryProgress  <  .Story:Ch6_ReturnedToToadTown % 3C
+  150:  	Call  ShowMessageAtWorldPos ( 0011000D  0`  50`  -200` ) % What ho...? What is it, son? Do you need something ...
+  16C:  	Call  ShowChoice    ( 001E001F ) % Talk Go back to Toad Town Stop
+  17C:  	Wait  1`
+  188:  	Switch  *Var0
+  194:  		Case  ==  00000000
+  1A0:  			Switch  *GB_StoryProgress
+  1AC:  				Case  <  .Story:Ch6_GotMagicalBean % 2D
+  1B8:  					Call  SwitchMessage ( 0011000E ) % If a bean is what you seek, you ought to ask Petun ...
+  1C8:  				Case  <  .Story:Ch6_GotFertileSoil % 2E
+  1D4:  					Call  SwitchMessage ( 0011000F ) % Have you met Posie, by chance? She's a wonderful f ...
+  1E4:  				Case  <  .Story:Ch6_FilledSpringWithWater % 31
+  1F0:  					Call  SwitchMessage ( 00110010 ) % The spring water that flows where Lily the Flower  ...
+						Case  <  .Story:Ch6_LakilesterJoinedParty % 33
+							Call  SwitchMessage ( 00110011 ) % Jonathan might join soon
+  200:  				Case  <  .Story:Ch6_DestroyedPuffPuffMachine % 35
+  20C:  					Call  SwitchMessage ( 0011010A ) % New dialogue
+  21C:  				Case  <  .Story:Ch6_GrewMagicBeanstalk % 37
+  228:  					Call  SwitchMessage ( 00110007 ) % If you want to plant the bean, the best place is t ...
+  238:  				Case  <  .Story:Ch6_BeganPeachMission % 3A
+  244:  					Call  SwitchMessage ( 00110012 ) % Oh, Mario. Huff N. Puff is on Cloudy Climb. You ca ...
+  254:  				Default
+  25C:  					Call  SwitchMessage ( 00110013 ) % Thank you from the bottom of my trunk, Mario. It w ...
+  26C:  			EndSwitch
+  274:  		Case  ==  00000001
+  280:  			Call  CloseMessage ( )
+  28C:  			Exec  $Script_8024196C
+  298:  			Return
+  2A0:  		Case  ==  00000002
+  2AC:  			Call  CloseMessage ( )
+  2B8:  	EndSwitch
+  2C0:  Else
+  2C8:  	Call  ShowMessageAtWorldPos ( 00110014  0`  50`  -200` ) % What ho...? What is it, son? Do you need something ...
+  2E4:  	Call  ShowChoice    ( 001E001F ) % Talk Go back to Toad Town Stop
+  2F4:  	Wait  1`
+  300:  	Switch  *Var0
+  30C:  		Case  ==  00000000
+  318:  			Call  SwitchMessage ( 00110015 ) % Thanks to you, everyone in Flower Fields can live  ...
+  328:  		Case  ==  00000001
+  334:  			Call  CloseMessage ( )
+  340:  			Exec  $Script_8024196C
+  34C:  			Return
+  354:  		Case  ==  00000002
+  360:  			Call  CloseMessage ( )
+  36C:  	EndSwitch
+  374:  EndIf
+  37C:  Call  DisablePlayerInput    ( .False )
+  38C:  Return
+  394:  End
 }
 
 
@@ -384,6 +566,29 @@
 		Exec  $AutoSave
   968:  Return
   970:  End
+}
+
+
+
+@	$Script_Interact_802439E8
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch6_GotMagicalBean % 2D
+   18:  		Call  SpeakToPlayer ( .Npc:Self 00990303 00990302 00000000 0011002B ) % The sun can't come up because a thick cloud is com ...
+   38:  	Case  <  .Story:Ch6_GotFertileSoil % 2E
+   44:  		Call  SpeakToPlayer ( .Npc:Self 00990303 00990302 00000000 0011002C ) % Without sunlight, the seeds we have can't sprout,  ...
+   64:  	Case  <  .Story:Ch6_FilledSpringWithWater % 31
+   70:  		Call  SpeakToPlayer ( .Npc:Self 00990303 00990302 00000000 0011002D ) % Are you looking for water? You might try Lily's sp ...
+   90:  	Case  <  .Story:Ch6_DestroyedPuffPuffMachine % 35
+   9C:  		Call  SpeakToPlayer ( .Npc:Self 00990303 00990302 00000000 0011002E ) % You mean you're thinking of doing something to tha ...
+   BC:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+   E0:  				Call  SpeakToPlayer ( .Npc:Self 00990309 00990308 00000000 0011002F ) % Oh, it's the sun! The sun has come out! I knew you ...
+						Call  SpeakToPlayer ( .Npc:Self 00990309 00990308 00000000 00110030 ) % Mario, are you still on that dangerous adventure?  ...
+  154:  	Default
+  15C:  		Call  SpeakToPlayer ( .Npc:Self 00990309 00990308 00000000 00110031 ) % Now I'm going to grow and grow and produce lots an ...
+  17C:  EndSwitch
+  184:  Return
+  18C:  End
 }
 
 

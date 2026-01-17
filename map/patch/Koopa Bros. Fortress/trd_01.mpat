@@ -1,41 +1,4 @@
-@	$AISettings_802433F0
-{
-    2.5 % move speed
-    45` % move time
-    20` % wait time
-   70.0 % alert radius
-   50.0
-    10`
-    10.5 % chase speed
-    0`
-    0`
-   80.0 % chase radius
-   60.0
-    1`
-}
-
-@	$AISettings_802434BC
-{
-  110.0 % alert radius
-   65.0
-    8`
-    5.4 % chase speed
-    120`
-    2`
-  110.0 % chase radius
-   65.0
-    1`
-}
-
-
-@	$Script_Idle_8024352C
-{
-  [1C8]  Wait  3`
-  [360]  Wait  8`
-  [3BC]  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[6.0] )
-  [410]  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[7.2] )
-  [464]  Call  SetNpcSpeed       ( .Npc:Self *Fixed[3.5] )
-}
+#import  AutoSave.mpat
 
 @	$Script_Main
 {
@@ -76,6 +39,10 @@
   294:  Call  EnableModel   ( ~Model:o145 .False )
   2A8:  Exec  $Script_EnterDoubleDoor_8024181C
   2B4:  Wait  1`
+		Exec  $AutoSave
+		If    *GF_TRD01_ClimberStairs  == .False
+		   Exec  $Script_PartnerBlurb2
+		EndIf
   2C0:  Call  EnableTexPanning  ( ~Model:suimenn .True )
   2D4:  Thread
   2DC:  	Set   *Var0  00000001
@@ -95,4 +62,108 @@
   3B8:  EndThread
   3C0:  Return
   3C8:  End
+}
+
+
+@	$AISettings_802433F0
+{
+    2.5 % move speed
+    45` % move time
+    20` % wait time
+   70.0 % alert radius
+   50.0
+    10`
+    10.5 % chase speed
+    0`
+    0`
+   80.0 % chase radius
+   60.0
+    1`
+}
+
+@	$AISettings_802434BC
+{
+  110.0 % alert radius
+   65.0
+    8`
+    5.4 % chase speed
+    120`
+    2`
+  110.0 % chase radius
+   65.0
+    1`
+}
+
+
+@	$Script_Idle_8024352C
+{
+  [1C8]  Wait  3`
+  [360]  Wait  8`
+  [3BC]  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[6.0] )
+  [410]  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[7.2] )
+  [464]  Call  SetNpcSpeed       ( .Npc:Self *Fixed[3.5] )
+}
+
+@	$Script_Defeat_80243AF4
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_TRD01_Defeated_KoopaGuard  .True
+   38:  		Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   54:  		Call  PlaySound ( 0000000B )							
+   64:  		Call  MakeItemEntity    ( .Item:KoopaFortressKey *Var0 *Var1 *Var2 .ItemSpawnMode:Toss_NeverVanish *GF_TRD01_Item_FortressKey )
+   88:  		Exec  $Script_80242FD0
+				Exec  $Script_PartnerBlurb
+   94:  		Call  DoNpcDefeat ( )
+   A0:  	Case  ==  .Outcome:PlayerLost % 1
+   AC:  	Case  ==  .Outcome:PlayerFled % 2
+   B8:  EndSwitch
+   C0:  Return
+   C8:  End
+}
+
+
+
+#new:Script  $Script_PartnerBlurb
+{
+			Wait  30`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SetPlayerFlagBits ( 000000C0 .True )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000C0140 )
+					Wait  70`
+					Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0141 ) 
+			EndSwitch
+			Return
+			End
+}
+
+#new:Script  $Script_PartnerBlurb2
+{
+			Label  0
+			Wait  1`
+			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+			If  *Var1  < 325`
+				Goto  0
+			EndIf		
+			Set   *GF_TRD01_ClimberStairs  .True
+			Wait  30`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+						Call  SetPlayerFlagBits ( 000000C0 .True )
+						Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000C014D ) 
+						Wait  96`
+						Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C014E ) 
+				Case  ==  .Partner:Bombette 
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C014F ) 
+			EndSwitch
+			Return
+			End
 }

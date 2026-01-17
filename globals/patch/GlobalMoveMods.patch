@@ -150,6 +150,96 @@ ADDU 	S0, S0, V0
 
 
 
+
+
+%hooked over: setting hustle drink var to 0
+%so now we'll set it to 2 but only if you have the badge on
+@Hook 16FDA0 %802414C0
+{
+%Check for head start badge
+PUSH 	A0, A1, S0, V0, V1, RA
+%Anti hustle token init
+SAW		R0, $AntiHustleToken
+JAL     ~Func:is_ability_active %800E9D48
+ORI		A0, R0, 01    %Unused ability slot
+BEQ		V0, R0, .nope
+SB		R0, 8B (S4)
+ORI		V1, R0, 2
+SB		V1, 8B (S4) %set turn count to 2  %S4 contains the start of battle data at this point
+ORI		V1, R0, 1
+SAW		V1, $AntiHustleToken
+.nope
+%Add a check for file code 13
+LAB		A0, 800DBE00
+LI		V1, 13`
+BNE		A0, V1, .nocode13
+NOP
+ORI		V1, R0, 2
+SB		V1, 8B (S4) %set turn count to 2  %S4 contains the start of battle data at this point
+ORI		V1, R0, 1
+SAW		V1, $AntiHustleToken
+.nocode13
+%JAL		$GetCurseState
+NOP
+%Check AutoBlock
+JAL     $IsBadgeEquipped
+ORI		A0, R0, 175 %Auto Dodge
+%
+ORI		V0, R0, 1
+BNE		A0, R0, .yes
+NOP
+ORI		V0, R0, 0
+.yes
+SAB 	V0, $BattlePerks[2]
+%While we're here, also revert tattles to normal
+%JAL		$PopTattles
+%NOP
+%JAL		$PopNames
+%NOP
+%also reset flower power value (Failsafe 2)
+SAB		R0, $FlowerPowerBool
+SAW		R0, $FreebieCounter
+%Also reset outta sight cost
+LAW		V1, $OuttaSightAddress
+ORI		V0, R0, 5
+SB		V0, 0 (V1)
+%Reset hustle spell counter
+SAB		R0, $HustleSpellCounter
+%Reset air lift boolean too
+SAW		R0, $AirLiftBool
+%Saver init
+LI		A0, $ItemCostReductionData
+SB		R0, 0 (A0)		%str
+SB		R0, 1 (A0)		%count
+SB		R0, 2 (A0)		%yoshi cookie
+SB		R0, 3 (A0)		%???? extra value used for yoshi cookies
+%Add a check for file code 14
+LAB		A0, 800DBE00
+LI		V1, 14`
+BNE		A0, V1, .nocode14
+NOP
+LI		A0, 2
+SAB		A0, $ItemCostReductionData[2]
+LI		A0, 0
+SAB		A0, $ItemCostReductionData[3]
+.nocode14
+%eternal init
+LI 		A0, $EternalCostIncreases
+SB		R0, 0 (A0)
+%Miracle init
+LI		A0, $MiracleJellyData
+SB		R0, 0 (A0)		%turns
+SB		R0, 1 (A0)		%use count
+%Coin move use init
+SAW		R0, $Data_TurnsSinceUsedCoins
+POP 	A0, A1, S0, V0, V1, RA
+J		802414C8
+SB		R0, 93 (S4)
+%look in NewGamePlus.patch for the stuff that makes Super Curse actually work
+}
+
+
+
 %hard to change this stuff because of all the branches everywhere
 %Calculating defdown in damagetarget
 %80277810
@@ -194,6 +284,16 @@ ADDU 	S0, S0, V0
 
 
 
+#export:Data $HustleSpellCounter
+{
+	00000000
+}
+
+
+#export:Data $MagicBlastBool
+{
+	00000000
+}
 
 
 

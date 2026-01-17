@@ -125,6 +125,66 @@
 	[PowerBounce]   3`b
 }
 
+@	$Script_Init_8021BC1C
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021CCD4 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021BE28 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021BFD0 )
+   3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8021F9C4 )
+   50:  Call  HPBarToHome   ( .Actor:Self )
+   60:  Call  ForceHomePos  ( .Actor:Self  97`  70`  15` )
+   7C:  Call  SetPartPos    ( .Actor:Self 00000003  70`  70`  3` )
+   9C:  Call  SetPartPos    ( .Actor:Self 00000004  80`  70`  -7` )
+   BC:  Call  SetPartPos    ( .Actor:Self 00000005  60`  70`  -7` )
+   DC:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
+   F4:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+  10C:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+  124:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+  13C:  Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+  154:  Call  SetActorVar   ( .Actor:Self 00000002 00000003 )
+  16C:  Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
+  184:  Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
+  19C:  Call  SetActorVar   ( .Actor:Self 0000000A 00000000 )
+  1B4:  Call  SetActorVar   ( .Actor:Self 0000000B 00000000 )
+  1CC:  Call  SetActorVar   ( .Actor:Self 0000000C 00000000 )
+  1E4:  Call  SetActorVar   ( .Actor:Self 0000000D 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Tutankoopa 88` )
+		EndIf
+		Exec  $MonitorPos
+  1FC:  Return
+  204:  End
+}
+
+
+#new:Script  $MonitorPos
+{
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -85`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+	EndLoop
+	Set   *TutankoopaTurn .True
+	Exec  $ShowSong
+	Call  SetMusicTrack ( 00000000 .Song:TutankoopaBattle 00000000 00000008 ) 
+	Return
+	End
+}
+
+#new:Script $ShowSong
+{
+	Call  ActorSpeak        ( 001F006E .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return 
+	End
+}
+
 @	$StatusTable_8021BA28
 {
 	.Status:Normal      0`
@@ -658,6 +718,10 @@
 
 @	$Script_TakeTurn_8021CCD4
 {
+		If    *TutankoopaTurn  == .False
+			Set   *TutankoopaTurn .True
+			Call  SetMusicTrack ( 00000000 .Song:TutankoopaBattle 00000000 00000008 )
+		EndIf
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Label  0
@@ -699,6 +763,7 @@
 									   6C:  	Wait  10`
 									   78:  	Call  SetAnimation  ( .Actor:Self 00000001 00680003 )
 									   90:  	Call  ActorSpeak    ( 000D00FD .Actor:Self 00000001 00680003 00680003 )
+												Call  SetMusicTrack ( 00000000 .Song:TutankoopaBattle 00000002 00000008 ) 
 												Set        *Var[8]  *Var[0] 
 												Call    SetTargetActor    ( .Actor:Self .Actor:Player )
 												Call    UseBattleCamPreset    ( 0000000E )

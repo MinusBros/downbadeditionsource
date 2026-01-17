@@ -14,6 +14,9 @@
 #define .NpcID:Penguin_13           0D
 #define .NpcID:ChuckQuizmo_14       0E
 
+
+
+
 #new:Function $Function_SwapToGoombarius
 {
     0:  ADDIU     SP, SP, FFE8
@@ -29,7 +32,45 @@
    28:  ADDIU     SP, SP, 18
 }
 
-
+@ $Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShiverCity
+   10:  Call  SetSpriteShading  ( .Shading:mim_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+   40:  Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Switch  *GB_StoryProgress
+   90:  	Case  <  .Story:Ch7_MayorMurderMystery % 3F
+   9C:  		Call  MakeNpcs  ( .False $NpcGroupList_8024A178 )
+   B0:  	Case  <  .Story:Ch7_MayorMurderSolved % 43
+   BC:  		Call  MakeNpcs  ( .False $NpcGroupList_8024A1B4 )
+   D0:  	Case  >=  .Story:Ch7_MayorMurderSolved % 43
+   DC:  		Call  MakeNpcs  ( .False $NpcGroupList_8024A1F0 )
+   F0:  EndSwitch
+		If  *GB_StoryProgress  == .Story:Ch7_GotSnowmanScarf
+				Set   *AreaFlag[008] .True
+		EndIf
+   F8:  ExecWait  $Script_MakeEntities
+  104:  ExecWait  $Script_80241FB0
+  110:  Exec  $Script_80242174
+  11C:  ExecWait  $Script_802431BC
+  128:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o341 00000008 )
+  140:  Call  ModifyColliderFlags   ( 00000003 ~Collider:f_noki 00000008 )
+  158:  Call  ModifyColliderFlags   ( 00000003 ~Collider:m_noki 00000008 )
+  170:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o398 00000008 )
+  188:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o399 00000008 )
+  1A0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o402 00000008 )
+  1B8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o408 00000008 )
+  1D0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o409 00000008 )
+  1E8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deilie 00000008 )
+  200:  Set   *Var0  $Script_80242148
+  210:  Exec  EnterWalk
+  21C:  Wait  1`
+  228:  Exec  $Script_802423E8
+  234:  Return
+  23C:  End
+}
 
 %I decided to give Lucky Day to Mayor Penguin so that
 %you can still get it in Chapter 7, but not required
@@ -62,6 +103,79 @@
   [628]  ExecWait  $Script_AddLuckyDay
 }
 
+
+@	$Script_80245D40
+{
+   [F0]  		Call  SetNpcAnimation   ( .Npc:Partner 0004000B )
+  [280]  		Call  SetNpcAnimation   ( .Npc:Partner 0004000C )
+}
+
+@	$Script_Interact_80246D90
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch7_GotSnowmanScarf % 3F
+   18:  		If  *GF_SAM01_Met_MayorsWife  ==  .False
+   28:  			Call  SpeakToPlayer ( .Npc:Self 00CF0004 00CF0001 00000000 00120000 ) % Oh, we have a guest! Welcome! You poor man, you mu ...
+   48:  			Set   *GF_SAM01_Met_MayorsWife  .True
+   58:  		Else
+   60:  			Call  SpeakToPlayer ( .Npc:Self 00CF0004 00CF0001 00000000 00120001 ) % If you'd like to see my husband, he's in the other ...
+   80:  		EndIf
+			Case  <  .Story:Ch7_SpokeWithHerringway
+				Call  SpeakToPlayer ( .Npc:Self 00CF0008 00CF0007 00000000 0012001C ) % You killed him, didn't you? I knew my instincts we ...
+   88:  	Case  <  .Story:Ch7_GotSnowmanBucket % 43
+   94:  		Call  SpeakToPlayer ( .Npc:Self 00CF0004 00CF0001 00000000 00120011 ) % New dialogue
+   B4:  	Case  <  .Story:Ch7_GotSnowmanScarf % 48
+   C0:  		Call  SpeakToPlayer ( .Npc:Self 00CF0005 00CF0001 00000000 00120035 ) % Uh...I knew you were innocent the whole time! A ba ...
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If  *Var0  ==  .Partner:Goombario % 2
+						Wait  4`
+						Call  DisablePartnerAI  ( 00000000 )
+						Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 00120012 ) % 
+						Call  SetNpcAnimation   ( .Npc:Self 00CF0009 )
+						Call  SpeakToPlayer ( .Npc:Self 00CF0009 00CF0009 00000000 00120006 )
+						Call  SetNpcAnimation   ( .Npc:Partner 00010017 )
+						Call  SpeakToPlayer    ( .Npc:Partner 00010018 00010017 00000005 00120013 ) % 
+						Thread
+							Call  SetNpcAnimation   ( .Npc:Self 00CF000B )
+							Wait  10`
+							Call  SetNpcAnimation   ( .Npc:Self 00CF0001 )
+						EndThread
+						Call  EnablePartnerAI ( )
+				EndIf				
+   E0:  	Case  <  .Story:Ch7_GotSnowmanBucket % 49
+   EC:  		Call  SpeakToPlayer ( .Npc:Self 00CF0005 00CF0001 00000000 00120036 ) % Hi there! How are you? Herringway's mystery novels ...
+				ExecWait  $GoombariusInteraction2
+  10C:  	Case  <  .Story:Ch7_StarSpiritRescued % 57
+  118:  		Call  SpeakToPlayer ( .Npc:Self 00CF0005 00CF0001 00000000 00120037 ) % Oh, hello there, Mario! My husband tells me you're ...
+				ExecWait  $GoombariusInteraction2
+  138:  	Case  >=  .Story:Ch7_StarSpiritRescued % 57
+  144:  		Call  SpeakToPlayer ( .Npc:Self 00CF0005 00CF0001 00000000 00120038 ) % My husband says that you're preparing to fight Bow ...
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If  *Var0  ==  .Partner:Goombario % 2
+						Wait  4`
+						Call  DisablePartnerAI  ( 00000000 )
+						Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 00120017 ) % 
+						Call  EnablePartnerAI ( )
+				EndIf	
+  164:  EndSwitch
+  16C:  Return
+  174:  End
+}
+
+#new:Script $GoombariusInteraction2
+{
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If  *Var0  ==  .Partner:Goombario % 2
+						Wait  4`
+						Call  DisablePartnerAI  ( 00000000 )
+						Call  SpeakToPlayer    ( .Npc:Partner 0001000F 0001000E 00000005 00120014 ) % 
+						Call  SpeakToPlayer ( .Npc:Self 00CF0004 00CF0001 00000000 00120015 )
+						Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 00120016 ) % 
+						Call  EnablePartnerAI ( )
+				EndIf	
+				Return
+				End
+}
 
 %Redo this cutscene to swap out Goombarius before it.
 
@@ -331,7 +445,7 @@
  13DC:  Call  SetNpcFlagBits        ( .NpcID:MayorPenguin_00 00000100 .False )
  13F4:  Call  SetNpcFlagBits        ( .NpcID:MayorPenguinWife_02 00000100 .False )
  140C:  Call  EnablePartnerAI ( )
- 1418:  Set   *GB_StoryProgress  .Story:Ch7_MayorMurderMystery
+ 1418:  Set   *GB_StoryProgress  .Story:Ch7_GotSnowmanScarf
  1428:  Set   *GB_SAM11_FrozenPondDamage  00000000
  1438:  Set   *MapVar[0]  00000000
  1448:  Set   *MapVar[1]  00000000
@@ -340,6 +454,8 @@
  1478:  Return
  1480:  End
 }
+
+
 
 
 
@@ -419,6 +535,16 @@
 }
 
 
+@	$Script_Interact_802470A0
+{
+   [30]  				Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 00120045 ) % A really shady individual came to the city recentl ...
+   [6C]  				Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 00120046 ) % A really shady individual came to the city recentl ...
+   [C8]  				Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 00120047 ) % Ha! I'm not going to help you. I don't socialize w ...
+  [104]  				Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 00120048 ) % Ha! I'm not going to help you. I don't socialize w ...
+  [160]  				Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 00120049 ) % So...you weren't the criminal after all, huh? Ha h ...
+  [19C]  				Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 0012004A ) % So...you weren't the criminal after all, huh? Ha h ...
+  [1E0]  		Call  SpeakToPlayer ( .Npc:Self 009A0104 009A0101 00000000 0012004B ) % I've heard that all the Star Spirits made it back  ...
+}
 
 
 @	$Script_ToggleVis_80242DC4
@@ -482,6 +608,131 @@
    7C:  EndSwitch
    84:  Return
    8C:  End
+}
+
+%Thought this thing from Dark Star was fooni, so add it for no reason
+%Spawn Cody when the conditions are right
+
+%Appear when...
+%	Exit a building
+%	Enter the map with the right story progress
+
+%Disappear when...
+%	Mario enters the room that you use to access the attack fx badge
+%	
+
+%*AreaFlag[008] is now the Cody visibility flag
+
+#new:NpcGroup $NpcGroup_Cody
+{
+	00000010 $NpcSettings_802436D0 ~Vec3f:NPC_Cody % -272 0 -180
+	00400C09 $Script_Init_Cody 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Cody
+	~AnimationTable:NPC_Cody
+	00000000 00000000 00000000 $PermaTattle
+}
+
+@	$NpcGroupList_8024A1F0
+{
+	00000009 $NpcGroup_80248468 00000001
+	00000001 $NpcGroup_80249F88 00000000
+	00000001 $NpcGroup_Cody     00000000
+	00000000 00000000 00000000
+}
+
+#new:Script $Script_Init_Cody
+{
+   14:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_Cody )
+		Call  BindNpcInteract       ( .Npc:Self $Script_Interact_Cody )
+		Call  BindNpcIdle       ( .Npc:Self $Script_Idle_Cody )
+		Call  BindNpcDefeat       ( .Npc:Self $Script_Defeat )
+   8C:  Return
+   94:  End
+}
+
+#new:Script $Script_Idle_Cody
+{
+	Label 0
+	Wait 1
+	If  *GB_StoryProgress < .Story:Ch7_GotSnowmanScarf
+		Set *AreaFlag[008] .False
+	EndIf
+	If  *GB_StoryProgress  >=  .Story:Ch7_GotSnowmanBucket % 43
+		Set *AreaFlag[008] .False
+	EndIf
+	If *AreaFlag[008] == .True
+		If *MapFlag[9] == .True
+			Return	%get rid of this script afterwards
+		Else
+			Call  SetNpcPos ( .Npc:Self -2` 107` -79` )
+		EndIf
+	Else
+		Call  SetNpcPos ( .Npc:Self 00000000 FFFFFC18 00000000 )
+	EndIf
+	Goto 0
+	Return
+	End
+}
+
+#new:Script $Script_Interact_Cody
+{
+	Call	 DisablePlayerInput ( .True )
+	Call	 DisablePlayerInput ( .False )
+	Set 	 *MapFlag[9]	.True
+	Return
+	End
+}
+
+
+#new:Script $Script_Defeat
+{
+	Return
+	End
+}
+
+
+
+@ $Script_OpenDoor_802427F0
+{
+		If *GB_StoryProgress < .Story:Ch7_GotSnowmanBucket
+			Set   *AreaFlag[008] .True
+		EndIf
+    0:  Call  RotateModel   ( ~Model:o235 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+@ $Script_OpenDoor_80242E70
+{
+		If *GB_StoryProgress < .Story:Ch7_GotSnowmanBucket
+			Set   *AreaFlag[008] .True
+		EndIf
+    0:  Call  RotateModel   ( ~Model:o336 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+@ $Script_OpenDoor_80242CEC
+{
+		Set   *AreaFlag[008] .False
+    0:  Call  RotateModel   ( ~Model:o253 *Var0 FFFFFFFF 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+@ $Script_OpenDoor_80242EA0
+{
+		Set   *AreaFlag[008] .False
+    0:  Call  RotateModel   ( ~Model:o402 *Var0 FFFFFFFF 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+
+#new:String $PermaTattle
+{
+	[Style Tattle][EnableCDownNext]Cody[Wait][End]
 }
 
 

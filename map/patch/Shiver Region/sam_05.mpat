@@ -1,6 +1,277 @@
+#define .NpcID:Gulpit_00            00
+#define .NpcID:Gulpit_01            01
+#define .NpcID:PutridPiranha_02     02
+#define .NpcID:PutridPiranha_03     03
+#define .NpcID:PutridPiranha_04     04
+#define .NpcID:PutridPiranha_05     05
+#define .NpcID:Monstar_06           06
+#define .NpcID:Twink_07             07
+#define .NpcID:Twink_08             08
+#define .NpcID:Twink_09             09
+#define .NpcID:Twink_10             0A
+#define .NpcID:Twink_11             0B
+#define .NpcID:Twink_12             0C
+#define .NpcID:Twink_13             0D
+#define .NpcID:Twink_14             0E
+#define .NpcID:Twink_15             0F
+#define .NpcID:Twink_16             10
+#define .NpcID:Twink_17             11
+#define .NpcID:Twink_18             12
+#define .NpcID:Twink_19             13
+#define .NpcID:Twink_20             14
+#define .NpcID:Twink_21             15
+#define .NpcID:Twink_22             16
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -730.0    0.0  -45.0   90.0
+	~Vec4f:Entry1 %  735.0   95.0  -50.0  270.0
+}
+
 %Monstar gets its own boss theme.
 
 @	$Script_NpcAI_80242688
 {
-   [50]  Call  StartBossBattle   ( .Song:MailCall )
+   [50]  Call  StartBossBattle   ( .Song:MailCall ) % 2D_301.bgm
+}
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeItemEntity    ( .Item:Letter06 ~Vec3d:Item802420B0 .ItemSpawnMode:Fixed_NeverVanish *GF_SAM05_Item_Letter06 )
+   24:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity802420D4 .Item:StopWatch 80000000 )
+   4C:  Call  AssignBlockFlag   ( *GF_SAM05_HiddenItem_StopWatch )
+		Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+   5C:  Return
+   64:  End
+}
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShiverSnowfield
+   10:  Call  SetSpriteShading  ( .Shading:mim_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  If  *GB_StoryProgress  <  .Story:Ch7_DefeatedMonstar % 45
+   80:  	Call  MakeNpcs  ( .False $NpcGroupList_80245D94 )
+   94:  Else
+   9C:  	Call  MakeNpcs  ( .False $NpcGroupList_80245DD0 )
+   B0:  EndIf
+   B8:  ExecWait  $Script_MakeEntities
+   C4:  ExecWait  $Script_80241DA0
+   D0:  Call  PlayEffect    ( ~FX:Snowfall 00000078 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  114:  Call  ModifyColliderFlags   ( 00000003 ~Collider:ground 00000008 )
+  12C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o55 00000008 )
+  144:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o59 00000008 )
+  15C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o60 00000008 )
+  174:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deilie 00000008 )
+  18C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deiliw 00000008 )
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80241E88
+   38:  	Return
+   40:  EndIf
+  1A4:  Set   *Var0  $Script_80241E88	
+  1B4:  Exec  EnterWalk
+  1C0:  Wait  1`
+  1CC:  Return
+  1D4:  End
+}
+
+
+@	$Script_80245E00
+{
+    0:  Set   *Flag[00]  .False
+   10:  Label  0
+   1C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   34:  Wait  1`
+   40:  If  *Var0  <  480`  %Give the player a chance to save/get the hidden block
+   50:  	Goto  0
+   5C:  EndIf
+   64:  Call  DisablePlayerInput    ( .True )
+   74:  Call  802D2B6C ( )
+   80:  Call  SetMusicTrack ( 00000000 .Song:MonstarTheme 00000000 00000008 )
+   9C:  Call  ShowMessageAtScreenPos    ( 001200E0  160`  40` ) % Boooooaaaaahhhh!!
+   B4:  Call  SetNpcAnimation       ( .Npc:Self 007E0001 )
+   C8:  Call  SetNpcPos     ( .NpcID:Monstar_06  635`  200`  0` )
+   E4:  Call  NpcMoveTo     ( .NpcID:Monstar_06  615`  0`  10` )
+  100:  Label  2
+  10C:  Call  GetNpcPos     ( .NpcID:Monstar_06 *Var0 *Var1 *Var2 )
+  128:  Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+  144:  Call  SetCamDistance        ( .Cam:Default *Fixed[250.0] )
+  158:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-15.0] )
+  170:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  184:  Add   *Var0  FFFFFFE7
+  194:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  1B0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1C8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1DC:  If  *Flag[00]  ==  .False
+  1EC:  	Call  SetNpcPos ( .NpcID:Monstar_06  615`  200`  0` )
+  208:  	Wait  1`
+  214:  	Set   *Flag[00]  .True
+  224:  EndIf
+  22C:  Call  SpeakToPlayer ( .NpcID:Monstar_06 007E0009 007E0001 00000100  50`  100` 001200E1 ) % Tuuuuurn back. Coooome no farther. Tuuuurn away, o ...
+  254:  Call  SetPlayerPos  (  495`  168`  0` )
+  26C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  284:  Call  GetNpcPos     ( .NpcID:Monstar_06 *Var3 *Var4 *Var5 )
+  2A0:  AddF  *Var0  *Var3
+  2B0:  AddF  *Var1  *Var4
+  2C0:  AddF  *Var2  *Var5
+  2D0:  DivF  *Var0  *Fixed[2.0]
+  2E0:  DivF  *Var1  *Fixed[2.0]
+  2F0:  DivF  *Var2  *Fixed[2.0]
+  300:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  31C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  338:  Call  SetCamDistance    ( .Cam:Default *Fixed[425.0] )
+  34C:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-9.5] )
+  364:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  378:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  390:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  3A4:  Wait  5`
+  3B0:  Call  SpeakToPlayer ( .NpcID:Monstar_06 007E0009 007E0001 00000100  0`  100` 001200E2 ) % Whaaaaat do you think? Scaaaary monster, aren't I? ...
+  3D8:  Call  ShowChoice    ( 001E0015 ) % Go back Fight
+  3E8:  If  *Var0  ==  00000000
+  3F8:  	Call  ContinueSpeech    ( .NpcID:Monstar_06 007E000B 007E000B 00000100  0`  100` 001200E3 ) % Yeeeeees. Veeeerrrry good. Veeeeerrry smart.
+			 Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  134:  		Call  SetNpcJumpscale   ( .NpcID:Monstar_06 *Fixed[0.01] )
+				Add   *Var2  3`
+				Sub   *Var1  30`
+  148:  		Call  NpcJump1  ( .NpcID:Monstar_06  *Var0 *Var1 *Var2 0000001C )
+				
+				Call  DisablePlayerPhysics  ( .True )
+				Call  SetPlayerAnimation    ( 00010025 )
+				Wait  30`
+				Call  FadeOutMusic      ( 00000000 0000019C )
+				Call  SetPlayerAnimation    ( 00080029 )
+				Call  SetNpcJumpscale   ( .NpcID:Monstar_06 *Fixed[0.01] )
+  148:  		Call  NpcJump1  ( .NpcID:Monstar_06  600` 200` 0` 0000001C )
+				Wait  100`
+				Call  GotoMap   ( "gv_01" 00000002 )
+				Wait  100`
+				Return
+  60C:  Else
+  614:  	Call  CloseMessage ( )
+  620:  	Call  SetNpcAnimation   ( .Npc:Self 007E000E )
+  634:  	Call  GetNpcPos     ( .NpcID:Monstar_06 *Var0 *Var1 *Var2 )
+  650:  	Add   *Var0  FFFFFFDD
+  660:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  67C:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  698:  	Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  6AC:  	Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-12.0] )
+  6C4:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  6D8:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  6F0:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  704:  	Call  SpeakToPlayer ( .NpcID:Monstar_06 007E000E 007E000E 00000100  0`  200` 001200E4 ) % Whaaat! Youuuu will regret this!
+  72C:  	Call  SetNpcVar     ( .NpcID:Monstar_06 00000000 00000001 )
+  744:  EndIf
+  74C:  Return
+  754:  End
+}
+
+
+%Change Monstar to just fade out and not show Star Kids
+
+@	$Script_80246CDC
+{
+    0:  Call  ClearDefeatedEnemies ( )
+    C:  Call  SetNpcFlagBits    ( .NpcID:Monstar_06 00000200 .False )
+   24:  Call  SetNpcPos     ( .NpcID:Monstar_06  615`  202`  -4` )
+   40:  Call  SetNpcAnimation   ( .Npc:Self 007E000C )
+   54:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   6C:  Call  GetNpcPos     ( .NpcID:Monstar_06 *Var3 *Var4 *Var5 )
+   88:  AddF  *Var0  *Var3
+   98:  AddF  *Var1  *Var4
+   A8:  AddF  *Var2  *Var5
+   B8:  DivF  *Var0  *Fixed[2.0]
+   C8:  DivF  *Var1  *Fixed[2.0]
+   D8:  DivF  *Var2  *Fixed[2.0]
+   E8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  104:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  120:  Call  SetCamDistance    ( .Cam:Default *Fixed[375.0] )
+  134:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-9.5] )
+  14C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  160:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  178:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  18C:  Call  SpeakToPlayer ( .NpcID:Monstar_06 007E000C 007E000C 00000100  170`  150` 001200E8 ) % Noooo! Ruuuuun away!
+  1B4:  ExecWait  $Script_80246A38
+  1C0:  Set   *GB_StoryProgress  .Story:Ch7_DefeatedMonstar
+  1D0:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  1E8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  204:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  220:  Call  SetCamDistance    ( .Cam:Default *Fixed[450.0] )
+  234:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-5.0] )
+  24C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  260:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  274:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  28C:  Exec  $Script_80241DA0
+  298:  Call  DisablePlayerInput    ( .False )
+  2A8:  Return
+  2B0:  End
+}
+
+@	$Script_80246A38
+{
+    0:  UseIntBuffer  $IntTable_8024655C
+   74:  Call  PlaySoundAtNpc    ( .NpcID:Monstar_06 0000013D 00000000 )
+   8C:  Thread
+   94:  	Call  NpcMoveTo ( .NpcID:Monstar_06  615`  -5`  10` )
+   B0:  EndThread
+   C4:  Call  MakeLerp  ( 000000DC 00000000 0000005A .Easing:CosInOut )
+   E0:  Label  0
+   EC:  Call  UpdateLerp ( )
+   F8:  Call  SetNpcVar ( .NpcID:Monstar_06 00000003 *Var0 )
+  110:  Set   *Var2  000000FF
+  120:  Sub   *Var2  *Var0
+  130:  UseIntBuffer  $IntTable_8024655C
+  13C:  Loop
+  148:  	Get4Int  *VarA *Var9 *Var9 *Var9
+  160:  	If  *VarA  ==  FFFFFFFF
+  170:  		BreakLoop
+  178:  	EndIf
+  180:  	Call  802CFD30  ( *VarA 00000007 *Var2 00000000 00000000 00000000 )
+  1A4:  EndLoop
+  1AC:  Wait  1`
+  1B8:  If  *Var1  ==  00000001
+  1C8:  	Goto  0
+  1D4:  EndIf
+  1DC:  Call  SetNpcPos ( .NpcID:Monstar_06  0`  -1000`  0` )
+  210:  Set   *VarB  00000000
+  288:  Wait  20`
+  294:  Return
+  29C:  End
+}
+
+
+@	$AISettings_80242234
+{
+    1.5 % move speed
+    60` % move time
+    15` % wait time
+  120.0 % alert radius
+    0.0
+    10`
+    5.5 % chase speed
+    180`
+    20`
+  150.0 % chase radius
+    0.0
+    1`
+}
+
+@	 $AISettings_802423F8
+{
+    0.0 % move speed
+    3` % move time
+    3` % wait time
+  200.0 % alert radius
+    0.0
+    1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    0`
 }

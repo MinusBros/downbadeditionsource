@@ -101,9 +101,9 @@
   488:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   4A0:  Call  802D2C14      ( 00000000 )
   4B0:  Wait  10`
+			Call  DisablePartnerAI  ( 00000000 )
   4BC:  Call  GetCurrentPartnerID   ( *Var0 )
   4CC:  If  *Var0  ==  .Partner:Lakilester % 8
-			Call  DisablePartnerAI  ( 00000000 )
 			Call  SpeakToPlayer ( .Npc:Partner 0008000B 00080008 00000005 001100F9 )  %New Jonathan line
   4DC:  	Call  ShowMessageAtWorldPos ( 001100CD  630`  120`  0` ) % Is that you, Spike?! So! You have betrayed me! You ...
   4F8:  Else
@@ -116,10 +116,11 @@
   500:  			Call  ShowMessageAtWorldPos ( 001100CC  630`  120`  0` ) % I must tell you, King Bowser ordered me to defeat  ...
 				EndIf
   51C:  EndIf
-		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffBattle 00000000 00000008 )
+		
 		Wait  20`
 		Call  EnablePartnerAI ( )
-		Call  802D5FA4  ( 00000005 )
+		%Call  802D5FA4  ( 00000005 )
+		Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
   524:  ChildThread
   52C:  	Wait  15`
   538:  	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
@@ -231,6 +232,8 @@
   150:  	Call  $Function_80240B00 ( )
   15C:  EndIf
   164:  Exec  $Script_80240E3C
+		Exec  $Script_CheckPos
+		Exec  $Script_CheckPosSave
 		Call  GetLoadType   ( *Var1 )
 		If  *Var1  ==  00000001
 			Exec  EnterSavePoint
@@ -240,4 +243,39 @@
 		Exec  EnterWalk
   170:  Return
   178:  End
+}
+
+%Add something funny if you fall off the map
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -255`
+		Wait  1`
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Call  GotoMap       ( "flo_00" 0000000C )
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
+}
+
+#import AutoSave.mpat
+
+#new:Script $Script_CheckPosSave
+{
+	Loop
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var0  > 410`
+		If  *Var1  == 104`
+		Exec  $AutoSave
+		BreakLoop
+		EndIf
+	EndIf
+	EndLoop
+	Return
+	End
 }

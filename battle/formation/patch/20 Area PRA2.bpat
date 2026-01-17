@@ -11,14 +11,52 @@
 	[PowerBounce]   3`b
 }
 
+@	$Stage_802214D4
+{
+	$ASCII_80221608  % sam_tex
+	$ASCII_802215F8  % sam_bt04_shape
+	$ASCII_802215E8  % sam_bt04_hit
+	$Script_BeforeBattle_80221498
+	$Script_AfterBattle_802214C4
+	00000000  % no background for this one
+	00000000
+	00000000
+	00000000
+	00000000
+}
+
 
 @	$Script_BeforeBattle_80221498
 {
-    0:  Call  SetSpriteShading  ( 00070000 )
    10:  Exec  $Script_802211F0
+   2C:  Set   *Var0  0000000D
+   3C:  Set   *Var1  00000001
+   4C:  Exec  $TexPanner
+   2C:  Set   *Var0  0000000F
+   3C:  Set   *Var1  00000002
+   4C:  Exec  $TexPanner   
    1C:  Return
    24:  End
 }
+
+#new:Script $TexPanner
+{
+    0:  Set   *VarA  *Var1
+   10:  Call  SetTexPanner  ( *Var0 *Var1 )
+   24:  Set   *Var0  00000000
+   34:  Set   *Var1  00000000
+   44:  Loop
+   50:  	Call  SetTexPanOffset   ( *VarA 00000000 *Var0 00000000 )
+   6C:  	Call  SetTexPanOffset   ( *VarA 00000001 *Var1 00000000 )
+   88:  	Sub   *Var0  FFFFFCD4
+   98:  	Sub   *Var1  FFFFFC0C
+   A8:  	Wait  1`
+   B4:  EndLoop
+   A0:  Return
+   A8:  End
+}
+
+
 
 
 @	$Script_Init_80218B40
@@ -35,8 +73,41 @@
    B4:  Call  SetActorVar   ( .Actor:Self 00000004 00000201 )
    CC:  Call  SetActorVar   ( .Actor:Self 00000005 00000202 )
    E4:  Call  SetActorVar   ( .Actor:Self 00000006 00000203 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $CrystalKing 150` )
+		EndIf
+		Exec  $MonitorPos
    FC:  Return
   104:  End
+}
+
+
+#new:Script  $MonitorPos
+{
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -85`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+	EndLoop
+	Set   *CrystalKingTurn .True
+	Exec  $ShowSong
+	Call  SetMusicTrack ( 00000000 .Song:CrystalKingBattle 00000000 00000008 ) 
+	Return
+	End
+}
+
+#new:Script $ShowSong
+{
+	Call  ActorSpeak        ( 001F007B .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Return 
+	End
 }
 
 %Crystal King's animations speed up when he's low on HP.
@@ -139,6 +210,7 @@
 	Call  BattleCamTargetActor  ( .Actor:Self )
 	Call  MoveBattleCamOver (  20` )
 	Call  ActorSpeak        ( 00120181 .Actor:Self 00000001 007F001D 007F0009 )
+	Wait  10`
 	Call  EnableIdleScript  ( .Actor:Self 00000001 )
 	Call  UseIdleAnimation  ( .Actor:Self .True )
 	Return
@@ -185,6 +257,10 @@
 
 @	$Script_TakeTurn_8021AEEC
 {
+		If   *CrystalKingTurn == .False
+			Set   *CrystalKingTurn .True
+			Call  SetMusicTrack ( 00000000 .Song:CrystalKingBattle 00000000 00000008 ) 
+		EndIf
 		If  *GB_EnemyDefense  == 00000001
 			ExecWait $CrystalKingTaunt		
 		EndIf
@@ -279,9 +355,15 @@
   420:  			Else
   428:  				ExecWait  $Script_FrostBolt
   434:  			EndIf
+					If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+						ExecWait  $Script_FrostBreath
+					EndIf
   43C:  		Else
 					Exec  $ShowMessage4
   444:  			ExecWait  $Script_SpitAllRocks
+					If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+						ExecWait  $Script_FrostBreath
+					EndIf					
   450:  		EndIf
   458:  		Call  SetActorVar   ( .Actor:Self 00000001 00000003 )
   470:  	Case  ==  00000003
@@ -309,6 +391,9 @@
   650:  			Else
   658:  				ExecWait  $Script_FrostBolt
   664:  			EndIf
+					If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+						ExecWait  $Script_FrostBreath
+					EndIf
   538:  			Call  GetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
   550:  			ConstOR  *Var0 00000010
   560:  			Call  SetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
@@ -327,6 +412,13 @@
   5A4:  			Call  GetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
   5BC:  			ConstOR  *Var0 00000004
   5CC:  			Call  SetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
+					If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+						Call     GetActorHP  	( .Actor:Self *Var[5] )
+						If   *Var5  < 60`
+							Exec $ShowMessage5
+							ExecWait  $Script_TripleFrostBreath
+						EndIf
+					EndIf	
   5E4:  		EndIf
   5EC:  	Case  ==  00000004
   5F8:  		Call  CountPlayerTargets    ( .Actor:Self 00008002 *Var0 )
@@ -337,6 +429,17 @@
   650:  			Else
   658:  				ExecWait  $Script_FrostBolt
   664:  			EndIf
+					If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+						Call  RandInt       ( 1` *Var4 )
+						If  *Var4  == 0`
+						ExecWait  $Script_FrostBreath
+						Else
+							Exec  $ShowMessage2
+							ExecWait  $Script_SummonRocks
+							Exec  $ShowMessage4
+							ExecWait  $Script_SpitAllRocks
+						EndIf
+					EndIf
   66C:  			Call  SetActorVar   ( .Actor:Self 00000001 00000003 )
   684:  		Else
 					Exec $ShowMessage5
@@ -361,6 +464,13 @@
   72C:  		Call  GetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
   744:  		ConstOR  *Var0 00000004
   754:  		Call  SetActorVar   ( .Actor:Enemy0 00000000 *Var0 )
+					If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+						Call     GetActorHP  	( .Actor:Self *Var[5] )
+						If   *Var5  < 60`
+							Exec $ShowMessage5
+							ExecWait  $Script_TripleFrostBreath
+						EndIf
+					EndIf	
   76C:  EndSwitch
   774:  Return
   77C:  End
@@ -492,9 +602,10 @@
   16C:  	Add   *Var2  FFFFFFFE
   17C:  	Call  PlayEffect    ( ~FX:Sparkles:Star *Var0 *Var1 *Var2 00000008 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
   1C0:  EndIf
-  1C8:  Wait  8`
+		Wait  4`
   1D4:  Call  UseBattleCamPreset    ( 00000002 )
-  1E4:  Call  MoveBattleCamOver (  20` )
+  1E4:  Call  MoveBattleCamOver (  10` )
+  1C8:  Wait  4`
   1F4:  Call  SetAnimation      ( .Actor:Self 00000001 007F001C )
   20C:  Wait  1`
   218:  Call  PlaySoundAtActor  ( .Actor:Self 000002E0 )
@@ -633,7 +744,7 @@
 
 @	$CrystalClone
 {
-	[MaxHP]        200`b
+	[MaxHP]        180`b
 }
 
 
@@ -949,7 +1060,7 @@
   81C:  		SetConst  *Var1  007F0019
 			Thread		
 				Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000003 00000008 )  %Ending stinger
-				Wait  258`
+				Wait  269`
 				Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
 			EndThread
 				Wait  40`
@@ -1077,4 +1188,20 @@
   F98:  Call  UseIdleAnimation  ( .Actor:Self .True )
   FAC:  Return
   FB4:  End
+}
+
+
+@	$CrystalBitA
+{
+	[MaxHP]         4`b
+}
+
+@	$CrystalBitB
+{
+	[MaxHP]         4`b
+}
+
+@	$CrystalBitC
+{
+	[MaxHP]         4`b
 }

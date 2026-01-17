@@ -23,3 +23,89 @@
   148:  Return
   150:  End
 }
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:KoopaBrosFortress
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  SetRenderMode     ( ~Model:suimen 00000016 )
+   98:  If  *GB_StoryProgress  <  .Story:Ch1_LoweredFirstStairs % FFFFFFAA
+   A8:  	Call  MakeNpcs  ( .True $NpcGroupList_80245E98 )
+   BC:  Else
+   C4:  	Call  MakeNpcs  ( .True $NpcGroupList_80245E74 )
+   D8:  EndIf
+   E0:  ExecWait  $Script_MakeEntities
+   EC:  Exec  $Script_80243940
+   F8:  Set   *AreaFlag[004]  .False
+  108:  Call  ParentColliderToModel ( ~Collider:o86 ~Model:k_dan )
+  11C:  Call  ParentColliderToModel ( ~Collider:o87 ~Model:k_dan )
+  130:  If  *GB_StoryProgress  <  .Story:Ch1_LoweredFirstStairs % FFFFFFAA
+  140:  	Call  TranslateModel    ( ~Model:k_sokumen 00000000 000000BB 00000000 )
+  15C:  	Call  TranslateModel    ( ~Model:k_dan 00000000 000000BB 00000000 )
+  178:  	Call  TranslateModel    ( ~Model:k_kusari 00000000 000000BB 00000000 )
+  194:  	Call  UpdateColliderTransform   ( ~Collider:o86 )
+  1A4:  	Call  UpdateColliderTransform   ( ~Collider:o87 )
+  1B4:  	Bind  $Script_80244120 .Trigger:AreaFlagSet *AreaFlag[004] 00000001 00000000
+  1D0:  EndIf
+  1D8:  Exec  $Script_80244938
+  1E4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:ttw 7FFFFE00 )
+  1FC:  Call  EnableModel   ( ~Model:o34 .False )
+  210:  Call  EnableModel   ( ~Model:dai .False )
+  224:  Call  ModifyColliderFlags   ( 00000000 ~Collider:dai 7FFFFE00 )
+  23C:  Exec  $Script_EnterDoubleDoor_80243F04
+  248:  Wait  1`
+  254:  Call  EnableTexPanning      ( ~Model:suimen .True )
+		Exec  $Script_PartnerBlurb
+  268:  Thread
+  270:  	Set   *Var0  00000001
+  280:  	Set   *Var1  00000000
+  290:  	Set   *Var2  0000005A
+  2A0:  	Set   *Var3  FFFFFFC4
+  2B0:  	Set   *Var4  FFFFFFBA
+  2C0:  	Set   *Var5  00000001
+  2D0:  	Set   *Var6  00000001
+  2E0:  	Set   *Var7  00000001
+  2F0:  	Set   *Var8  00000001
+  300:  	Set   *Var9  00000000
+  310:  	Set   *VarA  00000000
+  320:  	Set   *VarB  00000000
+  330:  	Set   *VarC  00000000
+  340:  	Exec  $Script_UpdateTexturePan_80243980
+  34C:  EndThread
+  354:  Return
+  35C:  End
+}
+
+
+
+#new:Script  $Script_PartnerBlurb
+{
+			Label  0
+			Wait  1`
+			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+			If  *Var1  > -25`
+				Goto  0
+			EndIf
+			Call  RandInt   ( 00000002 *Var6 )
+			If    *Var6 == 0`
+				Return
+			EndIf
+			If    *GB_StoryProgress == .Story:Ch1_LoweredFirstStairs
+				Call  GetCurrentPartnerID   ( *Var0 )
+				Switch  *Var0
+					Case  ==  .Partner:Goombario % 1
+						Call  SetPlayerFlagBits ( 000000C0 .True )
+						Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0144 ) 
+						Wait  80`
+						Call  SetPlayerFlagBits ( 000000C0 .False )
+					Case  ==  .Partner:Kooper % 2
+						Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000C0145 ) % 
+				EndSwitch
+			EndIf
+			Return
+			End
+}

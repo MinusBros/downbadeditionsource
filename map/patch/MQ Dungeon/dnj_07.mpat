@@ -1,0 +1,168 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]These steps are nice and wide.[BR]
+They make a pretty grand[BR]
+staircase for such a creepy[BR]
+place.[BR]
+[Wait][Next]
+I suppose the builders had[BR]
+a sense of style, as well[BR]
+as a deranged psyche.[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou Depths
+	Call     SetSpriteShading 	( FFFFFFFF )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	Call     MakeNpcs       ( 00000001 $NpcGroups_KMR_33 )
+	       ExecWait $Script_MakeEntities 
+	Set		*Var[0] $Script_MakeExits 
+	Exec	EnterWalk 
+	Wait	1
+	Return
+	End
+}
+	
+		#new:Script $Script_MakeEntities
+{
+	Call     MakeItemEntity     ( .Item:LifeShroom ~Vec3d:lifeshroom 11 *GF_DNJ07_Item )
+	Return
+	End
+}
+	
+#new:NpcGroupList $NpcGroups_KMR_33
+{
+00000001 $NPC_Pokey1 000D0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NPC_Pokey1
+{
+00000003 $NpcSettings_Chomp ~Vec3f:pokey1
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey1
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:exit2 00000001 00000000
+%	Bind     $Script_Exit2  .Trigger:FloorAbove {Collider:exit3} 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_06" 00000002 )
+	Wait     00000064 
+	Return
+	End	
+}
+	
+	#new:Script $Script_Exit1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_09" 00000000 )
+	Wait     00000064 
+	Return
+	End		
+}
+	
+#new:NpcSettings $NpcSettings_Chomp
+{
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+}
+
+
+#new:Script $Script_ChompAI
+{
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+}
+	 
+#new:AISettings $AISettings_Chomp
+{
+    1.1 % move speed
+    60` % move time
+    30` % wait time
+   90.0 % alert radius
+    0.0
+    5`
+    2.8 % chase speed
+    60`
+    15`
+  300.0 % chase radius
+    0.0
+    1`	
+}
+		

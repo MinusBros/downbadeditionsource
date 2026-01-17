@@ -3,7 +3,7 @@
 #new:Actor $KPA_Koopatrol {
 % stats
 [Index]        4Cb 
-[Level]        41`b 
+[Level]        48`b 
 [MaxHP]        18`b 
 [Coins]         4`b 
 [Flags]       00000000 
@@ -232,7 +232,7 @@
 #new:Actor $KPA_Koopatrol2 {
 % stats
 [Index]        4Cb 
-[Level]        35`b 
+[Level]        48`b 
 [MaxHP]        20`b 
 [Coins]         5`b 
 [Flags]       00000000 
@@ -275,6 +275,9 @@
   118:  	Case  ==  00000003 
   124:  		Call  SetBattleVar  ( 00000007 00000000 )
   138:  EndSwitch
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $KPA_Koopatrol 56` )
+		EndIf
   140:  Return
   148:  End
 }
@@ -706,6 +709,17 @@
  11E8:  End
 }
 
+#new:Script  $PreShellToss
+{
+  16C:  			Call  AddActorDecoration        ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+  188:  			Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[3.0] )
+  1A0:  			Wait  5`
+  1AC:  			Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
+  1C4:  			Call  RemoveActorDecoration     ( .Actor:Self 00000001 00000000 )
+					Return
+					End
+}
+
 #new:Script $Script_NewShellToss {
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
@@ -720,18 +734,10 @@
    BC:  		Sub   *Var0  00000001 
    CC:  		If  *Var0  >  00000000 
    DC:  			Call  SetActorVar   ( .Actor:Self 00000009 *Var0 )
-   F4:  			Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-  110:  			Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[3.0] )
-  128:  			Wait  5`
-  134:  			Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[1.0] )
-  14C:  			Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
+					ExecWait $PreShellToss
 					ExecWait $Script_NewShellToss
   164:  		Else
-  16C:  			Call  AddActorDecoration        ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-  188:  			Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[3.0] )
-  1A0:  			Wait  5`
-  1AC:  			Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
-  1C4:  			Call  RemoveActorDecoration     ( .Actor:Self 00000001 00000000 )
+					ExecWait $PreShellToss
   1DC:  			Call  SetActorSounds    ( .Actor:Self .ActorSound:Jump 00000000 00000000 )
   1F8:  			Call  PlaySoundAtActor  ( .Actor:Self .Sound:Jump )
   20C:  			Call  SetAnimation      ( .Actor:Self 00000001 0059000F )

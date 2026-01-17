@@ -17,6 +17,8 @@
 #define .NpcID:WorldSushie_16       10
 #define .NpcID:ChuckQuizmo_17       11
 
+#import DonloninaBottle.mpat
+
 @	$Header
 {
 	[EntryCount]  00000005
@@ -29,6 +31,36 @@
 	~Vec4f:Entry2 %  583.0    0.0    0.0  270.0
 	~Vec4f:Entry3 % -540.0   35.0  195.0  180.0
 	~Vec4f:Entry4 %  147.0   35.0 -129.0  180.0
+}
+
+
+@	$Script_80243394
+{
+    [0]  Call  SetMusicTrack ( 00000000 .Song:TakingRest 00000002 00000008 )
+}
+
+@	$Script_OpenDoor_8024EE0C
+{
+		If    *ShopState != 0`
+			Set   *ShopState  0`
+			Exec  $Script_80243310
+		EndIf
+    0:  Call  RotateGroup   ( ~Model:g111 *Var0 00000000 00000001 00000000 )
+   20:  Return
+   28:  End
+}
+
+@	$Script_8024A9AC
+{
+		Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )  %Sailor Mercury song
+		Set   *ShopState  1`
+    0:  Call  HidePlayerShadow  ( .False )
+   10:  Call  802D2520  ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+   34:  Call  SetPlayerPos      (  345`  0`  -186` )
+   4C:  Call  SetPlayerSpeed    ( *Fixed[4.0] )
+   5C:  Call  PlayerMoveTo      (  291`  -100`  0` )
+   80:  Return
+   88:  End
 }
 
 %Add a source of Cocoa Beans
@@ -51,12 +83,12 @@
 @	$ShopInventory_802449BC
 {
 	.Item:Xbox     		 500`     00240111 %
-	.Item:StrangeLeaf    8`       0023001F %
-	.Item:SnowmanDoll    16`      00240001 % A snowman that crushes all enemies. Attack Power:  ...
-	.Item:EarthQuake     22`      00230132 % Lightning that strikes all enemies. Attack Power:  ...
-	.Item:FrightJar      10`      0024002A %
-	.Item:CocoPop        15`      0023004E % 
-	.Item:Melon          18`      00230023 %
+	.Item:StrangeLeaf     7`       0023001F %
+	.Item:SnowmanDoll    24`      00240001 % A snowman that crushes all enemies. Attack Power:  ...
+	.Item:EarthQuake     30`      00230132 % Lightning that strikes all enemies. Attack Power:  ...
+	.Item:FrightJar      15`      0024002A %
+	.Item:CocoPop        28`      0023004E % 
+	.Item:Melon          36`      00230023 %
 	00000000 00000000 00000000
 }
 
@@ -69,6 +101,28 @@
 	~Short:Model:o366 ~Short:Collider:o394
 	~Short:Model:o367 ~Short:Collider:o395
 	~Short:Model:o368 ~Short:Collider:o396
+}
+
+
+@	$Script_Init_8024C380
+{
+    0:  Set   *Var0  00000000
+   10:  Switch  *GB_StoryProgress
+   1C:  	Case  <  .Story:Ch5_ZipLineReady % 18
+   28:  		Set   *Var0  00000001
+   38:  	Case  ==  .Story:Ch5_StarSpritDeparted % 27
+   44:  		Call  SetNpcPos ( .Npc:Self  -433`  0`  -205` )
+   60:  		Call  SetEnemyFlagBits  ( .Npc:Self 00400000 00000000 )
+   78:  		Set   *Var0  00000001
+				Call  SetTattleString   ( .NpcID:Kolorado_15 001A0135 ) %Different tattle after beating Chapter 5
+   88:  EndSwitch
+   90:  If  *Var0  ==  00000001
+   A0:  	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024BEAC )
+   B4:  Else
+   BC:  	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   D8:  EndIf
+   E0:  Return
+   E8:  End
 }
 
 
@@ -352,4 +406,53 @@
 	~Movement:NPC_YoshiKid_09
 	~AnimationTable:NPC_YoshiKid_09 % .Sprite:YoshiKid
 	00000000 00000000 00000000 001A00C5 % He's a purple Yoshi kid. Not a care in the world!  ...
+}
+
+
+@	$NpcGroup_8024CA14
+{
+	.NpcID:Kolorado_15 $NpcSettings_80244D30 ~Vec3f:NPC_Kolorado_15 % -475 0 -75
+	00002D09 $Script_Init_8024C380 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Kolorado_15
+	~AnimationTable:NPC_Kolorado_15 % .Sprite:Kolorado
+	00000000 00000000 $ExtraAnimationList_8024CA00 001A012D % He's the archaeologist, Kolorado. He's famous as b ...
+}
+
+@	 $NpcGroupList_8024E924
+{
+	00000001 $NpcGroup_8024C610 00000000
+	00000001 $NpcGroup_8024C810 00000000
+	00000005 $NpcGroup_8024DD84 00000000
+	00000009 $NpcGroup_8024CC04 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+@ $NpcGroupList_8024E960
+{
+	00000001 $NpcGroup_8024C610 00000000
+	00000001 $NpcGroup_8024CA14 00000000
+	00000005 $NpcGroup_8024DD84 00000000
+	00000009 $NpcGroup_8024CC04 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+@ $NpcGroupList_8024E99C
+{
+	00000001 $NpcGroup_8024C610 00000000
+	00000005 $NpcGroup_8024DD84 00000000
+	00000009 $NpcGroup_8024CC04 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+@ $NpcGroupList_8024E9CC
+{
+	00000001 $NpcGroup_8024E734 00000000
+	00000005 $NpcGroup_8024DD84 00000000
+	00000009 $NpcGroup_8024CC04 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
 }

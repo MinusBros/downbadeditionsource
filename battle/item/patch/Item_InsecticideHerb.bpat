@@ -2,3 +2,178 @@
 {
    [48]  LI        A1, 20 %Dispatch event: Death (was scare away)
 }
+
+@	$Script_UseItem
+{
+    0:  SetConst  *VarA  00000087
+   10:  ExecWait  $Script_802A1420
+   1C:  Call  UseBattleCamPreset    ( 00000003 )
+   2C:  Call  MoveBattleCamOver     (  15` )
+   3C:  Call  SetAnimation  ( .Actor:Player 00000000 00010016 )
+   54:  Call  PlaySound ( 000003FA )
+   64:  Wait  3`
+   70:  Call  CreateVirtualEntity   ( *VarA $EntityModelScript_802A1D30 )
+   84:  SetF  *Var0  *Fixed[1.0]
+   94:  Call  MultiplyByActorScale  ( *Var0 )
+   A4:  Call  SetVirtualEntityScale ( *VarA *Var0 *Var0 *Var0 )
+   C0:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   DC:  Set   *Var3  00000014
+   EC:  Set   *Var4  0000002A
+   FC:  Set   *Var5  00000005
+  10C:  Call  MultiplyVec3ByActorScale  ( *Var3 *Var4 *Var5 )
+  124:  Add   *Var0  *Var3
+  134:  Add   *Var1  *Var4
+  144:  Add   *Var2  *Var5
+  154:  Call  SetVirtualEntityPosition  ( *VarA *Var0 *Var1 *Var2 )
+  170:  Call  InitTargetIterator ( )
+  17C:  Call  SetGoalToTarget       ( .Actor:Self )
+  18C:  Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  1A8:  Thread
+  1B0:  	Set   *Var0  00000000
+  1C0:  	Loop  00000012
+  1CC:  		Add   *Var0  FFFFFFC4
+  1DC:  		Call  SetVirtualEntityRotation  ( *VarA 00000000 00000000 *Var0 )
+  1F8:  		Wait  1`
+  204:  	EndLoop
+  20C:  EndThread
+  214:  Call  SetVirtualEntityJumpGravity   ( *VarA *Fixed[0.8] )
+  228:  Add   *Var2  00000005
+  238:  Call  VirtualEntityJumpTo   ( *VarA *Var0 *Var1 *Var2  18` )
+  258:  Call  PlayEffect    ( 00000007 00000003 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  29C:  Sub   *Var0  0000000A
+  2AC:  Call  PlayEffect    ( 00000007 00000003 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  2F0:  Add   *Var0  00000014
+  300:  Call  PlayEffect    ( 00000007 00000003 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  344:  Thread
+  34C:  	Call  $Function_802A12E0    ( *Var0 *Var1 *Var2 )
+  364:  	Wait  3`
+  370:  	Call  $Function_802A12E0    ( *Var0 *Var1 *Var2 )
+  388:  	Wait  3`
+  394:  	Call  $Function_802A12E0    ( *Var0 *Var1 *Var2 )
+  3AC:  EndThread
+  3B4:  Call  InitTargetIterator ( )
+  3C0:  Call  SetGoalToTarget       ( .Actor:Self )
+  3D0:  Call  $Function_802A123C ( )
+		ExecWait $CheckKill
+		If  *Var9 != 0000000
+			Goto  Done
+		EndIf
+		Call  $Function_CheckBzzolt ( )
+		ExecWait $CheckKill
+		If  *Var9 != 0000000
+			Goto  Done
+		EndIf
+		Call  $Function_CheckCitrusFuzzy ( )
+		ExecWait $CheckKill
+		If  *Var9 != 0000000
+			Goto  Done
+		EndIf
+		Call  $Function_CheckRaspberryFuzzy ( )
+		ExecWait $CheckKill
+		If  *Var9 != 0000000
+			Goto  Done
+		EndIf
+		Call  ItemDamageEnemy   ( *Var0 ~Flags:DamageType:0 00000000 00000000 00000020 )
+		Label  Done
+  3DC:  Call  DeleteVirtualEntity   ( *VarA )
+  454:  ExecWait  $Script_802A1850
+  460:  Return
+  468:  End
+}
+
+
+#new:Script  $CheckKill
+{
+  3EC:  If  *Var9  !=  00000000
+			Call  InitTargetIterator ( )
+			Call  SetGoalToTarget   ( .Actor:Self )
+			Call  $Function_802A1280 ( )
+		EndIf
+		Return
+		End
+}
+
+@	$Function_802A123C
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  JAL       ~Func:get_actor
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  LBU       V1, 136 (V0)
+   24:  XORI      V1, V1, 31  %Bzzap
+   28:  SLTIU     V1, V1, 1
+   2C:  SW        V1, A8 (S0)
+   30:  LW        RA, 14 (SP)
+   34:  LW        S0, 10 (SP)
+   38:  LI        V0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
+
+#new:Function  $Function_CheckBzzolt
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  JAL       ~Func:get_actor
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  LBU       V1, 136 (V0)
+   24:  XORI      V1, V1, 62  %Bzzolt
+   28:  SLTIU     V1, V1, 1
+   2C:  SW        V1, A8 (S0)
+   30:  LW        RA, 14 (SP)
+   34:  LW        S0, 10 (SP)
+   38:  LI        V0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
+
+
+#new:Function  $Function_CheckCitrusFuzzy
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  JAL       ~Func:get_actor
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  LBU       V1, 136 (V0)
+   24:  XORI      V1, V1, 1A  %CitrusFuzzy
+   28:  SLTIU     V1, V1, 1
+   2C:  SW        V1, A8 (S0)
+   30:  LW        RA, 14 (SP)
+   34:  LW        S0, 10 (SP)
+   38:  LI        V0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
+
+#new:Function  $Function_CheckRaspberryFuzzy
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        RA, 14 (SP)
+   10:  JAL       ~Func:get_actor
+   14:  LW        A0, 148 (S0)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  LBU       V1, 136 (V0)
+   24:  XORI      V1, V1, 29  %RaspberryFuzzy
+   28:  SLTIU     V1, V1, 1
+   2C:  SW        V1, A8 (S0)
+   30:  LW        RA, 14 (SP)
+   34:  LW        S0, 10 (SP)
+   38:  LI        V0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
