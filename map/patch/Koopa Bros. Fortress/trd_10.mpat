@@ -19,7 +19,11 @@
    C0:  Wait  1`
    CC:  Call  UseSettingsFrom       ( .Cam:Default  -240`  0`  0` )
    E8:  Call  SetPanTarget  ( .Cam:Default  -240`  0`  0` )
-  104:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.2] )
+		If   *CheckCoopNotes == .False
+  104:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[0.2] )
+		Else
+			Call  SetCamSpeed   ( .Cam:Default *Fixed[1.2] )
+		EndIf
   118:  Call  PanToTarget   ( .Cam:Default *Fixed[0.5] 00000001 )
   130:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   144:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
@@ -45,6 +49,11 @@
   2C8:  	Goto  B
   2D4:  EndIf
   2DC:  Call  PlaySound     ( 000001C4 )
+		If  *CheckCoopNotes == .True
+  4A8:  Call  SetNpcFlagBits    ( .NpcID:KoopaBros_00 00000002 .True )
+  4C0:  Call  SetNpcFlagBits    ( .NpcID:KoopaBros_00 00000010 .False )
+		EndIf
+		If  *CheckCoopNotes == .False
   2EC:  Call  SetNpcPos     ( .NpcID:KoopaBros_00  -32`  0`  0` )
   308:  Call  NpcMoveTo     ( .NpcID:KoopaBros_00  -88`  0`  10` )
   324:  Wait  5`
@@ -80,6 +89,7 @@
   5F8:  Call  ShowMessageAtScreenPos    ( 000C00FB  300`  100` ) % Finally! Let's do this! Remember to look cool, guy ...
   610:  Wait  5`
   61C:  Call  ShowMessageAtScreenPos    ( 000C00FC  300`  100` ) % Yaaaaaaaa!!!
+		EndIf
   634:  Call  UseSettingsFrom   ( .Cam:Default  -160`  0`  0` )
   650:  Call  SetPanTarget  ( .Cam:Default  -160`  0`  0` )
   66C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.2] )
@@ -89,16 +99,21 @@
 		Thread 
 			Wait  30`
 		EndThread
-		Call  DisablePartnerAI  ( 00000000 )
-		Call  GetCurrentPartnerID   ( *Var0 )
-		Switch  *Var0
-			Case  ==  .Partner:Goombario % 1
-				Call  SpeakToPlayer ( .Npc:Partner 00010008 0001001A 00000005 000C0154 )
-			Case  ==  .Partner:Kooper % 2
-				Call  SpeakToPlayer ( .Npc:Partner 0002000E 00020003 00000005 000C0155 )
-			Case  ==  .Partner:Bombette % 3
-				Call  SpeakToPlayer ( .Npc:Partner 0003000E 00030003 00000005 000C0156 ) 
-		EndSwitch
+		If  *CheckCoopNotes == .False
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 0001001A 00000005 000C0154 )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner 0002000E 00020003 00000005 000C0155 )
+				Case  ==  .Partner:Bombette % 3
+					Call  SpeakToPlayer ( .Npc:Partner 0003000E 00030003 00000005 000C0156 ) 
+			EndSwitch
+		EndIf
+		Set   *CheckCoopNotes .True
+		Set   *FakeBowserTurn .False
+		Call	$Function_SaveItems ( )
   6B4:  Call  DisablePlayerInput        ( .False )
   6C4:  Call  SetNpcPos     ( .NpcID:KoopaBros_00  -155`  0`  0` )
 		Call  SetMusicTrack     ( 00000000 .Song:Deadline 00000000 00000008 )
@@ -115,6 +130,7 @@
 		Call $ClearFlagCarryOverworldMusicToBattle()
 		Set *Var0 .True
 		Set     *Byte_Settings_BGM *Var0
+		ExecWait  $NukeBossChecks
     0:  Call  SetEncounterStatusFlags   ( 00000002 .True )
    14:  Call  DisablePlayerInput        ( .True )
    24:  Call  SetNpcPos ( .NpcID:KoopaBros_00  0`  -1000`  0` )

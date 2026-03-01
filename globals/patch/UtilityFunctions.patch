@@ -2,8 +2,8 @@
 % Master Quest, Dark Star and TTYD64 work.
 
 %Increase Mario movement speed
-@Data 91020 {2.5} %walk speed, 800F7B70
-@Data 91024 {5.0} %run speed, 800F7B74
+@Data 91020 {2.3} %walk speed, 800F7B70
+@Data 91024 {4.4} %run speed, 800F7B74
 
 #export:Data $RandomBattleData
 {
@@ -258,7 +258,7 @@ NOP
 	ORI		 S2, R0, 0 %attack val
 	LAW		 S3, 800DC148 %player actor pointer
 	COPY	 A0, S3
-	JAL		 802672AC %advanced ability checker, requires player/partner actor pointer in A0?
+	JAL		 802672AC %advanced ability Checker, requires player/partner actor pointer in A0?
 	ORI		 A1, R0, 1C %power plus
 	ADD		 S2, S2, V0
 	COPY	 A0, S3
@@ -329,7 +329,7 @@ NOP
 
 
 
-%Uses the ability check
+%Uses the ability Check
 #export:Function $Function_CheckAbility %arg 1 = badge, arg 2 = output (1 if you have badge, 0 if not)
 {
 	PUSH	  RA, S1, S2, S3
@@ -1594,6 +1594,97 @@ ADDIU SP, SP, 38
 
 
 
+% A0 = posX
+%
+% A1 = posY
+%
+% A2 = sizeX
+%
+% A3 = sizeY
+%
+% T0 = style
+%
+% T1 = opacity
+%
+% Draw box dispatcher by Clover
+#new:Function $DrawBox
+{
+ADDIU         SP, SP, -58
+SW            RA, 50 (SP)
+% setup call to DrawBox
+SW            R0, 10 (SP) % posZ
+SW            A2, 14 (SP) % width
+SW            A3, 18 (SP) % height
+SW            T1, 1C (SP) % opacity
+COPY          A2, A0 % posX
+COPY          A3, A1 % posY
+CLEAR         A0 % flags
+COPY          A1, T0 % flags
+SW            R0, 20 (SP) % fogRGB
+SW            R0, 24 (SP) % scaleX (unused)
+SW            R0, 28 (SP) % scaleY (unused)
+SW            R0, 2C (SP) % rotX (unused)
+SW            R0, 30 (SP) % rotY (unused)
+SW            R0, 34 (SP) % rotZ (unused)
+SW            R0, 38 (SP) % fpDrawContents (optional) % expect an address(?)
+SW            R0, 3C (SP) % drawContents() arg0 (optional)
+SW            R0, 40 (SP) % txMtx (unused)
+SW            R0, 44 (SP) % txShiftY (unused)
+SW            R0, 48 (SP) % txShiftX (unused)
+JAL           ~Func:draw_box
+SW            R0, 4C (SP) % unk
+LW            RA, 50 (SP)
+JR            RA
+ADDIU         SP, SP, 58
+}
+
+%Bosses set flags before their encounters
+%If the player dies during these encounters, they can choose
+%to retry the boss battle
+
+#new:Script:Global $NukeBossChecks
+{
+	Set *CheckGoombaBros .False
+	Set *CheckGoombaKing .False
+	Set *CheckCody .False
+	Set *CheckCoopNotes .False
+	Set *CheckMrTrooper2 .False
+	Set *CheckBuzzar .False
+	Set *CheckTutankoopa .False
+	Set *CheckMrTrooper3 .False
+	Set *CheckTyrant .False
+	Set *CheckTubbs1 .False
+	Set *CheckTubbs2 .False
+	Set *CheckMrTrooper4 .False
+	Set *CheckKamopa .False
+	Set *CheckBigLanternGhost .False
+	Set *CheckShyShogun .False
+	Set *CheckWhiteCody .False
+	Set *CheckRaphael .False
+	Set *CheckMoltenPiranha .False
+	Set *CheckMrTrooper5 .False
+	Set *CheckJonathan .False
+	Set *CheckYellowCody .False
+	Set *CheckLordofThunder .False
+	Set *CheckVioletCody .False
+	Set *CheckMrTrooper6 .False
+	Set *CheckMonstar .False
+	Set *CheckGreyCody .False
+	Set *CheckKoopaKoot .False
+	Set *CheckPrismasaurus .False
+	Set *CheckBlackCrystalKing .False
+	Set *CheckStryderSquad .False
+	Set *CheckCodyBrothers .False
+	Set *CheckCorruptedBrother .False
+	Set *CheckMrTrooper7 .False
+	Set *CheckMrTrooper7Again .False
+	Set *CheckBlackCrystalKing .False
+	Set *CheckFinalBower .False
+	Return
+	End
+}
+
+
 #export $CreateIcon
 #export $CreateIcon_ignoreViewport
 #export $IsBadgeEquiped
@@ -1609,3 +1700,5 @@ ADDIU SP, SP, 38
 #export $ReadBitFlag
 #export $Function_SetLevel
 #export $Function_SetEscape
+#export $DrawBox % by Clover
+#export $NukeBossChecks

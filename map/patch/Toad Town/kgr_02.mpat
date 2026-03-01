@@ -1,3 +1,26 @@
+#define .NpcID:Fuzzipede_00         00
+
+
+@	$Script_Main_EnterWalk
+{
+		Call  PlayAmbientSounds ( .AmbientSounds:UnderSea3 )
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_802419F4 )
+   98:  Set   *Var0  $Script_80240858
+   A8:  Exec  EnterWalk
+   B4:  Exec  $Script_80240974
+   C0:  Exec  $Script_802407D0
+   CC:  Exec  $Script_80241A10
+		Exec  $TexturePan
+   D8:  Return
+   E0:  End
+}
+
 #new:Script $TexturePan
 {
 	Thread
@@ -45,21 +68,121 @@
 #import SetTexturePanner.mpat
 
 
-@	$Script_Main_EnterWalk
+@	$Script_NpcAI_80241098
 {
-    0:  Set   *GB_WorldLocation  .Location:ToadTown
-   10:  Call  SetSpriteShading  ( .Shading:None )
-   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
-   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
-   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
-   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-   84:  Call  MakeNpcs  ( .False $NpcGroupList_802419F4 )
-   98:  Set   *Var0  $Script_80240858
-   A8:  Exec  EnterWalk
-   B4:  Exec  $Script_80240974
-   C0:  Exec  $Script_802407D0
-   CC:  Exec  $Script_80241A10
-		Exec  $TexturePan
-   D8:  Return
-   E0:  End
+    0:  Exec  $Script_80240B2C
+    C:  Loop
+   18:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   2C:  	If  *Var0  ==  00000001
+   3C:  		BreakLoop
+   44:  	EndIf
+   4C:  	Wait  1`
+   58:  EndLoop
+   60:  Exec  $Script_80240F20 *VarA
+   70:  Call  SetSelfVar    ( 00000003 *VarA )
+   84:  Loop
+   90:  	Call  GetSelfVar    ( 00000001 *Var0 )
+   A4:  	If  *Var0  ==  00000001
+   B4:  		BreakLoop
+   BC:  	EndIf
+   C4:  	Wait  1`
+   D0:  EndLoop
+   D8:  Call  SetSelfEnemyFlagBits  ( 00100000 00000000 )
+		Call $SetFlagCarryOverworldMusicToBattle()
+		Call  SetMusicTrack ( 00000000 .Song:WhaleTheme 00000001 00000008 )
+   EC:  Call  StartBossBattle       ( .Song:WhaleTheme )
+   FC:  Return
+  104:  End
 }
+
+
+@	$Script_802411F8
+{
+		Call  FadeOutMusic  ( 00000000 0000002 )
+    0:  Call  DisablePlayerPhysics  ( .True )
+   10:  Call  SetPlayerActionState  ( .ActionState:Land )
+   20:  Call  SetPlayerPos  (  -40`  0`  0` )
+   38:  Call  SetPlayerFlagBits     ( 00200000 .True )
+   4C:  Call  InterpPlayerYaw       (  90`  0` )
+   60:  Call  SetPlayerFlagBits     ( 00200000 .False )
+   74:  Call  SetNpcPos     ( .Npc:Self  30`  0`  0` )
+   90:  Call  SetNpcYaw     ( .Npc:Self  270` )
+   A4:  Call  UseSettingsFrom       ( .Cam:Default  -5`  0`  0` )
+   C0:  Call  SetPanTarget  ( .Cam:Default  -5`  0`  0` )
+   DC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   F0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  108:  Wait  1`
+		Call  $ClearFlagCarryOverworldMusicToBattle()
+  114:  Call  SpeakToPlayer ( .Npc:Self 00410024 00410004 00000000 0007009D ) % Awwwww... Shucks! First I think I get away from th ...
+  134:  Wait  3`
+  140:  Call  ShowMessageAtScreenPos    ( 0007009E  -300`  100` ) % Mario, it's me! You know, the whale? Can you hear  ...
+  158:  Wait  3`
+  164:  
+  178:  Call  SetSelfVar    ( 00000002 00000001 )
+  18C:  Thread
+  194:  	Call  PlaySound ( 00000042 )
+  1A4:  	Set   *Var0  00000000
+  1B4:  	Loop  00000096
+  1C0:  		Add   *Var0  00000001
+  1D0:  		Call  TranslateGroup    ( ~Model:mizu 00000000 *Var0 00000000 )
+  1EC:  		Call  TranslateModel    ( ~Model:hako1 00000000 *Var0 00000000 )
+  208:  		Call  TranslateModel    ( ~Model:hako2 00000000 *Var0 00000000 )
+  224:  		Call  TranslateModel    ( ~Model:hako3 00000000 *Var0 00000000 )
+  240:  		Call  TranslateModel    ( ~Model:hako6 00000000 *Var0 00000000 )
+  25C:  		Call  TranslateModel    ( ~Model:bin1 00000000 *Var0 00000000 )
+  278:  		Call  TranslateModel    ( ~Model:bin2 00000000 *Var0 00000000 )
+  294:  		Call  TranslateModel    ( ~Model:bin3 00000000 *Var0 00000000 )
+  2B0:  		Call  TranslateModel    ( ~Model:bin4 00000000 *Var0 00000000 )
+  2CC:  		Wait  1`
+  2D8:  	EndLoop
+  2E0:  EndThread
+  2E8:  Thread
+  2F0:  	Set   *Var0  00000000
+  300:  	Loop  0000004B
+  30C:  		Add   *Var0  00000001
+  31C:  		Call  TranslateGroup    ( ~Model:fune 00000000 *Var0 00000000 )
+  338:  		Call  TranslateModel    ( ~Model:hako4 00000000 *Var0 00000000 )
+  354:  		Call  TranslateModel    ( ~Model:hako5 00000000 *Var0 00000000 )
+  370:  		Wait  1`
+  37C:  	EndLoop
+  384:  EndThread
+  38C:  Thread
+  394:  	Wait  20`
+  3A0:  	Call  HidePlayerShadow  ( .True )
+  3B0:  	Call  EnableNpcShadow   ( .Npc:Partner .False )
+  3C4:  	Call  SetPlayerAnimation    ( 00080017 )
+  3D4:  	Call  GetPlayerPos      ( *Var1 *Var0 *Var3 )
+  3EC:  	Loop  00000096
+  3F8:  		Add   *Var0  00000001
+  408:  		Call  SetPlayerPos  ( *Var1 *Var0 *Var3 )
+  420:  		Wait  1`
+  42C:  	EndLoop
+  434:  EndThread
+  43C:  Thread
+  444:  	Wait  20`
+  450:  	Call  EnableNpcShadow   ( .Npc:Self .False )
+  464:  	Call  GetNpcPos ( .NpcID:Fuzzipede_00 *Var1 *Var0 *Var3 )
+  480:  	Loop  00000096
+  48C:  		Add   *Var0  00000001
+  49C:  		Call  SetNpcPos ( .Npc:Self *Var1 *Var0 *Var3 )
+  4B8:  		Wait  1`
+  4C4:  	EndLoop
+  4CC:  EndThread
+  4D4:  ChildThread
+  4DC:  	Loop
+  4E8:  		Call  InterpNpcYaw  ( .NpcID:Fuzzipede_00  90`  7` )
+  500:  		Wait  10`
+  50C:  		Call  InterpNpcYaw  ( .NpcID:Fuzzipede_00  270`  7` )
+  524:  		Wait  10`
+  530:  	EndLoop
+  538:  EndChildThread
+  540:  Wait  120`
+  54C:  Call  GotoMap   ( $ASCII_80241B38 00000002 ) % mac_05
+  560:  Wait  100`
+  56C:  Call  802D2B6C ( )
+  578:  Call  DisablePlayerPhysics  ( .False )
+  588:  Call  DisablePlayerInput    ( .False )
+  598:  Return
+  5A0:  End
+}
+

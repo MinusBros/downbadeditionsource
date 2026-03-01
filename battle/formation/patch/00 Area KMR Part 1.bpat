@@ -4,6 +4,7 @@
 
 #import SuperGoomba.bpat
 #import Chompy.bpat
+#import PriesT.bpat
 
 % Let's see if this works
 
@@ -28,6 +29,35 @@
 	[Coins]         2`b
 }
 
+
+#new:Stage $Stage_Priest
+{
+	$ASCII_802210E4  % kmr_tex
+	"kmr_bt09_shape"
+	"kmr_bt09_hit"
+	$Script_BeforeBattle_Priest
+	$Script_AfterBattle_80220EAC
+	$ASCII_802210BC  % kmr_bg
+	$ForegroundModelList_bt09
+	00000000
+	00000000
+	00000000
+}
+
+#new:Script $Script_BeforeBattle_Priest
+{
+    0:  Call  $Function_SetupFog
+   10:  Return
+   18:  End
+}
+
+#new:ForegroundModelList $ForegroundModelList_bt09
+{
+	~Model:kmr_bt09:n2
+	~Model:kmr_bt09:m4
+	00000000
+}
+
 %Used to be four Goombas. An unused formation.
 
 @	$Formation_04
@@ -40,6 +70,11 @@
 	$SuperGoomba 00000001 0000000A 00000000 00000000 00000000 00000000
 	$Chompy 00000002 00000009 00000000 00000000 00000000 00000000
 	$Chompy 00000003 00000008 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_0C
+{
+	$PriesT 00000002 0000000A 00000000 00000000 00000000 00000000
 }
 
 @	$FormationTable
@@ -56,5 +91,35 @@
 	$SJIS_80220F28 00000003 $Formation_09 $Stage_8022066C 00000000
 	$SJIS_80220F18 00000001 $Formation_0A $Stage_8022066C 00000000
 	$SJIS_80220F00 00000002 $Formation_0B $Stage_8022066C 00000000
+	00000000 	   00000001	$Formation_0C $Stage_Priest   00000000 %PriesT encounter
 	00000000 00000000 00000000 00000000 00000000
+}
+
+@	$StageTable
+{
+	$ASCII_80221004 $Stage_8021FDD0
+	$ASCII_80220FFC $Stage_8022021C
+	$ASCII_80220FF4 $Stage_8022066C
+	$ASCII_80220FEC $Stage_80220A78
+	$ASCII_80220FE4 $Stage_80220ECC
+	00000000 		$Stage_Priest
+	00000000 00000000
+}
+
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 975`
+	JAL       8011BB74
+	ADDIU     A1, R0, 1000`
+	ADDIU     A0, R0, 19
+	ADDIU     A1, R0, 37
+	ADDIU     A2, R0, 37
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
 }

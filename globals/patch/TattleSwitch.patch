@@ -1,0 +1,462 @@
+%So apparently all tattles are stored in ram at $Global_ActorTattleTable
+%Then the game loads from the table to find the tattle message IDs
+
+%Here are some ways to change the stuff in the table to have different tattles
+
+%Note that there can only be one tattle per actor table entry, so make sure you choose the right one
+%You should probably reset the tattle so that everything is fine afterward
+%Setting the tattle at the start of battle only will work if you have all enemies using that table entry using a function
+%However, a better way is to reset at the end of battle (The poptattles method is good)
+
+%I have set it up so that the PopTattles function is called before battle so you go into battle with all original tattles
+%I found code that runs every time you enter battle, but not code that always runs when exiting battle
+
+#export:Function $Function_SetTattle %( word ) 
+{
+PUSH RA, A0, A1, S0 
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument 1
+COPY	S0, V0
+LW 		A0, 148 (S1) %script owner id?
+JAL		80269D6C %{Func:GetActor}
+NOP
+LBU     A0, 136 (V0)	%Get actor type
+SLL		A0, A0, 2 	%make it 4 bytes wide
+STW		S0, A0 ($Global_ActorTattleTable)	%hm?
+POP RA, A0, A1, S0
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+%Uses push table
+#export:Function $Function_SetTattle_B %( word ) 
+{
+PUSH RA, A0, A1, S0, S1, S2
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument 1
+COPY	S0, V0
+LW 		A0, 148 (S1) %script owner id?
+JAL		80269D6C %{Func:GetActor}
+NOP
+LBU     A0, 136 (V0)	%Get actor type
+COPY	S2, A0
+%COPY	A0, V0
+%COPY	A1, S0
+%Get the original tattle!
+COPY	A1, A0
+SLL		A1, A1, 2
+LTW		A1, A1 ($Global_ActorTattleTable)	%hm?
+JAL		$AddToTattlePushTable
+NOP
+COPY	A0, S2
+%LBU     A0, 136 (V0)	%Get actor type
+SLL		A0, A0, 2 	%multiply by 4 to fix index
+STW		S0, A0 ($Global_ActorTattleTable)	%hm?
+POP RA, A0, A1, S0, S1, S2
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+%Uses 2 args
+%No actor pointer
+#export:Function $Function_SetTattle_C %( type, tattle ) 
+{
+PUSH RA, A0, A1, S0, S1, S2
+COPY	S2, A0
+LW		S1, C (A0)
+JAL		~Func:get_variable
+LW		A1, 0 (S1) %get argument 1
+COPY	S0, V0
+ADDIU	S1, S1, 4
+COPY	A0, S2
+JAL		~Func:get_variable
+LW		A1, 0 (S1) %get argument 2
+%S0 = actor type
+%V0 = new message value
+COPY	A0, S0
+%Get the original tattle!
+COPY	A1, A0
+SLL		A1, A1, 2
+LTW		A1, A1 ($Global_ActorTattleTable)	%hm?
+PUSH	V0
+JAL		$AddToTattlePushTable
+NOP
+POP		V0
+COPY	A0, S0
+SLL		A0, A0, 2 	%multiply by 4 to fix index
+STW		V0, A0 ($Global_ActorTattleTable)	%hm?
+POP RA, A0, A1, S0, S1, S2
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+#export:Function $Function_SetName %( word ) 
+{
+PUSH RA, A0, A1, S0 
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument 1
+COPY	S0, V0
+LW 		A0, 148 (S1) %script owner id?
+JAL		80269D6C %{Func:GetActor}
+NOP
+LBU     A0, 136 (V0)	%Get actor type
+SLL		A0, A0, 2 	%make it 4 bytes wide
+STW		S0, A0 ($Global_ActorNameTable)	%hm?
+POP RA, A0, A1, S0
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+%Uses push table
+#export:Function $Function_SetName_B %( word ) 
+{
+PUSH RA, A0, A1, S0, S1, S2
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument 1
+COPY	S0, V0
+LW 		A0, 148 (S1) %script owner id?
+JAL		80269D6C %{Func:GetActor}
+NOP
+LBU     A0, 136 (V0)	%Get actor type
+COPY	S2, A0
+%COPY	A0, V0
+%COPY	A1, S0
+%Get the original tattle!
+COPY	A1, A0
+SLL		A1, A1, 2
+LTW		A1, A1 ($Global_ActorNameTable)	%hm?
+JAL		$AddToNamePushTable
+NOP
+COPY	A0, S2
+%LBU     A0, 136 (V0)	%Get actor type
+SLL		A0, A0, 2 	%multiply by 4 to fix index
+STW		S0, A0 ($Global_ActorNameTable)	%hm?
+POP RA, A0, A1, S0, S1, S2
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+%Uses 2 args
+%No actor pointer
+#export:Function $Function_SetName_C %( var, word ) 
+{
+PUSH RA, A0, A1, S0, S1, S2
+COPY	S2, A0
+LW		S1, C (A0)
+JAL		~Func:get_variable
+LW		A1, 0 (S1) %get argument 1
+COPY	S0, V0
+ADDIU	S1, S1, 4
+COPY	A0, S2
+JAL		~Func:get_variable
+LW		A1, 0 (S1) %get argument 2
+%S0 = actor type
+%V0 = new message value
+COPY	A0, S0
+%Get the original tattle!
+COPY	A1, A0
+SLL		A1, A1, 2
+LTW		A1, A1 ($Global_ActorNameTable)	%hm?
+PUSH	V0
+JAL		$AddToNamePushTable
+NOP
+POP		V0
+COPY	A0, S0
+SLL		A0, A0, 2 	%multiply by 4 to fix index
+STW		V0, A0 ($Global_ActorNameTable)	%hm?
+POP RA, A0, A1, S0, S1, S2
+JR	RA
+ADDIU	V0, R0, 2
+}
+
+
+#export:Function $PopTattles
+{
+PUSH 	RA, A0, A1, S0 
+.keepgoing
+JAL		$PopFromTattlePushTable
+NOP
+SLTI	A0, V0, 0
+BNE		A0, R0, .finish
+NOP
+SLL		V0, V0, 2		%multiply by 4 to fix index
+STW		V1, V0 ($Global_ActorTattleTable)	%hm?
+BEQ		R0, R0, .keepgoing
+NOP
+.finish
+POP 	RA, A0, A1, S0
+JR		RA
+ORI		V0, R0, 0
+}
+
+#export:Function $PopNames
+{
+PUSH 	RA, A0, A1, S0 
+.keepgoing
+JAL		$PopFromNamePushTable
+NOP
+SLTI	A0, V0, 0
+BNE		A0, R0, .finish
+NOP
+SLL		V0, V0, 2		%multiply by 4 to fix index
+STW		V1, V0 ($Global_ActorNameTable)	%hm?
+BEQ		R0, R0, .keepgoing
+NOP
+.finish
+POP 	RA, A0, A1, S0
+JR		RA
+ORI		V0, R0, 0
+}
+
+
+
+
+%A0 = ID to find
+%V0 = index (or -1) (Note that indices are multiples of 8)
+#new:Function $FindName
+{
+PUSH	RA, S0, S1, S2
+ORI		S0, R0, 0			%Table Index
+%First, find an open slot (Or crash if not possible)
+.loop
+LTW		S1, S0 ($NamePushTable)
+BEQ		S1, A0, .found %Less than 0
+NOP
+ADDIU	S0, S0, 8
+SLTI	S1, S0, 80
+BNE		S1, R0, .loop
+NOP
+LIO		S0, FFFFFFFF
+.found
+COPY	V0, S0
+POP		RA, S0, S1, S2
+JR		RA
+NOP
+}
+
+%A0 = ID
+%A1 = thing to push
+#new:Function $AddToNamePushTable
+{
+PUSH	RA, S0, S1, S2
+%Do not add into the table when something with the same ID is already in the table
+JAL		$FindName
+NOP
+SLTI	V0, V0, 0
+BEQ		V0, R0, .notfound
+NOP
+JR		RA
+NOP
+.notfound
+ORI		S0, R0, 0			%Table Index
+%First, find an open slot (Or crash if not possible)
+.loop
+LTW		S1, S0 ($NamePushTable)
+SLTI	S1, S1, 0
+BNE		S1, R0, .found %Less than 0
+NOP
+ADDIU	S0, S0, 8
+SLTI	S1, S0, 80
+BNE		S1, R0, .loop
+NOP
+.forcecrash
+LW		S1, 1 (S1) %Forces a crash (unless things go horribly wrong)
+.found
+%Now put the stuff in the table
+STW		A0, S0 ($NamePushTable)
+ADDIU	S0, S0, 4
+STW		A1, S0 ($NamePushTable)
+POP 	RA, S0, S1, S2
+JR		RA
+NOP
+}
+
+%No arguments
+%V0 = ID
+%V1 = Value
+%returns a null value if nothing in table
+#new:Function $PopFromNamePushTable
+{
+PUSH	RA, S0, S1, S2
+ORI		S0, R0, 78			%Table Index
+%First, find a full slot (Return FFFFFFFF, 00000000 if none found)
+.loop
+LTW		S1, S0 ($NamePushTable)
+SLTI	S1, S1, 0
+BEQ		S1, R0, .found
+NOP
+ADDI	S0, S0, -8`
+SLTI	S1, S0, 0		%S0 < 0 then stop looping
+BEQ		S1, R0, .loop 
+NOP
+.returnnone
+POP 	RA, S0, S1, S2
+LIO		V0, FFFFFFFF
+LIO		V1, 00000000
+JR		RA
+NOP
+.found
+%Now get rid of the table stuff and return
+LTW		V0, S0 ($NamePushTable)
+LIO		S1, FFFFFFFF
+STW		S1, S0 ($NamePushTable)
+%other return value
+ADDIU	S0, S0, 4
+LTW		V1, S0 ($NamePushTable)
+STW		R0, S0 ($NamePushTable)
+POP 	RA, S0, S1, S2
+JR		RA
+NOP
+}
+
+
+%A0 = ID to find
+%V0 = index (or -1) (Note that indices are multiples of 8)
+#new:Function $FindTattle
+{
+PUSH	RA, S0, S1, S2
+ORI		S0, R0, 0			%Table Index
+%First, find an open slot (Or crash if not possible)
+.loop
+LTW		S1, S0 ($TattlePushTable)
+BEQ		S1, A0, .found %Less than 0
+NOP
+ADDIU	S0, S0, 8
+SLTI	S1, S0, 80
+BNE		S1, R0, .loop
+NOP
+LIO		S0, FFFFFFFF
+.found
+COPY	V0, S0
+POP		RA, S0, S1, S2
+JR		RA
+NOP
+}
+
+%A0 = ID
+%A1 = thing to push
+#new:Function $AddToTattlePushTable
+{
+PUSH	RA, S0, S1, S2
+%Do not add into the table when something with the same ID is already in the table
+JAL		$FindTattle
+NOP
+SLTI	V0, V0, 0
+BEQ		V0, R0, .notfound
+NOP
+JR		RA
+NOP
+.notfound
+ORI		S0, R0, 0			%Table Index
+%First, find an open slot (Or crash if not possible)
+.loop
+LTW		S1, S0 ($TattlePushTable)
+SLTI	S1, S1, 0
+BNE		S1, R0, .found %Less than 0
+NOP
+ADDIU	S0, S0, 8
+SLTI	S1, S0, 80
+BNE		S1, R0, .loop
+NOP
+.forcecrash
+LW		S1, 1 (S1) %Forces a crash (unless things go horribly wrong)
+.found
+%Now put the stuff in the table
+STW		A0, S0 ($TattlePushTable)
+ADDIU	S0, S0, 4
+STW		A1, S0 ($TattlePushTable)
+POP 	RA, S0, S1, S2
+JR		RA
+NOP
+}
+
+%No arguments
+%V0 = ID
+%V1 = Value
+%returns a null value if nothing in table
+#new:Function $PopFromTattlePushTable
+{
+PUSH	RA, S0, S1, S2
+ORI		S0, R0, 78			%Table Index
+%First, find a full slot (Return FFFFFFFF, 00000000 if none found)
+.loop
+LTW		S1, S0 ($TattlePushTable)
+SLTI	S1, S1, 0
+BEQ		S1, R0, .found
+NOP
+ADDI	S0, S0, -8`
+SLTI	S1, S0, 0		%S0 < 0 then stop looping
+BEQ		S1, R0, .loop 
+NOP
+.returnnone
+POP 	RA, S0, S1, S2
+LIO		V0, FFFFFFFF
+LIO		V1, 00000000
+JR		RA
+NOP
+.found
+%Now get rid of the table stuff and return
+LTW		V0, S0 ($TattlePushTable)
+LIO		S1, FFFFFFFF
+STW		S1, S0 ($TattlePushTable)
+%other return value
+ADDIU	S0, S0, 4
+LTW		V1, S0 ($TattlePushTable)
+STW		R0, S0 ($TattlePushTable)
+POP 	RA, S0, S1, S2
+JR		RA
+NOP
+}
+
+
+%Sixteen slots
+%There doesn't need to be a limit but I don't see any way you're going to encounter 16 enemies that need to set tattles
+#new:Data $TattlePushTable
+{
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+}
+
+%Sixteen slots
+#new:Data $NamePushTable
+{
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+FFFFFFFF 00000000
+}
+
+%#export $Function_SetTattle
+%#export $Function_SetTattle_B
+%#export $Function_SetTattle_C
+%#export $Function_SetName
+%#export $Function_SetName_B
+%#export $Function_SetName_C
+%#export $PopTattles
+%#export $PopNames

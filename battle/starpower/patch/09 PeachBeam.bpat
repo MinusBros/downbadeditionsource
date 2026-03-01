@@ -168,6 +168,13 @@
   390:  End
 }
 
+%The better version of Hoshi no Love Beam.
+
+%Change how this move works.
+%It'll do more damage based on Mario's current HP.
+%Starts at 2 attack power.
+%+1 for every 3 HP. Caps at 95 HP for 34 damage.
+
 @	$Script_UsePower
 {
     0:  ExecWait  $Script_802A2888
@@ -191,11 +198,25 @@
    D8:  Call  SetGoalToTarget   ( .Actor:Self )
 		Call  PlaySound ( 00000365 )
 		Wait  1`
-		Call  PlaySound ( 00000365 )
+		Call  PlaySound ( 00000366 )
 		Wait  1`
-		Call  PlaySound ( 00000365 )
+		Call  PlaySound ( 00002076 )
+		Wait  1`
+		Call  PlaySound ( 000020B0 )
+		Call  PlaySound ( 00002049 )
+		Call  PlaySound ( 0000020B )
+		Call  GetActorPos       ( .Actor:Enemy0 *Var5 *Var6 *Var7 )
+  570:  Add   *Var6  50` 
+  580:  Sub   *Var7  2` 
+  590:  Call  PlayEffect    ( ~FX:RadialFlowOut:WhiteWaves *Var5 *Var6 *Var7 *Fixed[0.3] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
 		Call  ShakeCam  ( .Cam:Battle 00000000  30` *Fixed[6.0] )
-   E8:  Call  ItemDamageEnemy   ( *Var0 ~Flags:DamageType:PeachBeam|StatusAlwaysHits 00000000 00000000 00000020 )
+		Call  ItemCheckHit      ( *Var0 ~Flags:DamageType:NoContact 00000000 *Var0 00000000 )
+		Set   *VarD 2`
+		Call  GetPlayerHP       ( *VarE )
+		Div  *VarE 3`
+		Add  *VarD *VarE
+		Wait  1`
+		Call  ItemDamageEnemy   ( *Var0 ~Flags:DamageType:PeachBeam|StatusAlwaysHits|NoContact|Magic|IgnoreDefense 00000000 *VarE 00000020 )
   108:  Call  ChooseNextTarget  ( .Iter:Next *Var0 )
   11C:  If  *Var0  !=  FFFFFFFF
   12C:  	Goto  0
@@ -211,9 +232,35 @@
   19C:  Call  $Function_802A247C ( )
   1A8:  Call  80276EFC ( )
   1B4:  ExecWait  $Script_802A327C
+		Call $LuckyStarRefund
   1C0:  Return
   1C8:  End
 }
+
+
+#new:Function $LuckyStarRefund
+{
+  PUSH        V0, RA                        % Putting the registers onto the stack to work with them
+  JAL         $IsBadgeEquiped               % Check for Lucky Day
+  ADDIU       A0, R0, 171                   % id of badge (Lucky Day = 114) - HAS TO BE LOADED INTO A0 FOR $IsBadgeEquiped
+  BEQ         A0, R0, .NotEquipped          % Branch on the badge NOT being equipped (GoTo .NotEquipped)
+  NOP                                       % Nullpointer below the BEQ, because a BEQ ALWAYS reads the next line too
+  LIO         S0, $SPSubtractArguments      % Load the Arguments for SPSubtractMainFunction
+  JAL         $SPSubtractMainFunction       % Execute SPSubtractMainFunction
+  NOP                                       % Nullpointer below the JAL, because a JAL ALWAYS reads the next line too
+  .NotEquipped
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  POP         V0, RA                        % Clearing/Emptying the registers by removing them from the stack
+  ADDIU       V0, R0, 2                     % Set V0 to == 2 so the Function can return
+  JR          RA                            % Return to the Script
+  NOP                                       % Nullpointer below the JR, because a JR ALWAYS reads the next line too
+}
+
+#new:Unknown $SPSubtractArguments
+{
+FFFFFFFF 255`                           % The typical SPSubtractMainFunction Arguments ( Full bars / Fractions of a bar )
+}
+
 
 @	$Script_802A327C
 {

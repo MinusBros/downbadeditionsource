@@ -35,13 +35,36 @@
    20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
    40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
    5C:  Call  SetCamEnabled     ( .Cam:Default .True )
-   70:  Call  MakeNpcs  ( .True $NpcGroupList_80243B98 )
+		Call  MakeNpcs  ( .True $NpcGroupList_80243B98 ) 
    84:  ExecWait  $Script_MakeEntities
    9C:  Wait  1`
    A8:  Exec  $Script_80242718
         Exec  $Script_InitNewStuff
+		Exec  $Script_CheckPos
    C0:  Return
    C8:  End
+}
+
+
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -170`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  80`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
 }
 
 #new:Script $Script_InitNewStuff
@@ -179,4 +202,13 @@
 	00000000 00000000 00000000 00000000 % no tattle string
 }
 
+%For some reason this room's battle BG is crashing after the battle ends, so change it
 
+@	$NpcGroupList_80243B98
+{
+	00000001 $NpcGroup_80242FF8 2223000A
+	00000001 $NpcGroup_802431E8 2221000A
+	00000002 $NpcGroup_802433D8 2235000A
+	00000002 $NpcGroup_802437B8 2233000A
+	00000000 00000000 00000000
+}

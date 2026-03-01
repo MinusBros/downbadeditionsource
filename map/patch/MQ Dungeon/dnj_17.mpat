@@ -1,0 +1,298 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000001 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]Something looks wrong with that[BR]
+floor. The real path must be[BR]
+given away somewhere else[BR]
+in the dungeon![BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+		
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call  SetSpriteShading  ( .Shading:mim_05 )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+		Call     MakeNpcs       ( 00000001 $NpcGroups_DNJ_17 )
+	If *GF_DNJ13_FlagB == 00000000
+		ExecWait $Script_CreateEntities
+	Else
+		ExecWait $Script_CreateEntitiesDone
+	EndIf
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+
+	#new:Script $Script_CreateEntities
+{
+		Call     MakeEntity   ( .Entity:SimpleSpring ~Vec4d:spring1 00000064 80000000 )
+		Call     MakeEntity   ( .Entity:SimpleSpring ~Vec4d:spring2 00000064 80000000 )
+		Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:starpiece 00000011 *GF_DNJ17_StarPiece )
+		Call	MakeEntity		( .Entity:BlueSwitch ~Vec4d:switch 80000000 )
+	    Call	AssignScript	( $Script_TriggerLeft )
+		Return
+		End
+}
+		
+	#new:Script $Script_CreateEntitiesDone
+{
+		Call     MakeEntity   ( .Entity:SimpleSpring ~Vec4d:spring1 00000064 80000000 )
+		Call     MakeEntity   ( .Entity:SimpleSpring ~Vec4d:spring2 00000064 80000000 )
+		Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:starpiece 00000011 *GF_DNJ17_StarPiece )
+		Return
+		End
+}
+		
+	#new:Script $Script_TriggerLeft
+{
+    Set *GF_DNJ13_FlagB 00000001
+	If *GF_DNJ13_FlagA == 00000001
+		ExecWait $ShakeIt
+	EndIf
+	Return
+	End
+}
+	
+	#new:Script $ShakeIt
+{
+Call	 DisablePlayerInput ( .True )
+	Thread
+   		Call     PlaySoundAtCollider 	( ~Collider:this1 00000187 00000000 )
+	EndThread
+		Call     ShakeCam    	( .Cam:Default 00000000 00000028 *Fixed[1.0] )
+    	Wait     00000014 
+		%Call     SetPlayerAnimation 	( 0001002A )
+		%Call     PlaySoundAtPlayer 	( 00000263 00000000 )
+		%Call     ShowEmote   	( 00000000 .Emote:Question 00000000 00000014 00000000 00000000 00000000 00000000 00000000 )
+		%Wait 0000001F
+Call	 DisablePlayerInput ( .False )
+Return
+End
+}
+	
+	#new:NpcGroupList $NpcGroups_DNJ_17
+{
+00000001 $NPC_Pokey1 3C1A0000
+00000001 $NPC_Pokey2 3C1B0000
+00000001 $NPC_Pokey3 3C1C0000
+00000001 $NPC_Pokey4 3C1A0000
+00000001 $NPC_Pokey5 3C1B0000
+00000001 $NPC_Pokey6 3C1C0000
+00000001 $NPC_Pokey7 3C1A0000
+00000001 $NPC_Pokey8 3C1B0000
+00000000 00000000 00000000
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_16" 00000001 )
+	Wait     00000064 
+	Return
+	End	
+}
+	
+#new:NpcGroup $NPC_Pokey1
+{
+00000001 $NpcSettings_Chomp ~Vec3f:pokey1
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey1
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NPC_Pokey2
+{
+00000002 $NpcSettings_Chomp ~Vec3f:pokey2
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey2
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NPC_Pokey3
+{
+00000003 $NpcSettings_Chomp ~Vec3f:pokey3
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey3
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+	
+#new:NpcGroup $NPC_Pokey4
+{
+00000004 $NpcSettings_Chomp ~Vec3f:pokey4
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey4
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NPC_Pokey5
+{
+00000005 $NpcSettings_Chomp ~Vec3f:pokey5
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey5
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NPC_Pokey6
+{
+00000006 $NpcSettings_Chomp ~Vec3f:pokey6
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey6
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NPC_Pokey7
+{
+00000007 $NpcSettings_Chomp ~Vec3f:pokey7
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey7
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+	
+#new:NpcGroup $NPC_Pokey8
+{
+00000008 $NpcSettings_Chomp ~Vec3f:pokey8
+00002C00 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey8
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_Chomp
+{
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+}
+
+
+#new:Script $Script_ChompAI
+{
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+}
+	 
+#new:AISettings $AISettings_Chomp
+{
+    2.1 % move speed
+    60` % move time
+    30` % wait time
+   90.0 % alert radius
+    0.0
+    5`
+    6.8 % chase speed
+    60`
+    15`
+  300.0 % chase radius
+    0.0
+    1`	
+}
+	

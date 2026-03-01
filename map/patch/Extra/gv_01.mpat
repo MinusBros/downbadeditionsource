@@ -7,3 +7,310 @@
     CLEAR     V0 % required for init functions
     JPOP      RA
 }
+
+@	$Header
+{
+	[MainScript]  $Script_GameOverDriver_Primary
+	[EntryList]   $EntryList
+	[EntryCount]  00000001
+	[Background]  00000000
+	[MapTattle]   00000000
+}
+
+
+#new:Script $Script_GameOverDriver_Primary
+{
+   B8:  Call  DisablePlayerInput    ( .True )
+   C8:  Call  ModifyGlobalOverrideFlags  ( 00000000 00020000 )
+   DC:  Call  SetCamPerspective ( .Cam:Default 00000003 00000019 00000010 00001000 )
+   FC:  Call  SetCamBGColor     ( .Cam:Default 00000000 00000000 00000000 )
+  118:  Call  SetCamEnabled     ( .Cam:Default .True )
+  12C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+  140:  Thread
+  148:  	Call  GetCurrentPartnerID   ( *Var[0] )
+  158:  	If  *Var[0]  !=  .Partner:None % 0
+  168:  		Call  DisablePartnerAI  ( 00000000 )
+  178:  		Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+  190:  		Call  SetNpcPos ( .Npc:Partner 00000000 FFFFFC18 00000000 )
+  1AC:  	EndIf
+  1B4:  	Call  SetPlayerFlagBits ( 00200000 .True )
+  1C8:  	Call  InterpPlayerYaw   ( 0000005A 00000000 )
+  1DC:  	Wait  2`
+  1E8:  	Call  RandInt   ( 00000007 *Var[0] )  %Add more frames to pick from
+  1FC:  	Switch  *Var0
+  208:  		Case  ==  0`
+  214:  			Call  SetPlayerAnimation    ( 0001000D )
+  224:  		Case  ==  1`
+  230:  			Call  SetPlayerAnimation    ( .PlayerAnim:Crouch )
+  240:  		Case  ==  2`
+  24C:  			Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
+  25C:  		Case  ==  3`
+  268:  			Call  SetPlayerAnimation    ( .PlayerAnim:Pray )
+  278:  		Case  ==  4`
+  284:  			Call  SetPlayerAnimation    ( .PlayerAnim:DeadStill )
+				Case  ==  5`
+					Call  SetPlayerAnimation    ( 0001002F )
+				Case  ==  6`
+					Call  SetPlayerAnimation    ( 00080009 )
+				Case  ==  7`
+					Call  SetPlayerAnimation    ( 00080029 )
+  294:  	EndSwitch
+  29C:  EndThread
+		Thread
+			Call  SetMusicTrack ( 00000000 .Song:GameOver 00000000 00000008 )
+			Wait  264`
+			Call  SetMusicTrack ( 00000000 .Song:GameOver 00000001 00000008 )
+		EndThread
+  2C0:  Call  ClearAmbientSounds    ( 00000000 )
+  2D0:  Thread
+  2D8:  	Wait  105`
+			ExecWait  $BossCheck
+			If  *Flag[05] == .True
+				Return
+			EndIf
+			Switch  *GB_StoryProgress
+					Case  <  .Story:Ch1_SpokeWithMerlin
+							Exec $GoToTitle
+							Return
+					Case  .Story:Ch1_MarioActivatedTrap to .Story:Ch1_BombetteJoinedParty  %To prevent leaving the cell early
+							Exec $GoToTitle
+							Return
+					Case  ==  .Story:Ch1_StarSpritDeparted  %To prevent skipping Mr. Trooper
+							Exec $GoToTitle
+							Return
+					Case  ==  .Story:Ch2_StarSpritDeparted
+							If *GF_SBK30_MrTrooper == .False
+								Exec $GoToTitle
+								Return
+							EndIf
+					Case  .Story:Ch3_GotSuperBoots  to  .Story:Ch3_StarSpritDeparted %No skipping Mr. Trooper
+						If *GF_MIM10_Defeated_JrTroopa == .False
+							Exec $GoToTitle
+							Return
+						EndIf
+					Case  .Story:Ch3_HeartFledFirstTunnel  to  .Story:Ch3_DefeatedTubbaBlubba %This would mess with the Tubbs cutscene
+							Exec $GoToTitle
+							Return
+					Case .Story:Ch5_ReachedLavaLavaIsland to .Story:Ch5_ReturnedToToadTown %Again, no skipping Mr. Trooper
+						If *GF_MAC01_Defeated_JrTroopa4 == .False
+							Exec $GoToTitle
+							Return
+						EndIf
+					Case .Story:Ch5_RafaelLeftNest to .Story:Ch5_RafaelMovedRoot  %You're kind of locked in this state
+							Exec $GoToTitle
+							Return
+					Case  ==  .Story:Ch6_SpokeWithTheSun  %To prevent skipping Jonathan, not like you'd be able to progress anyway
+							Exec $GoToTitle
+							Return
+					Case  ==  .Story:Ch8_ReachedBowsersCastle  %No early jail escape
+						If *GB_KPA81_BowserDoorState == 00000001 %Fell for trapdoor	
+							Exec $GoToTitle
+							Return
+						EndIf
+				EndSwitch
+					%A new check for a miniboss I added
+					If *GF_TIK25_GiantChest == .True
+					  If  *GB_StoryProgress >= .Story:Ch6_LakilesterJoinedParty
+						  If  *GB_StoryProgress < .Story:Ch7_ArrivedAtShiverCity
+								Exec $GoToTitle
+								Return
+						  EndIf
+					  EndIf
+					EndIf	
+					Exec  $GameOverChoice
+  308:  EndThread
+  310:  Call  802D7CF8  ( 00000000 00000000 00000000 00000140 000000F0 00000080 0000000A )
+  338:  Call  TranslateGroup    ( ~Model:g 00000000 000000C8 00000000 )
+  354:  Call  TranslateGroup    ( ~Model:a 00000000 000000C8 00000000 )
+  370:  Call  TranslateGroup    ( ~Model:m 00000000 000000C8 00000000 )
+  38C:  Call  TranslateGroup    ( ~Model:e 00000000 000000C8 00000000 )
+  3A8:  Call  TranslateGroup    ( ~Model:o 00000000 000000C8 00000000 )
+  3C4:  Call  TranslateGroup    ( ~Model:v 00000000 000000C8 00000000 )
+  3E0:  Call  TranslateGroup    ( ~Model:e2 00000000 000000C8 00000000 )
+  3FC:  Call  TranslateGroup    ( ~Model:r 00000000 000000C8 00000000 )
+  418:  Thread
+  420:  	Wait  6`
+  42C:  	Set   *Var[0]  00000004
+  43C:  	Exec  $Script_GameOverDriver_Secondary
+  448:  	Wait  6`
+  454:  	Set   *Var[0]  00000006
+  464:  	Exec  $Script_GameOverDriver_Secondary
+  470:  	Wait  12`
+  47C:  	Set   *Var[0]  00000008
+  48C:  	Exec  $Script_GameOverDriver_Secondary
+  498:  	Wait  6`
+  4A4:  	Set   *Var[0]  0000000A
+  4B4:  	Exec  $Script_GameOverDriver_Secondary
+  4C0:  	Wait  6`
+  4CC:  	Set   *Var[0]  0000000C
+  4DC:  	Exec  $Script_GameOverDriver_Secondary
+  4E8:  	Wait  6`
+  4F4:  	Set   *Var[0]  0000000E
+  504:  	Exec  $Script_GameOverDriver_Secondary
+  510:  	Wait  6`
+  51C:  	Set   *Var[0]  00000010
+  52C:  	Exec  $Script_GameOverDriver_Secondary
+  538:  	Wait  18`
+  544:  	Set   *Var[0]  00000012
+  554:  	Exec  $Script_GameOverDriver_Tertiary
+  560:  EndThread
+  604:  Return
+  60C:  End
+}
+
+#new:Script $Script_GameOverDriver_Secondary
+{
+	 0:  UseIntBuffer  $IntTable_802415DC
+    C:  Loop  0000001A
+   18:  	Get1Int  *Var[1]
+   24:  	Call  TranslateGroup    ( *Var[0] 00000000 *Var[1] 00000000 )
+   40:  	Wait  1`
+   4C:  EndLoop
+   54:  Return
+   End
+}
+
+#new:Script $Script_GameOverDriver_Tertiary
+{
+   5C:  UseIntBuffer  $IntTable_80241644
+   68:  Loop  00000013
+   74:  	Get1Int  *Var[1]
+   80:  	Call  TranslateGroup    ( *Var[0] 00000000 *Var[1] 00000000 )
+   9C:  	Wait  1`
+   A8:  EndLoop
+   B0:  Return
+   End
+}
+
+%Under certain circumstances, the player may go to the title screen or Kinoko Town
+#new:Script   $GameOverChoice
+{
+			Call  ShowMessageAtScreenPos    ( 001E0046  152`  50` ) % Go to Kinoko Town or title screen
+			Switch  *Var0
+				Case  ==  0`
+					Call  DisablePlayerInput    ( .False )
+					Call  FadeOutMusic  ( 00000000 00000BB8 )
+					Call  FullyRestoreHPandFP ( )
+					Call  GotoMapSpecial    ( "mac_00" 00000004 00000006 )
+					Wait  90`
+				Case  ==  1`
+					Call  FadeOutMusic  ( 00000000 000009B8 )
+					Set   *Flag[05]  .True
+					Exec  $GoToTitle
+			EndSwitch
+			Return
+			End
+}
+
+
+#new:Script  $BossCheck
+{
+	Set  *Var0 2`
+	Wait 1`
+	If *CheckCoopNotes == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckTutankoopa == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckTyrant == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckTubbs1 == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckTubbs2 == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckShyShogun == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckMoltenPiranha == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckLordofThunder == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckBlackCrystalKing == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If *CheckFinalBower == .True
+		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+	EndIf
+	If  *Var0 == 0`		
+		Set   *Flag[05]  .True
+		Call  FullyRestoreHPandFP ( )
+		Call  FullyRestoreSP ( )
+		Call  FadeOutMusic  ( 00000000 00000BB8 )
+		Wait  1`
+		If *CheckCoopNotes == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "trd_10" 00000000 00000006 )
+		EndIf
+		If *CheckTutankoopa == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "isk_16" 00000000 00000006 )
+		EndIf
+		If *CheckTyrant == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "obk_09" 00000000 00000006 )
+		EndIf
+		If *CheckTubbs1 == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "arn_11" 00000000 00000006 )
+		EndIf
+		If *CheckTubbs2 == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "arn_07" 00000000 00000006 )
+		EndIf
+		If *CheckShyShogun == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "omo_15" 00000000 00000006 )
+		EndIf
+		If *CheckMoltenPiranha == .True
+			Set  *MoltenPiranhaTurn .False
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "kzn_19" 00000001 00000006 )
+		EndIf
+		If *CheckLordofThunder == .True
+			Set  *LordofThunderTurn .False
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "flo_21" 00000000 00000006 )
+		EndIf
+		If *CheckBlackCrystalKing == .True
+			Set  *CrystalKingTurn .False
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "pra_32" 00000000 00000006 )
+		EndIf
+		If *CheckFinalBower == .True
+			Call	$Function_LoadItems ( )
+			Call  GotoMapSpecial    ( "kkj_25" 00000001 00000006 )
+		EndIf
+	EndIf
+	If  *Var0 == 1`
+		Set   *Flag[05]  .True
+		Exec  $GoToTitle
+	EndIf
+	Return
+	End
+}
+
+
+#new:Script  $GoToTitle
+{
+			  2D0:  Thread
+			  2D8:  	Wait  110`
+			  2E4:  	Call  $Function_802405EC ( )
+			  2F0:  	Call  $Function_80240688 ( )
+			  2FC:  	Wait  100`
+			  308:  EndThread
+			  568:  Thread
+			  570:  	Call  UseSettingsFrom   ( .Cam:Default  0`  10`  0` )
+			  58C:  	Call  SetPanTarget  ( .Cam:Default  0`  0`  0` )
+			  5A8:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[0.3] )
+			  5BC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+			  5E0:  	Call  SetPanTarget  ( .Cam:Default  0`  0`  1000` )
+			  5FC:  EndThread  
+					Return
+					End
+}

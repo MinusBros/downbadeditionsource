@@ -257,9 +257,17 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
   51C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000010 )
   6B0:  Wait  150`
 		Wait  10`
+		Set   *Var6  0`
+		Call FindItem  ( .Item:LifeShroom *VarE ) 
+		If *VarE == 00000000
+			Set  *VarD  1`
+		EndIf
   6BC:  Wait  2`
   6C8:  Call  SetGoalToTarget   ( .Actor:Self )
   6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic 00000000 00000000 00000010 00000020 )
+		If    *VarD  == 0`
+			Exec  $CheckDeath
+		EndIf
 		Return
 		End
 }
@@ -285,7 +293,6 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
    D4:  		ExecWait  $Script_8021B898
    E0:  	Case  ==  .Event:BurnDeath % 24
 				ExecWait  $MonstarAttack
-				ExecWait  $CheckDeath
    EC:  		Set   *Var0  00000001
    FC:  		Set   *Var1  007E0008
   10C:  		Set   *Var2  FFFFFFFF
@@ -323,7 +330,6 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
   2B0:  		SetConst  *Var1  007E0008
   2C0:  		ExecWait  DoNormalHit
   2CC:  		ExecWait  $MonstarAttack
-				ExecWait  $CheckDeath
   2D8:  		SetConst  *Var0  00000001
   2E8:  		SetConst  *Var1  007E0008
 				
@@ -363,18 +369,87 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
 }
 
 
-#new:Script $CheckDeath
+
+@	$Script_8021B55C
 {
 			Thread		
+				Wait  5`
 				Call  SetMusicTrack ( 00000000 .Song:MailCall 00000001 00000008 )  %Ending stinger
-				Wait  209`
-			Call  GetActorHP    ( .Actor:Player *Var0 )
-			If  *Var0  >  00000000 
+				Wait  202`
 				Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
-			EndIf
 			EndThread
-			Return
-			End
+    0:  Call  8027D32C  ( FFFFFF81 )
+   10:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   24:  If  *Var1  !=  FFFFFFFF
+   34:  	Call  SetAnimation  ( .Actor:Self *Var0 *Var1 )
+   4C:  	Wait  10`
+   58:  EndIf
+   60:  Call  80269E80  ( *Var5 )
+   70:  Switch  *Var5
+   7C:  	CaseOR  ==  0000000A
+   88:  	CaseOR  ==  0000000E
+   94:  	CaseOR  ==  0000000C
+   A0:  	CaseOR  ==  00000010
+   AC:  	CaseOR  ==  0000000B
+   B8:  	CaseOR  ==  0000000F
+   C4:  	CaseOR  ==  0000000D
+   D0:  	CaseOR  ==  00000011
+   DC:  	CaseOR  ==  00000002
+   E8:  	EndCaseGroup
+   F0:  	Default
+   F8:  		Set   *Flag[00]  .False
+  108:  		Call  GetOriginalActorType  ( .Actor:Self *Var1 )
+  11C:  		Switch  *Var1
+  128:  			CaseOR  ==  0000000D
+  134:  			CaseOR  ==  0000000F
+  140:  			CaseOR  ==  0000004A
+  14C:  			EndCaseGroup
+  154:  			Default
+  15C:  		EndSwitch
+  164:  		If  *Var2  !=  FFFFCFC7
+  174:  			Set   *Var2  00000000
+  184:  			Loop  00000018
+  190:  				Call  SetActorYaw   ( .Actor:Self *Var2 )
+  1A4:  				Add   *Var2  0000001E
+  1B4:  				Wait  1`
+  1C0:  			EndLoop
+  1C8:  			Call  SetActorYaw   ( .Actor:Self  0` )
+  1DC:  		EndIf
+  1E4:  EndSwitch
+  1EC:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  208:  Add   *Var1  0000000A
+  218:  Add   *Var2  0000000A
+  228:  Call  PlayEffect        ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  26C:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:Death )
+  280:  Call  DropStarPoints    ( .Actor:Self )
+  290:  Call  SetActorYaw       ( .Actor:Self  0` )
+  2A4:  Set   *Var3  00000000
+
+  2B4:  Loop  0000000C
+  2C0:  	Call  SetActorRotation  ( .Actor:Self *Var3 00000000 00000000 )
+  2DC:  	Add   *Var3  00000008
+  2EC:  	Wait  1`
+  2F8:  EndLoop
+  300:  Call  UseBattleCamPreset    ( 00000002 )
+  310:  ExecWait  ForceNextTarget
+  31C:  Call  RemoveActor   ( .Actor:Self )
+  32C:  Return
+  334:  End
+}
+
+%If player dies (and doesn't have a Life Shroom) play the end of battle stinger
+#new:Script $CheckDeath
+{		
+				Loop 60`
+				Call  GetActorHP    ( .Actor:Player *VarC )
+				If  *VarC  ==  00000000 
+						Call  SetMusicTrack ( 00000000 .Song:MailCall 00000001 00000008 )  %Ending stinger
+						Return
+				EndIf
+				Wait  1`
+				EndLoop
+				Return
+				End
 }
 
 

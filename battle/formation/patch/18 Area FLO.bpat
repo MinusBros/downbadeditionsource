@@ -681,8 +681,6 @@
 }
 
 
-%Couldn't think of anything interesting to do with Ruff Puffs.
-%Their attack looks a little fancier now I guess
 
 @	$RuffPuff
 {
@@ -699,16 +697,23 @@
    [28]  Call  SetActorSpeed ( .Actor:Self *Fixed[16.0] )
 }
 
-
+%Ruff Puff attacks are fancier
+%They also have a new attack inspired by their TTYD attack
 
 @	$Script_TakeTurn_80222DE8
 {
+		Call  RandInt       ( 200` *Var8 )
+		If  *Var8  > 80`
+			ExecWait  $TTYDPuffAttack  %I wanna show this off, so do it slightly more often
+			Return
+		EndIf
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
-   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  UseBattleCamPreset    ( 0000003F )
    4C:  Call  BattleCamTargetActor  ( .Actor:Self )
-   5C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+		Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+		
+   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    74:  Call  SetAnimation      ( .Actor:Self 00000001 007D0004 )
    8C:  Call  SetGoalToTarget   ( .Actor:Self )
    9C:  Call  AddGoalPos        ( .Actor:Self  50`  0`  0` )
@@ -722,6 +727,99 @@
   154:  Switch  *Var0
   160:  	CaseOR  ==  .HitResult:Miss % 6
   16C:  	CaseOR  ==  .HitResult:Lucky % 5
+				ExecWait  $PuffMiss
+  510:  		Return
+  518:  	EndCaseGroup
+  520:  EndSwitch
+  528:  Thread
+  530:  	Call  SetActorRotationOffset    ( .Actor:Self 00000000 0000000D 00000000 )
+  54C:  	SetF  *Var0  *Fixed[0.0]
+  55C:  	Loop  0000000C
+  568:  		AddF  *Var0  *Fixed[45]
+  578:  		Call  SetActorRotation  ( .Actor:Self 00000000 00000000 *Var0 )
+  594:  		Wait  1`
+  5A0:  	EndLoop
+  5A8:  EndThread
+  5B0:  Call  SetGoalToTarget   ( .Actor:Self )
+  5C0:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.2] )
+  5D4:  Call  JumpToGoal        ( .Actor:Self  8` .False .True .False )
+  5F4:  Wait  2`
+  600:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 00000007 00000020 )
+  628:  Switch  *Var0
+  634:  	CaseOR  ==  .HitResult:Hit % 0
+  640:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  64C:  		Call  UseBattleCamPreset    ( 00000002 )
+  65C:  		Thread
+  664:  			Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000010 00000000 )
+  680:  			SetF  *Var0  *Fixed[180.0]
+  690:  			Loop  0000000A
+  69C:  				SubF  *Var0  *Fixed[22.5]
+  6AC:  				Call  SetActorRotation  ( .Actor:Self 00000000 00000000 *Var0 )
+  6C8:  				Wait  1`
+  6D4:  			EndLoop
+  6DC:  			Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
+  6F8:  			Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+  714:  		EndThread
+  71C:  		Call  SetGoalToTarget   ( .Actor:Self )
+  72C:  		Call  AddGoalPos        ( .Actor:Self  30`  0`  0` )
+  748:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[0.8] )
+  75C:  		Call  JumpWithBounce    ( .Actor:Self  10` *Fixed[5.0] )
+  774:  		Wait  4`
+  780:  		Call  YieldTurn ( )
+  78C:  		ExecWait  $Script_80222820
+  798:  	EndCaseGroup
+  7A0:  EndSwitch
+  7A8:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  7BC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  7D0:  Return
+  7D8:  End
+}
+
+#new:Script  $TTYDPuffAttack
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   3C:  Call  UseBattleCamPreset    ( 0000003F )
+   4C:  Call  BattleCamTargetActor  ( .Actor:Self )
+		Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+   8C:  Call  SetGoalToTarget   ( .Actor:Self )
+  748:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  764:  Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+		Call  AddGoalPos    ( .Actor:Self  40`  20`  0` )
+   B8:  Call  SetActorSpeed     ( .Actor:Self *Fixed[5.0] )
+		Call  PlaySoundAtActor      ( .Actor:Self 000003DB )
+   CC:  Call  FlyToGoal ( .Actor:Self  0`  -10` .Easing:Linear )
+		Wait  7`
+	    Call  SetAnimation      ( .Actor:Self 00000001 007D0005 )
+	    Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+		Call  SetGoalToTarget   ( .Actor:Self )
+		Call  PlaySoundAtActor      ( .Actor:Self 000003D9 )
+		Call  SetActorSpeed     ( .Actor:Self *Fixed[24.0] )
+		Call  FlyToGoal ( .Actor:Self  0`  -8` .Easing:Linear )
+  130:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
+  154:  Switch  *Var0
+  160:  	CaseOR  ==  .HitResult:Miss % 6
+  16C:  	CaseOR  ==  .HitResult:Lucky % 5
+				ExecWait  $PuffMiss
+  510:  		Return
+  518:  	EndCaseGroup
+  520:  EndSwitch
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 00000008 00000020 )	
+  748:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  764:  Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+   9C:  Call  AddGoalPos        ( .Actor:Self  -70`  10`  0` )
+   B8:  Call  SetActorSpeed     ( .Actor:Self *Fixed[7.0] )
+   CC:  Call  FlyToGoal ( .Actor:Self  0`  -9` .Easing:Linear )
+		Wait  6`
+  78C:  ExecWait  $Script_80222820
+  7A8:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  7BC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+		Return
+		End
+}
+
+#new:Script  $PuffMiss
+{
   178:  		Set   *VarA  *Var0
   188:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.2] )
   19C:  		Call  SetGoalToTarget   ( .Actor:Self )
@@ -768,54 +866,9 @@
   4D4:  		Call  SetActorYaw   ( .Actor:Self  0` )
   4E8:  		Call  EnableIdleScript      ( .Actor:Self 00000001 )
   4FC:  		Call  UseIdleAnimation      ( .Actor:Self .True )
-  510:  		Return
-  518:  	EndCaseGroup
-  520:  EndSwitch
-  528:  Thread
-  530:  	Call  SetActorRotationOffset    ( .Actor:Self 00000000 0000000D 00000000 )
-  54C:  	SetF  *Var0  *Fixed[0.0]
-  55C:  	Loop  0000000C
-  568:  		AddF  *Var0  *Fixed[45]
-  578:  		Call  SetActorRotation  ( .Actor:Self 00000000 00000000 *Var0 )
-  594:  		Wait  1`
-  5A0:  	EndLoop
-  5A8:  EndThread
-  5B0:  Call  SetGoalToTarget   ( .Actor:Self )
-  5C0:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.2] )
-  5D4:  Call  JumpToGoal        ( .Actor:Self  8` .False .True .False )
-  5F4:  Wait  2`
-  600:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 00000008 00000020 )
-  628:  Switch  *Var0
-  634:  	CaseOR  ==  .HitResult:Hit % 0
-  640:  	CaseOR  ==  .HitResult:QuakeImmune % 2
-  64C:  		Call  UseBattleCamPreset    ( 00000002 )
-  65C:  		Thread
-  664:  			Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000010 00000000 )
-  680:  			SetF  *Var0  *Fixed[180.0]
-  690:  			Loop  0000000A
-  69C:  				SubF  *Var0  *Fixed[22.5]
-  6AC:  				Call  SetActorRotation  ( .Actor:Self 00000000 00000000 *Var0 )
-  6C8:  				Wait  1`
-  6D4:  			EndLoop
-  6DC:  			Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
-  6F8:  			Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
-  714:  		EndThread
-  71C:  		Call  SetGoalToTarget   ( .Actor:Self )
-  72C:  		Call  AddGoalPos        ( .Actor:Self  30`  0`  0` )
-  748:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[0.8] )
-  75C:  		Call  JumpWithBounce    ( .Actor:Self  10` *Fixed[5.0] )
-  774:  		Wait  4`
-  780:  		Call  YieldTurn ( )
-  78C:  		ExecWait  $Script_80222820
-  798:  	EndCaseGroup
-  7A0:  EndSwitch
-  7A8:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  7BC:  Call  UseIdleAnimation  ( .Actor:Self .True )
-  7D0:  Return
-  7D8:  End
+				Return
+				End
 }
-
-
 
 
 %Superboss Amazy Dayzee

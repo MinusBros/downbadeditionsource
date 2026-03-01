@@ -171,7 +171,15 @@
 
 
 @	$Script_TakeTurn_8021C1A4
-{
+{	
+		Call  GetCurrentPartnerID   ( *Var6 )
+		If  *Var6  ==  .Partner:Watt
+			If  *FuzzipedeTattle == .False
+				Wait  10`
+				Set  *FuzzipedeTattle .True
+				ExecWait  $WattageTattle
+			EndIf
+		EndIf
     0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
    18:  Switch  *Var0
    24:  	CaseOR  ==  00000000
@@ -210,6 +218,7 @@
 
 @	$Script_BeforeBattle_8021D3B4
 {
+		Call  SetMusicTrack ( 00000000 .Song:WhaleTheme 00000001 00000008 )  %Tough Guy Alert
     0:  Call  SetSpriteShading  ( FFFFFFFF )
    10:  Call  SetCamBGColor     ( .Cam:Battle  0`  0`  0` )
    2C:  Thread
@@ -265,4 +274,439 @@
    B4:  EndLoop
    BC:  Return
    C4:  End
+}
+
+
+@	$Script_HandleEvent_802197FC
+{
+    0:  Call  SetActorScale     ( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   1C:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   30:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   44:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   58:  Switch  *Var0
+   64:  	CaseOR  ==  .Event:HitCombo % 9
+   70:  	CaseOR  ==  .Event:Hit % A
+   7C:  		SetConst  *Var0  00000001
+   8C:  		SetConst  *Var1  0041001B
+   9C:  		ExecWait  DoNormalHit
+   A8:  	EndCaseGroup
+   B0:  	Case  ==  .Event:BurnHit % E
+   BC:  		SetConst  *Var0  00000001
+   CC:  		SetConst  *Var1  0041001E
+   DC:  		SetConst  *Var2  0041001F
+   EC:  		ExecWait  DoBurnHit
+   F8:  	Case  ==  .Event:BurnDeath % 24
+  104:  		SetConst  *Var0  00000001
+  114:  		SetConst  *Var1  0041001E
+  124:  		SetConst  *Var2  0041001F
+  134:  		ExecWait  DoBurnHit
+  140:  		SetConst  *Var0  00000001
+  150:  		SetConst  *Var1  0041001F
+				Exec  $BattleEnd
+  160:  		ExecWait  DoDeath
+  16C:  		Return
+  174:  	Case  ==  .Event:SpinSmashHit % B
+  180:  		SetConst  *Var0  00000001
+  190:  		SetConst  *Var1  0041001B
+  1A0:  		ExecWait  DoSpinSmashHit
+  1AC:  	Case  ==  .Event:SpinSmashDeath % 21
+  1B8:  		SetConst  *Var0  00000001
+  1C8:  		SetConst  *Var1  0041001B
+  1D8:  		ExecWait  DoSpinSmashHit
+  1E4:  		SetConst  *Var0  00000001
+  1F4:  		SetConst  *Var1  0041001B
+				Exec  $BattleEnd
+  204:  		ExecWait  DoDeath
+  210:  		Return
+  218:  	Case  ==  .Event:ShockHit % 2F
+  224:  		Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
+  240:  		Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+  25C:  		SetConst  *Var0  00000001
+  26C:  		SetConst  *Var1  0041001B
+  27C:  		ExecWait  DoShockHit
+  288:  		SetConst  *Var0  00000001
+  298:  		SetConst  *Var1  00410008
+  2A8:  		ExecWait  DoJumpBack
+  2B4:  		ExecWait  $Script_80219668
+  2C0:  	Case  ==  .Event:ShockDeath % 26
+  2CC:  		Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
+  2E8:  		Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+  304:  		SetConst  *Var0  00000001
+  314:  		SetConst  *Var1  0041001B
+  324:  		ExecWait  DoShockHit
+  330:  		SetConst  *Var0  00000001
+  340:  		SetConst  *Var1  0041001B
+				Exec  $BattleEnd
+  350:  		ExecWait  DoDeath
+  35C:  		Return
+  364:  	CaseOR  ==  00000017 % 17
+  370:  	CaseOR  ==  .Event:Immune % 19
+  37C:  		SetConst  *Var0  00000001
+  38C:  		SetConst  *Var1  00410004
+  39C:  		ExecWait  DoImmune
+  3A8:  	EndCaseGroup
+  3B0:  	Case  ==  .Event:Death % 20
+  3BC:  		SetConst  *Var0  00000001
+  3CC:  		SetConst  *Var1  0041001B
+  3DC:  		ExecWait  DoNormalHit
+  3E8:  		Wait  10`
+  3F4:  		SetConst  *Var0  00000001
+  404:  		SetConst  *Var1  0041001B
+				Exec  $BattleEnd
+  414:  		ExecWait  DoDeath
+  420:  		Return
+  428:  	Case  ==  .Event:RecoverStatus % 31
+  434:  		Call  SetActorYaw   ( .Actor:Self  0` )
+  448:  		SetConst  *Var0  00000001
+  458:  		SetConst  *Var1  00410004
+  468:  		ExecWait  DoRecover
+  474:  	Case  ==  .Event:SwapPartner % 3F
+  480:  		Call  SetAnimation  ( .Actor:Self 00000001 00410019 )
+  498:  		Call  UseBattleCamPreset    ( 00000001 )
+  4A8:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
+  4BC:  		Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  4D8:  		Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  4F4:  		Call  JumpToGoal    ( .Actor:Self  10` .False .True .False )
+  514:  		Call  UseBattleCamPreset    ( 00000002 )
+  524:  	Default
+  52C:  EndSwitch
+  534:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  548:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  55C:  Return
+  564:  End
+}
+
+@	$Script_HandleEvent_80219ED4
+{
+    0:  Call  SetActorScale     ( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   1C:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   30:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   44:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   58:  Switch  *Var0
+   64:  	Case  ==  .Event:HitCombo % 9
+   70:  		SetConst  *Var0  00000001
+   80:  		SetConst  *Var1  0041001C
+   90:  		ExecWait  DoNormalHit
+   9C:  	Case  ==  .Event:Hit % A
+   A8:  		SetConst  *Var0  00000001
+   B8:  		SetConst  *Var1  0041001C
+   C8:  		ExecWait  DoNormalHit
+   D4:  		ExecWait  $Script_80219D68
+   E0:  	Case  ==  .Event:BurnHit % E
+   EC:  		SetConst  *Var0  00000001
+   FC:  		SetConst  *Var1  00410020
+  10C:  		SetConst  *Var2  00410021
+  11C:  		ExecWait  DoBurnHit
+  128:  		ExecWait  $Script_80219D68
+  134:  	Case  ==  .Event:BurnDeath % 24
+  140:  		SetConst  *Var0  00000001
+  150:  		SetConst  *Var1  00410020
+  160:  		SetConst  *Var2  00410021
+  170:  		ExecWait  DoBurnHit
+  17C:  		SetConst  *Var0  00000001
+  18C:  		SetConst  *Var1  00410021
+				Exec  $BattleEnd
+  19C:  		ExecWait  DoDeath
+  1A8:  		Return
+  1B0:  	Case  ==  .Event:ShockHit % 2F
+  1BC:  		Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
+  1D8:  		Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+  1F4:  		SetConst  *Var0  00000001
+  204:  		SetConst  *Var1  0041001B
+  214:  		ExecWait  DoShockHit
+  220:  		SetConst  *Var0  00000001
+  230:  		SetConst  *Var1  00410008
+  240:  		ExecWait  DoJumpBack
+  24C:  		ExecWait  $Script_80219668
+  258:  	Case  ==  .Event:ShockDeath % 26
+  264:  		Call  SetActorRotationOffset    ( .Actor:Self 00000000 00000000 00000000 )
+  280:  		Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
+  29C:  		SetConst  *Var0  00000001
+  2AC:  		SetConst  *Var1  0041001B
+  2BC:  		ExecWait  DoShockHit
+  2C8:  		SetConst  *Var0  00000001
+  2D8:  		SetConst  *Var1  0041001B
+				Exec  $BattleEnd
+  2E8:  		ExecWait  DoDeath
+  2F4:  		Return
+  2FC:  	CaseOR  ==  00000017 % 17
+  308:  	CaseOR  ==  .Event:Immune % 19
+  314:  	CaseOR  ==  .Event:RecoverStatus % 31
+  320:  		SetConst  *Var0  00000001
+  330:  		SetConst  *Var1  00410006
+  340:  		ExecWait  DoImmune
+  34C:  	EndCaseGroup
+  354:  	Case  ==  .Event:Death % 20
+  360:  		SetConst  *Var0  00000001
+  370:  		SetConst  *Var1  0041001C
+  380:  		ExecWait  DoNormalHit
+  38C:  		Wait  10`
+  398:  		SetConst  *Var0  00000001
+  3A8:  		SetConst  *Var1  0041001C
+				Exec  $BattleEnd
+  3B8:  		ExecWait  DoDeath
+  3C4:  		Return
+  3CC:  	Default
+  3D4:  EndSwitch
+  3DC:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  3F0:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  404:  Return
+  40C:  End
+}
+
+
+#new:Script $WattageTattle
+{
+		Call  SetTargetActor    ( .Actor:Partner .Actor:Enemy0 )
+   B0:  Call  SetGoalToTarget   ( .Actor:Partner )
+   C0:  Call  SetBattleFlagBits ( 00000004 .True )
+   D4:  Call  $Function_80238E04 ( )
+   E0:  Wait  12`
+   EC:  Call  SetCamEnabled ( .Cam:Tattle .True )
+  100:  Call  SetCamFlag80  ( .Cam:Tattle .False )
+  114:  Call  SetCamPerspective ( .Cam:Tattle 00000006  25`  16`  1024` )
+  134:  Call  SetCamViewport    ( .Cam:Tattle  137`  95`  138`  99` )
+  154:  Call  GetOwnerTarget    ( .Actor:Enemy0 *VarB )
+  168:  Call  GetActorPos   ( .Actor:Enemy0 *Var0 *Var1 *Var2 )
+  184:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
+  1A0:  Call  $Function_80238BCC ( )
+  1AC:  Wait  1`
+  1B8:  Call  802CAE50      ( 00000002 *Var0 *Var1 *Var2 )
+  1D4:  Call  802CABE8      ( 00000002 00000000 *Var3 00000064 00000004 )
+  1F4:  Wait  2`
+  200:  Call  PlaySoundAtActor  ( .Actor:Partner 00000282 )
+  214:  Call  SetCamFlag80  ( .Cam:Tattle .True )
+  228:  Wait  10`
+  234:  Call  $Function_80238B60 ( )
+		Call  UseIdleAnimation  ( .Actor:Partner .False )
+  240:  Call  ActorSpeak    ( 001C00DB .Actor:Partner 00000001 000E0004 000E0001 )
+		Call  UseIdleAnimation  ( .Actor:Partner .True )
+  260:  Call  $Function_80238E48 ( )
+  26C:  Wait  12`
+  278:  Call  SetCamEnabled ( .Cam:Tattle .False )
+  28C:  Wait  32`
+  298:  Call  UseBattleCamPreset    ( 00000002 )
+  2A8:  Call  SetBattleFlagBits ( 00000004 .False )
+  2BC:  Call  80280818 ( )
+  2C8:  Call  SetGoalToHome ( .Actor:Partner )
+  2D8:  Call  SetActorSpeed ( .Actor:Partner *Fixed[8.0] )
+  2EC:  Call  SetActorJumpGravity   ( .Actor:Partner *Fixed[1.8] )
+  300:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000E0003 )
+  318:  Call  RunToGoal     ( .Actor:Partner  0` )
+  32C:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000E0001 )
+		%ExecWait $Script_8023C90C
+  344:  Return
+  34C:  End
+}
+
+
+#new:Function $Function_80238E04
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  CLEAR     A0
+    8:  LIF       F0, 1.0
+   10:  LUI       A1, 434E
+   14:  LUI       A2, 4310
+   18:  CLEAR     A3
+   1C:  SW        RA, 18 (SP)
+   20:  SW        R0, 14 (SP)
+   24:  JAL       ~Func:playFX_6C
+   28:  SWC1      F0, 10 (SP)
+   2C:  LW        RA, 18 (SP)
+   30:  SAW       V0, $End[0]
+   38:  LI        V0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_80238BCC
+{
+    0:  LAW       V0, 800DC14C
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        S0, 10 (SP)
+   10:  COPY      S0, A0
+   14:  SW        RA, 14 (SP)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  COPY      A0, V0
+   24:  LW        V0, 0 (A0)
+   28:  ANDI      V0, V0, 800
+   2C:  BNE       V0, R0, .oB8
+   30:  NOP
+   34:  LBU       V1, 191 (A0)
+   38:  LI        V0, AAAAAAAB
+   40:  MULTU     V1, V0
+   44:  LWC1      F0, 188 (A0)
+   48:  MFHI      A2
+   4C:  SRL       V0, A2, 1
+   50:  ANDI      V0, V0, FF
+   54:  MTC1      V0, F2
+   58:  NOP
+   5C:  CVT.S.W   F2, F2
+   60:  MUL.S     F2, F2, F0
+   64:  NOP
+   68:  LWC1      F0, 88 (S0)
+   6C:  CVT.S.W   F0, F0
+   70:  ADD.S     F0, F0, F2
+   74:  TRUNC.W.S F4, F0
+   78:  MFC1      V1, F4
+   7C:  NOP
+   80:  SW        V1, 88 (S0)
+   84:  LBU       V0, 191 (A0)
+   88:  LWC1      F0, 188 (A0)
+   8C:  SRL       V0, V0, 2
+   90:  MTC1      V0, F2
+   94:  NOP
+   98:  CVT.S.W   F2, F2
+   9C:  MUL.S     F2, F2, F0
+   A0:  NOP
+   A4:  MTC1      V1, F0
+   A8:  NOP
+   AC:  CVT.S.W   F0, F0
+   B0:  BEQ       R0, R0, .o138
+   B4:  ADD.S     F0, F0, F2
+        .oB8
+   B8:  LBU       V1, 191 (A0)
+   BC:  LI        V0, AAAAAAAB
+   C4:  MULTU     V1, V0
+   C8:  LWC1      F0, 188 (A0)
+   CC:  MFHI      A2
+   D0:  SRL       V0, A2, 1
+   D4:  ANDI      V0, V0, FF
+   D8:  MTC1      V0, F2
+   DC:  NOP
+   E0:  CVT.S.W   F2, F2
+   E4:  MUL.S     F2, F2, F0
+   E8:  NOP
+   EC:  LWC1      F0, 88 (S0)
+   F0:  CVT.S.W   F0, F0
+   F4:  SUB.S     F0, F0, F2
+   F8:  TRUNC.W.S F4, F0
+   FC:  MFC1      V1, F4
+  100:  NOP
+  104:  SW        V1, 88 (S0)
+  108:  LBU       V0, 191 (A0)
+  10C:  LWC1      F0, 188 (A0)
+  110:  SRL       V0, V0, 2
+  114:  MTC1      V0, F2
+  118:  NOP
+  11C:  CVT.S.W   F2, F2
+  120:  MUL.S     F2, F2, F0
+  124:  NOP
+  128:  MTC1      V1, F0
+  12C:  NOP
+  130:  CVT.S.W   F0, F0
+  134:  SUB.S     F0, F0, F2
+        .o138
+  138:  TRUNC.W.S F4, F0
+  13C:  SWC1      F4, 88 (S0)
+  140:  LW        V0, 0 (A0)
+  144:  ANDI      V0, V0, 8000
+  148:  BEQ       V0, R0, .o184
+  14C:  NOP
+  150:  LBU       V0, 191 (A0)
+  154:  LWC1      F0, 188 (A0)
+  158:  SRL       V0, V0, 1
+  15C:  MTC1      V0, F2
+  160:  NOP
+  164:  CVT.S.W   F2, F2
+  168:  MUL.S     F2, F2, F0
+  16C:  NOP
+  170:  LWC1      F0, 88 (S0)
+  174:  CVT.S.W   F0, F0
+  178:  SUB.S     F0, F0, F2
+  17C:  TRUNC.W.S F4, F0
+  180:  SWC1      F4, 88 (S0)
+        .o184
+  184:  LBU       V0, 191 (A0)
+  188:  LWC1      F2, 188 (A0)
+  18C:  MTC1      V0, F0
+  190:  NOP
+  194:  CVT.S.W   F0, F0
+  198:  MUL.S     F0, F0, F2
+  19C:  NOP
+  1A0:  LBU       A1, 190 (A0)
+  1A4:  TRUNC.W.S F4, F0
+  1A8:  MFC1      V1, F4
+  1AC:  NOP
+  1B0:  SLT       V0, V1, A1
+  1B4:  BNEL      V0, R0, .o1BC
+  1B8:  COPY      V1, A1
+        .o1BC
+  1BC:  ADDIU     V0, V1, 4C
+  1C0:  SW        V0, 90 (S0)
+  1C4:  LBU       V0, 136 (A0)
+  1C8:  SLL       V0, V0, 2
+  1CC:  LTB       V1, V0 (80282EE8)
+  1D8:  LW        V0, 84 (S0)
+  1DC:  ADDU      V0, V0, V1
+  1E0:  SW        V0, 84 (S0)
+  1E4:  LBU       V0, 136 (A0)
+  1E8:  SLL       V0, V0, 2
+  1EC:  LTB       V1, V0 (80282EE9)
+  1F8:  LW        V0, 88 (S0)
+  1FC:  ADDU      V0, V0, V1
+  200:  SW        V0, 88 (S0)
+  204:  LBU       V0, 136 (A0)
+  208:  LW        V1, 90 (S0)
+  20C:  SLL       V0, V0, 2
+  210:  LTB       A0, V0 (80282EEA)
+  21C:  ADDU      V1, V1, A0
+  220:  SW        V1, 90 (S0)
+  224:  LW        RA, 14 (SP)
+  228:  LW        S0, 10 (SP)
+  22C:  LI        V0, 2
+  230:  JR        RA
+  234:  ADDIU     SP, SP, 18
+}
+
+
+#new:Function $Function_80238B60
+{
+    0:  LAW       V0, 800DC14C
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        S0, 10 (SP)
+   10:  COPY      S0, A0
+   14:  SW        RA, 14 (SP)
+   18:  JAL       ~Func:get_actor
+   1C:  LH        A0, 428 (V0)
+   20:  COPY      A0, V0
+   24:  LBU       V0, 136 (A0)
+   28:  SLL       V0, V0, 2
+   2C:  LTW       V0, V0 (80282B98)
+   38:  LA        V1, 80282B98
+   40:  BNE       V0, R0, .o50
+   44:  SW        V0, 84 (S0)
+   48:  LW        V0, 0 (V1)
+   4C:  SW        V0, 84 (S0)
+        .o50
+   50:  JAL       ~Func:save_tattle_flags
+   54:  LBU       A0, 136 (A0)
+   58:  LW        RA, 14 (SP)
+   5C:  LW        S0, 10 (SP)
+   60:  LI        V0, 2
+   64:  JR        RA
+   68:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80238E48
+{
+    0:  LAW       V1, $End[0]
+    8:  LIF       F0, 144.0
+   10:  LW        V0, C (V1)
+   14:  SWC1      F0, 8 (V0)
+   18:  LW        V0, 0 (V1)
+   1C:  ORI       V0, V0, 10
+   20:  SW        V0, 0 (V1)
+   24:  JR        RA
+   28:  LI        V0, 2
+}
+
+#new:Script  $BattleEnd
+{
+	Wait  50`
+	Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
+	Return
+	End
 }

@@ -1,0 +1,673 @@
+%Vertical blade room
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]The floor here has an odd[BR]
+color pattern. I bet it means[BR]
+something.[Pause 10] But what?[BR]
+[Wait][Next]
+You can memorize it, Mario.[BR]
+I'll watch your back for any[BR]
+enemies.[BR]
+[Wait][Next]
+Or maybe switch to Bow.[BR]
+She's gotta be used to spooky[BR]
+places like this. She'd make[BR]
+a better watchman.[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1
+}
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call  SetSpriteShading  ( .Shading:mim_05 )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	Call     MakeNpcs       ( 00000001 $NpcGroups_DNJ_21 )
+	/%
+   Exec     $Script_RotateThatBlade
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade1}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade2}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade3}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade4}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade5}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade6}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade7}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade8}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade9}  7FFFFE00 )
+	Call     ModifyColliderFlags ( 00000001 {Collider:blade10} 7FFFFE00 )
+   Thread
+	Call     ResetFromLava 	( $Demo_LavaResetList )
+   EndThread
+   %/
+   Wait 00000009
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+
+#new:NpcGroupList $NpcGroups_DNJ_21
+{
+00000001 $Pokey1 001D0000
+00000001 $Pokey2 001E0000
+00000001 $Pokey3 001F0000
+00000000 00000000 00000000	
+}
+	
+#new:NpcGroup $Pokey1
+{
+00000001 $NpcSettings_Chomp ~Vec3f:pokey1 % -73 0 0
+00000800 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey1
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $Pokey2
+{
+00000002 $NpcSettings_Chomp ~Vec3f:pokey2 % -73 0 0
+00000800 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey2
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $Pokey3
+{
+00000003 $NpcSettings_Chomp ~Vec3f:pokey3 % -73 0 0
+00000800 00000000 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:9:UltraShroom:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:1
+~Movement:pokey3
+00ED0604 00ED0608 00ED0608 00ED0608 00ED0604 00ED0604 00ED060C 00ED060C 
+00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 00ED0608 
+00000001 00000000 00000000 00000000 % no tattle string	
+}
+
+% I had this room all cool with 10 vertical blades coming from the wall, spinning at various speeds.
+% unfortunately I couldnt figure out how to get mario to take damage when walking into the side,
+% and editing them to have a floor collider that rotated with them was a lot of work for such
+% a small idea. Besides, trying to release this modpack in a reasonable timeframe. Already 6mo behind lol
+
+/%
+
+#new:LavaResetList $Demo_LavaResetList
+{Collider:lava1} {Vec3f:Lava1}
+{Collider:lava2} {Vec3f:Lava2}
+FFFFFFFF 00000000 00000000 00000000
+
+#new:Script $Script_RotateThatBlade
+    Exec     $Script_RotationProceed1
+	Exec     $Script_RotationProceed2
+	Exec     $Script_RotationProceed3
+	Exec     $Script_RotationProceed4
+	Exec     $Script_RotationProceed5
+	Exec     $Script_RotationProceed6
+	Exec     $Script_RotationProceed7
+	Exec     $Script_RotationProceed8
+	Exec     $Script_RotationProceed9
+	Exec     $Script_RotationProceed10	
+    Return
+    End
+
+#new:Script $Script_RotationProceed1
+Call	ParentColliderToModel 	( {Collider:blade1}  {Model:blade1}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade1} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[3.0] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade1}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade1} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[3.0] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade1}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade1} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade1}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade1} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+ 
+#new:Script $Script_RotationProceed2
+Call	ParentColliderToModel 	( {Collider:blade2}  {Model:blade2}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade2} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[2.3] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade2}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade2} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[2.3] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade2}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade2} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade2}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade2} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+  
+#new:Script $Script_RotationProceed3
+Call	ParentColliderToModel 	( {Collider:blade3}  {Model:blade3}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade3} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[4.0] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade3}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade3} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[2.0] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade3}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade3} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade3}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade3} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+   
+#new:Script $Script_RotationProceed4
+Call	ParentColliderToModel 	( {Collider:blade4}  {Model:blade4}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade4} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[1.7] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade4}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade4} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[2.1] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade4}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade4} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade4}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade4} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+    
+#new:Script $Script_RotationProceed5
+Call	ParentColliderToModel 	( {Collider:blade5}  {Model:blade5}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade5} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[3.1] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade5}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade5} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[2.6] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade5}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade5} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade5}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade5} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End 
+  
+#new:Script $Script_RotationProceed6
+Call	ParentColliderToModel 	( {Collider:blade6}  {Model:blade6}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade6} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[1.1] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade6}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade6} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[4.2] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade6}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade6} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade6}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade6} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+   
+#new:Script $Script_RotationProceed7
+Call	ParentColliderToModel 	( {Collider:blade7}  {Model:blade7}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade7} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[2.2] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade7}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade7} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[2.2] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade7}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade7} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade7}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade7} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+    
+#new:Script $Script_RotationProceed8
+Call	ParentColliderToModel 	( {Collider:blade8}  {Model:blade8}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade8} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[1.9] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade8}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade8} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[2.1] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade8}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade8} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade8}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade8} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+     
+#new:Script $Script_RotationProceed9
+Call	ParentColliderToModel 	( {Collider:blade9}  {Model:blade9}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade9} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[3.0] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade9}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade9} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[1.5] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade9}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade9} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade9}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade9} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+      
+#new:Script $Script_RotationProceed10
+Call	ParentColliderToModel 	( {Collider:blade10}  {Model:blade10}   )
+    0:  SetF  *Var[0]  *Fixed[0.0] 
+   10:  Set  *Var[1]  0000001E 
+   20:  Call     PlaySoundAtModel 	( {Model:blade10} 8000004A 00000000 )
+   38:  Label    00000000 
+   44:  AddF  *Var[0]  *Fixed[1.8] 
+   54:  Call     $Function_80240800 ( )
+   	Call     RotateModel 	( {Model:blade10}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade10} )
+   80:  Wait     00000001 
+   8C:  Sub  *Var[1]  00000001 
+   9C:  If  *Var[1]  >  00000000 
+   AC:  	Goto     00000000 
+   B8:  EndIf
+   C0:  Set  *Var[1]  0000001E 
+   D0:  Call     RandInt     	( 00000064 *Var[2] )
+   E4:  If  *Var[2]  >  0000000A 
+   F4:  	Goto     00000000 
+  100:  EndIf
+  108:  SetF  *Var[2]  *Fixed[4.1] 
+  118:  Loop     00000064 
+  124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
+  134:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade10}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade10} )
+  164:  	Wait     00000001 
+  170:  EndLoop
+  178:  Loop     00000064 
+  184:  	AddF  *Var[2]  *Fixed[0.0107421875] 
+  194:  	AddF  *Var[0]  *Var[2] 
+   	Call     RotateModel 	( {Model:blade10}  *Var[0] 00000001 00000000 00000000 )
+	Call	UpdateColliderTransform	( {Collider:blade10} )
+  1C4:  	Wait     00000001 
+  1D0:  EndLoop
+  1D8:  Set  *Var[1]  0000001E 
+  1E8:  Goto     00000000 
+  1F4:  Return
+  1FC:  End
+ 
+ %/
+ 
+#new:Script $Script_MakeExits
+{
+Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+Bind     $Script_Exit1  .Trigger:FloorAbove ~Collider:exit2 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_20" 00000001 )
+	Wait     00000064 
+	Return
+	End	
+}
+	 
+	#new:Script $Script_Exit1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_24" 00000000 )
+	Wait     00000064 
+	Return
+	End
+}
+
+	#new:Function $Function_80240800
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  DADDU     S0, A0, R0
+    C:  LUI       A1, FE36
+   10:  SW        RA, 14 (SP)
+   14:  JAL       ~Func:get_float_variable
+   18:  ORI       A1, A1, 3C80
+   1C:  MOV.S     F2, F0
+   20:  LAD       F4, $ConstDouble_80247940
+   28:  CVT.D.S   F0, F2
+   2C:  C.LE.D    F4, F0
+   30:  NOP
+   34:  BC1F      .o44
+   38:  DADDU     A0, S0, R0
+   3C:  SUB.D     F0, F0, F4
+   40:  CVT.S.D   F2, F0
+        .o44
+   44:  LUI       A1, FE36
+   48:  MFC1      A2, F2
+   4C:  JAL       ~Func:set_float_variable
+   50:  ORI       A1, A1, 3C80
+   54:  LW        RA, 14 (SP)
+   58:  LW        S0, 10 (SP)
+   5C:  ADDIU     V0, R0, 2
+   60:  JR        RA
+   64:  ADDIU     SP, SP, 18
+}
+   
+   #new:ConstDouble $ConstDouble_80247940
+{
+	360.000000d
+}
+	
+	% POKEY AI (CHOMP)
+
+#new:NpcSettings $NpcSettings_Chomp
+{
+00000000 00180018 00000000 00000000 $Script_ChompAI 80077F70 00000000 8007809C
+00000000 00000000 00060000 
+}
+
+
+#new:Script $Script_ChompAI
+{
+     Call     DoBasicAI   	( $AISettings_Chomp )
+     Return
+     End
+}
+	 
+#new:AISettings $AISettings_Chomp
+{
+    1.1 % move speed
+    60` % move time
+    30` % wait time
+   90.0 % alert radius
+    0.0
+    5`
+    2.8 % chase speed
+    60`
+    15`
+  300.0 % chase radius
+    0.0
+    1`	
+}

@@ -25,8 +25,14 @@
 @	$Script_80240D90
 {
     0:  Switch  *GB_StoryProgress
-    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
-   1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000006 )
+			Case  .Story:Intro  to  .Story:Ch2_BeganPeachMission
+				Call  SetMusicTrack ( 00000000 .Song:BulletBillAssault 00000001 00000008 )  %Play the prototype Kinoko Town song
+			Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+				If  *GF_OMO04_Chest_StoreroomKey == .True
+					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )  %Update to alt version if key has been collected
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000002 00000008 )
+				EndIf
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Epilogue
 				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
    38:  	Default
@@ -334,6 +340,58 @@
   1AC:  End
 }
 
+
+
+@	$Script_80240E04
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Exec  $Script_80240D90
+   34:  	EndCaseGroup
+   3C:  	CaseOR  ==  ~Entry:Entry1
+   48:  	CaseOR  ==  ~Entry:Entry2
+   54:  		Call  SetMusicTrack ( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
+   70:  	EndCaseGroup
+   78:  EndSwitch
+   80:  If  *Var0  !=  00000000
+   90:  	Goto  14
+   9C:  EndIf
+   A4:  Label  A
+   B0:  Wait  1`
+   BC:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   D4:  If  *Var1  >  000000D2
+   E4:  	Call  FadeOutMusic  ( 00000000 00000341 )
+   F8:  	Wait  25`
+				If  *MegaCollectionTheme == .False
+					Thread
+						Wait  30`
+						Set   *MegaCollectionTheme  .True
+						Call  ShowMessageAtScreenPos    ( 001F0085  160`  40` ) % Display song title
+					EndThread
+				EndIf
+  104:  	Call  SetMusicTrack ( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
+  120:  	Wait  30`
+  12C:  	Goto  14
+  138:  EndIf
+  140:  Goto  A
+  14C:  Label  14
+  158:  Wait  1`
+  164:  If  *GB_StoryProgress  ==  .Story:Ch0_BeganPeachMission % FFFFFF97
+  174:  	Goto  14
+  180:  EndIf
+  188:  Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+  1A0:  If  *Var1  <  FFFFFFC9
+  1B0:  	Call  FadeOutMusic  ( 00000000 00000341 )
+  1C4:  	Wait  25`
+  1D0:  	Exec  $Script_80240D90
+  1DC:  	Wait  30`
+  1E8:  	Goto  A
+  1F4:  EndIf
+  1FC:  Goto  14
+  208:  Return
+  210:  End
+}
 
 @	$Script_ExitWalk_80241554
 {

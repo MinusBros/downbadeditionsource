@@ -1,3 +1,6 @@
+#define .Npc:Priest       00
+#define .Npc:JrTroopa     01
+
 #new:Header $Header
 {
 00000000 00000000 00000000 00000000 
@@ -40,17 +43,45 @@ Hallucinations blow![BR]
 ~Vec4f:entry2 %  719.0  0.0  -354.0  255.0
 }
 
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3B6
+	JAL       8011BB74
+	ADDIU     A1, R0, 3E8
+	ADDIU     A0, R0, 19
+	ADDIU     A1, R0, 37
+	ADDIU     A2, R0, 37
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
+
 #import AutoSave.mpat
 
 #new:Script_Main $Script_Main
 {
 	%Set      *WorldMapLocation 0000000A % sets the location on the pause screen map
-	Call     SetSpriteShading 	( FFFFFFFF )
+	
 	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
 	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
 	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
 	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
 	Call     SetMusicTrack    	( 00000000 .Song:DBE_Prologue 00000000 00000008 )
+	If   *PriestCutscene == .False
+		Call     SetSpriteShading 	( .Shading:mim_01 )
+		Call  MakeNpcs  ( .False $NpcGroupList_KMR34 )
+		Call  $Function_SetupFog
+		Exec $PriestCutscene
+	Else
+		Call     SetSpriteShading 	( FFFFFFFF )
+		Exec  $AutoSave
+	EndIf
 	   If  *GF_KMR34_MetalBlock  ==  .False 
 			Call     MakeEntity  	( .Entity:Hammer2BlockWide ~Vec4d:metalblock 80000000 )
 			Call     AssignScript 	( $Script_SmashBlock )
@@ -58,13 +89,154 @@ Hallucinations blow![BR]
 	ExecWait $Script_MakeEntities 
 		Set		*Var[0] $Script_MakeExits 
 		Exec	EnterWalk 
-	Exec  $AutoSave
+	
 	Return
 	End
 }
 
 
-  #new:Script $Script_SmashBlock
+#new:Script  $PriestCutscene
+{	
+		Call $ClearFlagCarryOverworldMusicToBattle()
+		Call  DisablePlayerInput    ( .True )
+		Wait  30`
+  EA8:  Call  SetPlayerAnimation    ( .PlayerAnim:Question )
+  EB8:  Wait  30`
+  EC4:  Call  PlaySoundAtPlayer ( 00000263 00000000 )
+  ED8:  Call  ShowEmote ( .Npc:Player .Emote:Question  0`  60` .False  0`  0`  0`  0` )
+  F08:  Wait  35`
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   84:  Call  UseSettingsFrom   ( .Cam:Default  *Var0 *Var1 *Var2 )
+   A0:  Call  SetPanTarget  ( .Cam:Default  *Var0 *Var1 *Var2 )
+   BC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   D0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  FadeOutMusic      ( 00000000 000005DC )
+		Call  SetPlayerAnimation    ( 00080022 )
+		Wait  20`
+   28:  Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
+		Sub   *Var0  50`
+		Call  UseSettingsFrom   ( .Cam:Default  *Var0 *Var1 *Var2 )
+   40:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )	
+		Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+   A8:  Call  SetCamDistance    ( .Cam:Default 320` )
+		Call  SetCamPitch       ( .Cam:Default *Fixed[19.0] *Fixed[-4.0] )
+		Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   C4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  SetPlayerPos  ( 386` 0` -336` )
+		Call  SetNpcAnimation   ( .Npc:JrTroopa 00210006 )
+		Call  SetMusicTrack ( 00000000 .Song:ChapterStart 00000002 00000008 )  %Priest theme
+		Call  SpeakToNpc    ( .Npc:JrTroopa 0021001A 00210006 00000000 .Npc:Priest 000B0110 )  %Trooper talk 1
+		Call  SetNpcAnimation   ( .Npc:JrTroopa 0021001B )
+		Call  SpeakToNpc    ( .Npc:Priest 00870408 00870405 00000005 .Npc:JrTroopa 000B0111 )  %Priest talk 1
+		Call  SetNpcAnimation   ( .Npc:JrTroopa 00210005 )
+		Call  SpeakToNpc    ( .Npc:JrTroopa 00210018 00210005 00000005 .Npc:Priest 000B0112 )  %Trooper talk 2
+		Call  SetNpcAnimation   ( .Npc:JrTroopa 00210009 )
+		Call  SetNpcSpeed       ( .Npc:JrTroopa *Fixed[4.0] )
+		Call  NpcMoveTo ( .Npc:JrTroopa  719`  -354`  30` )
+		Call  NpcMoveTo ( .Npc:JrTroopa  846`  -383`  30` )
+		Call  SetNpcPos     ( .Npc:JrTroopa 846`  -1000` -383` )
+		Call  SpeakToNpc    ( .Npc:Priest 00870408 00870405 00000000 .Npc:JrTroopa 000B0113 )  %Priest talk 2
+		Call  PlayerMoveTo  (  576`  -336`  40` )
+		Call  SetPlayerAnimation    ( 00080007 )
+   18:  Call  PlaySoundAtNpc    ( .Npc:Priest 00000262 00000000 )
+   30:  Call  ShowEmote ( .Npc:Priest .Emote:Exclamation  0`  20` .True  0`  0`  0`  0` )
+   60:  Wait  20`
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B0114 )  %Priest talk 2
+		Call  DisablePartnerAI  ( 00000000 )
+		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 000B0115 )  %Goombarius talk 1
+		Call  SetNpcAnimation   ( .Npc:Partner 0001001B )
+		Call  SpeakToNpc    ( .Npc:Priest 00870408 00870405 00000005 .Npc:JrTroopa 000B0116 )  %Priest talk 3
+		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 000B0117 )  %Goombarius talk 2
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B0118 )  %Priest talk 4
+		Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
+		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010012 00000005 000B0119 )  %Goombarius talk 3
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B011E )  %Priest talk 5
+		Call  SetNpcVar ( .Npc:Priest 00000000 00000001 )
+		Return
+		End
+}
+
+#new:Script $PriestInit
+{
+	Call  BindNpcIdle   ( .Npc:Self $PriestIdle )
+	Call  BindNpcDefeat ( .Npc:Self $PriestDefeat )
+	Return
+	End
+}
+
+#new:Script  $PriestDefeat
+{	
+		Call  SetEncounterStatusFlags   ( 00000004 .True )
+		Call  DisablePlayerInput    ( .True )
+		Call  SetPlayerAnimation    ( 0001180F )
+   28:  Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
+		Sub   *Var0  50`
+   40:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )	
+   A8:  Call  SetCamDistance    ( .Cam:Default 300` )
+		Call  SetCamPitch       ( .Cam:Default *Fixed[19.0] *Fixed[-4.0] )
+   B0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+		Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   C4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Set  *GB_EnemyDefense 0`
+		Wait  10`
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B011A )  %Priest talk 5
+		Call  DisablePartnerAI  ( 00000000 )
+		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010012 00000005 000B011B )  %Goombarius talk 4
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B011C )  %Priest talk 6
+		Call  SetNpcAnimation   ( .Npc:Priest 00780406 )
+		Call  SetNpcSpeed       ( .Npc:Priest *Fixed[4.0] )
+		Call  FadeOutMusic      ( 00000000 000009DC )
+		Call  NpcMoveTo ( .Npc:Priest  719`  -354`  20` )
+		Call  NpcMoveTo ( .Npc:Priest  846`  -383`  20` )
+		Call  SetNpcPos     ( .Npc:Priest 846`  -1000` -383` )
+		Call  SetPlayerAnimation    ( 00011830 )
+		Wait  18`
+		Call  SetPlayerAnimation    ( 00011831 )
+		Wait  18`
+		Call  SetPlayerAnimation    ( 00010031 )
+		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000000 000B011D )  %Goombarius talk 5
+		Call  FullyRestoreHPandFP ( )
+		Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+		Wait  20`
+		Call  SetMusicTrack    	( 00000000 .Song:DBE_Prologue 00000000 00000008 )
+		Call  EnablePartnerAI ( )
+		Call  DisablePlayerInput    ( .False )
+		Set   *PriestCutscene .True
+		Return
+		End
+}
+
+#new:Script $PriestIdle
+{
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+		Set  *GB_EnemyDefense 3`
+		Thread
+	   70:  Call  GetNpcPos      ( .Npc:Priest *Var0 *Var1 *Var2 )
+	   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+	   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+	   C0:  Call  SetCamDistance    ( .Cam:Default  500` )
+	   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+	   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
+	  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+		EndThread
+		Call  StartBattleWith   ( .Song:IllusionaryDance )
+		Wait  1`
+		Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+
+
+
+#new:Script $Script_SmashBlock
 {
 	Set  *GF_KMR34_MetalBlock  .True
 	Return
@@ -130,4 +302,40 @@ End
 	Wait     00000054 
 	Return
 	End	
+}
+
+
+
+#new:NpcSettings $NpcSettings_Default
+{
+	00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+
+#new:NpcGroupList	$NpcGroupList_KMR34
+{
+	00000001 $Priest  	 000C0006
+	00000001 $JrTroopa   00000000
+	00000000 00000000 00000000
+}
+
+#new:NpcGroup $Priest
+{
+	.Npc:Priest $NpcSettings_Default ~Vec3f:Priest
+	00840505 $PriestInit 00000000 00000000 0`
+	~NoDrops
+	~Movement:Priest
+	~AnimationTable:Priest
+	00000000 00000000 00000000 00000000 
+}
+
+#new:NpcGroup  $JrTroopa
+{
+	.Npc:JrTroopa $NpcSettings_Default ~Vec3f:JrTroopa
+	00840505 00000000 00000000 00000000 180`
+	~NoDrops
+	~Movement:JrTroopa
+	~AnimationTable:JrTroopa
+	00000000 00000000 00000000 00000000 
 }

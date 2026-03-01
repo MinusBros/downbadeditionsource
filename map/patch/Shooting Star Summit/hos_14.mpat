@@ -277,6 +277,7 @@
 {
 	Set   *GB_WorldLocation  .Location:ShootingStarSummit
 	Call  SetSpriteShading   ( .Shading:hos_01 )
+	Call  MakeNpcs  ( .False $NpcGroupList_LoveHotel )
 	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
 	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
 	Call  SetCamEnabled      ( .Cam:Default .True
@@ -292,9 +293,23 @@
 
 #new:Script $Script_MakeEntities
 {
-	Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block1 .Item:Mushroom 80000000 )
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch1_ReturnedToToadTown
+				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block1 .Item:Mushroom 80000000 )
+			Case  <  .Story:Ch5_ReturnedToToadTown
+				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block1 .Item:SuperShroom 80000000 )
+		Case  >=  .Story:Ch5_ReturnedToToadTown
+				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block1 .Item:UltraShroom 80000000 )
+		EndSwitch	
 	Call  AssignBlockFlag   ( *HOS14_Block1 )
-	Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block2 .Item:HoneySyrup 80000000 )
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch1_ReturnedToToadTown
+				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block2 .Item:HoneySyrup 80000000 )
+			Case  <  .Story:Ch5_ReturnedToToadTown
+				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block2 .Item:MapleSyrup 80000000 )
+		Case  >=  .Story:Ch5_ReturnedToToadTown
+				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block2 .Item:JamminJelly 80000000 )
+		EndSwitch	
 	Call  AssignBlockFlag   ( *HOS14_Block2 )
 	Call  MakeItemEntity    ( .Item:HeartPiece ~Vec3d:Coin1 .ItemSpawnMode:Fixed_NeverVanish *HOS14_BlueCoin1 )
 	Call  MakeItemEntity    ( .Item:HeartPiece ~Vec3d:Coin2 .ItemSpawnMode:Fixed_NeverVanish *HOS14_BlueCoin2 )
@@ -321,14 +336,108 @@
 }
 
 
-#new:NpcGroup $NpcGroup
+
+#new:Script $Script_Init_Koopa
 {
-	.Npc:Koopa $NpcSettings_Basic ~Vec3f:Koopa % 0 -1000 0
-	00000B09 00000000 00000000 00000000 00000000
+    Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Koopa )
+    Return
+    End
+}
+
+#new:Script  $Script_Interact_Koopa
+{
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch2_StarSpritDeparted
+				Set   *Var0  $Koopa1
+			Case  <  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Koopa2
+		Case  >=  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Koopa3
+		EndSwitch
+		Call  SpeakToPlayer ( .Npc:Self 008F0207 008F0202 00000000 *Var0 ) % variable string ID
+		Return
+		End
+}
+
+#new:Script  $Script_Init_Goomba
+{
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Goomba )
+	Return
+	End
+}
+
+
+#new:Script  $Script_Interact_Goomba
+{
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch2_StarSpritDeparted
+				Set   *Var0  $Goomba1
+			Case  <  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Goomba2
+		Case  >=  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Goomba3
+		EndSwitch
+		Call  SpeakToPlayer ( .Npc:Self 0026010F 00260101 00000000 *Var0 ) % variable string ID
+		Return
+		End
+}
+
+#new:Script  $Script_Init_ToadGirl
+{
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_ToadGirl )
+	Return
+	End
+}
+
+
+#new:Script  $Script_Interact_ToadGirl
+{
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch2_StarSpritDeparted
+				Set   *Var0  $Goomba1
+			Case  <  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Goomba2
+		Case  >=  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Goomba3
+		EndSwitch
+		Call  SpeakToPlayer ( .Npc:Self 00840904 00840901 00000000 *Var0 ) % variable string ID
+		Return
+		End
+}
+
+
+#new:NpcGroup $NpcGroup_LoveHotel
+{
+	.Npc:Koopa $NpcSettings_Basic ~Vec3f:Koopa
+	00012D09 $Script_Init_Koopa 00000000 00000000 90`
 	~NoDrops
 	~Movement:Koopa
 	~AnimationTable:Koopa 
 	00000000 00000000 00000000 $KoopaTattle 
+	
+	%%%%%%%
+	
+	.Npc:Goomba $NpcSettings_Basic ~Vec3f:Goomba
+	00012D09 $Script_Init_Goomba 00000000 00000000 90`
+	~NoDrops
+	~Movement:Goomba
+	~AnimationTable:Goomba 
+	00000000 00000000 00000000 $GoombaTattle 
+	
+	%%%%%%%%
+	
+	.Npc:ToadGirl $NpcSettings_Basic ~Vec3f:ToadGirl
+	00012D09 $Script_Init_ToadGirl 00000000 00000000 00000000
+	~NoDrops
+	~Movement:ToadGirl
+	~AnimationTable:ToadGirl 
+	00000000 00000000 00000000 $ToadGirlTattle 
+}
+
+#new:NpcGroupList $NpcGroupList_LoveHotel
+{
+	00000003 $NpcGroup_LoveHotel 00000000
+	00000000 00000000 00000000
 }
 
 #new:Script $Script_SetupTexturePan
@@ -438,7 +547,7 @@
 	SetGroup 0000001B 
 	Call     UseExitHeading ( 60` 1 )
 	Exec     ExitWalk 
-	Call     GotoMap     	( "hos_14" 0 )
+	Call     GotoMap     	( "hos_16" 0 )
 	Wait     80`
 	Return
 	End
@@ -462,7 +571,7 @@
 	[DelayOn][WAIT][END]
 }
 
-#new:String  $ToadGirlTattle
+#new:String $ToadGirlTattle
 {
 [Style Tattle]
 That's T. Sune.[BR]
@@ -484,7 +593,7 @@ Goombarius rolling.[BR]
 [Wait][End]
 }
 
-#new:String  $ToadBoyTattle
+#new:String $ToadBoyTattle
 {
 [Style Tattle]
 That's Shann T.[BR]
@@ -503,7 +612,7 @@ Back me up here, Mario.[BR]
 }
 
 
-#new:String  $GoombaTattle
+#new:String $GoombaTattle
 {
 [Style Tattle]
 That's Goomuke.[BR]
@@ -529,7 +638,7 @@ Those guys are awesome.[BR]
 }
 
 
-#new:String   $KoopaTattle
+#new:String $KoopaTattle
 {
 [Style Tattle]
 That's Koohid.[BR]
@@ -551,7 +660,7 @@ a convention?[BR]
 }
 
 
-#new:String   $BanditTattle
+#new:String $BanditTattle
 {
 [Style Tattle]
 That's Phantom.[BR]
@@ -568,3 +677,252 @@ poor fools.[BR]
 Goombarius loves the paper.[BR]
 [Wait][End]
 }
+#new:String $Koopa1
+{
+[Style Right]
+We're entering the Love Hotel.[BR]
+[Pause 5]Nah, nah. We ain't lovers.[BR]
+[Pause 5]Me and my homeboy are going to try[BR]
+out the Love's Ladder challenge.[BR]
+[Wait][Next]
+They say the farther you make it up[BR]
+the ladder, the deeper your [BR]
+friendships and love can grow.[BR]
+[Wait][Next]
+Heh heh! But that's not all![BR]
+[Pause 10]There's loot and riches too![BR]
+[Pause 10]Of course I want some of that![BR]
+Ain't that right, Goomuke?[BR]
+[Wait][End]
+}
+
+#new:String $Koopa2
+{
+[Style Right]
+We're entering the Love Hotel.[BR]
+[Pause 5]Nah, nah. We ain't lovers.[BR]
+[Pause 5]Me and my homeboy are going to try[BR]
+out the Love's Ladder challenge.[BR]
+[Wait][Next]
+They say the farther you make it up[BR]
+the ladder, the deeper your [BR]
+friendships and love can grow.[BR]
+[Wait][Next]
+Heh heh! But that's not all![BR]
+[Pause 10]There's loot and riches too![BR]
+[Pause 10]Of course I want some of that![BR]
+Ain't that right, Goomuke?[BR]
+[Wait][End]
+}
+
+#new:String $Koopa3
+{
+[Style Right]
+We're entering the Love Hotel.[BR]
+[Pause 5]Nah, nah. We ain't lovers.[BR]
+[Pause 5]Me and my homeboy are going to try[BR]
+out the Love's Ladder challenge.[BR]
+[Wait][Next]
+They say the farther you make it up[BR]
+the ladder, the deeper your [BR]
+friendships and love can grow.[BR]
+[Wait][Next]
+Heh heh! But that's not all![BR]
+[Pause 10]There's loot and riches too![BR]
+[Pause 10]Of course I want some of that![BR]
+Ain't that right, Goomuke?[BR]
+[Wait][End]
+}
+
+#new:String $Goomba1
+{
+[Style Left]
+Who did you tell we aren't lovers?[BR]
+We practically are at this point![BR]
+[Pause 10]Remember that time I--
+[Pause 30][End]
+}
+
+#new:String $Goomba2
+{
+[Style Left]
+Who did you tell we aren't lovers?[BR]
+We practically are at this point![BR]
+[Pause 10]Remember that time I--
+[Pause 30][End]
+}
+
+#new:String $Goomba3
+{
+[Style Left]
+Who did you tell we aren't lovers?[BR]
+We practically are at this point![BR]
+[Pause 10]Remember that time I--
+[Pause 30][End]
+}
+
+#new:String $Koopa4
+{
+[Style Right]
+[PrintRising]Alright! Awesome! Thank you![/fx][BR]
+[Pause 15]I think that's enough out of you,[BR]
+Goomuke.[BR]
+[Wait][Next]
+Point is,[Pause 5] we're gonna hit it big.[BR]
+[Pause 5]Nobody's gonna stand in our way.[BR]
+[Pause 5][Wave]Yuh-huh! Yuh-huh![/fx]
+[Wait][End]
+}
+
+#new:String $Koopa5
+{
+[Style Right]
+[PrintRising]Alright! Awesome! Thank you![/fx][BR]
+[Pause 15]I think that's enough out of you,[BR]
+Goomuke.[BR]
+[Wait][Next]
+Point is,[Pause 5] we're gonna hit it big.[BR]
+[Pause 5]Nobody's gonna stand in our way.[BR]
+[Pause 5][Wave]Yuh-huh! Yuh-huh![/fx]
+[Wait][End]
+}
+
+#new:String $Koopa6
+{
+[Style Right]
+[PrintRising]Alright! Awesome! Thank you![/fx][BR]
+[Pause 15]I think that's enough out of you,[BR]
+Goomuke.[BR]
+[Wait][Next]
+Point is,[Pause 5] we're gonna hit it big.[BR]
+[Pause 5]Nobody's gonna stand in our way.[BR]
+[Pause 5][Wave]Yuh-huh! Yuh-huh![/fx]
+[Wait][End]
+}
+
+#new:String $Goomba4
+{
+[Style Left]
+This Koop freak Koohid thinks we[BR]
+aren't in love, but I think he's[BR]
+tweakin'.[BR]
+[Wait][Next]
+We've been together for years, so[BR]
+I dunno what he's on about.[BR]
+[Pause 10]But [Wave]suuure,[/fx] pretend we're still BFFs.[BR]
+[Wait][Next]
+The thought almost gives me[BR]
+[Pause 10][Wave]heartbreak,[Pause 12] heartbreak.[BR]
+[Pause 15]Keeps [Pause 3]on[Pause 3] pounding.[Pause 3] [NOTE][/fx]
+[Wait][End]
+}
+
+#new:String $Goomba5
+{
+[Style Left]
+This Koop freak Koohid thinks we[BR]
+aren't in love, but I think he's[BR]
+tweakin'.[BR]
+[Wait][Next]
+We've been together for years, so[BR]
+I dunno what he's on about.[BR]
+[Pause 10]But [Wave]suuure,[/fx] pretend we're still BFFs.[BR]
+[Wait][Next]
+The thought almost gives me[BR]
+[Pause 10][Wave]heartbreak,[Pause 12] heartbreak.[BR]
+[Pause 15]Keeps [Pause 3]on[Pause 3] pounding.[Pause 3] [NOTE][/fx]
+[Wait][End]
+}
+
+#new:String $Goomba6
+{
+[Style Left]
+This Koop freak Koohid thinks we[BR]
+aren't in love, but I think he's[BR]
+tweakin'.[BR]
+[Wait][Next]
+We've been together for years, so[BR]
+I dunno what he's on about.[BR]
+[Pause 10]But [Wave]suuure,[/fx] pretend we're still BFFs.[BR]
+[Wait][Next]
+The thought almost gives me[BR]
+[Pause 10][Wave]heartbreak,[Pause 12] heartbreak.[BR]
+[Pause 15]Keeps [Pause 3]on[Pause 3] pounding.[Pause 3] [NOTE][/fx]
+[Wait][End]
+}
+
+#new:String $Koopa7
+{
+[Style Right]
+But am I wrong?[BR]
+I never said we're lovers at all.[BR]
+[Pause 5]Just your delusions, man.[BR]
+[Wait][Next]
+We're in this chicanery for the[BR]
+loot and JUST the loot.[BR]
+Quit thinkin' you're gonna get mowed[BR]
+down in the suite.[BR]
+[Wait][End]
+}
+
+#new:String $Koopa8
+{
+[END]
+}
+
+#new:String $Koopa9
+{
+[END]
+}
+
+#new:String $Goomba7
+{
+[Style Left]
+[Size 48][Shake][PrintRising]SILENCE![/fx][/fx][SizeReset][BR]
+[Wait][Next]
+You think you can ignore my[BR]
+affection for you?[BR]
+[Pause 10]No way! We're here to spend some[BR]
+valuable time together.[BR]
+[Wait][Next]
+Uhhh...[Pause 5] but I guess some loot is[BR]
+nice too. [Pause 10]Buy me something nice.[BR]
+[Pause 15]Hang on,[Pause 5] ain't the point of the[BR]
+ladder to deepen our bond?
+[Wait][End]
+}
+
+#new:String $Goomba8
+{
+[Style Left]
+[Size 48][Shake][PrintRising]SILENCE![/fx][/fx][SizeReset][BR]
+[Wait][Next]
+You think you can ignore my[BR]
+affection for you?[BR]
+[Pause 10]No way! We're here to spend some[BR]
+valuable time together.[BR]
+[Wait][Next]
+Uhhh...[Pause 5] but I guess some loot is[BR]
+nice too. [Pause 10]Buy me something nice.[BR]
+[Pause 15]Hang on,[Pause 5] ain't the point of the[BR]
+ladder to deepen our bond?
+[Wait][End]
+}
+
+#new:String $Goomba9
+{
+[Style Left]
+[Size 48][Shake][PrintRising]SILENCE![/fx][/fx][SizeReset][BR]
+[Wait][Next]
+You think you can ignore my[BR]
+affection for you?[BR]
+[Pause 10]No way! We're here to spend some[BR]
+valuable time together.[BR]
+[Wait][Next]
+Uhhh...[Pause 5] but I guess some loot is[BR]
+nice too. [Pause 10]Buy me something nice.[BR]
+[Pause 15]Hang on,[Pause 5] ain't the point of the[BR]
+ladder to deepen our bond?
+[Wait][End]
+}
+

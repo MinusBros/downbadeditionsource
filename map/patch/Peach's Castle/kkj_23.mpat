@@ -2,3 +2,628 @@
 {
    [10]  	Call  SetMusicTrack ( 00000000 .Song:RadioHotHits 00000000 00000008 )
 }
+
+
+@	$Script_Main
+{
+		Exec  $Script_CheckPos
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:kkj_23 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  If  *GB_StoryProgress  ==  .Story:Ch6_BeganPeachMission % 3A
+   80:  	Call  $Function_80240048    ( 00000001 )
+   90:  	Call  MakeNpcs  ( .False $NpcGroupList_80242714 )
+   A4:  Else
+   AC:  	Call  MakeNpcs  ( .False $NpcGroupList_80241B6C )
+   C0:  EndIf
+   C8:  Exec  $Script_80240A30
+   D4:  Call  UseDoorSounds ( .DoorSounds:Large )
+   E4:  Bind  $Script_ExitDoubleDoor_80240B74 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+  100:  Bind  $Script_ExitDoubleDoor_80240A80[50] .Trigger:WallPressA ~Collider:tte 00000001 00000000
+  11C:  Exec  $Script_EnterDoubleDoor_80240C18
+		If    *GB_StoryProgress < .Story:Ch8_ReachedPeachsCastle
+				Call  EnableGroup   ( ~Model:deathswirl .False )
+				Return
+		EndIf
+		Call  $Function_SetupFog
+		Exec  $Script_SetupTexturePan
+  128:  Return
+  130:  End
+}
+
+
+@	 $Script_Interact_80241C2C
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  GetSelfVar    ( 00000000 *Var0 )
+   24:  If  *Var0  ==  00000000
+   34:  	Call  SpeakToPlayer ( .Npc:Self 00580008 00580001 00000000 0014014D ) % Hey, you! Yeah, you! Entry is prohibited for unaut ...
+   70:  	Call  SpeakToPlayer ( .Npc:Self 00580008 00580001 00000000 0014014E ) % It's about time Kammy Koopa came back down. I wond ...
+   A4:  EndIf
+   AC:  Call  InterpNpcYaw  ( .Npc:Self  90`  0` )
+   C4:  Call  DisablePlayerInput    ( .False )
+   D4:  Return
+   DC:  End
+}
+
+
+@	$Script_80243010
+{
+    0:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   14:  Loop
+   20:  	Wait  1`
+   2C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   44:  	If  *Var0  <=  0000008C
+   54:  		BreakLoop
+   5C:  	EndIf
+   64:  EndLoop
+   6C:  Call  DisablePlayerInput    ( .True )
+   7C:  Call  DisablePlayerPhysics  ( .True )
+   8C:  Call  DisablePartnerAI  ( 00000000 )
+   9C:  Call  SetMusicTrack     ( 00000000 .Song:KammyKoopaTheme 00000000 00000008 )
+   B8:  Call  SetNpcVar ( 00000001 00000001 00000000 )
+   D0:  Call  SetNpcFlagBits    ( 00000001 00000100 .True )
+   E8:  Call  SetNpcPos ( 00000000  -50`  0`  -50` )
+  104:  Exec  $Script_80242D68
+  110:  Call  SetNpcAnimation   ( 00000000 00600002 )
+  124:  Call  SetNpcSpeed       ( 00000000 *Fixed[4.0] )
+  138:  Call  NpcMoveTo ( 00000000  30`  -50`  0` )
+  154:  Call  SetNpcAnimation   ( 00000000 00600001 )
+  168:  Thread
+  170:  	Call  InterpNpcYaw  ( 00000001  270`  5` )
+  188:  	Loop
+  194:  		Wait  1`
+  1A0:  		Call  GetNpcPos ( 00000000 *Var0 *Var1 *Var2 )
+  1BC:  		If  *Var0  >  0000008C
+  1CC:  			BreakLoop
+  1D4:  		EndIf
+  1DC:  	EndLoop
+  1E4:  	Call  InterpNpcYaw  ( 00000001  90`  5` )
+  1FC:  EndThread
+  204:  Thread
+  20C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  224:  	Call  802D1270  ( 000000BE *Var2 *Fixed[4.0] )
+  23C:  	Call  802D1270  ( 000000C3 FFFFFFB0 *Fixed[4.0] )
+  254:  	Call  802D1270  ( 000000BE FFFFFFB0 *Fixed[4.0] )
+  26C:  	Loop
+  278:  		Wait  1`
+  284:  		Call  GetNpcPos ( 00000000 *Var0 *Var1 *Var2 )
+  2A0:  		If  *Var0  >  000000BE
+  2B0:  			BreakLoop
+  2B8:  		EndIf
+  2C0:  	EndLoop
+  2C8:  	Call  InterpPlayerYaw   (  90`  5` )
+  2DC:  EndThread
+  2E4:  Thread
+  2EC:  	Call  GetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+  308:  	Call  NpcJump0      ( .Npc:Partner *Var0  -10`  -130`  20` )
+  328:  	Call  SetNpcSpeed   ( .Npc:Partner *Fixed[5.0] )
+  33C:  	Call  NpcFlyTo      ( .Npc:Partner  210`  -10`  -130`  0`  0` .Easing:Linear )
+  364:  	Call  InterpNpcYaw  ( .Npc:Partner  270`  5` )
+  37C:  	Loop
+  388:  		Wait  1`
+  394:  		Call  GetNpcPos ( 00000000 *Var0 *Var1 *Var2 )
+  3B0:  		If  *Var0  >  000000D2
+  3C0:  			BreakLoop
+  3C8:  		EndIf
+  3D0:  	EndLoop
+  3D8:  	Call  InterpNpcYaw  ( .Npc:Partner  90`  5` )
+  3F0:  EndThread
+  3F8:  Wait  30`
+  404:  Call  UseSettingsFrom   ( .Cam:Default  0`  0`  -50` )
+  420:  Call  SetPanTarget  ( .Cam:Default  0`  0`  -50` )
+  43C:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+  450:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-9.0] )
+  468:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.0] )
+  47C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  494:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  4A8:  Wait  10`
+  4B4:  Call  SpeakToPlayer ( 00000000 00600004 00600001 00000005 0014014F ) % OK, OK. Everything's finally ready. Even if Mario  ...
+  4D4:  Call  SpeakToNpc    ( 00000001 00580008 00580001 00000000 00000000 00140150 ) % Absolutely! Affirmative! You're right, Kammy Koopa ...
+  4F8:  Call  SetNpcVar     ( 00000000 00000000 00000001 )
+  510:  Thread
+  518:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  52C:  	Loop
+  538:  		Call  GetNpcPos     ( 00000000 *Var0 *Var1 *Var2 )
+  554:  		Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  570:  		Wait  1`
+  57C:  		Call  GetNpcVar     ( 00000000 00000000 *Var0 )
+  594:  		If  *Var0  ==  00000000
+  5A4:  			BreakLoop
+  5AC:  		EndIf
+  5B4:  	EndLoop
+  5BC:  EndThread
+  5C4:  Call  SetNpcAnimation   ( 00000000 00600002 )
+  5D8:  Call  NpcMoveTo     ( 00000000  270`  -50`  0` )
+  5F4:  Call  SetNpcAnimation   ( 00000000 00600001 )
+  608:  Call  SetNpcVar     ( 00000000 00000000 00000000 )
+  620:  Wait  10`
+  62C:  Call  InterpNpcYaw  ( 00000000  270`  5` )
+  644:  Call  SetPanTarget  ( .Cam:Default  230`  0`  -50` )
+  660:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+  674:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  688:  Call  SpeakToPlayer ( 00000000 00600004 00600001 00000005 00140151 ) % Mmm!! You there!
+  6A8:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  6C0:  Call  SetPlayerJumpscale    ( *Fixed[1.0] )
+  6D0:  Call  PlayerJump1   ( *Var0 *Var1 *Var2  10` )
+  6EC:  Wait  25`
+  6F8:  Call  SpeakToPlayer ( 00000000 00600004 00600001 00000005 00140152 ) % You're doing a fine job.
+  718:  Call  InterpNpcYaw  ( 00000000  90`  5` )
+  730:  Wait  10`
+  73C:  Call  NpcMoveTo     ( 00000000  280`  -50`  0` )
+  758:  Call  PlaySoundAtNpc    ( 00000000 00000262 00000000 )
+  770:  Call  ShowEmote     ( 00000000 .Emote:Exclamation  -45`  15` .True  0`  0`  0`  0` )
+  7A0:  Wait  17`
+  7AC:  Call  InterpNpcYaw  ( 00000000  270`  5` )
+  7C4:  Call  SpeakToPlayer ( 00000000 00600004 00600001 00000005 00140153 ) % Keep up the good... Wait... Something's weird abou ...
+  7E4:  Wait  5`
+  7F0:  Call  InterpNpcYaw  ( 00000001  90`  5` )
+  808:  Call  SetNpcAnimation   ( 00000000 00600005 )
+  81C:  Call  SpeakToPlayer ( 00000000 00600005 00600005 00000005 00140154 ) % Yahhhh!
+  83C:  Call  PlaySoundAtNpc    ( 00000000 0000207A 00000000 )
+  854:  Call  GetNpcPos     ( 00000000 *Var0 *Var1 *Var2 )
+  870:  Add   *Var0  FFFFFFEC
+  880:  Add   *Var1  00000028
+  890:  Add   *Var2  0000001B
+  8A0:  Call  PlayEffect    ( ~FX:GatherEnergyPink *Var0 *Var1 *Var2 00000001 00000032 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  8E4:  Wait  55`
+  8F0:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  908:  Add   *Var2  00000005
+  918:  Call  GetNpcPos     ( 00000000 *Var3 *Var4 *Var5 )
+  934:  Add   *Var4  000000B4
+  944:  Call  PlaySoundAtPlayer ( 00002127 00000000 )
+  958:  Call  PlayEffect    ( ~FX:Lightning *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 00000005 00000014 00000000 00000000 00000000 00000000 )
+  99C:  Call  $Function_80240910    ( *VarF 000000FF 00000000 000000FF )
+  9B8:  Add   *Var1  0000000F
+  9C8:  Call  PlayEffect    ( ~FX:ShimmerBurst:Pink *Var0 *Var1 *Var2 00000001 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  A0C:  Call  NpcFacePlayer ( .Npc:Partner 00000000 )
+  A20:  ExecWait  $Script_80242F04
+  A2C:  Call  SetNpcAnimation   ( 00000000 00600001 )
+  A40:  Call  SpeakToPlayer ( .Npc:Player 000C0006 000C0006 00000005 00140155 ) % Uh-oh!
+  A60:  Call  SpeakToPlayer ( 00000000 00600005 00600005 00000005 00140156 ) % You... Why you little... Princess Peach! Unbelieva ...
+  A80:  Call  SetPlayerAnimation    ( 000C0011 )
+  A90:  Call  SetNpcAnimation   ( 00000000 00600002 )
+  AA4:  Call  NpcMoveTo     ( 00000000  260`  -50`  0` )
+  AC0:  Call  SetNpcAnimation   ( 00000000 00600001 )
+  AD4:  Call  SpeakToPlayer ( 00000000 00600004 00600001 00000005 00140157 ) % Guards! All of you! Catch this little runaway and  ...
+  AF4:  Thread
+  AFC:  	Loop
+  B08:  		Call  NpcFacePlayer ( 00000000 00000000 )
+  B1C:  		Wait  1`
+  B28:  	EndLoop
+  B30:  EndThread
+  B38:  Thread
+  B40:  	Loop
+  B4C:  		Wait  1`
+  B58:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  B70:  		If  *Var0  >  000000F0
+  B80:  			BreakLoop
+  B88:  		EndIf
+  B90:  	EndLoop
+  B98:  	Call  InterpNpcYaw  ( .Npc:Partner  90`  0` )
+  BB0:  EndThread
+  BB8:  ExecWait  $Script_80242730
+  BC4:  ExecWait  $Script_80242984
+  BD0:  Call  SpeakToPlayer ( .Npc:Player 000C0018 000C0018 00000005 00140158 ) % Noooo!
+  BF0:  ExecWait  $Script_80242BA8
+  BFC:  Wait  20`
+  C08:  Call  SetNpcSpeed   ( .Npc:Partner *Fixed[9.0] )
+  C1C:  Call  NpcFlyTo      ( .Npc:Partner  460`  -10`  -130`  0`  0` .Easing:Linear )
+  C44:  Wait  55`
+  C50:  Call  FadeOutMusic  ( 00000000 000003E8 )
+  C64:  ExecWait  $Script_ExitDoubleDoor_80240A80
+  C70:  Call  DisablePlayerPhysics  ( .False )
+  C80:  Call  DisablePlayerInput    ( .False )
+  C90:  Return
+  C98:  End
+}
+
+
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -15`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  80`
+		If  *GB_StoryProgress  ==  .Story:Ch6_BeganPeachMission	
+			Call  GotoMap       ( "kkj_14" 0000000B )  %Captured loading zone
+		Else
+			Call  GotoMap       ( "gv_01" 00000000 )
+		EndIf
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
+}
+
+@	$Script_80240F3C
+{
+    0:  If  *GF_KKJ13_BowserTaunts  ==  .True
+   10:  	If  *GF_KKJ23_BowserFledToTower  ==  .True
+   20:  		Return
+   28:  	EndIf
+   30:  EndIf
+   4C:  Call  AwaitPlayerApproach   ( 00000064 FFFFFFC4 0000012C )
+   64:  Set   *GF_KKJ23_BowserFledToTower  .True
+   74:  Thread
+   7C:  	Call  SetNpcAnimation   ( 00000000 00D80104 )
+   90:  	Wait  30`
+   B0:  EndThread
+   B8:  Call  AwaitPlayerApproach   ( 00000000 FFFFFFC4 000000FA )
+   D0:  Call  LoadPath  ( 0000001E $VectorList_80240E88 00000004 .Easing:Linear )
+   EC:  Label  0
+   F8:  Call  GetNextPathPos ( )
+  104:  Call  SetNpcPos ( 00000000 *Var1 *Var2 *Var3 )
+  120:  Call  SetNpcPos ( 00000001 *Var1 *Var2 *Var3 )
+  13C:  Add   *Var1  0000001C
+  14C:  Add   *Var2  00000028
+  15C:  Add   *Var3  FFFFFFFD
+  16C:  %Call  SetNpcPos ( 00000002 *Var1 *Var2 *Var3 )
+  188:  Wait  1`
+  194:  If  *Var0  ==  00000001
+  1A4:  	Goto  0
+  1B0:  EndIf
+  1B8:  Call  SetNpcPos ( 00000000  0`  -1000`  0` )
+  1D4:  Call  SetNpcPos ( 00000001  0`  -1000`  0` )
+  1F0:  Return
+  1F8:  End
+}
+
+@	$Script_Init_8024135C
+{
+    0:  Call  SetNpcPos ( 00000000  0`  -1000`  0` )
+   1C:  If  *GF_KKJ13_BowserTaunts  ==  .True
+   2C:  	If  *GF_KKJ23_BowserFledToTower  ==  .True
+   3C:  		Return
+   44:  	EndIf
+   4C:  EndIf
+   54:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80241164 )
+   68:  Call  SetNpcYaw     ( .Npc:Self  90` )
+   7C:  Call  SetNpcPos     ( .Npc:Self  250`  10`  -250` )
+   98:  Call  SetNpcAnimation  ( .Npc:Self 00D80104 )
+   AC:  Return
+   B4:  End
+}
+
+@	$Script_80240EB8
+{
+    0:  Call  PlaySoundAtNpc    ( 00000000 80000066 00000000 )
+   18:  Loop
+   24:  	Call  $Function_80240080 ( )
+   30:  	If  *Var0  <  00000000
+   40:  		BreakLoop
+   48:  	EndIf
+   50:  	Wait  1`
+   5C:  EndLoop
+   64:  Call  StopSound ( 80000066 )
+   74:  Return
+   7C:  End
+}
+
+@	$Script_Init_80241418
+{
+    [0]  Call  SetNpcPos ( 00000001  0`  -1000`  0` )
+   [7C]  Call  SetNpcPos     ( .Npc:Self  250`  -1000`  -250` )
+   [98]  Call  SetNpcAnimation   ( .Npc:Self 00800021 )
+}
+
+
+@	$Script_Init_802414E0
+{
+   [7C]  Call  SetNpcPos     ( 00000002  278`  -1000`  -253` )
+}
+
+@	$NpcGroup_8024159C
+{
+	00000000 $NpcSettings_80240E30 ~Vec3f:NPC_8024159C % 0 0 0
+	00000D05 $Script_Init_8024135C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_8024159C
+	~AnimationTable:NPC_8024159C % .Sprite:WorldBowser
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3B6
+	JAL       8011BB74
+	ADDIU     A1, R0, 3E8
+	ADDIU     A0, R0, 0
+	ADDIU     A1, R0, 0
+	ADDIU     A2, R0, 0
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
+
+
+#new:Script $Script_TexturePan_Update
+{
+    SetGroup  00000000
+    If  *Var[5]  ==  00000001
+        If  *Var[6]  ==  00000001
+            If  *Var[7]  ==  00000001
+                If  *Var[8]  ==  00000001
+                    Call  $Function_TexturePan_Simple ( )
+                    Return
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+    Call  $Function_TexturePan_Complex ( )
+    Return
+    End
+}
+
+#new:Function $Function_TexturePan_Simple
+{
+    ADDIU       SP, SP, FFE8
+    SW          S0, 10 (SP)
+    COPY        S0, A0
+    SW          RA, 14 (SP)
+    LW          V1, A8 (S0)
+    LW          V0, 88 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o30
+    SW          V1, A8 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o40
+    ADDU        V0, V1, V0
+    .o30
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o44
+    SUBU        V0, V1, A0
+    .o40
+    SW          V0, A8 (S0)
+    .o44
+    LW          V1, AC (S0)
+    LW          V0, 8C (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o64
+    SW          V1, AC (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o74
+    ADDU        V0, V1, V0
+    .o64
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o78
+    SUBU        V0, V1, A0
+    .o74
+    SW          V0, AC (S0)
+    .o78
+    LW          V1, B0 (S0)
+    LW          V0, 90 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o98
+    SW          V1, B0 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oA8
+    ADDU        V0, V1, V0
+    .o98
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oAC
+    SUBU        V0, V1, A0
+    .oA8
+    SW          V0, B0 (S0)
+    .oAC
+    LW          V1, B4 (S0)
+    LW          V0, 94 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .oCC
+    SW          V1, B4 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oDC
+    ADDU        V0, V1, V0
+    .oCC
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oE0
+    SUBU        V0, V1, A0
+    .oDC
+    SW          V0, B4 (S0)
+    .oE0
+    LW          A0, 84 (S0)
+    JAL         8011BC1C
+    LW          A1, A8 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC34
+    LW          A1, AC (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC4C
+    LW          A1, B0 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC64
+    LW          A1, B4 (S0)
+    LW          RA, 14 (SP)
+    LW          S0, 10 (SP)
+    CLEAR       V0
+    JR          RA
+    ADDIU       SP, SP, 18
+}
+
+#new:Function $Function_TexturePan_Complex
+{
+    ADDIU       SP, SP, FFE8
+    SW          S0, 10 (SP)
+    COPY        S0, A0
+    BEQ         A1, R0, .o24
+    SW          RA, 14 (SP)
+    SW          R0, 70 (S0)
+    SW          R0, 74 (S0)
+    SW          R0, 78 (S0)
+    SW          R0, 7C (S0)
+    .o24
+    LW          V0, 70 (S0)
+    BNE         V0, R0, .o64
+    NOP
+    LW          V1, A8 (S0)
+    LW          V0, 88 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o50
+    SW          V1, A8 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o60
+    ADDU        V0, V1, V0
+    .o50
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o64
+    SUBU        V0, V1, A0
+    .o60
+    SW          V0, A8 (S0)
+    .o64
+    LW          V0, 74 (S0)
+    BNE         V0, R0, .oA4
+    NOP
+    LW          V1, AC (S0)
+    LW          V0, 8C (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o90
+    SW          V1, AC (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oA0
+    ADDU        V0, V1, V0
+    .o90
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oA4
+    SUBU        V0, V1, A0
+    .oA0
+    SW          V0, AC (S0)
+    .oA4
+    LW          V0, 78 (S0)
+    BNE         V0, R0, .oE4
+    NOP
+    LW          V1, B0 (S0)
+    LW          V0, 90 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .oD0
+    SW          V1, B0 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oE0
+    ADDU        V0, V1, V0
+    .oD0
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oE4
+    SUBU        V0, V1, A0
+    .oE0
+    SW          V0, B0 (S0)
+    .oE4
+    LW          V0, 7C (S0)
+    BNE         V0, R0, .o124
+    NOP
+    LW          V1, B4 (S0)
+    LW          V0, 94 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o110
+    SW          V1, B4 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o120
+    ADDU        V0, V1, V0
+    .o110
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o124
+    SUBU        V0, V1, A0
+    .o120
+    SW          V0, B4 (S0)
+    .o124
+    LW          A0, 84 (S0)
+    JAL         8011BC1C
+    LW          A1, A8 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC34
+    LW          A1, AC (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC4C
+    LW          A1, B0 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC64
+    LW          A1, B4 (S0)
+    LW          V0, 70 (S0)
+    LW          V1, 78 (S0)
+    LW          A0, 98 (S0)
+    ADDIU       V0, V0, 1
+    SW          V0, 70 (S0)
+    LW          V0, 74 (S0)
+    ADDIU       V1, V1, 1
+    SW          V1, 78 (S0)
+    LW          V1, 70 (S0)
+    ADDIU       V0, V0, 1
+    SW          V0, 74 (S0)
+    LW          V0, 7C (S0)
+    SLT         V1, V1, A0
+    ADDIU       V0, V0, 1
+    BNE         V1, R0, .o198
+    SW          V0, 7C (S0)
+    SW          R0, 70 (S0)
+    .o198
+    LW          V0, 74 (S0)
+    LW          V1, 9C (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1AC
+    SW          R0, 74 (S0)
+    .o1AC
+    LW          V0, 78 (S0)
+    LW          V1, A0 (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1C0
+    SW          R0, 78 (S0)
+    .o1C0
+    LW          V0, 7C (S0)
+    LW          V1, A4 (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1D4
+    SW          R0, 7C (S0)
+    .o1D4
+    LW          RA, 14 (SP)
+    LW          S0, 10 (SP)
+    CLEAR       V0
+    JR          RA
+    ADDIU       SP, SP, 18
+}
+
+
+
+#new:Script $Script_SetupTexturePan
+{
+	Call     802C9000 	( ~Model:deathswirl 1 )
+	Thread
+		Set  *Var[0] 1
+		Set  *Var[1] 47A
+		Set  *Var[2] 0
+		Set  *Var[3] 0
+		Set  *Var[4] 0
+		Set  *Var[5] 1
+		Set  *Var[6] 0
+		Set  *Var[7] 0
+		Set  *Var[8] 0
+		Set  *Var[9] 0
+		Set  *Var[A] 0
+		Set  *Var[B] 0
+		Set  *Var[C] 0
+		Exec $Script_TexturePan_Update
+	EndThread
+	Return
+	End
+}

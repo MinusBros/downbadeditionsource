@@ -39,6 +39,7 @@
    18:  EndIf
    20:  Call  AwaitPlayerApproach   ( 0000028A 00000000 0000001E )
    38:  Call  DisablePlayerInput    ( .True )
+		Call  $SetFlagCarryOverworldMusicToBattle()
    48:  Call  SetMusicTrack ( 00000000 .Song:HuffNPuffTheme 00000000 00000008 )
    64:  Exec  $Script_802418C0 *Var9
    74:  Call  GetCurrentPartner     ( *Var0 )
@@ -47,6 +48,7 @@
    A0:  	Wait  15`
    AC:  EndIf
    B4:  Call  DisablePlayerPhysics  ( .True )
+		If    *CheckLordofThunder == .False
    C4:  Call  InterpPlayerYaw   (  90`  1` )
    D8:  Wait  5`
    E4:  Call  SetPlayerAnimation    ( 0001002B )
@@ -76,7 +78,7 @@
   28C:  Call  802D2C14      ( 00000001 )
   29C:  Call  SetPlayerPos  ( *Var0 *Var2 *Var4 )
   2B4:  Call  SetNpcFlagBits        ( .NpcID:HuffNPuff_01 00000100 .False )
-  2CC:  Call  DisablePlayerPhysics  ( .False )
+  2CC:  Call  DisablePlayerPhysics  ( .False )	
   2DC:  Wait  5`
   2E8:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   300:  Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -88,7 +90,6 @@
   388:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   3A0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   3B4:  Wait  10`
-		Call  $SetFlagCarryOverworldMusicToBattle()
   3C0:  Call  ShowMessageAtWorldPos ( 001100CA  630`  120`  0` ) % Are you a man named Mario? And did you or did you  ...
   3DC:  Call  SetCamDistance        ( .Cam:Default *Fixed[600.0] )
   3F0:  Call  SetCamPitch   ( .Cam:Default *Fixed[30.0] *Fixed[-9.0] )
@@ -116,10 +117,12 @@
   500:  			Call  ShowMessageAtWorldPos ( 001100CC  630`  120`  0` ) % I must tell you, King Bowser ordered me to defeat  ...
 				EndIf
   51C:  EndIf
-		
 		Wait  20`
+		EndIf
 		Call  EnablePartnerAI ( )
 		%Call  802D5FA4  ( 00000005 )
+		Call   $Function_SaveItems ( )
+		Set   *CheckLordofThunder .True
 		Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
   524:  ChildThread
   52C:  	Wait  15`
@@ -158,6 +161,7 @@
 
 		Call  $ClearFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffTheme 00000000 00000008 )
+		ExecWait  $NukeBossChecks
     0:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_01 007C0004 )
    14:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_00 007C0005 )
    28:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_02 007C0006 )
@@ -252,6 +256,7 @@
 	Wait  1`
 	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
 	If *Var1  < -255`
+		ExecWait  $NukeBossChecks
 		Wait  1`
 		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
 		Call  GotoMap       ( "flo_00" 0000000C )

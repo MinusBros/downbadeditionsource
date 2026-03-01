@@ -49,10 +49,8 @@
     0:  If  *GB_StoryProgress  >=  .Story:Ch3_BowJoinedParty % FFFFFFDC
    10:  	Return
    18:  EndIf
-   20:  Set   *GB_StoryProgress  .Story:Ch3_BowJoinedParty
    30:  Call  DisablePlayerInput    ( .True )
    40:  Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
-		
    5C:  Thread
    64:  	Wait  10`
    70:  	Call  SetPlayerPos  (  -180`  0`  344` )
@@ -69,9 +67,23 @@
   150:  Call  SetCamPosB    ( .Cam:Default  0`  110` )
   168:  Call  SetCamPosC    ( .Cam:Default  0`  0` )
   180:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
-  198:  Wait  48`
-  1A4:  Call  ShowMessageAtScreenPos    ( 000E0042  160`  40` ) % Gwah hee haha! You've finally arrived! You took yo ...
+		If   *CheckTyrant == .False
+  198:  	Wait  48`
+  1A4:  	Call  ShowMessageAtScreenPos    ( 000E0042  160`  40` ) % Gwah hee haha! You've finally arrived! You took yo ...
+		EndIf
   1BC:  Kill  *VarA
+		If    *CheckTyrant == .True
+			Wait  64`
+  C98:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  CAC:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  CC4:  	Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+  CE0:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  CFC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  D14:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  D28:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+			ExecWait $TyrantScene
+			Return
+		EndIf
   1C8:  Call  InterpPlayerYaw   (  40`  0` )
   1DC:  Call  SetPlayerAnimation        ( 01010002 )
   1EC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
@@ -95,6 +107,7 @@
   374:  	Call  802CFD30  ( 00000001 00000007 *Var0 00000000 00000000 00000000 )
   398:  	Wait  1`
   3A4:  EndLoop
+		If   *CheckTyrant == .False
   3AC:  Wait  40`
   3B8:  Call  UseSettingsFrom   ( .Cam:Default  0`  50`  -70` )
   3D4:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
@@ -202,6 +215,7 @@
   C38:  Call  SpeakToPlayer ( 00000001 00BF000B 00BF0008 00000000 000E0050 ) % Oh...alas... Then, Lady, I, Bootler, will accompan ...
   C58:  Call  SpeakToPlayer ( 00000000 00050008 00050001 00000000 000E0051 ) % You stop that nonsense! I'm not a child anymore! I ...
   C78:  Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0052 ) % La... Lady... Sigh...
+		EndIf
   C98:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
   CAC:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   CC4:  Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -219,6 +233,7 @@
   D70:  Sub   *Var1  00000028
   D80:  Add   *Var2  00000096
   D90:  Call  NpcJump0      ( 00000000 *Var0 *Var1 *Var2  25` )
+		If   *CheckTyrant == .False
 		ExecWait  $SwapToGoombarius
 		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E010E ) % Goombarius Flirt 1
 		Call  SpeakToPlayer ( 00000000 00050009 00050001 00000000 000E010F ) %Bow speech 1
@@ -255,15 +270,18 @@
 			Call  EnablePartnerAI ( )
 		EndThread
   DB0:  Call  SpeakToPlayer ( 00000000 00050004 00050001 00000000 000E0053 ) % Is this all right, Mario? I'll join up with you un ...
+		EndIf
   DD0:  Call  $Function_80240000    ( 00000000 00000009 )
   DE4:  Call  $Function_80240350 ( )
   DF0:  Exec  $Script_80240508
   DFC:  Wait  15`
+		If    *CheckTyrant == .False
   E08:  Call  ShowMessageAtScreenPos    ( 001D018D  160`  40` ) % Bow joined the party-- like it or not!! Press to h ...
   E20:  Exec  $Script_80240534
   E2C:  Wait  10`
   E44:  Call  DisablePartnerAI      ( 00000000 )
   E54:  Call  SpeakToPlayer ( .Npc:Partner 0005000B 0005000B 00000000 000E0054 ) % OK, then! Tubba Blubba's going down! Gwaah ha haaa ...
+		EndIf
 		ExecWait $TyrantScene
   E90:  Return
   E98:  End
@@ -297,8 +315,13 @@
 	Call  SetPlayerJumpscale    ( *Fixed[0.5] )
     Call  PlayerJump1   ( -50` 0` 190`  0000000C )
 	Wait  30`
-	Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000000 .Npc:Broozer 000E0107 ) %This is Tyrant.
-	Call  SpeakToPlayer ( .Npc:Partner 0005000B 0005000B 00000000 000E0108 ) %He's coming for you.
+	If   *CheckTyrant == .False
+		Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000000 .Npc:Broozer 000E0107 ) %This is Tyrant.
+		Call  SpeakToPlayer ( .Npc:Partner 0005000B 0005000B 00000000 000E0108 ) %He's coming for you.
+	EndIf
+	Call $SetFlagCarryOverworldMusicToBattle()
+	Set   *CheckTyrant .True
+	Call	$Function_SaveItems ( )	
 	Call  SetNpcVar ( .Npc:Broozer 00000000 00000001 )
 	Return
 	End
@@ -370,11 +393,13 @@
 					Call  SetMusicTrack ( 00000000 .Song:IntroStory 00000000 00000008 )
 					Call  SetNpcPos     ( .Npc:Broozer 50` 0` 190` )
 					Call  SetNpcAnimation   ( .Npc:Broozer 00EC0005 )
-					Call  ResetCam  ( .Cam:Default *Fixed[1.5] )
+					Call  ResetCam  ( .Cam:Default *Fixed[2.5] )
 					
 				EndThread
+				ExecWait  $NukeBossChecks
 				Call $ClearFlagCarryOverworldMusicToBattle()
 				Wait  40`
+				Set   *GB_StoryProgress  .Story:Ch3_BowJoinedParty
 				Call  GetCurrentPartnerID   ( *Var0 )
 				If  *Var0  ==  .Partner:Bow
 					Call  DisablePartnerAI  ( 00000000 )

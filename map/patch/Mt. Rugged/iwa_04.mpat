@@ -1,28 +1,62 @@
 #define .NpcID:Cleft_00             00
 #define .NpcID:Buzzar_01            01
 
-@	$Script_ExitWalk_80241170
+
+@	$Script_Main_EnterWalk
 {
-   [40]  Wait  50`
+    0:  Set   *GB_WorldLocation  .Location:MtRugged
+   10:  Call  SetSpriteShading      ( .Shading:None )
+   20:  Call  SetCamPerspective     ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer      ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80242B50 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_80241140
+  178:  Set   *Var0  $Script_80241228
+  188:  Exec  EnterWalk
+  194:  Wait  1`
+		Exec  $AutoSave
+		Exec  $Script_CheckPos
+  1A0:  Return
+  1A8:  End
 }
 
-@ $Script_ExitWalk_802411CC
+%There's a reason it autosaves in this room
+
+#new:Script $Script_CheckPos
 {
-   [40]  Wait  50`
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -290`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  80`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
 }
 
 @	$AISettings_802416C0
 {
-    2.0 % move speed
-    30` % move time
-    30` % wait time
-  125.0 % alert radius
+    3.0 % move speed
+    50` % move time
+    1` % wait time
+  145.0 % alert radius
     0.0
     3`
-    8.0 % chase speed
+    12.0 % chase speed
     60`
     5`
-  105.0 % chase radius
+  115.0 % chase radius
    60.0
     1`
 }
@@ -269,31 +303,3 @@
   1C0:  End
 }
 
-@	$Script_Main_EnterWalk
-{
-    0:  Set   *GB_WorldLocation  .Location:MtRugged
-   10:  Call  SetSpriteShading      ( .Shading:None )
-   20:  Call  SetCamPerspective     ( .Cam:Default 00000003  25`  16`  4096` )
-   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
-   5C:  Call  SetCamEnabled ( .Cam:Default .True )
-   70:  Call  SetCamLeadPlayer      ( .Cam:Default .False )
-   84:  Call  MakeNpcs  ( .True $NpcGroupList_80242B50 )
-   98:  ExecWait  $Script_MakeEntities
-   A4:  Exec  $Script_80241140
-   B0:  Call  ParentColliderToModel ( ~Collider:o962 ~Model:o962 )
-   C4:  Call  ParentColliderToModel ( ~Collider:o979 ~Model:o979 )
-   D8:  Call  ParentColliderToModel ( ~Collider:o980 ~Model:o980 )
-   EC:  Call  ParentColliderToModel ( ~Collider:o981 ~Model:o981 )
-  100:  Call  ParentColliderToModel ( ~Collider:o982 ~Model:o982 )
-  114:  Call  ParentColliderToModel ( ~Collider:o983 ~Model:o983 )
-  128:  Call  ParentColliderToModel ( ~Collider:o984 ~Model:o984 )
-  13C:  Call  ParentColliderToModel ( ~Collider:o985 ~Model:o985 )
-  150:  Call  ParentColliderToModel ( ~Collider:o992 ~Model:o992 )
-  164:  Call  ParentColliderToModel ( ~Collider:o993 ~Model:o993 )
-  178:  Set   *Var0  $Script_80241228
-  188:  Exec  EnterWalk
-  194:  Wait  1`
-		Exec  $AutoSave
-  1A0:  Return
-  1A8:  End
-}

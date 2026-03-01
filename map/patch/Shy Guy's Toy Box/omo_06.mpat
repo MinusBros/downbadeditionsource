@@ -1,6 +1,8 @@
 #define .NpcID:TrainStationToad_00  00
 #define .NpcID:TrainStationToad_01  01
 
+#import AutoSave.mpat
+
 @	$Script_80242B5C
 {
     0:  Call  SetNpcFlagBits    ( .NpcID:TrainStationToad_00 00000140 .True )
@@ -99,21 +101,52 @@
   [3C8] 					Call  ContinueSpeech    ( .NpcID:TrainStationToad_00 008B0004 008B0001 00000000 000F0008 ) % Please ride with us again, OK?
 }
 
-
-
-@	$Script_ExitWalk_80240C90
+@	$Script_802412D8
 {
-   [40]  Wait  50`
-}
-
-@ $Script_ExitWalk_80240CEC
-{
-   [40]  Wait  50`
-}
-
-@ $Script_ExitWalk_80240D48
-{
-   [40]  Wait  50`
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  MakeLerp  ( 00000000 00000046 0000001E .Easing:CosInOut )
+   2C:  Label  0
+   38:  Call  UpdateLerp ( )
+   44:  Call  RotateModel   ( ~Model:bou1 *Var0 00000000 00000000 00000001 )
+   64:  Call  UpdateColliderTransform   ( ~Collider:bou1 )
+   74:  Wait  1`
+   80:  If  *Var1  ==  00000001
+   90:  	Goto  0
+   9C:  EndIf
+   A4:  Call  PlaySoundAt   ( 000001F1 00000000 FFFFFE75 00000000 FFFFFF47 )
+   C4:  Call  ModifyColliderFlags   ( 00000001 ~Collider:o930 7FFFFE00 )
+   DC:  Wait  15`
+		Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
+   E8:  Call  UseSettingsFrom       ( .Cam:Default  223`  10`  -165` )
+  104:  Call  SetPanTarget  ( .Cam:Default  223`  10`  -165` )
+  120:  Call  SetCamDistance        ( .Cam:Default *Fixed[500.0] )
+  134:  Call  SetCamPosA    ( .Cam:Default *Fixed[-500.0] *Fixed[-200.0] )
+  14C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  164:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  178:  Wait  20`
+  184:  Call  PlaySoundAt   ( 000001F2 00000000 00000109 00000000 FFFFFF15 )
+  1A4:  Call  MakeLerp      ( 00000000 000000B4 0000001E .Easing:CosInOut )
+  1C0:  Label  1
+  1CC:  Call  UpdateLerp ( )
+  1D8:  Call  RotateModel   ( ~Model:o898 *Var0 00000001 00000000 00000000 )
+  1F8:  Call  RotateModel   ( ~Model:o899 *Var0 00000001 00000000 00000000 )
+  218:  Call  RotateModel   ( ~Model:o897 *Var0 00000001 00000000 00000000 )
+  238:  Wait  1`
+  244:  If  *Var1  ==  00000001
+  254:  	Goto  1
+  260:  EndIf
+  268:  Call  PlaySoundAt   ( 00000051 00000000 00000109 00000000 FFFFFF15 )
+  288:  Call  ShakeCam      ( .Cam:Default 00000000  10` *Fixed[1.0] )
+  2A4:  Call  GetModelCenter        ( ~Model:o897 )
+  2B4:  Call  PlayEffect    ( ~FX:Steam:FloatingRings *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  2F8:  Wait  20`
+  304:  Set   *GB_StoryProgress  .Story:Ch4_PulledSwitchSwitch
+  314:  Call  ResetCam      ( .Cam:Default *Fixed[90.0] )
+  328:  Call  DisablePlayerInput    ( .False )
+		Exec  $AutoSave
+  338:  Unbind
+  340:  Return
+  348:  End
 }
 
 @	$ASCII_80245968

@@ -59,9 +59,51 @@
   100:  Call  UseDoorSounds ( .DoorSounds:Large )
   110:  Exec  $Script_80240A58
   11C:  Exec  $Script_EnterDoubleDoor_80240AD8
+		If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle
+			If    *FoughtJoseph  == .False
+				If   *KKJ12_Blurb == .False
+					Exec  $PartnerBlurb
+				EndIf
+			EndIf
+		EndIf
   128:  Wait  1`
   134:  Return
   13C:  End
+}
+
+#new:Script  $PartnerBlurb
+{
+		Label  0
+		Wait  1`
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		If  *Var0  < 293`
+			Goto  0
+		EndIf
+		Set   *KKJ12_Blurb .True
+		Call  GetCurrentPartnerID   ( *Var0 )
+		Switch  *Var0
+			Case  ==  .Partner:Goombario % 1
+				Call  SetPlayerFlagBits ( 000000C0 .True )
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 001300FD )
+				Wait  62`
+				Call  SetPlayerFlagBits ( 000000C0 .False )
+			Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 001300FE )
+			Case  ==  .Partner:Bombette % 3
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 001300FF ) 
+			Case  ==  .Partner:Parakarry % 4
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 00130100 ) 
+			Case  ==  .Partner:Bow % 9
+				Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 00130101 )
+			Case  ==  .Partner:Watt % 6
+				Call  SpeakToPlayer ( .Npc:Partner 00060004 00060001 00000005 00130102 ) 
+			Case  ==  .Partner:Sushie % 7
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 00130103 ) 
+			Case  ==  .Partner:Lakilester % 8
+				Call  SpeakToPlayer ( .Npc:Partner 00080009 00080001 00000005 00130104 ) 
+		EndSwitch
+		Return
+		End
 }
 
 %Just to be extra funny, I'm going to prevent the player from fighting the final boss
@@ -198,6 +240,7 @@
     0:  Call  GetBattleOutcome  ( *Var0 )
    10:  Switch  *Var0
    1C:  	Case  ==  .Outcome:PlayerWon % 0
+				Set   *FoughtJoseph  .True
 				Call  DisablePlayerInput    ( .True )
    28:  		Call  SetEncounterStatusFlags   ( 00000001 .False )
    3C:  		Call  $SetFlagCarryOverworldMusicToBattle()

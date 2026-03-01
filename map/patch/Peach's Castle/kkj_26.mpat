@@ -1,0 +1,102 @@
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:kkj_26 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  GetEntryID        ( *Var0 )
+   80:  If  *Var0  ==  ~Entry:Entry1
+   90:  	Set   *GB_StoryProgress  .Story:Ch7_BeganPeachMission
+   A0:  EndIf
+   A8:  Call  UseDoorSounds ( 00000005 )
+   B8:  Call  GetDemoState  ( *Var0 )
+   C8:  If  *Var0  !=  00000000
+   D8:  	ExecWait  $Script_80240B78
+   E4:  	Return
+   EC:  EndIf
+   F4:  Exec  $Script_802401F0
+		If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle
+			Exec  $Script_CheckPos
+		EndIf
+  100:  Wait  1`
+  10C:  Return
+  114:  End
+}
+
+
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -30`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  80`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
+}
+
+
+%Prologue Peach scene
+@	$Script_802403E0
+{
+  [174]  Wait  30`
+  [198]  Wait  20`
+  [1B4]  Wait  5`
+}
+
+
+
+@	$Script_80240640
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePartnerAI      ( 00000000 )
+   20:  Call  SetMusicTrack ( 00000000 .Song:PrisonerPeachTheme 00000001 00000008 )
+   3C:  Call  InterpPlayerYaw       (  90`  0` )
+   50:  Call  SetNpcPos     ( .Npc:Partner  500`  50`  0` )
+   6C:  Call  SetNpcYaw     ( .Npc:Partner  90` )
+   80:  Wait  10`
+   8C:  Call  UseSettingsFrom       ( .Cam:Default  500`  30`  -20` )
+   A8:  Call  SetCamDistance        ( .Cam:Default *Fixed[300.0] )
+   BC:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-7.0] )
+   D4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[6.0] )
+   E8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  100:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  114:  Call  SetPlayerAnimation    ( 000C0000 )
+  124:  Wait  5`
+  130:  Call  SetPlayerAnimation    ( 000C0026 )
+  140:  Call  SpeakToPlayer ( .Npc:Player 000C0001 000C0026 00000005 0014015E ) % Oh, Mario... I wonder what he's doing now? I wish  ...
+  160:  Call  SetPlayerAnimation    ( 000C0002 )
+  170:  Wait  5`
+  17C:  Call  SetPlayerAnimation    ( 000A0001 )
+  18C:  Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000005 0014015F ) % Of course you are! Mario will be fine! You should  ...
+  1AC:  Call  PlayerFaceNpc ( .Npc:Partner 00000005 )
+  1C0:  Call  SpeakToPlayer ( .Npc:Player 000D0004 000A0001 00000005 00140160 ) % ...Tee hee hee... I hope you're right, Twink. Than ...
+  1E0:  Wait  5`
+  1EC:  Call  EnablePartnerAI ( )
+  1F8:  Call  802D1270      ( 000001E0 FFFFFFEC *Fixed[2.0] )
+  210:  Call  SetPlayerAnimation    ( 000C000B )
+  220:  Set   *Var0  ~Entry:Entry0
+  230:  Set   *Var1  ~Collider:ttw
+  240:  Set   *Var2  ~Model:o85
+  250:  Set   *Var3  ~Model:o83
+  260:  Set   *Var4  ~Model:o86
+  270:  Set   *Var5  ~Model:o84
+  280:  Exec  ExitSplitDoubleDoor
+  28C:  Wait  3`
+  298:  Call  GotoMap       ( $ASCII_80240C40 0000000A ) % kkj_14
+  2AC:  Wait  100`
+  2B8:  Call  DisablePlayerInput    ( .False )
+  2C8:  Return
+  2D0:  End
+}

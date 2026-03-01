@@ -855,6 +855,8 @@
 }
 
 
+%Caught scene
+
 @	$Script_80242A60
 {
     0:  Call  DisablePlayerInput    ( .True )
@@ -938,7 +940,12 @@
   55C:  	EndIf
   564:  EndLoop
   56C:  Call  PlaySoundAtPlayer     ( 00000162 00000000 )
-  580:  Call  SetPlayerAnimation    ( 000C001A )
+		Call  RandInt       ( 4` *Var9 )
+		If    *Var9  == 0`
+			Call  SetPlayerAnimation    ( 000C002A )
+		Else
+			Call  SetPlayerAnimation    ( 000C001A )
+		EndIf
 		Wait  1`
   7A1:  Call  GetPlayerPos   ( *Var0 *Var1 *Var2 )
 		Add   *Var0  0000000A
@@ -996,6 +1003,11 @@
   8DC:  	EndIf
   8E4:  EndLoop
   8EC:  Call  InterpNpcYaw  ( .Npc:Partner  90`  0` )
+		If   *Var9 == 0`
+			Wait  60`
+			ExecWait  $RareDeathScene
+			Return
+		EndIf
   904:  Call  SetPlayerAnimation    ( 000A0001 )
   914:  If  *GB_StoryProgress  ==  .Story:Ch6_BeganPeachMission % 3A
   924:  	Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 00140159 ) % Are you all right, Princess? You're not hurt, are  ...
@@ -1031,6 +1043,32 @@
   B10:  Call  DisablePlayerInput    ( .False )
   B20:  Return
   B28:  End
+}
+
+
+#new:Script $RareDeathScene
+{
+	Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000005 00140212 ) % Princess?
+	Wait  30`
+	Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000005 00140213 ) % Princess?
+	Wait  30`
+	Call  SetMusicTrack ( 00000000 .Song:FlowerGateAppears 00000000 00000008 )	
+	Thread
+   5C:  	Call  SetCamType    ( .Cam:Default 00000006 .True )
+   74:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[0.20] )
+   88:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   B0:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   CC:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   E8:  	Call  SetCamDistance    ( .Cam:Default  5200` )
+   FC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  114:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+	EndThread
+	Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000005 00140214 ) % Nooooo!
+	Wait 110`
+	Call  GotoMap       ( "gv_01" 00000000 ) 
+	Wait 100`
+	Return
+	End
 }
 
 

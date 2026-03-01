@@ -1044,6 +1044,57 @@
 }
 
 
+@	$LazyBones
+{
+[Level]        0`b 
+}
+
+@	$Script_Idle_8021CF2C_22 {
+    0:  Label  0
+    C:  Call  GetActorVar       ( .Actor:Self 00000008 *Var0 )
+   24:  Call  GetStatusFlags    ( .Actor:Self *Var1 )
+   38:  Switch  *Var0 
+   44:  	Case  ==  00000000 
+   50:  		Switch  *Var1 
+   5C:  			Case  &  ~Flags:StatusFlags:Sleep % 1000
+   68:  				Call  SetTargetOffset   ( .Actor:Self 00000001  -6`  24` )
+   84:  				Call  8027D4C8  ( FFFFFF81 00000001 00000001 FFFFFFFB )
+   A0:  			Default
+   A8:  				Call  SetTargetOffset   ( .Actor:Self 00000001  -8`  30` )
+   C4:  				Call  8027D4C8  ( FFFFFF81 00000001 FFFFFFFF FFFFFFF6 )
+   E0:  		EndSwitch
+   E8:  	Case  ==  00000001 
+   F4:  		Switch  *Var1 
+  100:  			Case  &  ~Flags:StatusFlags:Sleep % 1000
+  10C:  				Call  SetTargetOffset   ( .Actor:Self 00000001  -1`  10` )
+  128:  				Call  8027D4C8  ( FFFFFF81 00000001 00000000 00000000 )
+  144:  			Default
+  14C:  				Call  SetTargetOffset   ( .Actor:Self 00000001  -1`  10` )
+  168:  				Call  8027D4C8  ( FFFFFF81 00000001 00000000 00000000 )
+  184:  		EndSwitch
+  18C:  EndSwitch
+   38:  	If  *GB_EnemyDefense  ==  1` 
+  2EC:  		SetConst  *Var0  00000001 
+  2FC:  		SetConst  *Var1  00530207 
+  30C:  		ExecWait  DoNormalHit 
+  318:  		Call  GetActorVar   ( .Actor:Self 00000008 *Var0 )
+  330:  		If  *Var0  ==  00000000 
+  340:  			Wait  10`
+  34C:  			SetConst  *Var0  00000001 
+  154:  		SetConst  *Var1  0053020B 
+  164:  		SetConst  *Var2  0053020C 
+  180:  		SetConst  *Var0  00000001 
+  190:  		SetConst  *Var1  0053020C 
+  1A0:  		ExecWait  DoDeath 
+  358:  		EndIf
+			EndIf
+  194:  Wait  1`
+  1A0:  Goto  0
+  1AC:  Return
+  1B4:  End
+}
+
+
 @	$TubbasHeart
 {
 	[MaxHP]        60`b
@@ -1062,6 +1113,7 @@
    A4:  Call  BindIdle      ( .Actor:Self $Script_Idle_80223E98 )
    B8:  Call  BindHandleEvent       ( .Actor:Self $Script_HandleEvent_80224038 )
    CC:  Call  SetPartTargetFlagBits ( .Actor:Self 00000002 00000002 .True )
+		Set   *GB_EnemyDefense  00000000
 		Exec  $MonitorPos
    E8:  Return
    F0:  End
@@ -1110,6 +1162,7 @@
     0:  Call  UseBattleCamPreset    ( 0000000E )
    10:  Call  BattleCamTargetActor  ( .Actor:Self )
    20:  Call  MoveBattleCamOver (  40` )
+		Set *GB_EnemyDefense  1`
    30:  Wait  30`
    3C:  Call  ActorSpeak        ( 000E00C6 .Actor:Self 00000001 006C000D 006C000D ) % Owwwweeee! Oh, I'm hurting! I have to get out of h ...
    5C:  Call  UseBattleCamPreset    ( 00000002 )
@@ -1394,17 +1447,7 @@
   644:  		Add   *Var0  0000000A
   654:  		Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
   670:  		Call  JumpToGoal    ( .Actor:Self  4` .False .True .False )
-  690:  		Wait  2`
-  2C8:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
-  2E0:  Switch  *Var0
-  4D8:  	Case  ==  00000002
-  424:  		Call  SetGoalToTarget       ( .Actor:Self )
-  434:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[0.2] )
-  448:  		Call  JumpToGoal    ( .Actor:Self  4` .False .True .False )
-  470:  Wait  1`
-  47C:  Call  SetGoalToTarget   ( .Actor:Self )
-  48C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000020 )		
-  468:  EndSwitch		
+  690:  		Wait  2`			
   69C:  		If  *VarF  ==  0000000A % A
   6AC:  			Return
   6B4:  		EndIf
@@ -1423,7 +1466,7 @@
 @	$TubbaBlubba
 {
 	[Level]        78`b
-	[MaxHP]        50`b
+	[MaxHP]        42`b  %Used to be 50
 	[PowerBounce]   3`b
 }
 

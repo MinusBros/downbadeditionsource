@@ -15,10 +15,10 @@
 #new:Actor $DarkBoo
 {
 % stats
-[Index]        EAb 
-[Level]        29`b 
+[Index]        83b  %Reslotted ID
+[Level]        49`b 
 [MaxHP]        18`b 
-[Coins]         2`b 
+[Coins]         4`b 
 [Flags]       00000200 
 [StatusTable] $StatusTable_DarkBoo 
 % ai
@@ -382,6 +382,14 @@
 
 #new:Script $Script_TakeTurn_DarkBoo
 {
+    Call  GetActorHP    ( .Actor:Self *Var0 )
+    Call  GetEnemyMaxHP ( .Actor:Self *Var1 )
+    Div   *Var1  00000002
+	Add *Var0  1`
+    If  *Var0  <=  *Var1
+		ExecWait  $Explosion
+		Return
+	EndIf
 	ExecWait  $VanishingAttack
 	Return
 	End
@@ -400,7 +408,7 @@
 		Wait	1 
 	EndLoop
 	Call	SetAnimation		( .Actor:Self 00000001 .AnimHide )
-	Wait	20`
+	Wait	15`
 	Call	UseBattleCamPreset 		( 00000013 )
 	Call	SetGoalToTarget	( .Actor:Self )
 	Call	GetGoalPos  		( .Actor:Self *Var[0] *Var[1] *Var[2] )
@@ -416,7 +424,7 @@
 	Add  *Var[0] 25` 
 	Set  *Var[1] 10` 
 	Call	SetGoalPos  		( .Actor:Self *Var[0] *Var[1] *Var[2] )
-	Call	SetActorSpeed 	( .Actor:Self *Fixed[10.0] )
+	Call	SetActorSpeed 	( .Actor:Self *Fixed[16.0] )
 	Call	RunToGoal   	( .Actor:Self 00000000 .False )	
 	Call	PlaySoundAtActor	( .Actor:Self .Sound:BooAppear )
 	SetF  *Var[0]  0`
@@ -438,7 +446,7 @@
 		Call	GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
 		Sub  *Var[0] 10`
 		Call	SetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
-		Call	RunToGoal   	( .Actor:Self  3` .False )	
+		Call	RunToGoal   	( .Actor:Self  1` .False )	
 	EndThread
 	Thread
 		Wait	24`
@@ -451,6 +459,37 @@
 		If  *Var[1]  ==  .True 
 			Goto	1
 		EndIf
+	EndThread
+	%wiggle a little bit
+	Thread
+		Wait	8`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Sub  *VarD 1`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
+		Wait 	2`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Add  *VarD 1`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
+		Wait 	2`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Sub  *VarD 2`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
+		Wait 	2`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Add  *VarD 2`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
+		Wait 	2`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Sub  *VarD 3`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
+		Wait 	2`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Add  *VarD 3`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
+		Wait 	2`
+		Call	GetActorPos  	( .Actor:Self *VarD *VarE *VarF )
+		Sub  *VarD 4`
+		Call	SetActorPos   	( .Actor:Self  *VarD *VarE *VarF )	
 	EndThread
 	Call	SetAnimation 	( .Actor:Self 00000001 .AnimSpook )
 	Wait	27`
@@ -466,7 +505,7 @@
 	EndSwitch
 	Call	PlaySoundAtActor	( .Actor:Self 00000291 )
 	Wait	1`
-	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 80080264 10` 00000020 )
+	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 80080264 9` 00000020 )
 	Label	10
 	Wait	10`
 	Call	SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
@@ -515,13 +554,12 @@
   3CC:  					Sub   *Var0  00000168 
   3DC:  				EndIf
   3E4:  				Call  SetActorRotation  ( .Actor:Self 0` *Var0 0` )
-  400:  				Wait  1`
+  400:  				Wait  2`
   40C:  			EndLoop
 					Call	SetAnimation 	( .Actor:Self 00000001 .AnimExplode )
   AA0:  			Call  SetGoalToTarget   ( .Actor:Self )
   AB0:  			Call  SetActorSpeed     ( .Actor:Self *Fixed[16.0] )
   AC4:  			Call  FlyToGoal     ( .Actor:Self  0`  0` .Easing:Linear )
-					ExecWait  $Script_Explode
 					Call	EnemyTestTarget ( .Actor:Self *Var[0] 10000000 00000000 *Var[1] 00000010 )
 					Switch  *Var[0] 
 						CaseOR   ==  00000006 
@@ -529,15 +567,26 @@
 							If  *Var[0] == 00000005 
 								Call	EnemyTestTarget ( .Actor:Self *Var[0] ~Flags:DamageType:NoContact|Blast 00000000 00000000 00000000 )
 							EndIf
+							Call	GetGoalPos  		( .Actor:Self *Var[0] *Var[1] *Var[2] )
+							Add  *Var[0] -120` 
+							Set  *Var[1] 0` 
+							Call	SetGoalPos  		( .Actor:Self *Var[0] *Var[1] *Var[2] )
+							Call  SetGoalToTarget   ( .Actor:Self )
+							Call  FlyToGoal     ( .Actor:Self  0`  0` .Easing:Linear )
+							Exec  $Script_Explode
 							Wait  8`
 							ExecWait  DoDeath
 							Return
 						EndCaseGroup
 					EndSwitch
   40C: 				Wait  2`
-  418: 				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Blast 00000000 00000000 20` 00000020 )
-					Wait  8`
-					ExecWait  DoDeath
+  418: 				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Blast 00000000 00000000 20` 00000020 )	
+					Exec  $Script_Explode
+					Wait  2`
+					SetConst  *Var[0]  00000001 
+					SetConst  *Var[1]  00950506  
+					Wait  7`
+					ExecWait DoDeath 
 					Return
 					End
 }

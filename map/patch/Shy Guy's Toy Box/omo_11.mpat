@@ -1,3 +1,5 @@
+#import AutoSave.mpat
+
 @	$Script_MakeEntities
 {
    [98]  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242520 .Item:HotShroom 80000000 )
@@ -29,7 +31,44 @@
     9.0 % chase speed
     8`
     1`
-  180.0 % chase radius
+  180.0 % chase r55adius
    30.0
     1`
+}
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShyGuysToybox
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  MakeNpcs  ( .True $NpcGroupList_80242AAC )
+   84:  ExecWait  $Script_MakeEntities
+   90:  ExecWait  $Script_80241530
+   9C:  ExecWait  $Script_80241BF8
+   A8:  Set   *Var0  $Script_80241618
+   B8:  Exec  EnterWalk
+   C4:  Wait  1`
+		Switch  *GB_StoryProgress
+			Case  <   .Story:Ch4_OpenedGeneralGuyRoom
+				Exec  $CheckPos
+		EndSwitch
+   D0:  Return
+   D8:  End
+}
+
+#new:Script  $CheckPos
+{
+	Loop
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		If  *Var0 < -553`
+			Exec $AutoSave
+			BreakLoop
+		EndIf
+		Wait 1`
+	EndLoop
+	Return
+	End
 }

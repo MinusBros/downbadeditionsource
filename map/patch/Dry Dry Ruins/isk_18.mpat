@@ -1,0 +1,62 @@
+@	$EntryList
+{
+	~Vec4f:Entry0 % -528.0 -780.0  217.0  150.0
+	~Vec4f:Entry1 %  431.0 -780.0  388.0  230.0
+	~Vec4f:Entry2
+}
+
+@	$Header
+{
+	[EntryCount]  00000003
+}
+
+#new:Script $Script_ExitWalk_New
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 00000028 ~Entry:Entry2 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80241760 00000003 ) % isk_10
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryRuins
+   10:  Call  SetSpriteShading  ( .Shading:isk_18 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80241574 )
+   98:  ExecWait  $Script_802415B0
+   A4:  Switch  *GB_StoryProgress
+   B0:  	Case  <  .Story:Ch2_SolvedArtifactPuzzle % FFFFFFC7
+   BC:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+   D8:  	Case  <  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+   E4:  		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000000 00000008 )
+  100:  	Case  >=  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  10C:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  128:  EndSwitch
+  130:  If  *GB_StoryProgress  <  .Story:Ch2_DrainedThirdSandRoom % FFFFFFC6
+  140:  	Call  EnableModel   ( ~Model:o1956 .False )
+  154:  	Call  EnableModel   ( ~Model:o1957 .False )
+  168:  	Call  EnableModel   ( ~Model:o1958 .False )
+  17C:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitte 7FFFFE00 )
+  194:  EndIf
+  19C:  Set   *Var0  $Script_80240A08
+		Call  MakeItemEntity   ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *ISK10_StarPiece )
+  1AC:  Exec  EnterWalk
+  1B8:  Return
+  1C0:  End
+}
+
+@	$Script_80240A08
+{
+    0:  Bind  $Script_ExitWalk_80240950 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  Bind  $Script_ExitWalk_802409AC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+		Bind  $Script_ExitWalk_New .Trigger:FloorAbove ~Collider:exitnew 00000001 00000000
+   38:  Return
+   40:  End
+}

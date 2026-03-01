@@ -1,0 +1,226 @@
+%Copied map data from isk_01
+
+#define .Npc:Priest       00
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0 %
+	~Vec4f:Entry1 % 
+}
+
+#new:Header $Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  00000002
+	[Background]  80200000
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Script $Script_SetupMusic
+{
+  120:  Switch  *GB_StoryProgress
+  12C:  	Case  <  .Story:Ch2_SolvedArtifactPuzzle % FFFFFFC7
+  138:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  154:  	Case  <  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  160:  		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000000 00000008 )
+  17C:  	Case  >=  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  188:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  1A4:  EndSwitch
+  1AC:  Return
+  1B4:  End
+}
+
+
+#new:Script $Script_ExitWalk_80240220
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 00000028 ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( "isk_03" 00000002 )
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_ExitWalk_8024027C
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 00000028 ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( "isk_04" 00000000 )
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_802402D8
+{
+    0:  Bind  $Script_ExitWalk_80240220 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  Bind  $Script_ExitWalk_8024027C .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   38:  Return
+   40:  End
+}
+
+#new:Script $Script_EnterWalk_80240320
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_802402D8
+   38:  	Return
+   40:  EndIf
+   48:  Set   *Var0  $Script_802402D8
+   58:  Exec  EnterWalk
+   64:  Return
+   6C:  End
+}
+
+#new:Script_Main $Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryRuins
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Set   *GF_Map_DryDryRuins  .True
+   A0:  Exec  $Script_SetupMusic
+   B8:  Exec  $Script_EnterWalk_80240320
+		If    *PriestCutsceneChapter2 == .False
+			Call  MakeNpcs  ( .False $NpcGroupList_ISK22 )
+			Exec $PriestCutscene
+		EndIf
+   C4:  Wait  1`
+   D0:  Return
+   D8:  End
+}
+
+
+#new:Script  $PriestCutscene
+{	
+		Wait  20`
+		Call  DisablePlayerInput    ( .True )
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   84:  Call  UseSettingsFrom   ( .Cam:Default  *Var0 *Var1 *Var2 )
+   A0:  Call  SetPanTarget  ( .Cam:Default  *Var0 *Var1 *Var2 )
+   BC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   D0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  FadeOutMusic      ( 00000000 000005DC )
+		Call  SetPlayerAnimation    ( 00080022 )
+		Wait  20`
+   28:  Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
+		Sub   *Var0  69`
+		Call  UseSettingsFrom   ( .Cam:Default  *Var0 *Var1 *Var2 )
+   40:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )	
+		Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+   A8:  Call  SetCamDistance    ( .Cam:Default 300` )
+		Call  SetCamPitch       ( .Cam:Default *Fixed[19.0] *Fixed[-4.0] )
+		Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   C4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  SetMusicTrack ( 00000000 .Song:ChapterStart 00000002 00000008 )  %Priest theme
+		Call  PlayerMoveTo  (  -576`  47`  40` )	
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 000D0118 )  %Priest talk 1
+		Call  InterpNpcYaw  ( .Npc:Priest  0`  0` )
+   18:  Call  PlaySoundAtNpc    ( .Npc:Priest 00000262 00000000 )
+   30:  Call  ShowEmote ( .Npc:Priest .Emote:Exclamation  0`  20` .True  0`  0`  0`  0` )
+   60:  Wait  20`
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000D0119 )  %Priest talk 2
+		Call  DisablePartnerAI  ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080022 )
+		Wait  24`
+		Call  SetPlayerAnimation    ( 00010002 )
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000D011A )  %Priest talk 3
+  2E4:  Call  GetCurrentPartnerID   ( *Var0 )
+  2F4:  Switch  *Var0
+  300:  	Case  ==  .Partner:Goombario % 1
+  30C:  		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D011B ) % Hey, we made it, Mario! We got out of the forest!  ...
+  32C:  	Case  ==  .Partner:Kooper % 2
+  338:  		Call  SpeakToPlayer ( .Npc:Partner 0002000D 00020003 00000005 000D011C ) % Phew! Well, it looks like we finally made it out o ...
+  358:  	Case  ==  .Partner:Bombette % 3
+  364:  		Call  SpeakToPlayer ( .Npc:Partner 0003000E 00030003 00000005 000D011D ) % Oh, finally! I couldn't stand being in that spooky ...
+  384:  	Case  ==  .Partner:Parakarry % 4
+  390:  		Call  SpeakToPlayer ( .Npc:Partner 00040006 00040001 00000005 000D011E ) % Ugh... I'm certainly glad we're out of that forest ...
+  3B0:  EndSwitch
+		Call  SetCamDistance    ( .Cam:Default 325` )
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000D011F )  %Priest talk 4
+		Call  SetCamDistance    ( .Cam:Default 400` )
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000D0120 )  %Priest talk 5
+		Wait  5`
+  288:  Call  GetNpcPos     ( .Npc:Priest *Var0 *Var1 *Var2 )
+  2A4:  Call  PlaySoundAtNpc    ( .Npc:Priest .Sound:SmokeBurst 00000000 )
+  2BC:  Call  PlayEffect    ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
+  300:  Call  SetNpcPos     ( .Npc:Priest  0`  -1000`  0` )
+		Wait  15`
+		Set  *PriestCutsceneChapter2 .True
+		Thread
+			Exec  $Script_SetupMusic
+			Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+		EndThread
+		Call  EnablePartnerAI ( )
+		Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+#new:Script $PriestInit
+{
+	Call  BindNpcIdle   ( .Npc:Self $PriestIdle )
+	Return
+	End
+}
+
+#new:Script $PriestIdle
+{
+		Return
+		End
+}
+
+
+#new:NpcSettings $NpcSettings_Default
+{
+	00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+
+#new:NpcGroupList	$NpcGroupList_ISK22
+{
+	00000001 $Priest  000C0006
+	00000000 00000000 00000000
+}
+
+#new:NpcGroup $Priest
+{
+	.Npc:Priest $NpcSettings_Default ~Vec3f:Priest
+	00840505 $PriestInit 00000000 00000000 90`
+	~NoDrops
+	~Movement:Priest
+	~AnimationTable:Priest
+	00000000 00000000 00000000 00000000 
+}
+
+
+#new:Function $Function_GetTattle
+{
+LIO       V0, $Tattle
+JR        RA
+RESERVED
+}
+
+
+#new:String $Tattle
+{
+[Style Tattle]
+Seems like a side room.[BR]
+[Pause 5]This is definitely no time to get[BR]
+side-tracked, Mario.[BR]
+[Wait][Next]
+I'm still dying to know where the[BR]
+hotties are at in this dungeon.[BR]
+[Wait][Next]
+Speaking of hot, this place is a[BR]
+heck of a lot cooler than it is[BR]
+outside. [Pause 15]Thank God.[Wait][End]
+}

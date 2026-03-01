@@ -595,7 +595,7 @@
   308:  Add   *Var0  0000000A
   318:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[0.01] )
   32C:  Call  SetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
-  348:  Call  JumpToGoal        ( .Actor:Self  12` .False .True .False )
+  348:  Call  JumpToGoal        ( .Actor:Self  7` .False .True .False )
   368:  ExecWait  $Script_80219BE0
   374:  Call  SetGoalToTarget   ( .Actor:Self )
   384:  Wait  2`
@@ -649,6 +649,22 @@
 }
 
 
+@	$Script_Init_80219E6C
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021A200 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_80219ED0 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80219EE0 )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
+		If   *BillBlasterEncountered == .True
+			Thread
+				Wait  30`
+				Exec  $Script_TakeTurn_8021A200
+			EndThread
+		EndIf
+   54:  Return
+   5C:  End
+}
+
 @	$Script_TakeTurn_8021A200
 {
    28:  Call  GetActorVar       ( .Actor:Self 00000008 *Var0 )
@@ -661,6 +677,9 @@
    AC:  Return
    B4:  End
 }
+
+
+
 
 
 
@@ -801,4 +820,35 @@
 	$SJIS_80227CDC 00000001 $Formation_19 $Stage_80222B2C 00000000
 	$SJIS_80227CD0 00000003 $Formation_1A $Stage_80222B2C 00000000
 	00000000 00000000 00000000 00000000 00000000
+}
+
+
+
+%If encountering a Bullet Bill, add more instruments to the song
+@	$Script_BeforeBattle_80223F08
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Set   *Var0  00000004
+   20:  Set   *Var2  00000000
+   30:  Exec  $Script_80223B80
+   3C:  Set   *Var0  00000002
+   4C:  Set   *Var2  00000046
+   5C:  Set   *Var3  000000AF
+   6C:  Set   *Var4  FFFFFF56
+   7C:  Exec  $Script_80223C78
+		If  *BillBlasterEncountered == .False
+			Call  802D5FA4  ( 00000005 )
+		EndIf
+   88:  Return
+   90:  End
+}
+
+
+@	 $Script_AfterBattle_80223FA0
+{
+		If  *BillBlasterEncountered == .False
+			Call  802D5FA4  ( 00000004 )
+		EndIf
+    0:  Return
+    8:  End
 }

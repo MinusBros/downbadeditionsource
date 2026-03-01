@@ -85,18 +85,13 @@
   188:  ChildThread
   190:  	Call  UseBattleCamPreset    ( 0000001B )
   1A0:  	Wait  5`
-  1BC:  	Call  UseBattleCamPreset    ( 00000023 )
+			%Call  UseBattleCamPreset    ( 00000023 )
   1CC:  EndChildThread
         % Player jumped on the enemy
-  1D4:  Call  80269524  ( *VarF ) % load battleStatus(0x86)
   1E4:  Call  CloseActionCommandInfo
-  1F0:  Call  LoadActionCommand ( .ActionCommand:Jump )
-  200:  Call  802A9000 % CreateActionCommandIcons
-  20C:  Call  802694A4  ( .False ) % ShowActionCommandIcons
   230:  Call  SetGoalToTarget   ( .Actor:Player )
         Thread % rotate Mario
             Call    GetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
-            Call    $WriteAddress ( $End[1] 0 .True .False .False ) % $End[1] = Mario is spinning (bool)
             % First spin
             Loop 10`
                 Sub *Var1 20` % y
@@ -107,14 +102,6 @@
                 Wait    1
             EndLoop
             % Second spin - 1
-            Loop 70`
-                Sub *Var1 50` % y
-                If *Var1 < -360`
-                    Set *Var1 0
-                EndIf
-                Call    SetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
-                Wait    1
-            EndLoop
             % Spawn tornados
             %
             % Tornado 1
@@ -168,7 +155,6 @@
                 If *Var1 <= -360`
                     Set     *Var1 0
                     Call    SetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
-                    Call    $WriteAddress ( $End[1] 0 .False .False .False ) % $End[1] = Mario is spinning (bool)
                     BreakLoop
                 EndIf
                 Call    SetActorRotation ( .Actor:Player *Var0 *Var1 *Var2 )
@@ -179,27 +165,14 @@
         Add   *Var1 20` % y
         Call  SetGoalPos ( .Actor:Player *Var0 *Var1 *Var2 )
         Call  SetAnimation ( .Actor:Player 00000000 .PlayerAnim:MidairStill )
-        Call  SetActorSpeed ( .Actor:Player *Fixed[5.0] )
+        Call  SetActorSpeed ( .Actor:Player *Fixed[10.0] )
         Call  FlyToGoal ( .Actor:Player 0 0 .Easing:Linear )
         Wait  1
   280:  Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
-  2C0:  Call  80269550  ( *VarF ) % write in battleStatus(0x86)
-        %=====================
-        % 2nd Action Command
-        %=====================
-        % I patched tidal wave's action command global function a little bit, use this next
-        % byte to use the new code instead of the original one.
-        Loop % wait for Mario to stop spinning
-            Call    $ReadAddress ( $End[1] 0 *Var0 .False .False ) % $End[1] = Mario is spinning (bool)
-            If *Var0 == .False
-                BreakLoop
-            EndIf
-            Wait    1
-        EndLoop
+			%Call  80269550  ( *VarF ) % write in battleStatus(0x86)
+		Wait  80`
         Call  GetActionSuccessCopy  ( *Var0 )
         Set   *VarD  *Var0
-        Call  $WriteAddress ( 800DC070 0 .True 81 .False ) % actionSuccess byte
-        Exec  $Script_InitTracker % start tracking stylish inputs
         Wait  15`
         % Damage targets
         Call  InitTargetIterator
@@ -228,45 +201,10 @@
         Call  GetActorPos ( .Actor:Self *Var0 .False *Var2 )
         Call  GetHomePos ( .Actor:Self .False *Var1 .False )
         Call  SetGoalPos ( .Actor:Self *Var0 *Var1 *Var2 )
-        Call  SetActorSpeed ( .Actor:Player *Fixed[8.0] )
-        %==========
-        % Stylish - 1st Move
-        %==========
-        Thread
-            % Check if the player pressed the A button too soon
-            Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
-            If *Var0 == .True
-                Set *TrackInput .False
-                Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
-                Wait 1
-                Goto TreadEnd
-            EndIf
-            % Start tracking the A button - Correct time to press A
-            Loop 3
-                % Check if player landed to the ground to end everything
-                Call GetAnimation ( .Actor:Self 00000000 *Var0 )
-                Switch *Var0
-                    CaseOR == 00010002
-                    CaseOR == 00010009
-                        BreakLoop % Mario landed to the ground
-                    EndCaseGroup
-                EndSwitch
-                Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
-                If *Var0 == .False
-                    % Timing Tutor Badge
-                    ExecWait $Script_TimingTutor % writes in var0,1,2
-                Else
-                    BreakLoop
-                EndIf
-                Wait 1
-            EndLoop
-            Label TreadEnd
-            Set *TrackInput .False
-        EndThread
+        Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
         Call  SetAnimation ( .Actor:Player 00000000 .PlayerAnim:Midair )
         Call  FlyToGoal ( .Actor:Player 0 0 .Easing:Linear )
         Call  SetAnimation ( .Actor:Player 00000000 00010009 ) % land to the ground
-        ExecWait $Script_DoStylish_TornadoJump
   2D0:  ExecWait  $Script_GoBackToHome_Succeed_Tornado
   2DC:  Return
   2E4:  End
@@ -315,11 +253,10 @@
    44:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
    5C:  Wait  5`
    68:  Call  SetGoalToHome ( .Actor:Player )
-   78:  Call  SetActorSpeed ( .Actor:Player *Fixed[8.0] )
+   78:  Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
    8C:  Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
    A4:  Call  PlayerRunToGoal       ( 00000000 )
    B4:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
-        Call  UseBattleCamPreset    ( 00000002 )
    CC:  Return
    D4:  End
 }

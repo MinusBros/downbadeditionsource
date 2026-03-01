@@ -29,6 +29,63 @@
 }
 
 
+@	$Script_EnterDoubleDoor_802418D4
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80241800
+   38:  	Return
+   40:  EndIf
+   48:  Exec  $Script_80241800
+   54:  Call  UseDoorSounds ( .DoorSounds:Basic )
+   64:  Call  GetEntryID    ( *Var0 )
+   74:  Switch  *Var0
+   80:  	Case  ==  ~Entry:Entry0
+   8C:  		If  *GF_OBK01_Visited  ==  .False
+   9C:  			Set   *GF_OBK01_Visited  .True
+   AC:  			Set   *GB_StoryProgress  .Story:Ch3_EnteredBoosMansion
+					Thread
+						Wait  60`
+						Call  ShowMessageAtScreenPos    ( 001F009E  160`  40` ) % Display song title
+					EndThread
+   BC:  		EndIf
+   C4:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+   D4:  		Set   *Var2  ~Model:door1_2
+   E4:  		Set   *Var3  ~Model:door1_1
+   F4:  		ExecWait  EnterDoubleDoor
+  100:  	Case  ==  ~Entry:Entry1
+  10C:  		Set   *Var2  ~Model:door2
+  11C:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  12C:  		ExecWait  EnterSingleDoor
+  138:  	Case  ==  ~Entry:Entry2
+  144:  		Set   *Var2  ~Model:door3
+  154:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  164:  		ExecWait  EnterSingleDoor
+  170:  	Case  ==  ~Entry:Entry3
+  17C:  		Set   *Var2  ~Model:door4
+  18C:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  19C:  		ExecWait  EnterSingleDoor
+  1A8:  	Case  ==  ~Entry:Entry4
+  1B4:  		Set   *Var2  ~Model:door5
+  1C4:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+  1D4:  		ExecWait  EnterSingleDoor
+  1E0:  	Case  ==  ~Entry:Entry5
+  1EC:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+  1FC:  		Set   *Var2  ~Model:door6_1
+  20C:  		Set   *Var3  ~Model:door6_2
+  21C:  		ExecWait  EnterDoubleDoor
+  228:  	Case  ==  ~Entry:Entry6
+  234:  		Call  UseDoorSounds ( .DoorSounds:Creaky )
+  244:  		Set   *Var2  ~Model:door7_1
+  254:  		Set   *Var3  ~Model:door7_2
+  264:  		ExecWait  EnterDoubleDoor
+  270:  EndSwitch
+  278:  Return
+  280:  End
+}
+
+
 @	$Script_802411F0
 {
 		Call $ClearFlagCarryOverworldMusicToBattle()
@@ -83,9 +140,38 @@
 
 @	$Script_Interact_80244B80
 {
-   [18]  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0061 ) % This mansion has been passed down through the year ...
-   [44]  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0062 ) % You beat Tubba Blubba! I had nightmares about him. ...
-   [70]  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0063 ) % Mario, please take care of Lady Bow! She brings th ...
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   18:  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0061 ) % This mansion has been passed down through the year ...
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If    *Var0 == .Partner:Bow
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  SpeakToPlayer ( .Npc:Partner 00050009 00050001 00000005 000E0118 ) % He handled Tyrant like a pro
+					Call  SpeakToPlayer ( .Npc:Self 00950211 00950211 00000000 000E0061 ) %  I salute you
+					Call  EnablePartnerAI ( )
+				EndIf
+   38:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+   44:  		Call  SpeakToPlayer ( .Npc:Self 00950209 00950201 00000000 000E0062 ) % You beat Tubba Blubba! I had nightmares about him. ...
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If    *Var0 == .Partner:Bow
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 000E011A ) % Thanks to my servant
+					Call  SpeakToPlayer ( .Npc:Self 00950205 00950201 00000000 000E011B ) %  I salute you
+					Call  EnablePartnerAI ( )
+				EndIf
+   64:  	Case  >=  .Story:Ch5_StarSpritDeparted % 27
+   70:  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0063 ) % Mario, please take care of Lady Bow! She brings th ...
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If    *Var0 == .Partner:Bow
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  SpeakToPlayer ( .Npc:Partner 0005000C 00050001 00000005 000E011C ) % Forget it already!
+					Call  SetNpcAnimation   ( .Npc:Partner 0005000A )
+					Call  SpeakToPlayer ( .Npc:Self 0095020A 00950201 00000000 000E011D ) %  Got it...
+					Call  EnablePartnerAI ( )
+				EndIf
+   90:  EndSwitch
+   98:  Return
+   A0:  End
 }
 
 #import EnterViaPipe.mpat

@@ -1,0 +1,294 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000001 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]The platforms here are all[BR]
+different colors. Do you think[BR]
+that means anything?[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+		
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call  SetSpriteShading  ( .Shading:mim_07 )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	Call     MakeNpcs           ( 00000001 $NpcGroupList_Disastar )
+	ExecWait $Script_CreateEntities
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+	
+	#new:Script $Script_CreateEntities
+{
+		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchred 80000000 )
+	    Call	AssignScript	( $Script_TriggerRED )
+		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchblue 80000000 )
+	    Call	AssignScript	( $Script_TriggerBLU )
+		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchyellow 80000000 )
+	    Call	AssignScript	( $Script_TriggerYLW )
+		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchpurple 80000000 )
+	    Call	AssignScript	( $Script_TriggerPUR )
+		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchgreen 80000000 )
+	    Call	AssignScript	( $Script_TriggerGRN )
+	Return
+	End
+}
+			
+	#new:Script $Script_TriggerRED
+{
+	If *Flag_NOK_3D == 00000000
+		Set *Flag_NOK_3D 00000001
+	Else
+		If *Flag_NOK_47 == 00000000
+			Call	 DisablePlayerInput ( .True )
+			Set *Flag_NOK_3D 00000000
+			Set *MapFlag[0] .True
+		Else
+			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
+			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
+			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
+			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
+			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		EndIf
+	EndIf
+	Return
+	End
+}
+				
+	#new:Script $Script_TriggerBLU
+{
+	If *Flag_NOK_3D == 00000001
+		Set *Flag_NOK_43 00000001
+		Set *Flag_NOK_3D 00000000
+	Else
+		If *Flag_NOK_47 == 00000000
+			Call	 DisablePlayerInput ( .True )
+			Set *Flag_NOK_3D 00000000
+			Set *MapFlag[0] .True
+		Else
+			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
+			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
+			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
+			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
+			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		EndIf
+	EndIf
+	Return
+	End
+}
+				
+	#new:Script $Script_TriggerYLW
+{
+	If *Flag_NOK_43 == 00000001
+		Set *Flag_NOK_44 00000001
+		Set *Flag_NOK_43 00000000
+	Else
+		If *Flag_NOK_47 == 00000000
+			Call	 DisablePlayerInput ( .True )
+			Set *Flag_NOK_3D 00000000
+			Set *MapFlag[0] .True
+		Else
+			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
+			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
+			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
+			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
+			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		EndIf
+	EndIf
+	Return
+	End
+}
+				
+	#new:Script $Script_TriggerPUR
+{
+	If *Flag_NOK_44 == 00000001
+		Set *Flag_NOK_45 00000001
+		Set *Flag_NOK_44 00000000
+	Else
+		If *Flag_NOK_47 == 00000000
+			Call	 DisablePlayerInput ( .True )
+			Set *Flag_NOK_3D 00000000
+			Set *MapFlag[0] .True
+		Else
+			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
+			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
+			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
+			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
+			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		EndIf
+	EndIf
+	Return
+	End
+}
+				
+	#new:Script $Script_TriggerGRN
+{
+	If *Flag_NOK_45 == 00000001
+		Set *Flag_NOK_46 00000001 % I have no idea why I need to use all these flags but im too tired to figure it out. Its so late @_@
+		Set *Flag_NOK_45 00000000
+		ExecWait $ShakeIt
+	Else
+		If *Flag_NOK_47 == 00000000
+			Call	 DisablePlayerInput ( .True )
+			Set *Flag_NOK_3D 00000000
+			Set *MapFlag[0] .True
+		Else
+			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
+			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
+			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
+			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
+			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		EndIf
+	EndIf
+	Return
+	End
+}
+ 
+#new:Script $ShakeIt
+{
+Call	 DisablePlayerInput ( .True )
+	Thread
+   		Call     PlaySoundAtCollider 	( ~Collider:exit1 00000187 00000000 )
+	EndThread
+		Call     ShakeCam    	( .Cam:Default 00000000 00000028 *Fixed[1.0] )
+    	Wait     00000014 
+		%Call     SetPlayerAnimation 	( 0001002A )
+		%Call     PlaySoundAtPlayer 	( 00000263 00000000 )
+		%Call     ShowEmote   	( 00000000 .Emote:Question 00000000 00000014 00000000 00000000 00000000 00000000 00000000 )
+		%Wait 0000001F
+Call	 DisablePlayerInput ( .False )
+Return
+End
+}
+ 
+#new:Script $Script_802421A8
+{
+		Call     DisablePlayerInput	( .False )
+		Set *Flag_NOK_47 00000001
+		Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
+		Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
+		Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
+		Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
+		Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		Set  *MapFlag[0] .False 	
+   Return
+   End 
+}
+
+#new:Script $Script_Init_Disastar
+{
+		Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+      If  *Flag_NOK_3D == 00000000
+     	Call     BindNpcDefeat 	( .Npc:Self $Script_802421A8 )
+     Else
+     	Call     RemoveEncounter ( FFFFFFFF )
+     EndIf
+     Return
+     End 
+}
+   
+#new:NpcGroupList $NpcGroupList_Disastar
+{
+00000001 $NpcGroup_Disastar 00260000 % Not actually disastar but if you havent noticed I copy/paste a TON of code. lazy dev :3 funghi would be proud
+00000000 00000000 00000000           % instead this is a pretty nasty formation with 3 conflagrares above 3 dark boos and you cant run away!
+}
+   
+#new:NpcGroup $NpcGroup_Disastar
+{
+00000001 $BlankSettings ~Vec3f:disastar % 1260 0 -40
+00A40D01 $Script_Init_Disastar 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:disastar
+00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000 
+00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000
+00000000 00000000 00000000 001A0122 % he has a tattle now!
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000
+}
+ 
+#new:Script $Script_IdleAI
+{
+	Loop
+		If  *MapFlag[0]  ==  .True 
+		 	Call     StartBossBattle 	( .Song:SpecialBattle )
+		EndIf
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+Return
+End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_26" 00000002 )
+	Wait     00000064 
+	Return
+	End	
+}

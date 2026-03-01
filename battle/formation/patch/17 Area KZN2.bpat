@@ -91,6 +91,34 @@
 	End
 }
 
+
+
+%If idle long enough, change to thinking variation
+#new:Script  $MonitorPos2
+{
+
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		Switch  *Var6
+		Case  > 160`
+			Call  802D5FA4  ( 00000004 )
+		EndSwitch
+	EndLoop
+	Call  802D5FA4  ( 00000007 )
+	Return
+	End
+}
+
 #new:Script $ShowSong
 {
 	Call  ActorSpeak        ( 001F0074 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
@@ -159,6 +187,9 @@
 			Set  *MoltenPiranhaTurn .True
 			Call  SetMusicTrack ( 00000000 .Song:UnusedOpening 00000000 00000008 )
 		EndIf
+		Kill  $MonitorPos2
+		Kill  $MonitorPos
+		Call  802D5FA4  ( 00000007 )
     0:  Call  GetActorFlags ( .Actor:Self *Var0 )
    14:  If  *Var0  &  00400000
    24:  	Return
@@ -167,11 +198,13 @@
    4C:  Switch  *Var0
    58:  	Case  ==  00000000
    64:  		ExecWait  $Script_8021FF3C %Lava Spit Phase 1
+				Exec  $MonitorPos2
    70:  	Default
    78:  		Call  GetActorVar   ( .Actor:Self 00000005 *Var0 )
    90:  		If  *Var0  ==  00000001
 					Exec  $ShowMessage1
    A0:  			ExecWait  $Script_802204B0 %Lava Spit Phase 2
+					Exec  $MonitorPos2
    AC:  		Else
    B4:  			Call  GetActorVar   ( .Actor:Self 0000000B *Var0 )
    CC:  			Sub   *Var0  00000002
@@ -205,6 +238,7 @@
   298:  				Call  PlayModelAnimation    ( 00000000 $End[9230] )
   2AC:  				Call  EnableIdleScript      ( .Actor:Self 00000001 )
   2BC:					ExecWait  $Script_802204B0
+						Exec  $MonitorPos2
   2C0:  			EndIf
   2C8:  		EndIf
   2D0:  EndSwitch
@@ -749,6 +783,7 @@
 
 @	$Script_TakeTurn_80225D98
 {
+		Call  802D5FA4  ( 00000007 )
     0:  Call  GetActorFlags ( .Actor:Self *Var0 )
    14:  If  *Var0  &  00400000
    24:  	Return
@@ -870,6 +905,7 @@
 
 @	$Script_DoDeath
 {
+		Kill  $MonitorPos2
     0:  Call  SetActorVar       ( .Actor:Self 00000001 00000001 )
    18:  ExecWait  $Script_80223764
    24:  Label  0

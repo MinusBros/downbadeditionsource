@@ -47,8 +47,10 @@
   288:  Call  SetPanTarget  ( .Cam:Default  410`  -910`  410` )
   2A4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
   2B8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-  2CC:  Call  ShowMessageAtScreenPos    ( 000D00E2  160`  40` ) % Bleah heh heh heh ...
-  2E4:  Wait  30`
+		If    *CheckTutankoopa == .False
+  2CC:  	Call  ShowMessageAtScreenPos    ( 000D00E2  160`  40` ) % Bleah heh heh heh ...
+  2E4:  	Wait  30`
+		EndIf
   2F0:  Call  SetNpcPos     ( .NpcID:Tutankoopa_00  410`  -1300`  410` )
   30C:  Thread
   314:  	Wait  50`
@@ -133,34 +135,39 @@
   904:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.0] )
   918:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   930:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-  944:  Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 0068000B 00680001 00000000 000D00E3 ) % You!! You ignored all those very scary warnings! D ...
-		Call  GetCurrentPartnerID   ( *Var0 )
-		If  *Var0  ==  .Partner:Goombario % 0
-			Wait  20`
-			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000D00FE )
-			Wait  10`
-			Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D00FF )
-			Wait  5`
-  134:  		Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.9] )
-				Call  SetNpcAnimation   ( .Npc:Partner 00010004 )
-				Thread
-					Wait  60`
-					Call  SetNpcAnimation   ( .Npc:Partner 00010005 )
-				EndThread
-  148:  		Call  NpcJump1  ( .Npc:Partner  425`  -800`  337` 0000002C )
-				Call  SetNpcAnimation   ( .Npc:Partner 00010001 )
-				Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:Tutankoopa_00 000D0100 )
-				Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D0101 )
-				Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:Tutankoopa_00 000D00DA )
-				Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D00DB )
-				Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
-				Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:Tutankoopa_00 000D00DC )
-				Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D00D9 )
+		If    *CheckTutankoopa == .False
+			Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 0068000B 00680001 00000000 000D00E3 ) % You!! You ignored all those very scary warnings! D ...
+			Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0  ==  .Partner:Goombario % 0
+				Wait  20`
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000D00FE )
+				Wait  10`
+				Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D00FF )
+				Wait  5`
+					Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.9] )
+					Call  SetNpcAnimation   ( .Npc:Partner 00010004 )
+					Thread
+						Wait  60`
+						Call  SetNpcAnimation   ( .Npc:Partner 00010005 )
+					EndThread
+					Call  NpcJump1  ( .Npc:Partner  425`  -800`  337` 0000002C )
+					Call  SetNpcAnimation   ( .Npc:Partner 00010001 )
+					Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:Tutankoopa_00 000D0100 )
+					Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D0101 )
+					Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:Tutankoopa_00 000D00DA )
+					Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D00DB )
+					Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
+					Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:Tutankoopa_00 000D00DC )
+					Call  SpeakToPlayer ( .NpcID:Tutankoopa_00 00680003 00680001 00000000 000D00D9 )
+			EndIf
 		EndIf
   964:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
   97C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
   990:  Call  DisablePlayerInput    ( .False )
   9A0:  Call  EnablePartnerAI ( )
+		Set   *CheckTutankoopa .True
+		Set   *TutankoopaTurn .False
+		Call	$Function_SaveItems ( )		
 		Call $SetFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
   9AC:  Call  SetNpcVar     ( .NpcID:Tutankoopa_00 00000000 00000001 )
@@ -175,6 +182,7 @@
 {
 		Call  SetMusicTrack ( 00000000 .Song:TutankoopaTheme 00000000 00000008 )
 		Call $ClearFlagCarryOverworldMusicToBattle()
+		ExecWait  $NukeBossChecks
     0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
    14:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
    28:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )

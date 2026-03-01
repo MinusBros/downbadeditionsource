@@ -1,0 +1,286 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000001 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]This must be the deepest[BR]
+room in the tomb. It looks[BR]
+like light can still somehow[BR]
+reach even here.[BR]
+[Wait][Next]
+There's probably a deep[BR]
+metaphor for that, but all I[BR]
+can think about is how[BR]
+dark the corners are.[BR]
+[Wait][Next]
+This room gives me the creeps,[BR]
+Mario. We should get out of[BR]
+here before something jumps[BR]
+us from the shadows.[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+}
+
+#define .Disastar *GameByte[061]
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call  SetSpriteShading  ( .Shading:mim_07 )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	If  	 *GF_DNJ29_Disastar == .False
+		Call     SetMusicTrack ( 00000000 .Song:BowsersCastleFalls 00000000 00000008 )
+	Else
+		Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	EndIf
+	Call     MakeNpcs           ( 00000001 $NpcGroupList_Disastar)
+	% you should only be able to refight the boss after entering the room again so we have to set a byte here
+	Set      .Disastar 	00000001
+	Bind     $Script_TalkEye  .Trigger:WallPressA ~Collider:talkeye  00000001 00000000 
+	Exec    $AutoSaveCheck
+	Call	GetLoadType 	( *Var[1] )
+	If		*Var[1] ==  00000001 
+		Exec	EnterSavePoint 
+		Exec	$Script_MakeExits
+	Else
+				Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+		Set		*Var[0] $Script_MakeExits 
+	EndIf
+	Return
+	End
+}
+
+
+#import AutoSave.mpat
+
+#new:Script  $AutoSaveCheck
+{
+	Label 0
+	Wait  1`
+	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+	If  *Var1 == 170`
+		Wait  5`
+		Exec  $AutoSave
+	Else
+		Goto  0
+	EndIf
+	Return
+	End
+}
+	
+	
+#new:Script $Script_TalkEye
+{
+Call	 DisablePlayerInput ( .True )
+If *GF_DNJ29_Disastar == 00000000
+Call     ShowMessageAtScreenPos     	( $FirstTimeString 000000A0 00000028 )
+	Thread
+		Call     PlaySoundAtCollider 	( ~Collider:talkeye 00000187 00000000 )
+		Call     ShakeCam    	( .Cam:Default 00000000 00000028 *Fixed[1.0] )
+		%Call     SetPlayerAnimation 	( 0001002A )
+		%Call     PlaySoundAtPlayer 	( 00000263 00000000 )
+		%Call     ShowEmote   	( 00000000 .Emote:Question 00000000 00000014 00000000 00000000 00000000 00000000 00000000 )
+		Wait 0000000A
+		Wait 00000002
+	EndThread
+	Wait 00000032
+	Call     ShowMessageAtScreenPos     	( $DisastarString 000000A0 00000028 )
+	Set  *MapFlag[0] .True
+Set  *GF_DNJ29_Disastar  00000001 
+Return	
+Else
+	Call     ShowMessageAtScreenPos     	( $DefaultString 000000A0 00000028 )
+	If      .Disastar  ==  00000001
+		Call     ShowMessageAtScreenPos     	( $Refight 000000A0 00000028 )
+		Call     ShowChoice		( 001E001D ) % yes / no
+		If	*Var[0]  ==  0
+			Set  *MapFlag[0] .True
+			Return	
+		EndIf
+	EndIf
+EndIf
+Call	 DisablePlayerInput ( .False )
+Return
+End
+}
+
+#string $FirstTimeString % god im so happy to be done rhyming stuff. I hate it so much.
+{
+[Style Inspect]
+THE SEVEN LEFT A GUARD[BR]
+PLACED TO PROTECT THIS TOMB[BR]
+ITS BATTLE WITH THAMZ[BR]
+WAS HELD HERE IN THIS ROOM[BR]
+[Pause 5][Wait][Next]
+THE DECISION WAS MADE[BR]
+BEFORE THE BATTLE BEGAN[BR]
+THE DEFEAT OF THE EMPEROR[BR]
+WAS ALL PART OF THE PLAN[BR]
+[Wait][Next]
+HE LEFT HIS KNOWLEDGE[BR]
+HERE FOR YOU NOW[BR]
+THE GUARD HE WEAKENED[BR]
+WITH PERIL AND POW[BR]
+[Wait][Next]
+THE CODE TO UNLOCK[BR]
+THE MIGHT OF AN EMPEROR[BR]
+LET IT BE -[BR]
+[Wait][End]
+}
+
+#string $Refight % god im so happy to be done rhyming stuff. I hate it so much.
+{
+[Style Inspect]
+DO YOU WISH TO REFIGHT[BR]
+THE GREAT EVIL IN THIS TOMB?[BR]
+[Wait][End]
+}
+
+#string $DisastarString
+{
+[Style Right]
+[Shake] Nooooot sooooo faaaaast![BR]
+[Wait][End]
+}
+
+#string $DefaultString % This is the link to the source code
+{
+[DelayOff][Style Inspect]
+THE CODE TO UNLOCK[BR]
+THE MIGHT OF AN EMPEROR[BR]
+LET IT BE OPENED TO YOU[BR]
+THE BRAVE ADVENTURER[BR]
+[Wait][Next]
+https://github.com/Brotenko[BR]
+/PMMasterQuestSource[BR]
+[Wait][End]
+}
+
+#new:Script $Script_Init_Disastar
+{
+		Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+		Call     BindNpcDefeat 	( .Npc:Self $Script_802421A8 )
+		Call     BindNpcInteract	( .Npc:Self $Script_Interact )
+     Return
+     End
+}
+ 
+#new:Script $Script_IdleAI
+{
+	Loop
+		If  *MapFlag[0]  ==  .True 
+		 	Call     StartBossBattle 	( .Song:SpecialBattle )
+		EndIf
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+ 
+ 
+#new:Script $Script_802421A8
+{
+		Call     DisablePlayerInput	( .False )
+		Call     EnablePartnerAI 	( )
+		Set  *GF_DNJ29_Disastar  00000001 
+		Set  *MapFlag[0] .False 
+		Set      .Disastar 	00000000
+   Return
+   End 
+}
+
+#new:NpcGroupList $NpcGroupList_Disastar
+{
+00000001 $NpcGroup_Disastar 08010000
+00000000 00000000 00000000
+}
+   
+#new:NpcGroup $NpcGroup_Disastar
+{
+0000000A $BlankSettings ~Vec3f:disastar % 1260 0 -40
+00A40D01 $Script_Init_Disastar 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:disastar
+00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000 
+00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000
+00000000 00000000 00000000 001A0122 % he has a tattle now!
+}
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Return
+	End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_28" 00000001 )
+	Wait     00000064 
+	Return
+	End		
+}
+	
+	   #new:Script $Script_Interact
+{
+	Return
+	End
+}
+
+	
