@@ -16,14 +16,23 @@ I'll also take dialogue suggestions and bug testing as well. Anything to help pr
 Anyways you can click the release page for the most recent version.
 
 All testing was done in Retroarch with Mupen64 and GlideN64 plugin.
+
 Frame rate set to Fullspeed (for no in-game slowdown)
+
 Resolution: 1080p
+
 LOD Emulation: ON
+
 Copy Auxiliary Buffers To RDRAM: ON
+
 Don't filter background textures: ON
+
 Use High-Res Full Alpha Channel: ON
 
+
+
 You may use Parallel core if you wish, but there have been some reported crashes after Goomba King, hallways Tubbs and outside Bower's Castle, so be mindful if you do decide to use it. Feel free to test with other emulators and see what works. Please don't use Project 64. It doesn't work with Paper Mario hacks.
+
 
 
 
