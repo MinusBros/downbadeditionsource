@@ -39,9 +39,9 @@ Use High-Res Full Alpha Channel: ON
 You may use Parallel core if you wish, but there have been some reported crashes after Goomba King, hallways Tubbs and outside Bower's Castle, so be mindful if you do decide to use it. Feel free to test with other emulators and see what works. Please don't use Project 64. It doesn't work with Paper Mario hacks.
 
 
-=======================================================================================
 
-Also if you want to watch my friends play this game, we have some series on my channel:
+Also if you want to watch my friends play this game, we have some series on my channel
+=
 
 harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
 
