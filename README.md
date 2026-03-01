@@ -5,7 +5,7 @@
 
 A young Goombarius, a Goomba wearing a red hat is searching for love. It's up to a contemplating Mario and a wide cast of friends to help Goombarius get a girl. Welcome to the most bizarre Paper Mario hack yet featuring remixed levels and various content from previous PM64 hacks.
 
-=
+
 "𝗪𝗵𝗮𝘁'𝘀 𝘁𝗵𝗲 𝗯𝗶𝗴 𝗱𝗲𝗮𝗹?"
 =
 
@@ -18,7 +18,7 @@ I'll also take dialogue suggestions and bug testing as well. Anything to help pr
 Anyways you can click the release page for the most recent version.
 
 
-=
+
 All testing was done in Retroarch with Mupen64 and GlideN64 plugin.
 =
 
