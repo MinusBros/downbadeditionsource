@@ -49,3 +49,5 @@ harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq4
 Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lobsj5
 
 Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
+
+GreenBean501: https://www.youtube.com/playlist?list=PLqMbi64zLouM5Y5_DVcaSH-coN_Vd8020
