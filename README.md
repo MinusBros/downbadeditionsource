@@ -37,7 +37,7 @@ Use High-Res Full Alpha Channel: ON
 
 
 
-You may use Parallel core if you wish, but there have been some reported crashes after Goomba King, hallways Tubbs and outside Bower's Castle, so be mindful if you do decide to use it. Feel free to test with other emulators and see what works. Please don't use Project 64. It doesn't work with Paper Mario hacks.
+You may use Parallel core if you wish, but crashes can happen, so be mindful if you do decide to use it. Rosalie's Mupen GUI and Bizhawk have been tested with mostly success. Please don't use Project 64. It doesn't work with Paper Mario hacks.
 
 
 
