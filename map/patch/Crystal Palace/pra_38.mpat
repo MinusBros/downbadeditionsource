@@ -1,20 +1,24 @@
+#define .Npc:Priest       16
+
 @	$Script_80241740
 {
     0:  Call  SetMusicTrack ( 00000000 .Song:CrystalPalace 00000000 00000008 )
    1C:  Call  UseDoorSounds ( .DoorSounds:Basic )
-   2C:  Thread
-   		Label 1
-    0:  Switch  *GB_StoryProgress
-   34:  	Case  >=  .Story:Ch7_DefeatedKooperDuplighosts
-   40:  		Call  802D5FA4  ( 00000007 )
-    C:  	Case  .Story:Ch7_DefeatedMirrorDuplighosts to .Story:Ch7_DefeatedClubbas
-   18:  		Call  802D5FA4  ( 00000006 )
-   88:  	Default
-   90:  		Call  802D5FA4  ( 00000005 )
-   9C:  EndSwitch
-			Wait  3`
-			Goto  1
-		EndThread
+		If    *PriestCutsceneChapter7 == .True
+			Thread
+				Label 1
+				Switch  *GB_StoryProgress
+					Case  >=  .Story:Ch7_DefeatedKooperDuplighosts
+						Call  802D5FA4  ( 00000007 )
+					Case  .Story:Ch7_DefeatedMirrorDuplighosts to .Story:Ch7_DefeatedClubbas
+						Call  802D5FA4  ( 00000006 )
+					Default
+						Call  802D5FA4  ( 00000005 )
+				EndSwitch
+				Wait  3`
+				Goto  1
+			EndThread
+		EndIf
    1C:  Return
    24:  End
 }
@@ -27,7 +31,12 @@
    40:  Call  SetCamBGColor     ( .Cam:Default  24`  24`  40` )
    5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    70:  Call  SetCamEnabled     ( .Cam:Default .True )
-   84:  Call  MakeNpcs  ( .True $NpcGroupList_802421F0 )
+		If    *PriestCutsceneChapter7 == .True
+			Call  MakeNpcs  ( .True $NpcGroupList_802421F0 )  %Cause the usual Swoopulas to spawn
+		Else
+			Call  MakeNpcs  ( .True $NpcGroupList_Priest )
+			Exec  $PriestCutscene
+		EndIf
    98:  Exec  $Script_80241740
    A4:  Set   *Var0  00000001
    B4:  Set   *Var1  *GF_PRA_BrokeIllusion
@@ -52,4 +61,160 @@
   100.0 % chase radius
     0.0
     1`
+}
+
+
+
+
+
+#new:Script  $PriestCutscene
+{	
+		Label 1
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		If    *Var0 < 310`
+			Wait  1`
+			Goto  1
+		EndIf
+		Call  DisablePlayerInput    ( .True )
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   84:  Call  UseSettingsFrom   ( .Cam:Default  *Var0 *Var1 *Var2 )
+   A0:  Call  SetPanTarget  ( .Cam:Default  *Var0 *Var1 *Var2 )
+   BC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   D0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  FadeOutMusic  ( 00000000 000005B8 )
+		Call  UseSettingsFrom   ( .Cam:Default  360` 0` 80` )
+		Call  SetPanTarget      ( .Cam:Default  360` 0` 80`  )	
+		Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
+		Call  SetCamDistance    ( .Cam:Default 400` )
+		Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+		Call  PlayerMoveTo  (  330`  85`  8` )
+		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Call  ShowMessageAtScreenPos    ( 0012021B  160`  40` )  %Priest laugh
+  2A4:  Call  PlaySoundAtNpc    ( .Npc:Priest .Sound:SmokeBurst 00000000 )
+  2BC:  Call  PlayEffect    ( ~FX:BigSmokePuff 410` 0` 85` 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
+  300:  Call  SetNpcPos     ( .Npc:Priest  410` 0` 80` )
+		Wait  15`		
+		Call  SetMusicTrack ( 00000000 .Song:ChapterStart 00000002 00000008 )  %Priest theme		
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 0012021C )  %Priest talk 1
+		Call  DisablePartnerAI  ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080022 )
+		Wait  24`
+		Call  SetPlayerAnimation    ( 00010002 )
+		Call  GetCurrentPartnerID   ( *Var0 )
+		Switch  *Var0
+			Case  ==  .Partner:Goombario
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 0012021D ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120226 )  %Priest talk back
+			Case  ==  .Partner:Kooper
+				Call  SpeakToPlayer ( .Npc:Partner 0002000F 00020002 00000005 0012021E ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120227 )  %Priest talk back
+			Case  ==  .Partner:Bombette
+				Call  SpeakToPlayer ( .Npc:Partner 0003000E 00030003 00000005 0012021F ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120226 )  %Priest talk back
+			Case  ==  .Partner:Parakarry
+				Call  SpeakToPlayer ( .Npc:Partner 00040006 00040001 00000005 00120220 ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120225 )  %Priest talk back
+			Case  ==  .Partner:Bow
+				Call  SpeakToPlayer ( .Npc:Partner 0005000A 0005000E 00000005 00120221 ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120228 )  %Priest talk back
+			Case  ==  .Partner:Watt
+				Call  SpeakToPlayer ( .Npc:Partner 00060007 00060001 00000005 00120222 ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120227 )  %Priest talk back
+			Case  ==  .Partner:Sushie
+				Call  SpeakToPlayer ( .Npc:Partner 00070006 00070001 00000005 00120223 ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 00120229 )  %Priest talk back
+			Case  ==  .Partner:Lakilester
+				Call  SpeakToPlayer ( .Npc:Partner 0008000D 00080001 00000005 00120224 ) % 
+				Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 0012022A )  %Priest talk back
+		EndSwitch
+		Thread
+			Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
+			Call  SetCamDistance    ( .Cam:Default 380` )
+			Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+			Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		EndThread
+		Call  SetNpcAnimation   ( .Npc:Priest 00870406 )
+		Call  NpcMoveTo ( .Npc:Priest 420` 80`  20` )
+		Call  SetNpcAnimation   ( .Npc:Priest 00870405 )
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000005 0012022B )  %Priest talk 2
+		Call  NpcFacePlayer ( .Npc:Priest 00000010 )
+		Call  SetPlayerAnimation    ( 0001003D ) %Nod
+		Call  GetCurrentPartnerID   ( *Var0 )
+		If  *Var0 == .Partner:Goombario
+			Wait  10`
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 0012022C ) %Okay? And?
+		Else
+			Wait  30`
+		EndIf
+		Thread
+			Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
+			Call  SetCamDistance    ( .Cam:Default 350` )
+			Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+			Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		EndThread
+		Call  SetNpcAnimation   ( .Npc:Priest 00870406 )
+		Call  NpcMoveTo ( .Npc:Priest 405` 80`  10` )
+		Call  SetNpcAnimation   ( .Npc:Priest 00870405 )
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 0012022D )  %Priest talk 3
+		Wait  5`
+		Call  SetPlayerAnimation    ( 00080011 ) %Me?
+		Wait  15`
+		Call  SetNpcAnimation   ( .Npc:Priest 0087040D )
+		Wait  15`
+		Call  SetNpcAnimation   ( .Npc:Priest 00870405 )
+		Wait  5`
+		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 0012022E )  %Priest talk 4
+  2A4:  Call  PlaySoundAtNpc    ( .Npc:Priest .Sound:SmokeBurst 00000000 )
+  2BC:  Call  PlayEffect    ( ~FX:BigSmokePuff 405` 0` 80` 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
+  300:  Call  SetNpcPos     ( .Npc:Priest  410` -1000` 80` )
+		Wait  15`		
+		Set  *PriestCutsceneChapter7 .True
+		Thread
+			Exec  $Script_80241740  %Reset music
+			Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+		EndThread
+		Call  EnablePartnerAI ( )
+		Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+
+#new:Script $PriestInit
+{
+	Call  BindNpcIdle   ( .Npc:Self $PriestIdle )
+	Return
+	End
+}
+
+#new:Script $PriestIdle
+{
+		
+		Return
+		End
+}
+
+
+#new:NpcSettings $NpcSettings_Default
+{
+	00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+
+#new:NpcGroupList	$NpcGroupList_Priest
+{
+	00000001 $Priest  000C0006
+	00000000 00000000 00000000
+}
+
+#new:NpcGroup $Priest
+{
+	.Npc:Priest $NpcSettings_Default ~Vec3f:Priest
+	00840505 $PriestInit 00000000 00000000 90`
+	~NoDrops
+	~Movement:Priest
+	~AnimationTable:Priest
+	00000000 00000000 00000000 00000000 
 }

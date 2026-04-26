@@ -64,7 +64,14 @@
 
 #new:DefenseTable $DefenseTable_Raphael
 {
-.Element:Normal 00000000
+.Element:Normal 0`
+.Element:Fire   1`
+.Element:Ice   -1`
+.Element:Water  0`
+.Element:Shock  2`
+.Element:Blast  1`
+.Element:Jump   1`
+.Element:Throw -1`
 .Element:End
 }
 
@@ -167,6 +174,34 @@
     End
 }
 
+
+
+%If idle long enough, change to thinking variation
+#new:Script  $MonitorPos
+{
+
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		Switch  *Var6
+		Case  > 60`
+			Call  $Function_SongVariationOn ( )
+		EndSwitch
+	EndLoop
+	Call  $Function_SongVariationOff ( )
+	Return
+	End
+}
+
 #new:Script $Script_Idle_Raphael
 {
   Return
@@ -234,6 +269,7 @@
   32C:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphIdle )
   344:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.6005859] )
   358:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+				Exec     $MonitorPos
   378:  	Case  ==  .Event:ShockDeath
   384:  		SetConst  *Var[0]  00000001 
   394:  		SetConst  *Var[1]  .AnimRaphPain 
@@ -370,6 +406,7 @@
   32C:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphIdle2 )
   344:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.6005859] )
   358:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+				Exec     $MonitorPos
   378:  	Case  ==  .Event:ShockDeath
   384:  		SetConst  *Var[0]  00000001 
   394:  		SetConst  *Var[1]  .AnimRaphPain2 
@@ -454,6 +491,9 @@
 
 #new:Script $Script_TakeTurn_Raphael
 {
+	Kill  $MonitorPos
+	Wait  1`
+	Call  $Function_SongVariationOff ( )
 	Call     GetActorVar 	( .Actor:Self 00000002 *Var[9] ) % What move did I just use?
 	Call     GetActorVar 	( .Actor:Self 00000001 *Var[4] ) % Is phase 2 active?
 	Call     GetActorHP  	( .Actor:Self *Var[5] ) % current hp - var[5]
@@ -514,6 +554,7 @@
 			Call     SetStatusTable ( .Actor:Self $StatusTable_Raphael )
 			Call 	 SetActorVar	( .Actor:Self 00000001 00000000 ) % return to normal
 		EndSwitch
+	Exec  $MonitorPos
 	Return
     End
 }
@@ -813,6 +854,7 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
 	%			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 0000000C 00000020 )
 	%	Call     UseBattleCamPreset 	( 00000002 )
   	%	Wait     00000002  
+				Call  YieldTurn ( )
   A58:  		Call     SetActorRotation 	( .Actor:Self 00000000 00000000 00000000 )
   A74:  		Call     SetActorDispOffset ( FFFFFF81 00000000 00000000 00000000 )
   A90:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphIdle )
@@ -830,7 +872,6 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
   BAC:  		Call     JumpToGoal  	( .Actor:Self 00000006 00000000 00000001 00000000 )
   BCC:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphIdle )
   BE4:  		Wait     00000003 
-  BF0:  		Call     8027D7F0 ( )
   BFC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   C14:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRaphRun )
     		Call     SetGoalToHome 	( .Actor:Self )
@@ -1014,4 +1055,32 @@ $SkyRaven	  $RavenPos 00000009 00000000 00000000 00000000 00000000
     Call     UseIdleAnimation 	( .Actor:Self .True )
 	Return
 	End
+}
+
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

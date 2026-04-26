@@ -12,16 +12,17 @@
 
 @	$Script_ExitDoubleDoor_802400D0
 {
-   [68]  Wait  14`
+   [68]  Wait  1`
    [88]  Wait  80`
 }
 
 @ $Script_ExitSingleDoor_80240174
 {
-   [90]  Wait  14`
+   [90]  Wait  1`
    [B0]  Wait  80`
 }
 
+#import ShakeScreen.mpat
 
 @	$Script_Main
 {
@@ -34,11 +35,40 @@
    84:  Exec  $Script_80240060
    90:  Exec  $Script_EnterSingleDoor_80240288
    9C:  Wait  1`
-		Exec  $DynamicMusic
+		If  *EscapeSequence == .True
+			Exec  $ShakeScreen
+		Else
+			Exec  $DynamicMusic
+		EndIf
    A8:  Return
    B0:  End
 }
 
+
+@	$Script_ExitSingleDoor_80240174
+{
+		If  *EscapeSequence == .True
+			Call  DisablePlayerInput    ( .True )
+			Call  ShowMessageAtScreenPos    ( 00130106  160`  40` ) % No going back
+			Call  DisablePlayerInput    ( .False )
+			Return
+		EndIf
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  If  *GB_StoryProgress  <  .Story:Ch8_ReachedPeachsCastle % 5F
+   2C:  	Set   *GB_StoryProgress  .Story:Ch8_ReachedPeachsCastle
+   3C:  EndIf
+   44:  Set   *Var0  ~Entry:Entry1
+   54:  Set   *Var1  ~Collider:deilitte
+   64:  Set   *Var2  ~Model:o340
+   74:  Set   *Var3  .DoorSwing:In % 1
+   84:  Exec  ExitSingleDoor
+   90:  Wait  17`
+   9C:  Call  GotoMap   ( $ASCII_80240428 00000000 ) % osr_02
+   B0:  Wait  100`
+   BC:  Return
+   C4:  End
+}
 
 #new:Script $DynamicMusic
 {

@@ -1,0 +1,91 @@
+% automatically dumped from map mac_01
+
+#new:Npc $mac_01_8025E3F8 {
+.NpcID:ShyGuy_06 $NpcSettings_80248B18_mac_01 00000000 00000000 00000000 
+00000F09 $Script_Init_8025B9F4_mac_01 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_ShyGuy_06 % .Sprite:ShyGuy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_80248B18_mac_01 {
+00000000 00170016 00000000 00000000 00000000 80077F70 00000000 8007809C 
+00000000 00000000 000E0001 
+}
+
+#new:Script $Script_8024E6F8_mac_01 {
+    0:  Loop
+    C:  	Call  PlaySoundAtNpc    ( *Var0 B0000021 00000000 )
+   24:  	Wait  2`
+   30:  EndLoop
+   38:  Return
+   40:  End
+}
+
+#new:Script $Script_8025B760_mac_01 {
+    0:  Call  GetNpcPos ( 00000006 *Var2 *Var3 *Var4 )
+   1C:  Add   *Var3  00000014 
+   2C:  Call  MakeItemEntity    ( .Item:Calculator *Var2 *Var3 *Var4 .ItemSpawnMode:Decoration 00000000 )
+   50:  Set   *Var9  *Var0 
+   60:  Wait  1`
+   6C:  Loop  00000050 
+   78:  	Call  GetNpcPos     ( 00000006 *Var2 *Var3 *Var4 )
+   94:  	Add   *Var3  00000014 
+   A4:  	Call  SetItemPos    ( *Var9 *Var2 *Var3 *Var4 )
+   C0:  	Wait  1`
+   CC:  EndLoop
+   D4:  Call  RemoveItemEntity  ( *Var9 )
+   E4:  Return
+   EC:  End
+}
+
+#new:Script $Script_8025B854_mac_01 {
+    0:  Loop
+    C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  	If  *Var2  >  000000C8 
+   34:  		If  *Var0  <  00000032 
+   44:  			BreakLoop
+   4C:  		EndIf
+   54:  	EndIf
+   5C:  	Wait  1`
+   68:  EndLoop
+   70:  Call  SetNpcPos ( 00000006  -313`  0`  330` )
+   8C:  Call  SetNpcAnimation   ( 00000006 003B0004 )
+   A0:  Wait  21`
+   AC:  Call  DisablePlayerInput    ( .True )
+   BC:  Call  SpeakToPlayer     ( 00000001 00A70004 00A70001 00000000 00030007 ) % Invalid string ID! 00030007
+   DC:  Exec  $Script_8025B760_mac_01 
+   E8:  Set   *Var0  00000006 
+   F8:  Call  PlaySoundAtNpc    ( *Var0 0000203F 00000000 )
+  110:  Exec  $Script_8024E6F8_mac_01 *VarA 
+  120:  Call  NpcMoveTo ( 00000006  -45`  330`  30` )
+  13C:  Call  NpcMoveTo ( 00000006  -45`  710`  30` )
+  158:  Kill  *VarA 
+  164:  Call  SetNpcPos ( 00000006  0`  -1000`  0` )
+  180:  Call  DisablePlayerInput    ( .False )
+  190:  Return
+  198:  End
+}
+
+#new:Script $Script_Init_8025B9F4_mac_01 {
+    0:  If  *GB_StoryProgress  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+   10:  	Return
+   18:  EndIf
+   20:  If  *GB_StoryProgress  >  .Story:Ch4_StarSpiritRescued % 5
+   30:  	Return
+   38:  EndIf
+   40:  If  *GF_MAC01_CalculatorStolen  !=  .False 
+   50:  	Return
+   58:  EndIf
+   60:  Set   *GF_MAC01_CalculatorStolen  .True 
+   70:  Exec  $Script_8025B854_mac_01 
+   7C:  Return
+   84:  End
+}
+

@@ -30,6 +30,114 @@
 	[PowerBounce]  90`b
 }
 
+#new:Script $ShyGuyDeathNoise
+{
+	Wait  35`
+	Call  PlaySoundAtActor      ( .Actor:Self 000020C3 )
+	Return
+	End
+}
+
+@	$Script_HandleEvent_80219528
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   28:  Switch  *Var0
+   34:  	CaseOR  ==  .Event:HitCombo % 9
+   40:  	CaseOR  ==  .Event:Hit % A
+   4C:  		SetConst  *Var0  00000001
+   5C:  		SetConst  *Var1  003B000C
+   6C:  		ExecWait  DoNormalHit
+   78:  	EndCaseGroup
+   80:  	Case  ==  .Event:BurnHit % E
+   8C:  		SetConst  *Var0  00000001
+   9C:  		SetConst  *Var1  003B000D
+   AC:  		SetConst  *Var2  003B000E
+   BC:  		ExecWait  DoBurnHit
+   C8:  	Case  ==  .Event:BurnDeath % 24
+   D4:  		SetConst  *Var0  00000001
+   E4:  		SetConst  *Var1  003B000D
+   F4:  		SetConst  *Var2  003B000E
+  104:  		ExecWait  DoBurnHit
+  110:  		SetConst  *Var0  00000001
+  120:  		SetConst  *Var1  003B000E
+				Exec  $ShyGuyDeathNoise
+  130:  		ExecWait  DoDeath
+  13C:  		Return
+  144:  	Case  ==  .Event:SpinSmashHit % B
+  150:  		SetConst  *Var0  00000001
+  160:  		SetConst  *Var1  003B000C
+  170:  		ExecWait  DoSpinSmashHit
+  17C:  	Case  ==  .Event:SpinSmashDeath % 21
+  188:  		SetConst  *Var0  00000001
+  198:  		SetConst  *Var1  003B000C
+  1A8:  		ExecWait  DoSpinSmashHit
+  1B4:  		SetConst  *Var0  00000001
+  1C4:  		SetConst  *Var1  003B000C
+				Exec  $ShyGuyDeathNoise
+  1D4:  		ExecWait  DoDeath
+  1E0:  		Return
+  1E8:  	Case  ==  .Event:ShockHit % 2F
+  1F4:  		SetConst  *Var0  00000001
+  204:  		SetConst  *Var1  003B000C
+  214:  		ExecWait  DoShockHit
+  220:  		SetConst  *Var0  00000001
+  230:  		SetConst  *Var1  003B000C
+  240:  		ExecWait  DoJumpBack
+  24C:  		Call  SetActorSpeed ( .Actor:Self *Fixed[4.0] )
+  260:  		ExecWait  $Script_802194C4
+  26C:  	Case  ==  .Event:ShockDeath % 26
+  278:  		SetConst  *Var0  00000001
+  288:  		SetConst  *Var1  003B000C
+  298:  		ExecWait  DoShockHit
+  2A4:  		SetConst  *Var0  00000001
+  2B4:  		SetConst  *Var1  003B000C
+				Exec  $ShyGuyDeathNoise
+  2C4:  		ExecWait  DoDeath
+  2D0:  		Return
+  2D8:  	CaseOR  ==  00000017 % 17
+  2E4:  	CaseOR  ==  .Event:Immune % 19
+  2F0:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  2FC:  		SetConst  *Var0  00000001
+  30C:  		SetConst  *Var1  003B0001
+  31C:  		ExecWait  DoImmune
+  328:  	EndCaseGroup
+  330:  	Case  ==  .Event:Death % 20
+  33C:  		SetConst  *Var0  00000001
+  34C:  		SetConst  *Var1  003B000C
+  35C:  		ExecWait  DoNormalHit
+  368:  		Wait  10`
+  374:  		SetConst  *Var0  00000001
+  384:  		SetConst  *Var1  003B000C
+				Exec  $ShyGuyDeathNoise
+  394:  		ExecWait  DoDeath
+  3A0:  		Return
+  3A8:  	Case  ==  .Event:RecoverStatus % 31
+  3B4:  		SetConst  *Var0  00000001
+  3C4:  		SetConst  *Var1  003B0001
+  3D4:  		ExecWait  DoRecover
+  3E0:  	Case  ==  .Event:ScareAway % 39
+  3EC:  		SetConst  *Var0  00000001
+  3FC:  		SetConst  *Var1  003B0003
+  40C:  		SetConst  *Var2  003B0014
+  41C:  		ExecWait  DoScareAway
+  428:  		Return
+  430:  	Case  ==  .Event:BeginAirLift % 3A
+  43C:  		SetConst  *Var0  00000001
+  44C:  		SetConst  *Var1  003B000C
+  45C:  		ExecWait  DoAirLift
+  468:  	Case  ==  .Event:BlowAway % 16
+  474:  		SetConst  *Var0  00000001
+  484:  		SetConst  *Var1  003B000C
+  494:  		ExecWait  DoBlowAway
+  4A0:  		Return
+  4A8:  	Default
+  4B0:  EndSwitch
+  4B8:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  4CC:  Return
+  4D4:  End
+}
+
 
 @	$StatusTable_80219224
 {
@@ -512,6 +620,7 @@
   670:  Call  SetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
   68C:  Call  JumpToGoal        ( .Actor:Self  10` .False .True .False )
   6AC:  Call  SetAnimation      ( .Actor:Self 00000001 003B0201 )
+		Call  YieldTurn ( )
   6C4:  Wait  8`
   6D0:  Call  SetActorSpeed     ( .Actor:Self *Fixed[13.0] )
   6E4:  ExecWait  $Script_802200C4
@@ -683,6 +792,7 @@
   A9C:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
   AB4:  		Call  SetActorYaw   ( .Actor:Self  180` )
   AC8:  		Label  2
+				Call  YieldTurn ( )
   AD4:  		Call  SetActorSpeed ( .Actor:Self *Fixed[16.0] )
   AE8:  		SetConst  *Var0  00000001
   AF8:  		SetConst  *Var1  003B0204
@@ -1147,6 +1257,7 @@
   4D8:  Wait  3`
   4E4:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|NoOtherDamagePopups 00000000 00000000 00000002 00000020 )
 		Label SpyGuyEnd
+		Call  YieldTurn ( )
   50C:  Switch  *Var0
   518:  	CaseOR  ==  .HitResult:Hit % 0
   524:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -1155,7 +1266,6 @@
   560:  		Call  SetPartJumpGravity    ( .Actor:Self 00000002 *Fixed[0.7] )
   578:  		Call  JumpPartTo        ( .Actor:Self 00000002 *Var0  0` *Var2  30` .True )
   5A0:  		Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
-  5BC:  		Call  YieldTurn ( )
   5C8:  	EndCaseGroup
   5D0:  EndSwitch
   5D8:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
@@ -1442,6 +1552,7 @@
   530:  Call  RunToGoal ( .Actor:Self  0` .False )
   554:  Call  SetGoalToTarget   ( .Actor:Self )
   564:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 00000000 00000000 00000001 00000020 )
+		Call  YieldTurn ( )
   566: Switch  *Var0
   598:  	CaseOR  ==  .HitResult:Hit % 0
   5A4:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -1455,7 +1566,6 @@
   63C:  		Call  JumpToGoal    ( .Actor:Self  10` .False .True .False )
   65C:  		Call  SetAnimation  ( .Actor:Self 00000001 003E0001 )
   674:  		Wait  4`
-  680:  		Call  YieldTurn ( )
   68C:  		Call  SetActorSpeed ( .Actor:Self *Fixed[24.0] )
   6A0:  		ExecWait  $Script_8022CDDC
   6AC:  	EndCaseGroup
@@ -1973,7 +2083,7 @@
 
 @	$Formation_07
 {
-	$ShyGuy_BLU 00000000 0000000A 00000000 00000000 00000000 00000000
+	$GreedyBanditA 00000000 0000000A 00000000 00000000 00000000 00000000
 	$GrooveGuy 00000001 00000009 00000000 00000000 00000000 00000000
 	$GreedyBanditA 00000002 00000008 00000000 00000000 00000000 00000000
 	$MediGuy 00000007 00000007 00000000 00000000 00000000 00000000

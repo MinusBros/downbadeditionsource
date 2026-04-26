@@ -1,0 +1,89 @@
+% automatically dumped from map kpa_53
+
+#new:Npc $kpa_53_802417EC_3E0 {
+.NpcID:Duplighost_02 $NpcSettings_802405FC_kpa_53 00000000 00000000 00000000 
+00E40D09 $Script_Init_80240B6C_kpa_53 00000000 00000000 0000010E 
+~Items:5:SuperShroom:5:MapleSyrup:5:ThunderRage:5:StopWatch:5
+~HP:Standard:2 ~FP:Standard:5 ~CoinBonus:1:3
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Duplighost_02 % .Sprite:Duplighost
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_ExitDoubleDoor_802402E4_kpa_53 {
+    0:  SetGroup  0000001B 
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Set   *Var0  ~Entry:Entry1 
+   2C:  Set   *Var1  0000000E 
+   3C:  Set   *Var2  00000087 
+   4C:  Set   *Var3  00000085 
+   5C:  Exec  ExitDoubleDoor 
+   68:  Wait  17`
+   74:  Call  GotoMap   ( $ASCII_80241E44_kpa_53 00000000 ) % kpa_83
+   88:  Wait  100`
+   94:  Return
+   9C:  End
+}
+
+#new:NpcSettings $NpcSettings_802405FC_kpa_53 {
+00000000 001E002D 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_NpcAI_80240628_kpa_53 {
+    0:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   1C:  Add   *Var0  FFFFFF7E 
+   2C:  Loop
+   38:  	Wait  1`
+   44:  	Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   5C:  	If  *Var1  >=  *Var0 
+   6C:  		BreakLoop
+   74:  	EndIf
+   7C:  EndLoop
+   84:  Call  DisablePlayerInput    ( .True )
+   94:  Call  PlaySoundAtNpc    ( .Npc:Self 00000262 00000000 )
+   AC:  Call  ShowEmote ( .Npc:Self .Emote:Exclamation  45`  20` .True  0`  0`  0`  0` )
+   DC:  Wait  20`
+   E8:  Call  InterpNpcYaw      ( .Npc:Self  90`  5` )
+  100:  Call  SetNpcAnimation   ( .Npc:Self 004E0004 )
+  114:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  130:  Add   *Var0  00000096 
+  140:  Call  NpcMoveTo ( .Npc:Self *Var0  -30`  20` )
+  15C:  Call  SetNpcAnimation   ( .Npc:Self 004E0002 )
+  170:  Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  18C:  Call  DisablePlayerInput    ( .False )
+  19C:  Return
+  1A4:  End
+}
+
+#new:Script $Script_Defeat_80240AF4_kpa_53 {
+    0:  Call  RemoveNpc ( 00000000 )
+   10:  Call  RemoveNpc ( 00000001 )
+   20:  Set   *GF_KPA53_Defeated_PeachImposter  .True 
+   30:  Bind  $Script_ExitDoubleDoor_802402E4_kpa_53 .Trigger:WallPressA 0000000E 00000001 00000000 
+   4C:  Call  DisablePlayerInput    ( .False )
+   5C:  Call  DoNpcDefeat ( )
+   68:  Return
+   70:  End
+}
+
+#new:Script $Script_Init_80240B6C_kpa_53 {
+    0:  If  *GF_KPA53_Defeated_PeachImposter  ==  .False 
+   10:  	If  *GF_KPA53_Met_PeachImposter  ==  .True 
+   20:  		Call  SetNpcPos     ( .Npc:Self  -120`  0`  -30` )
+   3C:  		Call  SetNpcYaw     ( .Npc:Self  270` )
+   50:  		Call  BindNpcIdle   ( .Npc:Self $Script_NpcAI_80240628_kpa_53 )
+   64:  	EndIf
+   6C:  	Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_80240AF4_kpa_53 )
+   80:  Else
+   88:  	Call  RemoveNpc ( .Npc:Self )
+   98:  EndIf
+   A0:  Return
+   A8:  End
+}
+

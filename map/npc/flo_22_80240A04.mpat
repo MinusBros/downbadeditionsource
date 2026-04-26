@@ -1,0 +1,68 @@
+% automatically dumped from map flo_22
+
+#new:Npc $flo_22_80240A04 {
+.NpcID:Bzzap_00 $NpcSettings_80240520_flo_22 00000000 00000000 00000000 
+00000F04 $Script_Init_80240740_flo_22 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Bzzap_00 % .Sprite:Bzzap
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_80240520_flo_22 {
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_8024054C_flo_22 {
+    0:  Set   *MapVar[A]  00000000 
+   10:  Loop
+   1C:  	Switch  *MapVar[A] 
+   28:  		Case  ==  00000000 
+   34:  		Case  ==  00000001 
+   40:  			Call  SetPlayerAnimation    ( 0001002E )
+   50:  			Set   *MapVar[A]  00000000 
+   60:  			Call  StartBattle ( )
+   6C:  	EndSwitch
+   74:  	Wait  1`
+   80:  EndLoop
+   88:  Return
+   90:  End
+}
+
+#new:Script $Script_Defeat_802405E4_flo_22 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Thread
+   30:  			Wait  25`
+   3C:  			Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   58:  			Call  SetNpcFlagBits    ( .Npc:Self 00000002 .False )
+   70:  		EndThread
+   78:  		Call  DoNpcDefeat ( )
+   84:  	Case  ==  .Outcome:PlayerLost % 1
+   90:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   AC:  	Case  ==  .Outcome:PlayerFled % 2
+   B8:  		Call  SetNpcAnimation   ( .Npc:Self 004B0001 )
+   CC:  		Call  SetNpcPos ( .Npc:Self  30`  60`  0` )
+   E8:  		Wait  10`
+   F4:  		Call  SetNpcJumpscale   ( .Npc:Self 00000000 )
+  108:  		Call  NpcJump0  ( .Npc:Self  30`  0`  0`  15` )
+  128:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  144:  EndSwitch
+  14C:  Return
+  154:  End
+}
+
+#new:Script $Script_Init_80240740_flo_22 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_8024054C_flo_22 )
+   14:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802405E4_flo_22 )
+   28:  Return
+   30:  End
+}
+

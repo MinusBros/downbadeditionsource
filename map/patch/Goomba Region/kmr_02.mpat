@@ -3,6 +3,8 @@
 %Lucky Day moved to Chapter 7 as the Mayor Penguin letter reward.
 
 
+#import DonloninaBottle.mpat
+
 #define .NpcID:Goompa_00            00
 #define .NpcID:Goompapa_03          03
 #define .NpcID:Goomama_04           04
@@ -37,6 +39,78 @@
 	~Vec4f:EntryA %  200.0   50.0   70.0   90.0
      ~Vec4f:EntryB
 }
+
+
+
+@	$Script_Init_80248C48
+{
+    0:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80248A44 )
+   14:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80248AD4 )
+		Call  BindNpcHit        ( .Npc:Self $Script_Hit_Goombarius )
+   28:  Switch  *GB_StoryProgress
+   34:  	Case  <  .Story:Ch0_GateCrushed % FFFFFF85
+   40:  	Case  <  .Story:Ch0_FellOffCliff % FFFFFF86
+   4C:  		Call  $Function_80242394    ( 00000002 00000002 )
+   60:  		Call  BindNpcIdle   ( .Npc:Self $Script_Idle_802480EC )
+   74:  	Case  <  .Story:Ch0_GoombarioJoinedParty % FFFFFF8D
+   80:  		Call  SetNpcPos ( .Npc:Self  66`  0`  -126` )
+   9C:  	Case  >=  .Story:Ch0_GoombarioJoinedParty % FFFFFF8D
+   A8:  		Call  RemoveNpc ( .Npc:Self )
+   B8:  EndSwitch
+   C0:  Return
+   C8:  End
+}
+
+#new:Script $Script_Hit_Goombarius
+{
+    0:  Call  GetOwnerEncounterTrigger  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .EncounterTrigger:Hammer % 4
+				Call  SetNpcAnimation   ( 00000002 00010007 )
+				Wait  12`
+				Call  SetNpcAnimation   ( 00000002 00010002 )
+  138:  EndSwitch
+	Return
+	End
+}
+
+
+@	$Script_Idle_80248A44
+{
+		Exec  $CheckGoombariusHit
+    0:  Call  800445D4  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000064
+   28:  		ExecWait  $Script_NpcAI_80247CC4
+   34:  	CaseOR  ==  00000065
+   40:  	CaseOR  ==  00000066
+   4C:  	CaseOR  ==  00000003
+   58:  	CaseOR  ==  00000067
+   64:  		ExecWait  $Script_NpcAI_80247CC4
+   70:  	EndCaseGroup
+   78:  EndSwitch
+   80:  Return
+   88:  End
+}
+
+
+#new:Script	$CheckGoombariusHit
+{
+		Label 0
+		Call  GetPlayerActionState  ( *Var1 )
+		If  *Var1  ==  .ActionState:Hammer
+			Call  SetSelfEnemyFlagBits  ( 00000001 00000000 )
+		Else
+			Call  SetSelfEnemyFlagBits  ( 00000001 00000001 )
+		EndIf
+		Wait  1`
+		Goto 0
+		Return
+		End
+}
+
+
+#import AutoSave.mpat
 
 @	$Script_Main
 {
@@ -110,11 +184,11 @@
 @	$Script_80243B74
 {
 		Switch  *GB_StoryProgress
-    0:  	Case  .Story:Ch0_MetInnkeeper to .Story:Ch0_MetGoompa % FFFFFF82
+			Case  .Story:Ch0_MetInnkeeper to .Story:Ch0_MetGoompa % FFFFFF82
 				Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )  %Sailor Mercury song
 			Case  >= .Story:Ch0_GateCrushed 
-   10:  		Call  SetMusicTrack ( 00000000 .Song:GoombaVillage 00000000 00000008 )
-   2C:  EndSwitch
+				Call  SetMusicTrack ( 00000000 .Song:GoombaVillage 00000000 00000008 )
+		EndSwitch
    34:  Call  GetEntryID    ( *Var0 )
    44:  Switch  *Var0
    50:  	CaseOR  ==  ~Entry:Entry1
@@ -124,6 +198,20 @@
    80:  EndSwitch
    88:  Return
    90:  End
+}
+
+%Forgot to cover this script
+@	$Script_80243B30
+{
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch0_WakeUp to .Story:Ch0_MetGoompa % FFFFFF82
+				Call  FadeInMusic   ( 00000000 .Song:ChapterEnd 00000002 00000BB8 00000000 0000007F )  %Sailor Mercury song
+			Case  >= .Story:Ch0_GateCrushed 
+				Call  FadeInMusic   ( 00000000 .Song:GoombaVillage 00000000 00000BB8 00000000 0000007F )
+		EndSwitch
+   24:  Call  ClearAmbientSounds    ( 000000FA )
+   34:  Return
+   3C:  End
 }
 
 
@@ -197,11 +285,13 @@
    BC:  		If  *GF_KMR02_ReturnedWithGoompa  ==  .False
    CC:  			Call  DisablePlayerInput    ( .True )
    DC:  			Wait  10`
+					Set  *MapFlag[08]  1`
    E8:  			Call  DisablePartnerAI      ( 00000000 )
    F8:  			Call  SpeakToPlayer ( .Npc:Partner 009D0008 009D0001 00000004 000B001C ) % Never worry, kids, here I am. Thanks to young Mari ...
   118:  			Call  EnablePartnerAI ( )
   124:  			Set   *GF_KMR02_ReturnedWithGoompa  .True
   134:  			Call  DisablePlayerInput    ( .False )
+					Exec  $AutoSave
   144:  		EndIf
   14C:  	Case  ==  ~Entry:Entry3
   158:  		If  *GF_KMR02_WarpPipe  ==  .False
@@ -815,23 +905,55 @@
   BE4:  			Set   *Var1  00000003
   BF4:  			ExecWait  $Script_802455D4
   C00:  			Call  AddStarPieces ( 00000001 )
+					If   *MapFlag[08] == 1`
+						Thread
+							Call  NpcMoveTo ( 00000002  -10`  25`  10` )
+							Call  NpcFacePlayer ( 00000002 00000003 )
+						EndThread
+					EndIf
   C10:  			Call  SpeakToPlayer ( 00000001 009E000B 009E0001 00000000 000B0026 ) % And take this, too!
   C30:  			Wait  4`
   C3C:  			Exec  $Script_80248DC8
   C48:  			Call  SetNpcJumpscale   ( 00000001 *Fixed[1.0] )
-  C5C:  			Call  NpcJump0      ( 00000001  -30`  0`  -19`  10` )
-  C7C:  			Wait  4`
-  C88:  			Call  802D2520      ( 00010002 00000005 00000001 00000001 00000001 00000000 )
-  CAC:  			Wait  35`
-  CB8:  			Call  SetNpcSpeed   ( 00000001 *Fixed[4.0] )
-  CCC:  			Call  SetNpcAnimation   ( 00000001 009E0005 )
-  CE0:  			Call  NpcMoveTo     ( 00000001  -23`  -21`  0` )
-  CFC:  			Call  SetNpcAnimation   ( 00000001 009E0001 )
-  D10:  			Call  NpcFacePlayer ( 00000001 00000003 )
-  D24:  			Call  802D2520      ( 00010002 00000000 00000000 00000000 00000000 00000000 )
-  D48:  			Call  PlayerMoveTo  (  -85`  -10`  0` )
-  D60:  			Call  PlayerFaceNpc ( 00000001 .True )
-  D74:  			Wait  20`
+  C5C:  			Call  NpcJump0      ( 00000001  -30`  0`  -19`  10` )  %We're going to add a funny and violent game over that can only ever happen once
+					If   *MapFlag[08] == 1`
+						Wait  8`
+							Thread
+								Wait 5`
+								Call  SetNpcAnimation   ( 00000001 009E0000 )
+								Call  SetNpcAnimation   ( 00000002 0001000D )
+								Call  SetNpcJumpscale   ( 00000002 *Fixed[1.0] )
+							EndThread
+							Call  FadeOutMusic  ( 00000000 000000F4 )
+							Call  GetPlayerPos   ( *Var0 *Var1 *Var2 )
+							Add   *Var0  0000000A
+							Call  PlayEffect    ( ~FX:Explosion2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+							Call  PlaySoundAtPlayer     ( 0000034E 00000000 )
+							Call  PlayEffect    ( ~FX:Firework:White *Var0 *Var1 *Var2 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+							Call  PlayEffect    ( ~FX:Explosion3 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+							Call  PlaySoundAtPlayer     ( 0000034E 00000000 )
+							Call  SetPlayerAnimation    ( 0001003C )
+							Wait  90`
+							Call  SetNpcAnimation   ( 00000002 0001001C )
+							Call  SpeakToPlayer ( 00000002 00010008 0001001C 00000000 000B0126 ) % Huh? Hey... That dolly you've got... That's the on ...
+							Wait  40`
+							Call  GotoMap   ( "gv_01" 00000000 )
+							Wait  100`
+							Return
+						Else
+		  C7C:  			Wait  10`
+		  C88:  			Call  802D2520      ( 00010002 00000005 00000001 00000001 00000001 00000000 )
+		  CAC:  			Wait  35`
+		  CB8:  			Call  SetNpcSpeed   ( 00000001 *Fixed[3.0] )
+		  CCC:  			Call  SetNpcAnimation   ( 00000001 009E0005 )
+		  CE0:  			Call  NpcMoveTo     ( 00000001  -23`  -21`  0` )
+		  CFC:  			Call  SetNpcAnimation   ( 00000001 009E0001 )
+		  D10:  			Call  NpcFacePlayer ( 00000001 00000003 )
+		  D24:  			Call  802D2520      ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+		  D48:  			Call  PlayerMoveTo  (  -85`  -10`  0` )
+		  D60:  			Call  PlayerFaceNpc ( 00000001 .True )
+		  D74:  			Wait  20`						
+						EndIf
   D80:  		Case  ==  00000001
   D8C:  			Call  ContinueSpeech    ( 00000002 0001001A 0001001A 00000000 000B0023 ) % Aw, that's just mean, Mario... I guess you can jus ...
   DAC:  			Set   *GF_KMR02_KeptDolly  .True
@@ -1020,6 +1142,87 @@
  1B8C:  End
 }
 
+
+@	$NpcGroup_8024E864
+{
+	.NpcID:Goompa_00 $NpcSettings_80247CE4 ~Vec3f:NPC_Goompa_00 % 506 30 -364
+	00002809 $Script_Init_8024BCFC 00000000 00000000 0000002D
+	~NoDrops
+	~Movement:NPC_Goompa_00
+	~AnimationTable:NPC_Goompa_00 % .Sprite:Goompa
+	00000000 00000000 00000000 001A0063 % He's my grandpa, Goompa. He knows oodles of stuff. ...
+	%
+	% $NpcGroup_8024E864[1F0]
+	00000001 $NpcSettings_80247CE4 ~Vec3f:NPC_8024EA54 % 92 0 76
+	00002809 $Script_Init_80249544 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_8024EA54
+	~AnimationTable:NPC_8024EA54 % .Sprite:Goombaria
+	00000000 00000000 00000000 001A0067 % She's my sister, Goombaria. She's a spoiled girl,  ...
+	%
+	% $NpcGroup_8024E864[3E0]
+	00000002 $NpcSettings_80247CE4 ~Vec3f:NPC_8024EC44 % -50 0 -30
+	23102809 $Script_Init_80248C48 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_8024EC44
+	~AnimationTable:NPC_8024EC44 % .Sprite:WorldGoombario
+	00000000 00000000 00000000 001A013B % You'll never see this without hacking, but it's fun, okay?
+	%
+	% $NpcGroup_8024E864[5D0]
+	.NpcID:Gooma_05 $NpcSettings_80247CE4 ~Vec3f:NPC_Gooma_05 % 100 0 -256
+	00002809 $Script_Init_8024D134 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Gooma_05
+	~AnimationTable:NPC_Gooma_05 % .Sprite:Gooma
+	00000000 00000000 00000000 001A0064 % She's my grandma, Gooma. I hope she lives forever! ...
+	%
+	% $NpcGroup_8024E864[7C0]
+	.NpcID:Goompapa_03 $NpcSettings_80247CE4 ~Vec3f:NPC_Goompapa_03 % 163 0 283
+	00002809 $Script_Init_8024C644 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_Goompapa_03
+	~AnimationTable:NPC_Goompapa_03 % .Sprite:Goompapa
+	00000000 00000000 00000000 001A0065 % He's my dad, Goompapa. He's willing to do anything ...
+}
+
+
+@	$NpcGroupList_80251324
+{
+	00000002 $NpcGroup_8024FB30 00000000
+	00000005 $NpcGroup_8024E864 00000000
+	00000001 $NpcGroup_8024F428 00000000
+	00000001 $NpcGroup_8024F634 00000000
+	00000001 $NpcGroup_8024F214 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+
+@	$NpcGroupList_8025136C
+{
+	00000005 $NpcGroup_8024E864 00000000
+	00000001 $NpcGroup_8024F428 00000000
+	00000001 $NpcGroup_8024F214 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+@ $NpcGroupList_8025139C
+{
+	00000005 $NpcGroup_8024E864 00000000
+	00000001 $NpcGroup_8024F428 00000000
+	00000001 $NpcGroup_8024F824 00000000
+	00000001 $NpcGroup_8024F214 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
+
+@ $NpcGroupList_802513D8
+{
+	00000004 $NpcGroup_80250B64 00000000
+	00000001 $Donlon			00000000
+	00000000 00000000 00000000
+}
 
 
 

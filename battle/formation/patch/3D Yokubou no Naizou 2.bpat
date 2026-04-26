@@ -1,0 +1,160 @@
+%Xin Sui, Tsar Boo and Pries T. all occupy the boss region of Yokubou no Naizou
+
+#import XinSui.bpat
+#import TsarBoo.bpat 
+#import PriesT.bpat
+
+#new:FormationTable $FormationTable
+{
+00000000 00000001 $Formation_00 $Stage_AncientCave 00000000 
+00000000 00000001 $Formation_01 $Stage_AncientCave2 00000000 
+00000000 00000001 $Formation_02 $Stage_AncientCave 00000000 
+00000000 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Formation_00
+{
+$XinSui 00000002 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Formation_01
+{
+$TsarBoo $PosTsar 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Formation_02
+{
+$PriesT 00000002 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:StageTable $StageTable
+{
+00000000 $Stage_AncientCave
+00000000 $Stage_AncientCave2
+00000000 00000000
+}
+
+#new:Vector3D $PosXin
+{
+	100` 30` 10`
+}
+
+#new:Vector3D $PosXinPhase2
+{
+	105` -10` 10`
+}
+
+#new:Vector3D $PosTsar
+{
+	100` 32` 10`
+}
+
+
+#new:Stage $Stage_AncientCave
+{
+"kpa_tex"
+"dnj_bt04_shape"
+"dnj_bt04_hit"
+$InitializeStage
+$Script_AfterBattleXin
+"sra_bg"
+00000000
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_AncientCave2
+{
+"kpa_tex"
+"dnj_bt05_shape"
+"dnj_bt05_hit"
+00000000
+00000000 
+00000000
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Script $InitializeStage
+{
+	Call  EnableModel       ( ~Model:dnj_bt04:Cylinder4 .False )
+	Call  EnableModel       ( ~Model:dnj_bt04:Cylinder5 .False )
+	Call  EnableModel       ( ~Model:dnj_bt04:Cylinder6 .False )
+	Call  EnableModel       ( ~Model:dnj_bt04:topplat2 .False )
+	Call  EnableModel       ( ~Model:dnj_bt04:sideplat2 .False )
+	Call  EnableModel       ( ~Model:dnj_bt04:bottomplat2 .False )
+	Return
+	End
+}
+
+#new:Script $TransitionStage
+{
+
+	Call  SetMusicTrack ( 00000000 .Song:TutankoopaTheme 00000001 00000008 )  %Dancing Mad Phase 4 Intro
+	Thread
+		Call  ShakeCam  ( .Cam:Battle 00000000  800` *Fixed[0.5] )
+	EndThread
+	%Exec  $RotatePlatform
+	Thread
+		Call  EnableModel       ( ~Model:dnj_bt04:topplat2 .True )
+		Call  EnableModel       ( ~Model:dnj_bt04:sideplat2 .True )
+		Call  EnableModel       ( ~Model:dnj_bt04:bottomplat2 .True )
+		Wait  5`
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder1 .False )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder2 .False )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder3 .False )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder4 .True )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder5 .True )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder6 .True )		
+		Wait  20`
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder4 .False )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder5 .False )
+		Call  EnableModel       ( ~Model:dnj_bt04:Cylinder6 .False )
+	EndThread
+	Wait  1`
+	Call  MakeLerp  ( 0` -800` 1100` .Easing:Linear )
+    Loop
+		Call  UpdateLerp ( )
+		Call  TranslateGroup ( ~Model:dnj_bt04:base 00000000 *Var0 00000000 )
+		Wait  1`
+		If  *Var1  ==  00000000
+			BreakLoop
+		EndIf
+	EndLoop
+	Wait 3`
+	Return
+	End
+}
+
+
+#new:Script $RotatePlatform
+{
+   10:  Set   *Var0  00000000
+   20:  Label  0
+   2C:  Add   *Var0  00000001
+   3C:  If  *Var0  >  00000167
+   4C:  	Sub   *Var0  00000168
+   5C:  EndIf
+  4BC:  Add   *Var0  00000014
+  4CC:  If  *Var0  >=  00000168
+  4DC:  	Sub   *Var0  00000168
+  4EC:  EndIf
+   64:  Call  RotateModel   ( ~Model:dnj_bt04:topplat2  *Var0 00000000 00000001 00000000 )
+		Call  RotateModel   ( ~Model:dnj_bt04:sideplat2  *Var0 00000000 00000001 00000000 )
+		Call  RotateModel   ( ~Model:dnj_bt04:bottomplat2  *Var0 00000000 00000001 00000000 )
+   84:  Wait  1`
+   90:  Goto  0
+   9C:  Return
+   A4:  End
+}
+
+
+
+#new:Script $Script_AfterBattleXin
+{
+    0:  Return
+    8:  End
+}

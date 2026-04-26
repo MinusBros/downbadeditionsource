@@ -1,0 +1,96 @@
+% automatically dumped from map omo_02
+
+#new:Npc $omo_02_80245B18 {
+.NpcID:ShyGuy_00 $NpcSettings_802448EC_omo_02 00000000 00000000 00000000 
+00000A01 $Script_Init_80245144_omo_02 00000000 00000000 0000010E 
+~NoDrops
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_ShyGuy_00 % .Sprite:ShyGuy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_802448EC_omo_02 {
+00000000 00170016 00000000 00000000 00000000 80077F70 00000000 8007809C 
+00000000 00000000 000E0001 
+}
+
+#new:Script $Script_80244D64_omo_02 {
+    0:  Label  0
+    C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   40:  Call  SetPanTarget  ( .Cam:Default *Var0  0` *Var2 )
+   5C:  Call  GetCamPosB    ( .Cam:Default *Var0 *Var1 )
+   74:  Call  SetCamPosB    ( .Cam:Default *Fixed[-600.0] *Var1 )
+   8C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   A0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   B8:  Wait  1`
+   C4:  Goto  0
+   D0:  Return
+   D8:  End
+}
+
+#new:Script $Script_80244E44_omo_02 {
+    0:  Loop
+    C:  	Call  PlaySoundAtNpc    ( 00000000 B0000021 00000000 )
+   24:  	Wait  8`
+   30:  EndLoop
+   38:  Return
+   40:  End
+}
+
+#new:Script $Script_Idle_80244E8C_omo_02 {
+    0:  If  *GF_OMO02_ShyGuyFledBehindWall  ==  .False 
+   10:  	Call  DisablePlayerInput    ( .True )
+   20:  	Wait  30`
+   2C:  	Call  SetNpcJumpscale   ( .Npc:Self *Fixed[1.0] )
+   40:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+   5C:  	Call  NpcJump0      ( .Npc:Self *Var0 *Var1 *Var2  15` )
+   7C:  	Call  UseSettingsFrom   ( .Cam:Default  -570`  0`  0` )
+   98:  	Call  SetPanTarget  ( .Cam:Default  -570`  0`  0` )
+   B4:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+   C8:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   E0:  	Exec  $Script_80244E44_omo_02 *VarA 
+   F0:  	Call  SetNpcAnimation   ( .Npc:Self 003B0003 )
+  104:  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[6.0] )
+  118:  	Call  NpcMoveTo     ( .Npc:Self  -575`  0`  0` )
+  134:  	Kill  *VarA 
+  140:  	Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
+  158:  	Call  NpcJump0      ( .Npc:Self  -460`  0`  -20`  40` )
+  178:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  190:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1A4:  	Exec  $Script_80244D64_omo_02 *MapVar[A] 
+  1B4:  	Set   *GF_OMO02_ShyGuyFledBehindWall  .True 
+  1C4:  	Call  DisablePlayerInput    ( .False )
+  1D4:  Else
+  1DC:  	Exec  $Script_80244D64_omo_02 *MapVar[A] 
+  1EC:  	Call  SetNpcPos     ( .Npc:Self  -575`  0`  -20` )
+  208:  	Label  A
+  214:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  22C:  	If  *Var0  <  FFFFFD08 
+  23C:  		Wait  1`
+  248:  		Goto  A
+  254:  	EndIf
+  25C:  	Wait  20`
+  268:  	Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
+  280:  	Call  NpcJump0  ( .Npc:Self  -460`  0`  -20`  40` )
+  2A0:  EndIf
+  2A8:  Return
+  2B0:  End
+}
+
+#new:Script $Script_Init_80245144_omo_02 {
+    0:  If  *GF_OMO02_BombedWall  ==  .False 
+   10:  	Call  SetNpcPos     ( .Npc:Self  -800`  0`  0` )
+   2C:  	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80244E8C_omo_02 )
+   40:  Else
+   48:  	Call  RemoveNpc ( .Npc:Self )
+   58:  EndIf
+   60:  Return
+   68:  End
+}
+

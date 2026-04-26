@@ -105,7 +105,17 @@
    BC:  	CaseOR  ==  .Event:HitCombo % 9
    C8:  	CaseOR  ==  .Event:Hit % A
    D4:  		SetConst  *Var0  00000001
-   E4:  		SetConst  *Var1  00210011
+				Call  RandInt   ( 3` *Var7 )
+				Switch    *Var7
+					Case == 0`
+						SetConst  *Var1  00210011
+					Case == 1`
+						SetConst  *Var1  00210013
+					Case == 2`
+						SetConst  *Var1  0021001D
+					Case == 3`
+						SetConst  *Var1  0021002A
+				EndSwitch
    F4:  		ExecWait  DoNormalHit
   100:  	EndCaseGroup
   108:  	Case  ==  .Event:Death % 20
@@ -235,7 +245,7 @@
   360:  		Call  ActorSpeak        ( 000B00B0 .Actor:Partner 00000000 009D0008 009D0001 ) % Oh, excellent! Good move! Go on!!
   380:  		Call  UseIdleAnimation  ( .Actor:Partner .True )
   394:  		Call  SetAnimation      ( .Actor:Player 00000000 00010032 )
-  3AC:  		Wait  15`
+  3AC:  		Wait  14`
   3B8:  		Call  SetActorYaw       ( .Actor:Player  0` )
   3D8:  		Call  UseIdleAnimation  ( .Actor:Player .True )
   3EC:  	EndIf
@@ -259,7 +269,7 @@
   5B8:  			Wait  10`
   5C4:  			Call  SetActorVar   ( .Actor:Self 00000004 00000004 )
   5DC:  			Call  SetAnimation  ( .Actor:Self 00000001 00210003 )
-  5F4:  			Wait  10`
+  5F4:  			Wait  5`
   600:  		EndIf
   608:  	EndIf
   610:  EndSwitch
@@ -420,6 +430,7 @@
   584:  	Wait  3`
   590:  	Call  SetAnimation  ( .Actor:Self 00000001 00210010 )
   5A8:  EndThread
+		Call  YieldTurn ( )
   5B0:  Call  JumpToGoal        ( .Actor:Self  12` .False .True .False )
   5D0:  Wait  2`
   5DC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000001 00000020 )
@@ -776,7 +787,9 @@
   5B8:  		Call  SetAnimation  ( .Actor:Self 00000001 00250006 )
   5D0:  		Call  FlyToGoal     ( .Actor:Self  0`  -10` .Easing:Linear )
   5EC:  EndSwitch
+		Call  YieldTurn ( )
   600:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000006 00000020 )
+		Thread
   628:  Set   *VarF  *Var0
   638:  Switch  *VarF
   644:  	CaseOR  ==  .HitResult:Hit % 0
@@ -789,7 +802,6 @@
   6B8:  		Call  SetAnimation  ( .Actor:Self 00000001 00250005 )
   6D0:  		Call  FlyToGoal     ( .Actor:Self  0`  -10` .Easing:Linear )
   6F8:  		Call  ResetAllActorSounds   ( .Actor:Self )
-  708:  		Call  YieldTurn ( )
   714:  		Call  SetAnimation  ( .Actor:Self 00000001 00250005 )
   72C:  		Call  SetGoalToHome ( .Actor:Self )
   73C:  		Call  SetActorSpeed ( .Actor:Self *Fixed[6.0] )
@@ -799,6 +811,7 @@
   78C:  EndSwitch
   794:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   7A8:  Call  UseIdleAnimation  ( .Actor:Self .True )
+		EndThread
   7BC:  Return
   7C4:  End
 }

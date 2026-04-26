@@ -1,0 +1,77 @@
+% automatically dumped from map isk_02
+
+#new:Npc $isk_02_80241508 {
+.NpcID:Pokey_02 $NpcSettings_80240D3C_isk_02 00000000 00000000 00000000 
+00000A00 $Script_Init_802410F4_isk_02 00000000 00000000 00000108 
+~Items:5:TastyTonic:A ~HP:Generous:2 ~FP:Standard:2 ~CoinBonus:1:2
+00000001 00000000 00000009 000000C8 00000000 FFFF8001 00000000 00000002 
+00000000 0000000D 00000190 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Pokey_02 % .Sprite:Pokey
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Function $Function_802400F0_isk_02 {
+    0:  LW        V1, 148 (A0)
+    4:  LI        V0, 3
+    8:  SB        V0, B5 (V1)
+    C:  JR        RA
+   10:  LI        V0, 2
+}
+
+#new:AISettings $AISettings_80240CE0_isk_02 {
+    1.8 % move speed
+    40` % move time
+    10` % wait time
+  100.0 % alert radius
+    0.0
+    3`
+    3.0 % chase speed
+    45`
+    6`
+  300.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_80240D10_isk_02 {
+    0:  Call  $Function_802400F0_isk_02 ( )
+    C:  Call  DoBasicAI ( $AISettings_80240CE0_isk_02 )
+   1C:  Return
+   24:  End
+}
+
+#new:NpcSettings $NpcSettings_80240D3C_isk_02 {
+00000000 0048000F 00000000 00000000 $Script_NpcAI_80240D10_isk_02 80077F70 00000000 8007809C 
+00000000 00000000 000A0000 
+}
+
+#new:Script $Script_Idle_80240F80_isk_02 {
+    0:  Call  SetSelfEnemyFlagBits  ( 17100000 00000001 )
+   14:  Call  SetNpcFlagBits        ( .Npc:Self 00000002 .True )
+   2C:  Label  1
+   38:  If  *AreaFlag[009]  ==  .False 
+   48:  	Wait  1`
+   54:  	Goto  1
+   60:  EndIf
+   68:  Wait  15`
+   74:  Call  SetNpcFlagBits    ( .Npc:Self 00000040 .True )
+   8C:  Call  SetSelfEnemyFlagBits  ( 17100000 00000000 )
+   A0:  Call  NpcMoveTo ( .Npc:Self  50`  550`  10` )
+   BC:  Call  SetNpcFlagBits    ( .Npc:Self 00000040 .False )
+   D4:  Call  SetSelfEnemyFlagBits  ( 40000000 00000001 )
+   E8:  Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80240D10_isk_02 )
+   FC:  Return
+  104:  End
+}
+
+#new:Script $Script_Init_802410F4_isk_02 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80240F80_isk_02 )
+   14:  Call  800457C4      ( 00000003 )
+   24:  Return
+   2C:  End
+}
+

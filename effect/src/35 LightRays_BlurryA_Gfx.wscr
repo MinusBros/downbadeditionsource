@@ -1,0 +1,98 @@
+% Script File: 35 LightRays_BlurryA_Gfx.wscr
+% Decoded from: 36DF90 to 36E1D0 (35 LightRays_BlurryA)
+
+#new:IntTable $IntTable_09000000
+{
+	00000011 11100000 00001233 33321000 00012445 55442100 00124567 77654210
+	00245789 99875420 013468AB BBA86431 013579BD DDB97531 013579BD FDB97531
+	013579BD DDB97531 013468AB BBA86431 00245789 99875420 00124567 77654210
+	00012445 55442100 00001233 33321000 00000011 11100000 00000000 00000000
+}
+
+#new:VertexTable $VertexTable_09000080
+{
+	%    X        Y        Z                 U        V         R   G   B   A     pos
+	     0`s      0`s      0`s    0000s      16`s      0`s      FFb FFb FFb FFb   %  0
+	   300`s     20`s      0`s    0000s       0`s   1024`s      EBb FFb F5b 00b   %  1
+	   300`s    -20`s      0`s    0000s    1024`s   1024`s      EBb FFb F5b 00b   %  2
+}
+
+#new:DisplayList $DisplayList_090000B0
+{
+	G_RDPPIPESYNC
+	G_VTX            ($VertexTable_09000080, 3`, 0)
+	G_TRI1           ( 0`,  1`,  2`)
+	G_ENDDL
+}
+
+#new:VertexTable $VertexTable_090000D0
+{
+	%    X        Y        Z                 U        V         R   G   B   A     pos
+	     0`s     10`s      0`s    0000s       0`s      0`s      FFb FFb FFb FFb   %  0
+	     0`s    -10`s      0`s    0000s    1024`s      0`s      FFb FFb FFb FFb   %  1
+	   150`s    -10`s      0`s    0000s    1024`s   1024`s      FFb FFb FFb FFb   %  2
+	   150`s     10`s      0`s    0000s       0`s   1024`s      FFb FFb FFb FFb   %  3
+}
+
+#new:DisplayList $DisplayList_09000110
+{
+	G_RDPPIPESYNC
+	G_VTX            ($VertexTable_090000D0, 4`, 0)
+	G_TRI2           ( 0`,  1`,  2`,  0`,  2`,  3`)
+	G_ENDDL
+}
+
+#new:DisplayList $DisplayList_09000130
+{
+	G_RDPPIPESYNC
+	G_TEXTURE        (G_TX_RENDERTILE, 0.999985, 0.999985, 0, true)
+	G_SetOtherMode_H (G_MDSFT_CYCLETYPE, G_CYC_1CYCLE)
+	G_SetOtherMode_H (G_MDSFT_TEXTPERSP, 1)
+	G_SetOtherMode_H (G_MDSFT_TEXTDETAIL, G_TD_CLAMP)
+	G_SetOtherMode_H (G_MDSFT_TEXTLOD, G_TL_TILE)
+	G_SetOtherMode_H (G_MDSFT_TEXTFILT, G_TF_BILERP)
+	G_SetOtherMode_H (G_MDSFT_TEXTCONV, G_TC_FILT)
+	G_SETCOMBINE     (G_CCMUX_1, G_CCMUX_PRIMITIVE, G_CCMUX_TEXEL0, G_CCMUX_PRIMITIVE, ...
+	                  G_ACMUX_TEXEL0, G_ACMUX_0, G_ACMUX_PRIMITIVE, G_ACMUX_0, ...
+	                  G_CCMUX_1, G_CCMUX_PRIMITIVE, G_CCMUX_TEXEL0, G_CCMUX_PRIMITIVE, ...
+	                  G_ACMUX_TEXEL0, G_ACMUX_0, G_ACMUX_PRIMITIVE, G_ACMUX_0)
+	G_SetOtherMode_L (G_MDSFT_RENDERMODE, ...
+	                  Z_CMP, IM_RD, CVG_DST_SAVE, FORCE_BL, ZMODE_XLU, ...
+	                  G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA, ...
+	                  G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA)
+	G_SetOtherMode_H (G_MDSFT_TEXTLUT, G_TT_NONE)
+	G_SETIMG         (I-8, 8`, $IntTable_09000000)
+	G_SETTILE        (G_TX_LOADTILE, I-8, 1, 0, 0, 2, 4, 1, 2, 4, 1)
+	G_RDPLOADSYNC
+	G_LOADTILE       (G_TX_LOADTILE, 0.000000, 0.000000, 7.500000, 15.000000)
+	G_RDPPIPESYNC
+	G_SETTILE        (G_TX_RENDERTILE, I-4, 1, 0, 0, 2, 4, 1, 2, 4, 1)
+	G_SETTILESIZE    (G_TX_RENDERTILE, 0, 0, 16`, 16`)
+	G_GEOMETRYMODE   (Clear, G_CULL_BACK, G_LIGHTING)
+	G_GEOMETRYMODE   (Set, G_SHADING_SMOOTH)
+	G_ENDDL
+}
+
+#new:DisplayList $DisplayList_090001D8
+{
+	G_RDPPIPESYNC
+	G_TEXTURE        (G_TX_RENDERTILE, 0.999985, 0.999985, 0, false)
+	G_SetOtherMode_H (G_MDSFT_CYCLETYPE, G_CYC_1CYCLE)
+	G_SetOtherMode_H (G_MDSFT_TEXTPERSP, 1)
+	G_SetOtherMode_H (G_MDSFT_TEXTDETAIL, G_TD_CLAMP)
+	G_SetOtherMode_H (G_MDSFT_TEXTLOD, G_TL_TILE)
+	G_SetOtherMode_H (G_MDSFT_TEXTFILT, G_TF_BILERP)
+	G_SetOtherMode_H (G_MDSFT_TEXTCONV, G_TC_FILT)
+	G_SETCOMBINE     (G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_PRIMITIVE, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_SHADE, ...
+	                  G_CCMUX_0, G_CCMUX_0, G_CCMUX_0, G_CCMUX_PRIMITIVE, ...
+	                  G_ACMUX_0, G_ACMUX_0, G_ACMUX_0, G_ACMUX_SHADE)
+	G_SetOtherMode_L (G_MDSFT_RENDERMODE, ...
+	                  AA_EN, IM_RD, CVG_DST_CLAMP, CVG_X_ALPHA, ALPHA_CVG_SEL, FORCE_BL, ZMODE_OPA, ...
+	                  G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA, ...
+	                  G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_MEM, G_BL_1MA)
+	G_GEOMETRYMODE   (Clear, G_CULL_BACK, G_LIGHTING)
+	G_GEOMETRYMODE   (Set, G_SHADING_SMOOTH)
+	G_ENDDL
+}
+

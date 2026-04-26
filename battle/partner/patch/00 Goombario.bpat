@@ -43,7 +43,7 @@
 @	$PartsTable_802392A4
 {
 	00000000 01000000 081600FF $IdleAnimations_802391B0 $DefenseTable_802391EC 00000000 00000000 00000000 00000000
-	%00120001 02000000 000000FF $IdleAnimations_Bullet $DefenseTable_802391EC 00000000 00000000 00000000 00000000
+	%00100001 02000000 000000FF $IdleAnimations_Bullet $DefenseTable_802391EC 00000000 00000000 00000000 00000000
 }
 
 #new:IdleAnimations $IdleAnimations_Bullet
@@ -52,6 +52,89 @@
 	.Status:End
 }
 
+@	$IdleAnimations_802391B0
+{
+	.Status:Normal    00090002
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_FireGun
+{
+	.Status:Normal    0009001C
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_WaterGun
+{
+	.Status:Normal    0009001F
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_IceGun
+{
+	.Status:Normal    00090022
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_StunGun
+{
+	.Status:Normal    00090025
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_LoveGun
+{
+	.Status:Normal    00090028
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_MagicGun
+{
+	.Status:Normal    0009002B
+	.Status:Stone     00090000
+	.Status:Sleep     00090013
+	.Status:Poison    00090000
+	.Status:Stop      00090000
+	.Status:Daze      00090014
+	.Status:TurnDone  00090000
+	.Status:End
+}
 
 #new:Function $Function_8023803C
 {
@@ -471,7 +554,7 @@
   70C:  LI        V0, 1E
   710:  LI        A0, 100
   714:  CLEAR     A1
-  718:  LI        A2, 00100017
+  718:  LI        A2, FFFFFFFF
   71C:  JAL       ~Func:set_animation
   720:  RESERVED
   724:  LW        V1, 0 (S0)
@@ -480,7 +563,7 @@
   72C:  BNE       V1, V0, .o744
   730:  LI        A0, 100
   734:  CLEAR     A1
-  738:  LI        A2, 00100017
+  738:  LI        A2, FFFFFFFF
   73C:  JAL       ~Func:set_animation
   740:  RESERVED
         .o744
@@ -681,6 +764,7 @@
    28:  Call  BindHandleEvent   ( .Actor:Partner $Script_HandleEvent_80239360 )
    3C:  Call  BindNextTurn  ( .Actor:Partner $Script_NextTurn_80239A3C )
 		Set   *GoombariusChargeCount 0`  %Set Goombarius's charge counter to 0 at the start of a fight.
+		Set   *GoombariusGunType     0`  %Goombarius will always start with regular gun
    50:  Return
    58:  End
 }
@@ -689,18 +773,18 @@
 
 @	$Script_80239CA8
 {
-  [26C]  Call  JumpToGoal    ( .Actor:Partner  4` .False .False .True )
+  [26C]  Call  JumpToGoal    ( .Actor:Partner  3` .False .False .True )
   [340]  Wait  1`
-  [35C]  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+  [35C]  Call  SetActorSpeed ( .Actor:Partner *Fixed[16.0] )
 }
 
 
 @	$Script_8023A06C
 {
-  [2F8]  Call  JumpToGoal    ( .Actor:Partner  4` .False .False .True )
-  [3A8]  Call  JumpToGoal    ( .Actor:Partner  3` .False .False .True )
+  [2F8]  Call  JumpToGoal    ( .Actor:Partner  3` .False .False .True )
+  [3A8]  Call  JumpToGoal    ( .Actor:Partner  2` .False .False .True )
   [43C]  Wait  1`
-  [458]  Call  SetActorSpeed ( .Actor:Partner *Fixed[12.0] )
+  [458]  Call  SetActorSpeed ( .Actor:Partner *Fixed[16.0] )
 }
 
 %Goombarius is a bit faster too
@@ -858,15 +942,15 @@
   328:  	Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
   340:  	Switch  *Var2
   34C:  		Case  ==  00000086
-  358:  			Call  ShowMessageBox    ( 00000024 0000003C )
+  358:  			Call  ShowMessageBox    ( 00000024 0000001C )
   36C:  		Case  ==  00000087
   378:  			Call  $Function_80239190 ( )
-  384:  			Call  ShowMessageBox    ( *Var0 0000003C )
+  384:  			Call  ShowMessageBox    ( *Var0 0000001C )
   398:  		Case  ==  00000088
-  3A4:  			Call  ShowMessageBox    ( 00000024 0000003C )
+  3A4:  			Call  ShowMessageBox    ( 00000024 0000001C )
   3B8:  	EndSwitch
   3C0:  Else
-  3C8:  	Call  ShowMessageBox    ( 00000008 0000003C )
+  3C8:  	Call  ShowMessageBox    ( 00000008 00000012 )
   3DC:  EndIf
   3E4:  Label  0
   3F0:  Wait  1`
@@ -890,6 +974,15 @@
 %harder to control crosshair.
 %If you whiff it, it does no damage.
 
+%Added for 1.0: Gun now has 7 variations.
+%Normal, blast elemental gun with no bonuses
+%Fire elemental gun that can shrink
+%Water elemental gun
+%Ice elemental gun
+%Shock elemental gun that can paralyze
+%Love elemental gun that can stop
+%Magic elemental gun that can dizzy
+
 %Sounds
 %2008 is gun sound
 %2010 is bomb sound
@@ -908,7 +1001,23 @@
    74:  Call  RunToGoal     ( .Actor:Partner  0` .False )
 		Call  PlaySoundAtActor  ( .Actor:Partner 0000206C )
 		Call  InitTargetIterator ( )
-   A8:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090015 )
+		Set   *VarC  *GoombariusGunType
+		Switch  *VarC
+			Case == 0`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090015 )
+			Case == 1`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 0009001B )
+			Case == 2`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 0009001E )
+			Case == 3`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090021 )
+			Case == 4`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090024 )
+			Case == 5`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090027 )
+			Case == 6`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 0009002A )
+		EndSwitch
    CC:  Call  SetGoalToTarget       ( .Actor:Partner )
    DC:  Call  UseBattleCamPreset    ( 00000013 )
    EC:  Call  SetBattleCamTarget    (  47`  46`  12` )
@@ -934,16 +1043,18 @@
 		Switch  *VarF
 			Case  ==  FFFFFFFF
 				Wait  3`
-				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090016 )
+				ExecWait  $GetGunType
 				Call  PlaySoundAtActor  ( .Actor:Partner 00002008 )
 				Thread
 				Call  ShakeCam  ( .Cam:Battle 00000000  5` *Fixed[1.0] )
 				EndThread
+				Set  *GoombariusGunCheck .True
+				ExecWait  $SetGunType
+				Set  *GoombariusGunCheck .False
 	  		 	ExecWait  $Script_80239CA8
 				Return
 			Case  ==  00000000
 				Wait  3`
-				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090016 )
 				Call  PlaySoundAtActor  ( .Actor:Partner 00002008 )
 				Wait  1`
 				Thread
@@ -952,7 +1063,6 @@
 				Wait  1`
 			Default
 				Wait  3`
-				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090016 )
 				Call  PlaySoundAtActor  ( .Actor:Partner 00002008 )
 				Wait  1`
 				Thread
@@ -960,6 +1070,7 @@
 		    	EndThread
 				Wait  1`
   21C:  EndSwitch
+		ExecWait  $GetGunType
 		Call  PlaySoundAtActor  ( .Actor:Partner 00002010 )
 		Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
   744:  Switch  *Var2
@@ -973,11 +1084,36 @@
   7AC:  Switch  *VarF
   7B8:  	Case  >  00000000
 				Set   *VarE  0000000A
-  7C4:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Blast|NoContact 00000000 00000000 *VarE 00000070 )
+				Set   *VarC  *GoombariusGunType
+				Switch  *VarC
+					Case == 0`
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Blast|NoContact 00000000 00000000 *VarE 00000070 )
+					Case == 1`
+						Call  PlaySoundAtActor  ( .Actor:Partner 000003C3 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Fire|NoContact 00000000 ~DebuffType:Shrink:2:50` *VarE 00000070 )
+					Case == 2`
+						Call  PlaySoundAtActor  ( .Actor:Partner 00000297 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Water|NoContact 00000000 00000000 *VarE 00000070 )
+					Case == 3`
+						Call  PlaySoundAtActor  ( .Actor:Partner 00000396 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Ice|NoContact 00000000 00000000 *VarE 00000070 )
+					Case == 4`
+						Call  PlaySoundAtActor  ( .Actor:Partner 00000366 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Electric|NoContact 00000000 80010132 *VarE 00000070 )
+					Case == 5`
+						Call  PlaySoundAtActor  ( .Actor:Partner 00000135 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Cosmic|NoContact 00000000 ~DebuffType:Stop:1:50` *VarE 00000070 )
+					Case == 6`
+						Call  PlaySoundAtActor  ( .Actor:Partner 00000247 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:Magic|NoContact 00000000 ~DebuffType:Dizzy:1:50` *VarE 00000070 )
+				EndSwitch
+				Set  *GoombariusGunCheck .True
+				ExecWait  $SetGunType
+				Set  *GoombariusGunCheck .False
   7E8:  	Default
   7F0:  		Set   *Var0  00000002
   800:  EndSwitch
-  850:  Wait  5`
+  850:  Wait  5`		
 		Switch  *Var0
   868:  	CaseOR  ==  00000001
   874:  	CaseOR  ==  00000003
@@ -990,6 +1126,54 @@
   8C0:  EndSwitch
   8C8:  Return
   8D0:  End
+}
+
+#new:Script $GetGunType
+{
+		Set   *Var8  *GoombariusGunType
+		Switch  *Var8
+			Case == 0`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090016 )
+			Case == 1`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 0009001D )
+			Case == 2`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090020 )
+			Case == 3`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090023 )
+			Case == 4`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090026 )
+			Case == 5`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00090029 )
+			Case == 6`
+				Call  SetAnimation  ( .Actor:Partner FFFFFFFF 0009002C )
+		EndSwitch
+		Return
+		End
+}
+
+#new:Script  $SetGunType
+{
+		If   *GoombariusGunCheck == .True
+			Call  RandInt   ( 6` *GoombariusGunType )
+			Switch  *GoombariusGunType
+				Case == 0`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_802391B0 )
+				Case == 1`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_FireGun )
+				Case == 2`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_WaterGun )
+				Case == 3`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_IceGun )
+				Case == 4`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_StunGun )
+				Case == 5`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_LoveGun )
+				Case == 6`
+					Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_MagicGun )
+			EndSwitch
+		EndIf
+		Return
+		End
 }
 
 

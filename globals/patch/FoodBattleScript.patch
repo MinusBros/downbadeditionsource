@@ -504,6 +504,7 @@
     Switch *Var9
         CaseOR == .Item:PointSwap %
 		CaseOR == .Item:HealthySalad
+		CaseOR == .Item:LadysAmen 
             ExecWait    $UseItem_StatusItem_SingleTarget
             Set *Var7 .True
         EndCaseGroup
@@ -515,6 +516,7 @@
         CaseOR == .Item:Xbox % DC
         CaseOR == .Item:TarundaGem % 181
         CaseOR == .Item:RakundaGem % 182
+		CaseOR == .Item:HPSucker
             ExecWait    $UseItem_OffensiveItem_SingleTarget
             Set *Var7 .True
         EndCaseGroup
@@ -552,9 +554,6 @@
     EndIf
     Switch *Var9
         Case == .Item:PointSwap % 17B
-            If *Var4 >= .Actor:Enemy0 % Enemies can't use this item
-                Return
-            EndIf
             If  *VarF  ==  .False
                 Switch *Var4
                     Case == .Actor:Player
@@ -674,20 +673,17 @@
                 Call    $WriteAddress ( 8010F290 0 *Var1 5 .False ) % new FP
             Wait    15`
             Call    UseBattleCamPreset    ( 00000002 )
-	CaseOR == .Item:HealthySalad
+	  CaseOR == .Item:HealthySalad
            % this is actually just Super Soda's code but pasted here
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Call  GetItemPower ( *Var9 *Var5 *Var6 )
             Add   *Var0  00000000
             Add   *Var1  00000023
-            Switch *Var9
-                CaseOR == .Item:HealthySalad % 1AD
-                    Call  FXRecoverFP    ( *Var0 *Var1 *Var2 *Var6 )
-                        Call  $RecoverFP    ( *Var6 )
-						Call  FXRecoverHP    ( *Var0 *Var1 *Var2 *Var6 )
-						Call    $Heal_PlayerTeam ( *Var4 *Var5 )
-                    EndIf
-           Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+                   Call  FXRecoverFP    ( *Var0 *Var1 *Var2 *Var6 )
+                Call  $RecoverFP    ( *Var6 )
+				Call  FXRecoverHP    ( *Var0 *Var1 *Var2 *Var6 )
+				Call    $Heal_PlayerTeam ( *Var4 *Var5 )
+            Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Add   *Var1  00000019
             Call  802D7520      ( *Var0 *Var1 *Var2 *Var6 )
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
@@ -708,13 +704,27 @@
             EndIf
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Call  802D75D8      ( *Var0 *Var1 *Var2 *Var6 )
-            Call  GetOwnerID ( *Var0 )
-            If *Var0 < .Actor:Enemy0 % Only player team
-                Call  InitTargetIterator
-            EndIf
-            Call  $Function_ClearDebuffs    ( *Var4 )
+  1D4:  	Call  InitTargetIterator ( )
+  1E0:  	Call  GetOwnerTarget        ( *Var0 *Var1 )
+            Call  $Function_ClearDebuffs    ( 00000000 )
             Wait  20`
-                EndCaseGroup		
+			EndCaseGroup
+		Case == .Item:LadysAmen
+			Call  PlaySound      ( 000020E1 )
+			Call  RandInt       ( 2` *Var0 )
+			Switch *Var0
+				Case == 0`
+					Call      802D72B4 ( 5` )
+					Wait  5`
+					Loop  5`
+						Wait 3`
+						Call  PlaySound      ( 00000215 )
+					EndLoop
+				Case == 1`
+					ExecWait  80288D64 ( )  %Happy
+				Case == 2`
+					ExecWait  802852B8 ( )  %Defend Command?
+			EndSwitch			
 	EndSwitch
 	ExecWait $ReturnToHomeMario
     Return
@@ -731,6 +741,32 @@
         Call  InitTargetIterator
     EndIf
     Switch *Var9
+        Case == .Item:HPSucker % 199
+            Call  UseBattleCamPreset    ( 00000002 ) % reset camera
+            Call  MoveBattleCamOver ( 25` )
+            Call  GetOwnerID ( *Var7 )
+            Call  SetGoalToTarget ( *Var7 )
+            Call  ItemCheckHit      ( *Var0 ~Flags:DamageType:NoContact 00000000 *Var0 00000000 )
+            If  *Var0  ==  .HitResult:Miss % 6
+                Wait    30`
+                ExecWait  $ReturnToHomeMario
+                Return
+            EndIf
+            Loop 2
+                Call    PlaySound ( 03E0 ) % suck
+                Wait    10`
+            EndLoop
+            Call  GetItemPower  ( .Item:HPSucker *Var1 .False )
+            Call  ItemDamageEnemy  ( .False ~Flags:DamageType:IgnoreDefense|NoContact|Unblockable 00000000 *Var1 00000020 )
+            Call  GetActorPos ( *Var7 *Var2 *Var3 *Var4 )
+            Switch *Var7
+                Case == .Actor:Player
+                    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+                    Call  $Heal_PlayerTeam ( *Var7 *Var1 )
+            EndSwitch
+            Call    PlaySoundAtActor ( *Var7 206D ) % heart
+            Call    FXRecoverHP ( *Var2 *Var3 *Var4 *Var1 )
+            Wait  30`
         CaseOR == .Item:CoconutBomb % 1A8
 		CaseOR == .Item:Xbox % DC
 		CaseOR == .Item:TarundaGem % 181
@@ -1031,7 +1067,7 @@
    34:  ANDI      S1, V0, 700
    38:  LH        A0, 436 (S0)
    3C:  SB        R0, 211 (S0)
-   40:  JAL       80047898 % remove debuff icon
+   40:  JAL       ~Func:remove_status_1
    44:  SB        R0, 210 (S0)
         .o48
    48:  LB        V0, 216 (S0)
@@ -1043,10 +1079,6 @@
    60:  LI        V0, 100
    64:  BNE       S1, V0, .o74
    68:  NOP
-        % Clear extra data
-        %JAL      $GetPartnerExtraBattleData_Pointer
-        NOP
-        SH       R0, 0 (V0) % clear status debuffs
    6C:  JAL       ~Func:dispatch_event_partner
    70:  LI        A0, 31
         .o74
@@ -3548,7 +3580,7 @@ ADDIU	V0, R0, 2
   194:  CVT.S.W		F2, F2
   198:  ADD.S		F0, F0, F2
   19C:  LIF			F2, 5.0
-  1A4:  ADDIU		A0, R0, 1		%damage icon (5 -> 3)
+  1A4:  ADDIU		A0, R0, 5		%damage icon (5 -> 3)
   1A8:  ADD.S		F0, F0, F2
   1AC:  MFC1		A1, F4
   1B0:  LIF			F4, 1.0
@@ -3737,7 +3769,7 @@ ADDIU	V0, R0, 2
   194:  CVT.S.W		F2, F2
   198:  ADD.S		F0, F0, F2
   19C:  LIF			F2, 5.0
-  1A4:  ADDIU		A0, R0, 1		%damage icon (5 -> 3) (aka -1)
+  1A4:  ADDIU		A0, R0, 5		%damage icon (5 -> 3) (aka -1)
   1A8:  ADD.S		F0, F0, F2
   1AC:  MFC1		A1, F4
   1B0:  LIF			F4, 1.0

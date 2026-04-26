@@ -135,8 +135,9 @@
    60:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
    D0:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
 		Call  SetActorVar   ( .Actor:Self 00000002 00000000 )  %Determines move selection
+		Call  SetActorVar   ( .Actor:Self 00000003 00000000 )  %Determines if he can move twice
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $Joseph 120` )
+			Call	$Function_SetLevel	( $Joseph 105` )
 		EndIf
    E8:  Return
    F0:  End
@@ -276,10 +277,21 @@
 
 
 #new:Script $Script_TakeTurn_Joseph {
+		ExecWait  $Script_MoveSelector
+		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
+		If  *Var0 >= 3`
+			ExecWait  $Script_MoveSelector
+		EndIf
+		Call  AddActorVar   ( .Actor:Self 00000003 00000001 )
+  1F0:  Return
+  1F8:  End
+}
+
+#new:Script $Script_MoveSelector {
     0:  Call  GetBattlePhase    ( *Var0 )
    10:  If  *Var0  ==  00000001 
    20:  	Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
-   38:  EndIf
+   38:  EndIf	
    40:  Call  GetActorVar   ( .Actor:Self 00000008 *Var0 )
    58:  Switch  *Var0 
    64:  	CaseOR  ==  00000000 
@@ -313,8 +325,8 @@
 				ExecWait  $Script_TakeTurn_Joseph
   1E0:  	EndCaseGroup
   1E8:  EndSwitch
-  1F0:  Return
-  1F8:  End
+		Return
+		End
 }
 
 #new:Script $Script_ShellToss

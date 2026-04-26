@@ -1,0 +1,74 @@
+% automatically dumped from map flo_22
+
+#new:Npc $flo_22_80240BF4 {
+.NpcID:Dayzee_01 $NpcSettings_80240520_flo_22 00000000 00000000 00000000 
+00000F04 $Script_Init_802409CC_flo_22 00000000 00000000 0000010E 
+~Items:15:MapleSyrup:6:HoneySyrup:4
+~HP:Standard:2 ~FP:Standard:4 ~CoinBonus:0:3
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Dayzee_01 % .Sprite:Dayzee
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_80240520_flo_22 {
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Idle_80240778_flo_22 {
+    0:  Set   *MapVar[B]  00000000 
+   10:  Loop
+   1C:  	Switch  *MapVar[B] 
+   28:  		Case  ==  00000000 
+   34:  		Case  ==  00000001 
+   40:  			Call  SetPlayerAnimation    ( 0001002E )
+   50:  			Set   *MapVar[B]  00000000 
+   60:  			Call  StartBattle ( )
+   6C:  	EndSwitch
+   74:  	Wait  1`
+   80:  EndLoop
+   88:  Return
+   90:  End
+}
+
+#new:Script $Script_Defeat_80240810_flo_22 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Thread
+   30:  			Wait  25`
+   3C:  			Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   58:  			Call  SetNpcFlagBits    ( .Npc:Self 00000002 .False )
+   70:  		EndThread
+   78:  		Call  DoNpcDefeat ( )
+   84:  	Case  ==  .Outcome:PlayerLost % 1
+   90:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   AC:  	Case  ==  .Outcome:EnemyFled % 3
+   B8:  		Call  SetNpcAnimation   ( .Npc:Self 00480001 )
+   CC:  		Wait  10`
+   D8:  		Call  SetNpcJumpscale   ( .Npc:Self *Fixed[2.0] )
+   EC:  		Call  NpcJump0  ( .Npc:Self  30`  0`  0`  15` )
+  10C:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  128:  	Case  ==  .Outcome:PlayerFled % 2
+  134:  		Call  SetNpcAnimation   ( .Npc:Self 00480001 )
+  148:  		Wait  10`
+  154:  		Call  SetNpcJumpscale   ( .Npc:Self *Fixed[2.0] )
+  168:  		Call  NpcJump0  ( .Npc:Self  30`  0`  0`  15` )
+  188:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  1A4:  EndSwitch
+  1AC:  Return
+  1B4:  End
+}
+
+#new:Script $Script_Init_802409CC_flo_22 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80240778_flo_22 )
+   14:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_80240810_flo_22 )
+   28:  Return
+   30:  End
+}
+

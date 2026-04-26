@@ -1,0 +1,250 @@
+
+%==================================================
+% Add support for new commands to the strats menu.
+%==================================================
+
+%===========
+% Player
+%===========
+
+% Player already has the dispatching code of the Defense
+% command in the strats menu, ignore using that code
+% so the game uses the one from below Hook.
+%
+% From ~Func:btl_state_update_player_menu
+@Function 41CA68 % 802A7CD8
+{
+    NOP
+}
+
+% Add IDs below 0x05 - Defense
+%
+% From ~Func:btl_state_update_player_menu
+@Hook:Battle 41CA80 % 802A7CF0
+{
+    % S0 = Current command ID
+    ORI     V0, R0, 4 % Defense
+    BEQ     S0, V0, .Defense
+    NOP
+    BEQ     R0, R0, .End
+    NOP
+    .Defense
+    ORI     V0, R0, 00CD
+    SAW     V0, 800DC4DC % Battle Menu State
+    CLEAR   V0 % Defend
+    SH	    V0, 017C (S5) % battleStatus(0x17C) = s16 selectedMoveID
+    JAL     ~Func:btl_set_state
+    ADDIU	A0, R0, 0019 % .BattleState:Defend
+    JAL     802A472C % Free strats menu icons
+    NOP
+    JAL	    802A10B8 % Free command wheel icons
+    NOP
+    .End
+    J	    802A8144
+    NOP
+}
+
+
+
+
+% Defend & Charge Code
+%======================
+
+% Patch Battle State - 0x19 - Defend
+% The game now waits until the animation ends also this
+% state is now used for the charge mechanic too, it also
+% uses scripting too.
+
+% Set actorID in Evt(0x148) after running the StartDefend,
+% instead of always setting Evt(0x148) as .Actor:Player
+%
+% This is needed if .Actor:Self want to be used or GetOwnerID
+@Hook 173790 % 80244EB0
+{
+    % V0 = Evt / script_contex
+    %
+    % Check if current turn is from Mario or Partner
+    LAW     A0, 800DC070 % load battleFlags
+    LUI     A1, 0010 % check if current turn is from partner % 00100000 = Partner turn
+    AND     A0, A0, A1
+    BEQL    A0, R0, .End
+    SW	    R0, 0148 (V0) % .Actor:Player
+    ORI     A0, R0, 100
+    SW	    A0, 0148 (V0) % .Actor:Partner
+    .End
+    J	    80244EE0
+    NOP
+}
+
+
+% Set turn as done according to which one used the defend
+% command, instead of always Player, also wait until the
+% defend script ends.
+%
+% From ~Func:btl_state_update_defend
+@Hook:Battle 1737B8 % 80244ED8
+{
+    % Check if the defend script has ended
+    LAHU    A0, $DefendScriptID
+    JAL     ~Func:does_script_exist
+    RESERVED
+    BNE     V0, R0, .End
+    NOP
+    % S1 = battleStatus
+    LAW     A0, 800DC070 % load battleFlags
+    LUI     V0, 0010 % check if current turn is from partner % 00100000 = Partner turn
+    AND     A0, A0, V0
+    BEQ     A0, R0, .SetState
+    ORI     A0, R0, 16 % .BattleState:EndPlayerTurn
+    ORI     A0, R0, 17 % .BattleState:EndPartnerTurn
+    .SetState
+    JAL     ~Func:btl_set_state
+    NOP
+    .End
+    J       80244EE0
+    NOP
+}
+
+#new:Data $DefendScriptID
+{ 0000 }
+
+@Script:Battle 1B3B98 % 802852B8 - StartDefend
+{
+    ExecWait $Script_Dispatch_BattleState19
+    Return
+    End
+}
+
+#new:Script:Battle $Script_Dispatch_BattleState19
+{
+    Exec    $Script_Dispatch_DefendORCharge *Var0
+    Call    $WriteAddress ( $DefendScriptID 1 *Var0 .False .False ) % save scriptID
+    Return
+    End
+}
+
+#new:Script:Battle $Script_Dispatch_DefendORCharge
+{
+    Call    GetMenuSelection ( .False .False *Var0 )
+    If *Var0 == 0 % Defense
+        ExecWait $Script_Defend
+    EndIf
+    Return
+    End
+}
+
+
+
+
+#new:Script:Battle $Script_Defend
+{
+    Call    UseIdleAnimation  ( .Actor:Self .False )
+    Call    GetOwnerID ( *Var0 )
+    If *Var0 < .Actor:Enemy0 % Only player team
+        Thread
+            % rotate
+            Call    GetActorRotation ( .Actor:Self *Var0 *Var1 *Var2 )
+            Set *Var3 15`
+            Loop *Var3
+                Add     *Var1 54` % y
+                If *Var1 > 360`
+                    Set *Var1 0
+                EndIf
+                Call    SetActorRotation ( .Actor:Self *Var0 *Var1 *Var2 )
+                If *Var3 == 2
+                    % set animation
+                    Call    GetOwnerID ( *Var0 )
+                    Switch *Var0
+                        Case == .Actor:Player
+                            Call SetAnimation ( .Actor:Player 00000000 00010014 ) % guard
+                    EndSwitch
+                EndIf
+                Wait    1
+            EndLoop
+            Call    SetActorRotation ( .Actor:Self 0 0 0 )
+        EndThread
+    EndIf
+    % FXs
+    Call    GetActorPos ( .Actor:Self *Var0 *Var1 *Var2 )
+    Add     *Var1 15` % y
+    Call    PlaySoundAtActor ( .Actor:Self 208F ) % Charging
+    /%Call    PlayEffect ( ~FX:EnergyWaveIn:Blue *Var0 *Var1 *Var2 *Fixed[1.0] 26` .False .False .False .False .False .False .False )
+    Wait    30`
+    Call	PlaySound   ( 208E ) % Pipe
+    Add	    *Var0 20` % x
+    Add	    *Var1 5 % y
+    Call    PlayEffect ( ~FX:StatChange:DefensePlus1 *Var0 *Var1 *Var2 *Fixed[1.0] 30` 0 0 0 0 0 0 0 )
+    Wait    25`%/
+    % Boost defense
+    Wait    13`
+    Call    GetOwnerID ( *Var0 )
+    Switch *Var0
+        Case == .Actor:Player
+            Call $ReadAddress ( $ExtraActorData_Everyone 0 *Var0 E .False ) % get mario's defend byte
+            Add *Var0 1
+            Call $WriteAddress ( $ExtraActorData_Everyone 0 *Var0 E .False )
+    EndSwitch
+    Call    GetOwnerID ( *Var0 )
+    If *Var0 < .Actor:Enemy0 % Only Player team
+        Call    ShowMessageBox        ( 00000108 0000003C )
+        Call    WaitForMessageBoxDone
+    EndIf
+    Call    UseIdleAnimation  ( .Actor:Self .True )
+    Return
+    End
+}
+
+
+
+
+% Check if Player or Partner is using the defense command to deal -1 damage
+%
+% Function called in Battle_EnemiesBadges.patch - Hook 1A6134 % 80277854
+#export:Function $EnemyCalcDamage_Defense
+{
+    PUSH    RA
+    % S0 = Amount to deal
+    ADDI    A0, S1, FFF4 % actor pointer
+    LHU     A1, 428 (A0) % load enemyTargetID
+    BEQ     A1, R0, .Player
+    NOP
+    % Isn't player, is partner instead?
+    ORI     V0, R0, 100 % .Actor:Partner
+    BNE     A1, V0, .End
+    NOP
+    .Partner
+    NOP
+    BEQ     V0, R0, .End
+    NOP
+    LBU     V0, E (V0) % load defense byte
+    BNEL    V0, R0, .End
+    ADDI    S0, S0, -1
+    BEQ     R0, R0, .End
+    NOP
+    .Player
+    LIO     V0, $ExtraActorData_Everyone
+    LBU     V0, E (V0) % load mario's defense byte
+    BNEL    V0, R0, .End
+    ADDI    S0, S0, -1
+    .End
+    POP     RA
+    JR      RA
+    NOP
+}
+
+% Clear the defense byte when the battle wheel
+% get initializated - PLAYER
+%
+% From ~Func:btl_state_update_player_menu
+@Hook 41A790 % 802A5A00
+{
+    PUSH    V0
+    % nuke defense byte
+    LIO     V0, $ExtraActorData_Everyone
+    SB      R0, E (V0) % nuke mario's defense byte
+    POP     V0
+    % restore vanilla code
+    SB	    V0, 0178 (S6)
+    J       802A5A08
+    SH	    R0, 017C (S6)
+}

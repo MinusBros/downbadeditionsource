@@ -1,0 +1,104 @@
+% automatically dumped from map jan_08
+
+#new:Npc $jan_08_802460BC {
+.NpcID:MBush_04 $NpcSettings_80244ACC_jan_08 00000000 00000000 00000000 
+00408D01 00000000 00000000 00000000 0000005A 
+~Items:10:TastyTonic:5:SuperSoda:5
+~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:0:2
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_MBush_04 % .Sprite:MBush
+00000000 00000000 00000000 001A00D4 % Invalid string ID! 001A00D4
+}
+
+#new:Script $Script_NpcAI_802445CC_jan_08 {
+    0:  Call  EnableNpcShadow   ( .Npc:Self .False )
+   14:  Call  SetNpcAnimation   ( .Npc:Self 00450000 )
+   28:  Call  SetSelfVar        ( 00000000 00000000 )
+   3C:  Label  0
+   48:  Call  GetSelfVar        ( 00000000 *Var0 )
+   5C:  If  *Var0  ==  00000000 
+   6C:  	Wait  1`
+   78:  	Goto  0
+   84:  EndIf
+   8C:  SetGroup  00000000 
+   98:  Call  SetTimeFreezeMode     ( 00000001 )
+   A8:  Call  DisablePlayerInput    ( .True )
+   B8:  Call  PlaySoundAtNpc        ( .Npc:Self .Sound:SearchBush 00000000 )
+   D0:  Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+   EC:  Call  SetSelfVar    ( 0000000A *Var0 )
+  100:  Call  SetSelfVar    ( 0000000B *Var1 )
+  114:  Call  SetSelfVar    ( 0000000C *Var2 )
+  128:  Add   *Var0  00000002 
+  138:  Call  SetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  154:  Wait  1`
+  160:  Sub   *Var0  00000003 
+  170:  Call  SetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  18C:  Wait  1`
+  198:  Add   *Var0  00000002 
+  1A8:  Call  SetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  1C4:  Wait  1`
+  1D0:  Sub   *Var0  00000003 
+  1E0:  Call  SetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  1FC:  Wait  1`
+  208:  Add   *Var0  00000002 
+  218:  Call  SetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  234:  Wait  1`
+  240:  Thread
+  248:  	Wait  10`
+  254:  	Call  SetNpcAnimation   ( .Npc:Self 00450003 )
+  268:  EndThread
+  270:  Thread
+  278:  	Wait  6`
+  284:  	Call  InterpPlayerYaw   (  90`  0` )
+  298:  EndThread
+  2A0:  Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+  2B8:  Call  EnableNpcShadow   ( .Npc:Self .True )
+  2CC:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  2E4:  Add   *Var0  00000019 
+  2F4:  Sub   *Var2  00000005 
+  304:  Call  NpcJump1  ( .Npc:Self *Var0 *Var1 *Var2 0000000F )
+  324:  Wait  4`
+  330:  Call  SetNpcAnimation   ( .Npc:Self 00450007 )
+  344:  Wait  2`
+  350:  Call  SetPlayerAnimation    ( 0001002B )
+  360:  Call  SetTimeFreezeMode ( 00000000 )
+  370:  Call  DisablePlayerInput    ( .False )
+  380:  Call  StartBattle ( )
+  38C:  Call  SetSelfVar        ( 00000000 00000001 )
+  3A0:  Return
+  3A8:  End
+}
+
+#new:Script $Script_8024497C_jan_08 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  DoNpcDefeat ( )
+   34:  	Case  ==  .Outcome:PlayerFled % 2
+   40:  		Call  SetNpcAnimation   ( .Npc:Self 00450005 )
+   54:  		Call  GetSelfVar        ( 0000000A *Var0 )
+   68:  		Call  GetSelfVar        ( 0000000B *Var1 )
+   7C:  		Call  GetSelfVar        ( 0000000C *Var2 )
+   90:  		Call  NpcJump1  ( .Npc:Self *Var0 *Var1 *Var2 00000008 )
+   B0:  		Call  EnableNpcShadow   ( .Npc:Self .False )
+   C4:  		Call  SetNpcAnimation   ( .Npc:Self 00450000 )
+   D8:  		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .False )
+   F0:  		Call  BindNpcAI ( .Npc:Self $Script_NpcAI_802445CC_jan_08 )
+  104:  	Case  ==  .Outcome:EnemyFled % 3
+  110:  		Call  SetEnemyFlagBits  ( .Npc:Self 00000010 00000001 )
+  128:  		Call  RemoveNpc ( .Npc:Self )
+  138:  EndSwitch
+  140:  Return
+  148:  End
+}
+
+#new:NpcSettings $NpcSettings_80244ACC_jan_08 {
+00000000 001E001E 00000000 $Script_NpcAI_802445CC_jan_08[38C] $Script_NpcAI_802445CC_jan_08 00000000 00000000 $Script_8024497C_jan_08 
+00000000 00000000 00100000 
+}
+

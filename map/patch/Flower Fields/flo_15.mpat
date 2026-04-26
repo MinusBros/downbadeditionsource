@@ -34,8 +34,86 @@
   114:  Call  ModifyColliderFlags   ( 00000000 ~Collider:g58 7FFFFE00 )
   12C:  Exec  $Script_802413B0
   138:  ExecWait  $Script_80240060
+  
   144:  Return
   14C:  End
+}
+
+
+@	$Script_80240060
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  If  *Var0  ==  ~Entry:Entry1
+   20:  	Call  SetMusicTrack ( 00000000 .Song:SunshineReturns 00000000 00000008 )
+   3C:  Else
+   44:  	Switch  *GB_StoryProgress
+   50:  		Case  <  .Story:Ch6_DestroyedPuffPuffMachine % 35
+   5C:  			Call  SetMusicTrack ( 00000000 .Song:SunTowerCloudy 00000000 00000008 )
+					Exec  $CheckPos
+   78:  		Default
+   80:  			Call  SetMusicTrack ( 00000000 .Song:SunshineReturns 00000001 00000008 )  %Different variation of Memories from Puyo Puyo
+   9C:  	EndSwitch
+   A4:  EndIf
+   AC:  Return
+   B4:  End
+}
+
+#new:Script  $CheckPos
+{
+	Label A
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If    *Var1  > 260`
+		Call $Function_SongVariationOff ( ) %Unmute bank 5
+	Else
+		Call $Function_SongVariationOn ( )  %What this actually does is mute bank 5
+	EndIf
+	Wait  1`
+	Goto  A
+	Return
+	End
+}
+
+
+
+
+%Speed this up a bit
+@	 $Script_802404D8
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerPhysics  ( .True )
+   20:  Call  SetNpcPos     ( .NpcID:Sun_10  0`  270`  0` )
+   3C:  Call  SetNpcPos     ( .NpcID:Sun_11  0`  -1000`  0` )
+   58:  Wait  1`
+   64:  Call  GetNpcPos     ( .NpcID:Sun_10 *Var0 *Var1 *Var2 )
+   80:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+   9C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   B8:  Call  SetCamDistance    ( .Cam:Default  1050` )
+   CC:  Call  SetCamPitch   ( .Cam:Default *Fixed[10.0] *Fixed[4.0] )
+   E4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   F8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  110:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  124:  Call  SetCamDistance    ( .Cam:Default  300` )
+  138:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-10.0] )
+  150:  Call  SetCamSpeed   ( .Cam:Default *Fixed[6.5] )
+  164:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  17C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  190:  Call  SpeakToPlayer ( .NpcID:Sun_10 00CB0009 00CB0009 00000205 001100C3 ) % Wow!!!!!!!!!!!! The clouds are gone! It's time for ...
+  1B0:  Call  SetNpcAnimation   ( .NpcID:Sun_10 00CB0009 )
+  1C4:  Thread
+  1CC:  	Call  SetCamDistance    ( .Cam:Default  1000` )
+  1E0:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[5.0] )
+  1F4:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  20C:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  220:  EndThread
+  228:  Wait  10`
+  234:  Call  SetNpcJumpscale   ( .NpcID:Sun_10 *Fixed[0.0] )
+  248:  Call  GetNpcPos ( .NpcID:Sun_10 *Var0 *Var1 *Var2 )
+  264:  Add   *Var1  00000190
+  274:  Call  NpcJump0  ( .NpcID:Sun_10 *Var0 *Var1 *Var2  20` )
+  294:  Call  GotoMap   ( $ASCII_80241768 00000009 ) % flo_00
+  2A8:  Wait  70`
+  2B4:  Return
+  2BC:  End
 }
 
 #new:NpcGroup $NpcGroup_SpyGuy
@@ -103,4 +181,31 @@
 	00000003 $NpcGroup_SpyGuy   1800000A
 	00000003 $NpcGroup_SpyGuy2  1801000A
 	00000000 00000000 00000000
+}
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

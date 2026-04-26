@@ -1,3 +1,7 @@
+%Goombaria is a secret superboss that I thought up randomly one day.
+
+#import Goombaria.bpat
+
 
 % Let's see if this works
 
@@ -103,15 +107,39 @@
 }
 
 
+#new:IdleAnimations $IdleAnimations_Angry
+{
+	.Status:Normal    00630009
+	.Status:Stone     00630000
+	.Status:Sleep     00630008
+	.Status:Poison    00630000
+	.Status:Stop      00630000
+	.Status:Static    00630000
+	.Status:Paralyze  00630000
+	.Status:Dizzy     00630007
+	.Status:End
+}
+
+
 
 @	$Script_TakeTurn_80221530
 {
+		
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetActorDispOffset    ( .Actor:Self 00000000 00000000 00000000 )
    44:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    58:  Call  SetGoalToTarget   ( .Actor:Self )
    68:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
+  1A0:  Call  CountPlayerTargets    ( .Actor:Self 00008002 *Var6 )
+  1B8:  If  *Var6  ==  00000001 
+			Call  GetActorHP    ( .Actor:Self *VarD )
+			If  *VarD  <=  10`
+				Call  SetActorVar   ( .Actor:Self 00000007 00000001 )
+				Call  BindIdle      ( .Actor:Self $Script_Idle_Angry )
+				Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_Angry )
+			EndIf
+		EndIf
    7C:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
    8C:  	Call  GetActorVar   ( .Actor:Enemy3 00000006 *Var0 )
    A4:  	If  *Var0  !=  00000000
@@ -125,6 +153,12 @@
   114:  		EndIf
   11C:  	EndIf
   124:  EndIf
+		Call  GetActorVar   ( .Actor:Self 00000007 *VarC )
+		If   *VarC == 0`
+			Set  *VarE 2`
+		Else
+			Set  *VarE 3`
+		EndIf
 		Exec  $ShowMessage1
   12C:  ExecWait  $Script_80221680
   138:  Return
@@ -132,10 +166,48 @@
   148:  End
 }
 
+
+#new:Script $Script_Idle_Angry
+{
+    0:  Label  0
+    C:  Call  RandInt   ( 00000050 *Var0 )
+   20:  Add   *Var0  00000050
+   30:  Wait  *Var0
+   3C:  Label  1
+   48:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
+   5C:  If  *Var0  &  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
+   6C:  	Wait  1`
+   78:  	Goto  1
+   84:  EndIf
+   8C:  Call  SetGoalToHome     ( .Actor:Self )
+   9C:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+   B8:  Add   *Var0  00000005
+   C8:  Call  SetActorIdleSpeed ( .Actor:Self *Fixed[1.5] )
+   F4:  Call  SetIdleGoal       ( .Actor:Self *Var0 *Var1 *Var2 )
+  110:  Call  IdleRunToGoal     ( .Actor:Self  0` )
+  13C:  Wait  20`
+  148:  Label  2
+  154:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
+  168:  If  *Var0  &  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
+  178:  	Wait  1`
+  184:  	Goto  2
+  190:  EndIf
+  198:  Call  SetGoalToHome     ( .Actor:Self )
+  1A8:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
+  1C4:  Call  SetActorIdleSpeed ( .Actor:Self *Fixed[1.5] )
+  1F0:  Call  SetIdleGoal       ( .Actor:Self *Var0 *Var1 *Var2 )
+  20C:  Call  IdleRunToGoal     ( .Actor:Self  0` )
+  238:  Wait  80`
+  244:  Goto  0
+  250:  Return
+  258:  End
+}
+
+
 @ $Script_80221680
 {
   [194]  Call  SetActorSpeed ( .Actor:Self *Fixed[6.0] )
-  [4E4]  Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000000 00000002 00000020 )
+  [4E4]  Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000000 *VarE 00000020 )
 }
 
 @	$Script_80221CD4
@@ -192,6 +264,7 @@
    C0:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
    D8:  Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
    F0:  Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
+		Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
   108:  Return
   110:  End
 }
@@ -631,4 +704,23 @@
   1DC:  EndIf
 	Return
 	End
+}
+
+
+
+@	$FormationTable
+{
+	$SJIS_80225884 00000002 $Formation_00 $Stage_80224B7C 00000000
+	$SJIS_80225860 00000004 $Formation_01 $Stage_8022582C 00000000
+	00000000 00000000 00000000 00000000 00000000
+}
+
+@   $StageTable
+{
+	$ASCII_802258BC $Stage_80224730
+	$ASCII_802258B4 $Stage_80224B7C
+	$ASCII_802258AC $Stage_80224FCC
+	$ASCII_802258A4 $Stage_802253D8
+	$ASCII_8022589C $Stage_8022582C
+	00000000 00000000
 }

@@ -1,0 +1,101 @@
+% automatically dumped from map trd_09
+
+#new:Npc $trd_09_802435A0 {
+.NpcID:BulletBill_27 $NpcSettings_8024217C_trd_09 00000000 00000000 00000000 
+00080D04 00000000 00000001 00000000 0000010E 
+~Items:3:Mushroom:A ~HP:Standard:2 ~FP:Standard:2 ~NoCoinBonus
+00000000 000003E8 00000000 00000000 00000000 FFFF8001 00000000 00000000 
+000003E8 00000000 00000000 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_BulletBill_27 % .Sprite:BulletBill
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_80240C0C_trd_09 {
+    0:  Return
+    8:  End
+}
+
+#new:Script $Script_NpcAI_80241B6C_trd_09 {
+    0:  Call  SetSelfEnemyFlagBits  ( 00200000 00000001 )
+   14:  Label  1
+   20:  Call  SetSelfVar        ( 00000000 00000000 )
+   34:  Call  EnableNpcShadow   ( .Npc:Self .False )
+   48:  Call  80045580  ( 00000000 )
+   58:  Call  SetNpcFlagBits    ( .Npc:Self 00000002 .True )
+   70:  Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   8C:  Label  2
+   98:  Call  GetSelfVar        ( 00000000 *Var0 )
+   AC:  If  *Var0  ==  00000000 
+   BC:  	Wait  1`
+   C8:  	Goto  2
+   D4:  EndIf
+   DC:  Wait  15`
+   E8:  Call  SetNpcAnimation   ( .Npc:Self 002D0004 )
+   FC:  Call  EnableNpcShadow   ( .Npc:Self .True )
+  110:  Call  SetNpcFlagBits    ( .Npc:Self 00000002 .False )
+  128:  Call  80045580      ( 00000001 )
+  138:  Call  GetNpcPos     ( *Var0 *Var1 *Var2 *Var3 )
+  154:  Call  GetNpcYaw     ( *Var0 *Var4 )
+  168:  Call  AddVectorPolar    ( *Var1 *Var3 *Fixed[14.0] *Var4 )
+  184:  Add   *Var2  0000000B 
+  194:  Call  SetNpcPos     ( .Npc:Self *Var1 *Var2 *Var3 )
+  1B0:  Call  InterpNpcYaw  ( .Npc:Self *Var4  0` )
+  1C8:  Call  80045838      ( FFFFFFFF 00000328 00200000 )
+  1E0:  Set   *VarA  *Var1 
+  1F0:  Sub   *VarA  0000000A 
+  200:  Set   *VarB  *Var2 
+  210:  Add   *VarB  00000005 
+  220:  Set   *VarC  *Var3 
+  230:  Add   *VarC  00000003 
+  240:  Call  PlayEffect    ( ~FX:Steam:Ring *VarA *VarB *VarC 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  284:  Call  SetNpcSpeed   ( .Npc:Self *Fixed[6.0] )
+  298:  Switch  *Var0 
+  2A4:  	Case  ==  0000000A 
+  2B0:  		Call  NpcMoveTo ( .Npc:Self  -437` *Var3  0` )
+  2CC:  	Case  ==  0000000B 
+  2D8:  		Call  NpcMoveTo ( .Npc:Self  -460` *Var3  0` )
+  2F4:  	Case  ==  0000000C 
+  300:  		Call  NpcMoveTo ( .Npc:Self  -450` *Var3  0` )
+  31C:  EndSwitch
+  324:  Call  80045838      ( FFFFFFFF B0000018 00000000 )
+  33C:  Call  SetNpcAnimation   ( .Npc:Self 002D0005 )
+  350:  Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  36C:  Add   *Var1  00000005 
+  37C:  Add   *Var2  00000001 
+  38C:  Call  PlayEffect    ( ~FX:SmokeBurst:Black *Var0 *Var1 *Var2 *Fixed[0.05] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3D0:  Add   *Var2  00000001 
+  3E0:  Call  PlayEffect    ( ~FX:RingBlast:Red *Var0 *Var1 *Var2 *Fixed[1.2] 00000019 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  424:  Wait  3`
+  430:  Goto  1
+  43C:  Return
+  444:  End
+}
+
+#new:Script $Script_80241FB8_trd_09 {
+    0:  Call  SetNpcRotation    ( .Npc:Self 00000000 00000000 00000000 )
+   1C:  Call  GetBattleOutcome  ( *Var0 )
+   2C:  Switch  *Var0 
+   38:  	Case  ==  .Outcome:PlayerWon % 0
+   44:  		Thread
+   4C:  			Wait  20`
+   58:  			Call  SetNpcFlagBits    ( .Npc:Self 00000002 .True )
+   70:  			Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   8C:  			Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80241B6C_trd_09 )
+   A0:  		EndThread
+   A8:  		Call  DoNpcDefeat ( )
+   B4:  	Case  ==  .Outcome:PlayerFled % 2
+   C0:  		Call  80045900  ( 00000000 )
+   D0:  EndSwitch
+   D8:  Return
+   E0:  End
+}
+
+#new:NpcSettings $NpcSettings_8024217C_trd_09 {
+002D0001 000E001F $Script_80240C0C_trd_09 00000000 $Script_NpcAI_80241B6C_trd_09 80077F70 00000000 $Script_80241FB8_trd_09 
+00000000 00000000 00050000 
+}
+

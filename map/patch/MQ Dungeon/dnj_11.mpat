@@ -18,18 +18,19 @@ $Script_Main $EntryList 00000003 00000000
 #string $MapTattle
 {
 [Style Tattle]
-[EnableCDownNext]The trap in this room is[BR]
-still functional. The[BR]
-craftsmanship on the[BR]
-blade is amazing.[BR]
+[EnableCDownNext]Hey, Mario. Check out that blade.[BR]
+Wanna step into it and see[BR]
+what happens?[BR]
 [Wait][Next]
-Better not get too close.[BR]
-Even a slight touch could[BR]
-be our last.[BR]
+It'd sure make the journey a lot[BR]
+easier for me if you did.[BR]
+[Pause 20]You'd get chopped up?[BR]
+[Wave]Naaaaw,[/fx] what makes you think that?[BR]
 [Wait][Next]
-I wish I had a Melon or[BR]
-something to throw at it.[BR]
-I bet it cuts it right in half![BR]
+Goombarius has never been wrong.[BR]
+Not a single time.[BR]
+[Pause 12]I am single, but that is besides[BR]
+the point.[BR]
 [Wait][End]
 }
 
@@ -58,6 +59,8 @@ I bet it cuts it right in half![BR]
 	JPOP	RA
 }
 
+#import AutoSave.mpat
+
 #new:EntryList $EntryList
 {
 ~Vec4f:Entry0 %  coordinates
@@ -75,13 +78,41 @@ I bet it cuts it right in half![BR]
 	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
 	ExecWait $Script_MakeEntities
    Exec     $Script_RotateThatBlade
-	Call     ModifyColliderFlags ( 00000003 ~Collider:blade 00000002 )
+	%Call     ModifyColliderFlags ( 00000003 ~Collider:blade 00000002 )
    Thread
 	Call     ResetFromLava 	( $Demo_LavaResetList )
    EndThread
+   Bind  $Death .Trigger:FloorTouch ~Collider:blade 00000001 00000000
    Wait 00000009
 		Set		*Var[0] $Script_MakeExits 
 		Exec	EnterWalk 
+		Thread
+			Wait  5`
+			Exec  $AutoSave
+		EndThread
+	Return
+	End
+}
+
+#new:Script  $Death
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	Call  SetPlayerPos  ( *Var0 -90` *Var2 )
+	Call  SetPlayerAnimation    ( 0001003C )
+	Call     ModifyColliderFlags 	( 00000000 ~Collider:blade 7FFFFE00 )
+	Wait  2`
+	Call  PlaySound      ( 00002093 )
+	Call  SetPlayerAnimation    ( 0001003C )
+	Call  SetPlayerPos  ( *Var0 -90` *Var2 )
+	Wait  5`
+	Call  SetPlayerAnimation    ( 0001003C )
+	Wait  5`
+	Call  SetPlayerAnimation    ( 0001003C )
+	Call  FadeOutMusic  ( 00000000 000001E8 )
+	Wait  75`
+	Call  GotoMap   ( "gv_01" 00000001 ) 
+	Wait  100`
 	Return
 	End
 }
@@ -121,7 +152,7 @@ Call	ParentColliderToModel 	( ~Collider:center ~Model:center )
    10:  Set  *Var[1]  0000001E 
    20:  Call     PlaySoundAtModel 	( ~Model:center 8000004A 00000000 )
    38:  Label    00000000 
-   44:  AddF  *Var[0]  *Fixed[6.0] 
+   44:  AddF  *Var[0]  *Fixed[7.0] 
    54:  Call     $Function_80240800 ( )
     Call     RotateModel 	( ~Model:center *Var[0] 00000000 00000001 00000000 )
    	Call     RotateModel 	( ~Model:blade  *Var[0] 00000000 00000001 00000000 )
@@ -137,7 +168,7 @@ Call	ParentColliderToModel 	( ~Collider:center ~Model:center )
    E4:  If  *Var[2]  >  0000000A 
    F4:  	Goto     00000000 
   100:  EndIf
-  108:  SetF  *Var[2]  *Fixed[6.0] 
+  108:  SetF  *Var[2]  *Fixed[7.0] 
   118:  Loop     00000064 
   124:  	SubF  *Var[2]  *Fixed[0.0107421875] 
   134:  	AddF  *Var[0]  *Var[2] 

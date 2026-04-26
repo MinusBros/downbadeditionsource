@@ -1,0 +1,131 @@
+% automatically dumped from map flo_11
+
+#new:Npc $flo_11_80242CF4 {
+.NpcID:Lakitu_00 $NpcSettings_80241AC0_flo_11 00000000 00000000 00000000 
+00040D01 $Script_Init_80242B58_flo_11 00000000 00000000 0000010E 
+~Items:25:SuperShroom:2:MapleSyrup:2:ThunderRage:2:StopWatch:2
+~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Lakitu_00 % .Sprite:Lakitu
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_80241AC0_flo_11 {
+00000000 00200018 00000000 00000000 00000000 80077F70 00000000 8007809C 
+00000000 00000000 00140000 
+}
+
+#new:VectorList $VectorList_80241C54_flo_11 {
+% ~Path3f:Path_80241C54
+400.000000 30.000000 -40.000000
+300.000000 80.000000 -40.000000
+150.000000 200.000000 -40.000000
+100.000000 350.000000 -40.000000
+}
+
+#new:VectorList $VectorList_80241C84_flo_11 {
+% ~Path3f:Path_80241C84
+400.000000 30.000000 40.000000
+300.000000 80.000000 40.000000
+150.000000 200.000000 40.000000
+100.000000 350.000000 40.000000
+}
+
+#new:Script $Script_802420C8_flo_11 {
+    0:  Thread
+    8:  	Call  LoadPath  ( 00000028 $VectorList_80241C54_flo_11 00000004 .Easing:Linear )
+   24:  	Loop
+   30:  		Call  GetNextPathPos ( )
+   3C:  		Call  SetNpcPos ( 00000000 *Var1 *Var2 *Var3 )
+   58:  		Wait  1`
+   64:  		If  *Var0  ==  00000000 
+   74:  			BreakLoop
+   7C:  		EndIf
+   84:  	EndLoop
+   8C:  	Call  SetNpcPos ( 00000000  0`  -1000`  0` )
+   A8:  EndThread
+   B0:  Call  LoadPath  ( 00000028 $VectorList_80241C84_flo_11 00000004 .Easing:Linear )
+   CC:  Loop
+   D8:  	Call  GetNextPathPos ( )
+   E4:  	Call  SetNpcPos ( 00000001 *Var1 *Var2 *Var3 )
+  100:  	Wait  1`
+  10C:  	If  *Var0  ==  00000000 
+  11C:  		BreakLoop
+  124:  	EndIf
+  12C:  EndLoop
+  134:  Call  SetNpcPos ( 00000001  0`  -1000`  0` )
+  150:  Wait  40`
+  15C:  Kill  *MapVar[B] 
+  168:  Return
+  170:  End
+}
+
+#new:Script $Script_Idle_80242810_flo_11 {
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000 
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+   54:  Thread
+   5C:  	Call  AdjustCam ( .Cam:Default *Fixed[4.0]  0`  1000` *Fixed[14.0] *Fixed[-11.0] )
+   80:  EndThread
+   88:  Call  StartBossBattle   ( .Song:SpecialBattle )
+   98:  Return
+   A0:  End
+}
+
+#new:Script $Script_Defeat_802428B8_flo_11 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  SetNpcPos     ( 00000000  400`  20`  -40` )
+   44:  		Call  SetNpcPos     ( 00000001  400`  20`  40` )
+   60:  		Call  InterpNpcYaw  ( 00000000  270`  0` )
+   78:  		Call  InterpNpcYaw  ( 00000001  270`  0` )
+   90:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   A8:  		Add   *Var2  FFFFFFC4 
+   B8:  		Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+   D4:  		Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   F0:  		Call  SetCamDistance        ( .Cam:Default  900` )
+  104:  		Call  SetCamPitch   ( .Cam:Default *Fixed[24.0] *Fixed[-4.0] )
+  11C:  		Call  SetCamPosA    ( .Cam:Default *Fixed[-95.0] *Fixed[0.0] )
+  134:  		Call  SetCamPosB    ( .Cam:Default *Fixed[0.0] *Fixed[-50.0] )
+  14C:  		Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  160:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  178:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  18C:  		ExecWait  $Script_802420C8_flo_11 
+  198:  		Call  ResetCam      ( .Cam:Default *Fixed[4.0] )
+  1AC:  		Set   *GF_FLO11_Defeated_Lakitus  .True 
+  1BC:  		Set   *MapVar[0]  00000001 
+  1CC:  		Call  DisablePlayerInput    ( .False )
+  1DC:  	Case  ==  .Outcome:PlayerLost % 1
+  1E8:  	Case  ==  .Outcome:PlayerFled % 2
+  1F4:  EndSwitch
+  1FC:  Return
+  204:  End
+}
+
+#new:Script $Script_Init_80242B58_flo_11 {
+    0:  Call  SetNpcPos ( 00000000  0`  -1000`  0` )
+   1C:  If  *GF_FLO11_Defeated_Lakitus  ==  .False 
+   2C:  	If  *GB_StoryProgress  >=  .Story:Ch6_GotMagicalBean % 2D
+   3C:  		If  *GF_FLO10_LilyRequestedWaterStone  ==  .True 
+   4C:  			Set   *MapVar[0]  00000000 
+   5C:  			Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80242810_flo_11 )
+   70:  			Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802428B8_flo_11 )
+   84:  			Call  SetNpcPos     ( 00000000  350`  120`  -220` )
+   A0:  			Call  InterpNpcYaw  ( 00000000  270`  1` )
+   B8:  		EndIf
+   C0:  	EndIf
+   C8:  EndIf
+   D0:  Return
+   D8:  End
+}
+

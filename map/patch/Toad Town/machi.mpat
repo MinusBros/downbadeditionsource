@@ -2,6 +2,7 @@
 
 @	$Script_Main
 {
+
     0:  Call  $Function_80240000 ( )
    64:  Call  GetEntryID    ( *Var0 )
    74:  Switch  *Var0
@@ -10,27 +11,47 @@
   100:  	Case  ==  ~Entry:Entry1
 				Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
   138:  	Case  ==  ~Entry:Entry2
-				Call  SetMusicTrack ( 00000000 .Song:CrystalKingBattle 00000000 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:FakeBowserBattle 00000000 00000008 )
+				Thread
+				Loop
+					Wait  2`
+					Call  $TurnOnChannels
+				EndLoop
+				EndThread	
 			Case  ==  ~Entry:Entry3
-				Call  SetMusicTrack ( 00000000 .Song:IllusionaryDance 00000001 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:StarbornValley 00000001 00000008 )
 			Case  ==  ~Entry:Entry4
-				Call  SetMusicTrack ( 00000000 .Song:BulletBillAssault 00000001 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:BowsersCastleFalls 00000001 00000008 )  %King of the Koopas
 			Case  ==  ~Entry:Entry5
-				Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000002 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:Lunar 00000000 00000008 )  %Thinking variation
+				Thread
+				Loop
+					Wait  2`
+					Call  $TurnOnChannels
+				EndLoop
+				EndThread			
 			Case  ==  ~Entry:Entry6
-				Call  SetMusicTrack ( 00000000 .Song:CastleSaved 00000001 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:JudgmentDay 00000000 00000008 )
+				Thread
+				Loop
+					Wait  2`
+					Call  $TurnOnChannels
+				EndLoop
+				EndThread	
 			Case  ==  ~Entry:Entry7
-				Call  SetMusicTrack ( 00000000 .Song:FileSelect 00000000 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:TutankoopaTheme 00000000 00000008 ) %Tenshi's theme
 			Case  ==  ~Entry:Entry8
-				Call  SetMusicTrack ( 00000000 .Song:BattleEnd 00000001 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:PeachCaught 00000001 00000008 )
 			Case  ==  ~Entry:Entry9
-				Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000001 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:TutankoopaTheme 00000001 00000008 )
 			Case  ==  ~Entry:EntryA
 				Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )
 			Case  ==  ~Entry:EntryB
-				Call  SetMusicTrack ( 00000000 .Song:ChapterStart 00000001 00000008 )
+				Call  SetMusicTrack ( 00000000 .Song:KoopaBrosInterlude 00000000 00000008 )
 			Case  ==  ~Entry:EntryC
 				Call  SetMusicTrack ( 00000000 .Song:ChapterStart 00000002 00000008 )
+			Case  ==  ~Entry:EntryD
+				Call  SetMusicTrack ( 00000000 .Song:Faith 00000000 00000008 )
 		EndSwitch
     C:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
    2C:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
@@ -49,32 +70,45 @@
 }
 
 
-#new:Function $Function_8024061C
+#new:Function	$Function_80240F40
 {
     0:  ADDIU     SP, SP, FFE8
-    4:  CLEAR     A0
-    8:  SW        RA, 10 (SP)
-    C:  JAL       8014AB60
-   10:  LI        A1, 2
-   14:  LW        RA, 10 (SP)
-   18:  LI        V0, 2
-   1C:  JR        RA
-   20:  ADDIU     SP, SP, 18
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  BEQ       A1, R0, .o18
+   10:  SW        RA, 14 (SP)
+   14:  SW        R0, 74 (S0)
+        .o18
+   18:  CLEAR     A0
+   1C:  LI        A1, 30
+   20:  COPY      A2, A1
+   24:  JAL       ~Func:set_screen_overlay_color
+   28:  COPY      A3, A1
+   2C:  LWC1      F0, 74 (S0)
+   30:  CVT.S.W   F0, F0
+   34:  MFC1      A1, F0
+   38:  JAL       ~Func:set_screen_overlay_params_front
+   3C:  LI        A0, 1
+   40:  LW        V0, 74 (S0)
+   44:  LI        V1, FF
+   48:  BNE       V0, V1, .o58
+   4C:  ADDIU     V0, V0, 7
+   50:  BEQ       R0, R0, .o6C
+   54:  LI        V0, 2
+        .o58
+   58:  SW        V0, 74 (S0)
+   5C:  SLTI      V0, V0, 100
+   60:  BEQL      V0, R0, .o68
+   64:  SW        V1, 74 (S0)
+        .o68
+   68:  CLEAR     V0
+        .o6C
+   6C:  LW        RA, 14 (SP)
+   70:  LW        S0, 10 (SP)
+   74:  JR        RA
+   78:  ADDIU     SP, SP, 18
 }
 
-
-#new:Function $Function_8024033C
-{
-    0:  ADDIU     SP, SP, FFE8
-    4:  CLEAR     A0
-    8:  SW        RA, 10 (SP)
-    C:  JAL       8014AB60
-   10:  COPY      A1, A0
-   14:  LW        RA, 10 (SP)
-   18:  LI        V0, 2
-   1C:  JR        RA
-   20:  ADDIU     SP, SP, 18
-}
 
 
 #new:Function $TurnOnChannels

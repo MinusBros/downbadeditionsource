@@ -97,6 +97,39 @@
 	End
 }
 
+
+
+%If idle long enough, change to thinking variation
+#new:Script  $MonitorPos2
+{
+
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		Switch  *Var6
+		Case  > 3`
+			Call  $Function_SongVariationOn ( )
+		EndSwitch
+	Call  GetActorVar   ( .Actor:Enemy4 00000003 *VarA )
+	If    *VarA == 1`
+		Wait  1`
+		BreakLoop
+	EndIf
+	EndLoop
+	Call  $Function_SongVariationOff ( )
+	Return
+	End
+}
+
 @	$Script_TakeTurn_8021EC98
 {
 		If   *FakeBowserTurn == .False
@@ -148,6 +181,7 @@
   260:  		Call  SetActorSpeed ( .Actor:Self *Fixed[4.0] )
   274:  		Call  RunToGoal     ( .Actor:Self  0` .False )
   28C:  		Set   *Array[0]  00000000
+				Exec  $MonitorPos2
   29C:  		Return
   2A4:  	EndCaseGroup
   2AC:  EndSwitch
@@ -218,6 +252,7 @@
   738:  		Call  SetActorVar       ( .Actor:Self 00000002 00000004 )
 			Case  ==  00000004
   750:  EndSwitch
+		Exec  $MonitorPos2
   758:  Call  802535B4  ( 00000001 )
   768:  Return
   770:  End
@@ -1098,6 +1133,7 @@
    98:  Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .True )
    B4:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
    CC:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+		Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
 			Call	$Function_SetLevel	( $GNinjakoopa 29` )
 			Call	$Function_SetLevel	( $RNinjakoopa 31` )
@@ -1106,4 +1142,32 @@
 		EndIf
    E4:  Return
    EC:  End
+}
+
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

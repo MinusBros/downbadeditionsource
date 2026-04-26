@@ -9,6 +9,105 @@
 #define .NpcID:MBush_08             08
 
 
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:JadeJungle
+   10:  Call  SetSpriteShading      ( .Shading:None )
+   20:  Call  SetCamPerspective     ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer      ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_80246D28 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_80243588
+   B0:  Exec  $Script_8024787C
+   BC:  Exec  $Script_80244464
+   C8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o75 00000004 )
+   E0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o77 00000004 )
+   F8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o75 00080000 )
+  110:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o77 00080000 )
+  128:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o1 00000001 )
+  140:  Call  ModifyColliderFlags   ( 00000003 ~Collider:deiliw 00000001 )
+  158:  Exec  $Script_8024787C
+  164:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitn 7FFFFE00 )
+  17C:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+  194:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitse 7FFFFE00 )
+  1AC:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  1C4:  Set   *Var0  $Script_8024299C
+  1D4:  Exec  EnterWalk
+  1E0:  Exec  $Script_80242750
+  1EC:  Call  MakeTransformGroup    ( ~Model:g25 )
+  1FC:  Call  EnableTexPanning      ( ~Model:o101 .True )
+  210:  Thread
+  218:  	Set   *Var0  00000001
+  228:  	Set   *Var1  FFFFFFB0
+  238:  	Set   *Var2  0000008C
+  248:  	Set   *Var3  00000050
+  258:  	Set   *Var4  FFFFFF9C
+  268:  	Set   *Var5  00000001
+  278:  	Set   *Var6  00000001
+  288:  	Set   *Var7  00000001
+  298:  	Set   *Var8  00000001
+  2A8:  	Set   *Var9  00000000
+  2B8:  	Set   *VarA  00000000
+  2C8:  	Set   *VarB  00000000
+  2D8:  	Set   *VarC  00000000
+  2E8:  	Exec  $Script_UpdateTexturePan_80242790
+  2F4:  EndThread
+		If  *GF_JAN05_BadgeBlock_PowerQuake  == .False
+			Exec $Script_PartnerBlurbQuake
+		EndIf
+  2FC:  Return
+  304:  End
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity    ( .Entity:RedBlock ~Vec4d:Entity80247970 .Item:PowerQuake 80000000 )
+   28:  Call  AssignBlockFlag   ( *GF_JAN05_BadgeBlock_PowerQuake )
+   38:  Call  MakeEntity    ( .Entity:CymbalPlant ~Vec4d:Entity802479A8 80000000 )
+   5C:  Call  MakeEntity    ( .Entity:TrumpetPlant ~Vec4d:Entity802479CC 80000000 )
+   80:  Return
+   88:  End
+}
+
+
+#new:Script  $Script_PartnerBlurbQuake
+{
+				Label 0
+				If  *GF_JAN05_BadgeBlock_PowerQuake  == .False
+					Wait  1`
+					Goto  0
+				EndIf
+				Wait  75`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SetPlayerFlagBits ( 000000C0 .True )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 00100142 )
+					Wait  60`
+					Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 0010013C )
+				Case  ==  .Partner:Bombette % 3
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 0010013D ) 
+				Case  ==  .Partner:Parakarry % 4
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 0010013E ) 
+				Case  ==  .Partner:Bow % 9
+					Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 0010013F )
+				Case  ==  .Partner:Watt % 6
+					Call  SpeakToPlayer ( .Npc:Partner 00060004 00060001 00000005 00100140 ) 
+				Case  ==  .Partner:Sushie % 7
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 00100141 ) 
+				EndSwitch
+				Return
+				End
+}
+
+
+
 #new:NpcGroup $NpcGroup_MBush_07
 {
 	.NpcID:MBush_07 $NpcSettings_80244C00 ~Vec3f:NPC_MBush_07 % -325 18 148

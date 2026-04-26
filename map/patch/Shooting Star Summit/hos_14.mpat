@@ -291,6 +291,8 @@
 	End
 }
 
+%We're gonna make these blocks update based on story progression
+
 #new:Script $Script_MakeEntities
 {
 		Switch  *GB_StoryProgress
@@ -311,6 +313,8 @@
 				Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Block2 .Item:JamminJelly 80000000 )
 		EndSwitch	
 	Call  AssignBlockFlag   ( *HOS14_Block2 )
+	Call  MakeEntity    ( .Entity:RedBlock ~Vec4d:BadgeBlock .Item:LoveStrike 80000000 )
+	Call  AssignBlockFlag   ( *HOS14_BadgeBlock )
 	Call  MakeItemEntity    ( .Item:HeartPiece ~Vec3d:Coin1 .ItemSpawnMode:Fixed_NeverVanish *HOS14_BlueCoin1 )
 	Call  MakeItemEntity    ( .Item:HeartPiece ~Vec3d:Coin2 .ItemSpawnMode:Fixed_NeverVanish *HOS14_BlueCoin2 )
 	Call  MakeItemEntity    ( .Item:HeartPiece ~Vec3d:Coin3 .ItemSpawnMode:Fixed_NeverVanish *HOS14_BlueCoin3 )
@@ -335,6 +339,33 @@
 	00000000 00000000 00630010
 }
 
+#new:NpcSettings $NpcSettings2
+{
+	00000000 00230018 00000000 00000000 $Script_NpcAI_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+#new:AISettings $AISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_NpcAI_Move {
+    0:  Call  DoBasicAI ( $AISettings )
+   10:  Return
+   18:  End
+}
 
 
 #new:Script $Script_Init_Koopa
@@ -349,12 +380,20 @@
 		Switch  *GB_StoryProgress
 			Case  <  .Story:Ch2_StarSpritDeparted
 				Set   *Var0  $Koopa1
+				Set   *Var1  $Goomba1
+				Set   *Var2  $Koopa4
 			Case  <  .Story:Ch6_StarSpiritRescued
 				Set   *Var0  $Koopa2
+				Set   *Var1  $Goomba2
+				Set   *Var2  $Koopa5
 		Case  >=  .Story:Ch6_StarSpiritRescued
 				Set   *Var0  $Koopa3
+				Set   *Var1  $Goomba3
+				Set   *Var2  $Koopa6
 		EndSwitch
 		Call  SpeakToPlayer ( .Npc:Self 008F0207 008F0202 00000000 *Var0 ) % variable string ID
+		Call  SpeakToPlayer ( .Npc:Goomba 0026010F 00260101 00000000 *Var1 ) % variable string ID
+		Call  SpeakToPlayer ( .Npc:Self 008F0207 008F0202 00000000 *Var2 ) % variable string ID
 		Return
 		End
 }
@@ -371,13 +410,44 @@
 {
 		Switch  *GB_StoryProgress
 			Case  <  .Story:Ch2_StarSpritDeparted
-				Set   *Var0  $Goomba1
+				Set   *Var0  $Goomba4
+				Set   *Var1  $Koopa7
+				Set   *Var2  $Goomba7
 			Case  <  .Story:Ch6_StarSpiritRescued
-				Set   *Var0  $Goomba2
+				Set   *Var0  $Goomba5
+				Set   *Var1  $Koopa8
+				Set   *Var2  $Goomba8
 		Case  >=  .Story:Ch6_StarSpiritRescued
-				Set   *Var0  $Goomba3
+				Set   *Var0  $Goomba6
+				Set   *Var1  $Koopa9
+				Set   *Var2  $Goomba9
 		EndSwitch
 		Call  SpeakToPlayer ( .Npc:Self 0026010F 00260101 00000000 *Var0 ) % variable string ID
+		Call  SpeakToPlayer ( .Npc:Koopa 008F0207 008F0202 00000000 *Var1 ) % variable string ID
+		Call  SpeakToPlayer ( .Npc:Self 0026010F 00260101 00000000 *Var2 ) % variable string ID
+		Return
+		End
+}
+
+#new:Script  $Script_Init_ToadBoy
+{
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_ToadBoy )
+	Return
+	End
+}
+
+
+#new:Script  $Script_Interact_ToadBoy
+{
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch2_StarSpritDeparted
+				Set   *Var0  $ToadBoy1
+			Case  <  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $ToadBoy2
+		Case  >=  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $ToadBoy3
+		EndSwitch
+		Call  SpeakToPlayer ( .Npc:Self 00830804 00830801 00000000 *Var0 ) % variable string ID
 		Return
 		End
 }
@@ -394,13 +464,36 @@
 {
 		Switch  *GB_StoryProgress
 			Case  <  .Story:Ch2_StarSpritDeparted
-				Set   *Var0  $Goomba1
+				Set   *Var0  $ToadGirl1
 			Case  <  .Story:Ch6_StarSpiritRescued
-				Set   *Var0  $Goomba2
+				Set   *Var0  $ToadGirl2
 		Case  >=  .Story:Ch6_StarSpiritRescued
-				Set   *Var0  $Goomba3
+				Set   *Var0  $ToadGirl3
 		EndSwitch
 		Call  SpeakToPlayer ( .Npc:Self 00840904 00840901 00000000 *Var0 ) % variable string ID
+		Return
+		End
+}
+
+#new:Script  $Script_Init_Bandit
+{
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Bandit )
+	Return
+	End
+}
+
+
+#new:Script  $Script_Interact_Bandit
+{
+		Switch  *GB_StoryProgress
+			Case  <  .Story:Ch2_StarSpritDeparted
+				Set   *Var0  $Bandit1
+			Case  <  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Bandit2
+		Case  >=  .Story:Ch6_StarSpiritRescued
+				Set   *Var0  $Bandit3
+		EndSwitch
+		Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 *Var0 ) % variable string ID
 		Return
 		End
 }
@@ -409,7 +502,7 @@
 #new:NpcGroup $NpcGroup_LoveHotel
 {
 	.Npc:Koopa $NpcSettings_Basic ~Vec3f:Koopa
-	00012D09 $Script_Init_Koopa 00000000 00000000 90`
+	00012D09 $Script_Init_Koopa 00000000 00000000 180`
 	~NoDrops
 	~Movement:Koopa
 	~AnimationTable:Koopa 
@@ -418,7 +511,7 @@
 	%%%%%%%
 	
 	.Npc:Goomba $NpcSettings_Basic ~Vec3f:Goomba
-	00012D09 $Script_Init_Goomba 00000000 00000000 90`
+	00012D09 $Script_Init_Goomba 00000000 00000000 180`
 	~NoDrops
 	~Movement:Goomba
 	~AnimationTable:Goomba 
@@ -426,17 +519,35 @@
 	
 	%%%%%%%%
 	
-	.Npc:ToadGirl $NpcSettings_Basic ~Vec3f:ToadGirl
+	.Npc:ToadBoy $NpcSettings2 ~Vec3f:ToadBoy
+	00012D09 $Script_Init_ToadBoy 00000000 00000000 00000000
+	~NoDrops
+	~Movement:ToadBoy
+	~AnimationTable:ToadBoy 
+	00000000 00000000 00000000 $ToadBoyTattle 
+	
+	%%%%%%%%
+	
+	.Npc:ToadGirl $NpcSettings2 ~Vec3f:ToadGirl
 	00012D09 $Script_Init_ToadGirl 00000000 00000000 00000000
 	~NoDrops
 	~Movement:ToadGirl
 	~AnimationTable:ToadGirl 
 	00000000 00000000 00000000 $ToadGirlTattle 
+	
+	%%%%%%%%%
+	
+	.Npc:Bandit $NpcSettings_Basic ~Vec3f:Bandit
+	00012D09 $Script_Init_Bandit 00000000 00000000 180`
+	~NoDrops
+	~Movement:Bandit
+	~AnimationTable:Bandit
+	00000000 00000000 00000000 $BanditTattle
 }
 
 #new:NpcGroupList $NpcGroupList_LoveHotel
 {
-	00000003 $NpcGroup_LoveHotel 00000000
+	00000005 $NpcGroup_LoveHotel 00000000
 	00000000 00000000 00000000
 }
 
@@ -803,7 +914,7 @@ Point is,[Pause 5] we're gonna hit it big.[BR]
 #new:String $Goomba4
 {
 [Style Left]
-This Koop freak Koohid thinks we[BR]
+This Koop freak, Koohid thinks we[BR]
 aren't in love, but I think he's[BR]
 tweakin'.[BR]
 [Wait][Next]
@@ -867,19 +978,36 @@ down in the suite.[BR]
 
 #new:String $Koopa8
 {
-[END]
+[Style Right]
+But am I wrong?[BR]
+I never said we're lovers at all.[BR]
+[Pause 5]Just your delusions, man.[BR]
+[Wait][Next]
+We're in this chicanery for the[BR]
+loot and JUST the loot.[BR]
+Quit thinkin' you're gonna get mowed[BR]
+down in the suite.[BR]
+[Wait][End]
 }
 
 #new:String $Koopa9
 {
-[END]
+[Style Right]
+But am I wrong?[BR]
+I never said we're lovers at all.[BR]
+[Pause 5]Just your delusions, man.[BR]
+[Wait][Next]
+We're in this chicanery for the[BR]
+loot and JUST the loot.[BR]
+Quit thinkin' you're gonna get mowed[BR]
+down in the suite.[BR]
+[Wait][End]
 }
 
 #new:String $Goomba7
 {
 [Style Left]
-[Size 48][Shake][PrintRising]SILENCE![/fx][/fx][SizeReset][BR]
-[Wait][Next]
+[Shake][PrintRising]SILENCE![/fx][/fx][BR][Wait][Next]
 You think you can ignore my[BR]
 affection for you?[BR]
 [Pause 10]No way! We're here to spend some[BR]
@@ -895,8 +1023,7 @@ ladder to deepen our bond?
 #new:String $Goomba8
 {
 [Style Left]
-[Size 48][Shake][PrintRising]SILENCE![/fx][/fx][SizeReset][BR]
-[Wait][Next]
+[Shake][PrintRising]SILENCE![/fx][/fx][BR][Wait][Next]
 You think you can ignore my[BR]
 affection for you?[BR]
 [Pause 10]No way! We're here to spend some[BR]
@@ -912,8 +1039,7 @@ ladder to deepen our bond?
 #new:String $Goomba9
 {
 [Style Left]
-[Size 48][Shake][PrintRising]SILENCE![/fx][/fx][SizeReset][BR]
-[Wait][Next]
+[Shake][PrintRising]SILENCE![/fx][/fx][BR][Wait][Next]
 You think you can ignore my[BR]
 affection for you?[BR]
 [Pause 10]No way! We're here to spend some[BR]
@@ -923,6 +1049,180 @@ Uhhh...[Pause 5] but I guess some loot is[BR]
 nice too. [Pause 10]Buy me something nice.[BR]
 [Pause 15]Hang on,[Pause 5] ain't the point of the[BR]
 ladder to deepen our bond?
+[Wait][End]
+}
+
+#new:String $ToadBoy1
+{
+[Style Left]
+My heart aches for lady T. Sune.[BR]
+[Pause 10]Her songs give me the joy and[BR]
+strength I need to go on.[BR]
+[Wait][Next]
+[Wave]Ahhh,[/fx][Pause 2] if only I could have the[BR]
+courage to ask her out and have[BR]
+her join me in the [SaveColor][Color:09]Love Hotel[RestoreColor]. [SizeWave][HEART][/fx]
+[Wait][End]
+}
+
+#new:String $ToadBoy2
+{
+[Style Left]
+Lady T. Sune is surprisingly really[BR]
+shy in person.[BR]
+[Pause 8]I tried stirring up a conversation[BR]
+with her and she freaked out.[BR]
+[Wait][Next]
+Guess not all idol's have their[BR]
+social cues down to a T.[BR]
+[Pause 10]It's so sad...[BR]
+[Wait][Next]
+[PrintRising]Not to worry, T. Sune![BR]
+[Pause 5]I will help you overcome your social[BR]
+awkwardness! [Shake]Huzzah![/fx][/fx][BR]
+[Wait][Next]
+[PrintGrowing]Ummm... but first I need to have[BR]
+another convo with her...[BR]
+[Pause 12]Curse these nerves.[BR]
+[Wait][End]
+}
+
+#new:String $ToadBoy3
+{
+[Style Left]
+Lady T. Sune is surprisingly really[BR]
+shy in person.[BR]
+[Pause 8]I tried stirring up a conversation[BR]
+with her and she freaked out.[BR]
+[Wait][Next]
+Guess not all idol's have their[BR]
+social cues down to a T.[BR]
+[Pause 10]It's so sad...[BR]
+[Wait][Next]
+[PrintRising]Not to worry, T. Sune![BR]
+[Pause 5]I will help you overcome your social[BR]
+awkwardness! [Shake]Huzzah![/fx][/fx][BR]
+[Wait][Next]
+[PrintGrowing]Ummm... but first I need to have[BR]
+another convo with her...[BR]
+[Pause 12]Curse these nerves.[BR]
+[Wait][End]
+}
+
+#new:String $ToadGirl1
+{
+[Style Right]
+[PrintRising][Shake][Size 24]EEEEEP![/fx][BR]
+[SizeReset]Who do you think you are!?[BR]
+[Wait][Scroll 1][Next]
+Pervert! Sinner![BR]
+[/fx][Pause 20][Wave]Pant... [Pause 5]pant...[/fx] [Pause 5][PrintGrowing]s-sorry...[BR]
+That wasn't very "cash money"[BR]
+of me, was it?[BR]
+[Wait][Next]
+I'm... T. Sune. Nice to meet you.[BR]
+[Pause 15][/fx]Wait! Wait! Wait![BR]
+I'm sorry if that was impolite too![BR]
+[Wait][Next]
+I'm no good at talking to people.[BR]
+[Pause 6]I love singing though...[BR]
+[Pause 12]P-please talk to me...[Pause 4] if you want me[BR]
+to hear my songs.[WAIT][END]
+}
+
+#new:String $ToadGirl2
+{
+[Style Right]
+Hello, all. [Wave][HEART][NOTE][/fx][BR]
+[Pause 5]Please buy my new song, Rolling Toad.[BR]
+[Pause 5]I promise it'll make you smile, cry,[BR]
+and feel love all at once![BR]
+[Wait][Next]
+Of COURSE people are gonna buy[BR]
+into that... [Pause 10]I-I-I hope...[BR]
+[Pause 5]Oh, what am I doing?[WAIT][END]
+}
+
+#new:String $ToadGirl3
+{
+[Style Right]
+Hello, all. [Wave][HEART][NOTE][/fx][BR]
+[Pause 5]Please buy my new song, Rolling Toad.[BR]
+[Pause 5]I promise it'll make you smile, cry,[BR]
+and feel love all at once![BR]
+[Wait][Next]
+Of COURSE people are gonna buy[BR]
+into that... [Pause 10]I-I-I hope...[BR]
+[Pause 5]Oh, what am I doing?[WAIT][END]
+}
+
+#new:String $Bandit1
+{
+[Style Left]
+[Wave]Heh heh heh heh![/fx][BR]
+[Pause 8]Dis sweet hotel's got lots of 'em[BR]
+riches and goods.[BR]
+[Wait][Next]
+[PrintRising]Whuzzat?[/fx][Pause 8] Deepen ma bond?[BR]
+[Pause 8][PrintRising]Nah![/fx][Pause 8] I've been a lone wolf ever[BR]
+since I was born[Pause 5] and even DAT[BR]
+was a mistake![BR]
+[Wait][Next]
+I couldn't care less about being[BR]
+attached. Dat's for the weak.[BR]
+[Pause 10]I'm gonna run dis ladder and[BR]
+get rich quick, boyo![BR]
+[Wait][End]
+}
+
+#new:String $Bandit2
+{
+[Style Left]
+[Wave]Heh heh heh heh![/fx][BR]
+[Pause 8]I made a lotta coinage today, boyo.[BR]
+Dis'll be excellent treats for[BR]
+my economy! [Pause 8][PrintRising]Woot woot![/fx][BR]
+[Wait][Next]
+[PrintRising]Aaaahhh?! I ain't greedy![/fx][BR]
+[Pause 5]Whatchu mean, bucko?[BR]
+[Pause 5]I was born to get rich.[BR]
+Dat's jus' how it is, innit.
+[Wait][End]
+}
+
+#new:String $Bandit3
+{
+[Style Left]
+[SizeJitter]HAAAH!?[/fx][BR]
+[Pause 5][PrintRising]Youse wonderin' what I want all[BR]
+o' em riches and treasures for?[/fx][BR]
+[Wait][Next]
+[PrintRising]Psst![/fx][Pause 4] Well, just between you an' me...[BR]
+[Pause 15][DitherFade percent=80]Me mum's hospitalized. I gotta take[BR]
+care of her real bad, so uh...[/fx][BR]
+[Pause 10]Ye, dat's why.[BR]
+[Wait][Next]
+Don't go sobbin' now.[BR]
+[Pause 3]Dat's all the info youse gettin'[BR]
+outta me, [SaveColor][Color:1D]mustachio[RestoreColor].[BR]
+[Wait][End]
+}
+
+#new:String $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]Woah, check out this sweet building![BR]
+[Pause 8]That's the[SaveColor][Color:09] Love Hotel[RestoreColor]![BR]
+[Pause 8]Golly, this has [PrintRising]gotta be[/fx] the best[BR]
+place to get laid![BR]
+[Wait][Next]
+Yep, you know it![BR]
+[Pause 5]The nanosecond I get myself a hot[BR]
+chick, I'm [PrintRising]absolutely bringing[/fx] her to[BR]
+this hotel![BR]
+[Wait][Next]
+[PrintGrowing]Siiiiighhh... [BR]
+[Pause 3]Instead I'm stuck with you.[BR]
 [Wait][End]
 }
 

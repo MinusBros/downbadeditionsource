@@ -13,7 +13,12 @@
 {
 		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
 		Call  NpcFacePlayer ( .Npc:Self 00000005 )
-		Call  BindNpcAux		( .Npc:Self $Script_FloatingHologramAux )
+		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
+			Call  SetTattleString   ( 00000069 001A013A )  %Different tattle cuz you don't know who he is yet
+			Call  802CFD30  ( .Npc:Self 0000000E 16` 16` 16` 00000000 )
+		Else
+			Call  BindNpcAux		( .Npc:Self $Script_FloatingHologramAux )
+		EndIf
   140:  Call  BindNpcInteract   ( .Npc:Self $DonlonSpeak )
   154:  Return
   15C:  End
@@ -28,7 +33,11 @@
 #new:Script $DonlonSpeak
 {
     0:  Call  DisablePlayerInput    ( .True )
-   10:  Call  SpeakToPlayer     ( .Npc:Self 00A50104 00A50101 00000000 000300EA ) % Ah, Mario. Do you want me to predict the path you  ...
+		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
+			Call  SpeakToPlayer     ( .Npc:Self 00A50104 00A50101 00000000 000300F3 ) % Ah, Mario. Do you want me to predict the path you  ...
+		Else
+			Call  SpeakToPlayer     ( .Npc:Self 00A50104 00A50101 00000000 000300EA ) % Ah, Mario. Do you want me to predict the path you  ...
+		EndIf
 		Set     *Var1 *Var0
 		Switch *Var1
         Case == 0 % Difficulty
@@ -51,10 +60,14 @@
 					Goto 69
 				EndIf
 		EndSwitch
-  13C:  Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 00030037 ) % Excellent. Now relax while I read what your future ...
-  15C:  Call  SetNpcAnimation   ( .Npc:Self 00A50108 )
-  170:  Wait  6`
-  17C:  Call  SpeakToPlayer     ( .Npc:Self 00A50108 00A50108 00000000 00030038 ) % Ooooo---------! Crystal eye! Open wide! Aiiii----- ...
+		Call  SetNpcAnimation   ( .Npc:Self 00A50108 )
+		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
+			Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 000300F4 ) % Excellent. Now relax while I read what your future ...
+		Else
+  170:  	Wait  6`
+			Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 00030037 ) % Excellent. Now relax while I read what your future ...
+  17C:  	Call  SpeakToPlayer     ( .Npc:Self 00A50108 00A50108 00000000 00030038 ) % Ooooo---------! Crystal eye! Open wide! Aiiii----- ...
+		EndIf
   19C:  Exec  $Script_80246824
   1A8:  Wait  10`
   1B4:  If  *MapVar[C]  ==  00000000
@@ -122,7 +135,6 @@
   20C:  Set   *Array[6]  00000001
 		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
 		Add   *Var1  20`
-  21C:  Call  PlayEffect    ( ~FX:MerlinHouseStars FFFFFED6 00000015 FFFFFEB6 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
   260:  Set   *Array[2]  *VarF
   280:  Call  PlayEffect    ( ~FX:MotionBlurFlame:Small *Var0 *Var1 *Var2 00000001 FFFFFFFF 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
   2C4:  Set   *Array[3]  *VarF

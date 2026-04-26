@@ -238,6 +238,7 @@
 		Wait  5`
   6F8:  Call  SetAnimation      ( .Actor:Self 00000001 00360105 )
   710:  Wait  5`
+		Call  YieldTurn ( )
   71C:  Call  SetAnimation      ( .Actor:Self 00000001 00360106 )
   734:  Wait  1`
   740:  Wait  2`
@@ -251,7 +252,6 @@
   7C8:  		Wait  3`
   7D4:  		Call  SetAnimation  ( .Actor:Self 00000001 00360107 )
   7EC:  		Wait  8`
-  7F8:  		Call  YieldTurn ( )
   804:  		Call  GetBattlePhase        ( *Var0 )
   814:  		If  *Var0  ==  00000001
   824:  			Call  SetActorSpeed ( .Actor:Self *Fixed[14.0] )
@@ -386,8 +386,8 @@
   490:  		If  *VarA  ==  .HitResult:Lucky % 5
   4A0:  			Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
   4C4:  		EndIf
+				Call  YieldTurn ( )
   4CC:  		Wait  6`
-  4F8:  		Call  YieldTurn ( )
   504:  		Call  GetBattlePhase        ( *Var0 )
   514:  		If  *Var0  ==  00000001
   524:  			Call  SetActorSpeed ( .Actor:Self *Fixed[11.0] )
@@ -419,6 +419,7 @@
   708:  Call  SetAnimation      ( .Actor:Self 00000001 00360105 )
   720:  Wait  4`
   72C:  Call  SetAnimation      ( .Actor:Self 00000001 00360106 )
+		Call  YieldTurn ( )
   750:  Wait  2`
   75C:  Call  SetGoalToTarget   ( .Actor:Self )
   76C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 0000000A 00000020 )
@@ -431,7 +432,6 @@
   7D8:  		Wait  4`
   7E4:  		Call  SetAnimation  ( .Actor:Self 00000001 00360107 )
   7FC:  		Wait  6`
-  808:  		Call  YieldTurn ( )
   814:  		Call  GetBattlePhase        ( *Var0 )
   824:  		If  *Var0  ==  00000001
   834:  			Call  SetActorSpeed ( .Actor:Self *Fixed[13.0] )
@@ -510,16 +510,16 @@
 	.Status:End
 }
 
-%Lick attack
+%Lick attack. Also ignore defense
 
 @	$Script_80228518
 {
   [198]  Call  SetActorSpeed ( .Actor:Self *Fixed[12.0] )
-  [1DC]  Wait  2`
-  [1F0]  	Wait  1`
+  [1DC]  Wait  0`
   [230]  Wait  7`
   [2D0]  		Wait  5`
-  [408]  		Wait  2`
+  [408]  		Wait  0`
+  [3AC]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 00000000 00000000 00000002 00000020 )
 }
 
 %Gulpits now have a 50% chance to lick you after spitting a rock.
@@ -841,9 +841,9 @@
   860:  Switch  *Var0
   86C:  	CaseOR  ==  .HitResult:Hit % 0
   878:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+				Call  YieldTurn ( )
   884:  		Call  UseBattleCamPreset    ( 00000002 )
   894:  		Wait  9`
-  8A0:  		Call  YieldTurn ( )
   8AC:  		SetConst  *Var0  00000001
   8BC:  		SetConst  *Var1  003A0102
   8CC:  		ExecWait  DoReturnHome
@@ -927,8 +927,8 @@
   1F8:  		Call  SetActorPos       ( .Actor:Self *Var0  0` *Var2 )
   214:  		Call  SetAnimation      ( .Actor:Self 00000001 004E0002 )
   22C:  		Call  ResetActorSounds  ( .Actor:Self .ActorSound:Jump )
+				Call  YieldTurn ( )
   240:  		Wait  15`
-  24C:  		Call  YieldTurn ( )
   258:  		Call  SetActorYaw       ( .Actor:Self  180` )
   26C:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
   288:  		ExecWait  $Script_8021B120
@@ -952,6 +952,7 @@
   3C8:  Wait  2`
   3D4:  Call  SetGoalToTarget   ( .Actor:Self )
   3E4:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000007 00000020 )
+		Call  YieldTurn ( )
   40C:  Switch  *Var0
   418:  	CaseOR  ==  .HitResult:Hit % 0
   424:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -967,7 +968,6 @@
   4F8:  		Call  SetGoalPos    ( .Actor:Self *Var0  0` *Var2 )
   514:  		Call  JumpToGoal    ( .Actor:Self  10` .False .True .False )
   534:  		Wait  1`
-  540:  		Call  YieldTurn ( )
   54C:  		ExecWait  $Script_8021B120
   558:  	EndCaseGroup
   560:  EndSwitch
@@ -1194,6 +1194,26 @@
 	$Blizzar  00000006 00000008 00000000 00000000 00000000 00000000
 }
 
+#new:Formation $Formation_0E
+{
+	$WhiteClubba 00000002 0000000A 00000000 00000000 00000000 00000000
+}
+
+
+
+#new:Stage $Stage_Tubba
+{
+	"dgb_tex"
+	"dgb_bt05_shape"
+	"dgb_bt05_hit"
+	00000000
+	00000000
+	00000000
+	00000000
+	00000000
+	00000000
+	00000000
+}
 
 @	$FormationTable
 {
@@ -1211,5 +1231,19 @@
 	$SJIS_802314C8 00000003 $Formation_0B $Stage_8022F3B4 00000000
 	$SJIS_802314A0 00000003 $Formation_0C $Stage_8022F3B4 00000000
 	$SJIS_80231470 00000003 $Formation_0D $Stage_8022F3B4 00000000
+	00000000       00000001 $Formation_0E $Stage_Tubba    00000000
 	00000000 00000000 00000000 00000000 00000000
+}
+
+
+@	$StageTable
+{
+	$ASCII_80231634 $Stage_8022F3B4
+	$ASCII_8023162C $Stage_8022F7EC
+	$ASCII_80231624 $Stage_8022FB48
+	$ASCII_8023161C $Stage_8022FEAC
+	$ASCII_80231614 $Stage_80230230
+	$ASCII_8023160C $Stage_80230644
+	00000000        $Stage_Tubba
+	00000000 00000000
 }

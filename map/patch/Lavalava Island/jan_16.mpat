@@ -1,0 +1,104 @@
+#define .NpcID:RafaelRaven_00       00
+#define .NpcID:Raven_01             01
+#define .NpcID:Raven_02             02
+#define .NpcID:Raven_03             03
+#define .NpcID:Raven_04             04
+#define .NpcID:Raven_05             05
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:JadeJungle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_80242C50 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Exec  $Script_802412D4
+   B0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+   C8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
+   E0:  Call  GetEntryID        ( *Var0 )
+   F0:  If  *Var0  ==  ~Entry:Entry4
+			Call  RandInt   ( 00000002 *Var0 )
+			If   *Var0 == 0`
+				Set  *FunnyRaphaelDeathCheck .True
+			EndIf
+			If    *FunnyRaphaelDeathCheck == .False
+  100:  		Exec  $Script_80240B3C
+			Else
+				Exec  $AltDeathScene
+			EndIf
+  10C:  	Exec  $Script_802407D4
+  118:  Else
+  120:  	Set   *Var0  $Script_802407D4
+  130:  	Exec  EnterWalk
+  13C:  EndIf
+  144:  ExecWait  $Script_802405D0
+  150:  Exec  $Script_802436D4
+  15C:  Exec  $Script_80240838
+  168:  Call  $Function_80240000    ( 00000000 FFFFFFFF 00000003 )
+  180:  Call  $Function_80240000    ( 00000002 00000000 00000003 )
+  198:  Call  $Function_80240124    ( 00000003 000000FF 000000FF 000000FF 00000000 00000000 00000019 00000000 00000000 00000000 )
+  1CC:  Return
+  1D4:  End
+}
+
+
+#new:Script $AltDeathScene
+{
+    0:  Exec  $Script_802409F8
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Call  DisablePlayerPhysics  ( .True )
+   2C:  Call  SetPlayerActionState  ( .ActionState:Land )
+   3C:  Call  DisablePartnerAI  ( 00000000 )
+   4C:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+   64:  Call  UseSettingsFrom   ( .Cam:Default  0`  70`  330` )
+   80:  Call  SetPanTarget      ( .Cam:Default  0`  70`  330` )
+   9C:  Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+   B0:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   C8:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+   DC:  Call  GetCurrentPartner ( *Var0 )
+   EC:  If  *Var0  !=  00000000
+   FC:  	Call  802D2B6C ( )
+  108:  EndIf
+  110:  Wait  15`
+  11C:  Thread
+  124:  	Wait  10`
+  130:  	Call  SetPanTarget  ( .Cam:Default  0`  0`  330` )
+  14C:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[1.2] )
+  160:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  178:  EndThread
+  180:  Call  DisablePlayerPhysics  ( .False )
+  190:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .True )
+  1A8:  Call  SetPlayerPos      (  0`  600`  340` )
+  1C0:  Call  MakeLerp  ( 00000258 00000082 0000000F .Easing:Linear )
+  1DC:  Loop
+  1E8:  	Call  UpdateLerp ( )
+  1F4:  	Call  SetPlayerPos  (  0` *Var0  340` )
+  20C:  	Wait  1`
+  218:  	If  *Var1  ==  00000000
+  228:  		BreakLoop
+  230:  	EndIf
+  238:  EndLoop
+  47C:  Call  SetPanTarget  ( .Cam:Default  0`  0`  385` )
+  498:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.8] )
+  4AC:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )	
+		Wait  3`
+		Thread
+			Loop
+				Call  SetPlayerAnimation    ( 00080003 )
+				Wait 1`
+			EndLoop
+		EndThread
+		Call  PlaySound   ( 000002D2 )
+		Call  FadeOutMusic  ( 00000000 000000F8 )
+		Wait  80`
+		Call  SpeakToPlayer     ( 0` FFFFFFFF FFFFFFFF 00000005 00100143 )
+		Wait  20`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+  528:  Return
+  530:  End
+}

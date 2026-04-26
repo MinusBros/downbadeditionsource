@@ -1,0 +1,80 @@
+% automatically dumped from map flo_09
+
+#new:Npc $flo_09_80243F5C {
+.NpcID:Bzzap_03 $NpcSettings_80243710_flo_09 00000000 00000000 00000000 
+00002D04 $Script_Init_80243954_flo_09 00000000 00000000 0000005A 
+~Items:15:MapleSyrup:6:HoneySyrup:4
+~HP:Standard:3 ~FP:Standard:2 ~CoinBonus:1:4
+FFFFFFCE 0000041F 0000005A 00000064 00000000 FFFF8001 00000000 FFFFFFCE 
+0000041A 0000005A 000000FA 00000000 00000000 00000001 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+~AnimationTable:NPC_Bzzap_03 % .Sprite:Bzzap
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_NpcAI_80243674_flo_09 {
+    0:  Call  SetSelfVar    ( 00000000 00000000 )
+   14:  Call  SetSelfVar    ( 00000005 FFFFFD8A )
+   28:  Call  SetSelfVar    ( 00000006 00000032 )
+   3C:  Call  SetSelfVar    ( 00000001 000000C8 )
+   50:  Call  $Function_8024162C_flo_09 ( $AISettings_80243644_flo_09 )
+   60:  Return
+   68:  End
+}
+
+#new:NpcSettings $NpcSettings_80243710_flo_09 {
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_NpcAI_8024373C_flo_09 {
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	Switch  *Var0 
+   2C:  		Case  ==  00000000 
+   38:  			Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   54:  			If  *Var1  >  00000000 
+   64:  				Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   7C:  				Call  SetNpcJumpscale   ( .Npc:Self 00000000 )
+   90:  				Call  NpcJump0      ( .Npc:Self *Var0  50` *Var2  15` )
+   B0:  				Call  SetSelfVar    ( 00000000 00000001 )
+   C4:  				Call  BindNpcAI     ( .Npc:Self $Script_NpcAI_80243674_flo_09 )
+   D8:  			EndIf
+   E0:  		Case  ==  00000002 
+   EC:  			Call  DisablePlayerInput    ( .True )
+   FC:  			Wait  25`
+  108:  			Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  124:  			Call  SetNpcFlagBits        ( .Npc:Self 00000002 .False )
+  13C:  			Call  SetSelfVar    ( 00000000 00000000 )
+  150:  			Call  DisablePlayerInput    ( .False )
+  160:  	EndSwitch
+  168:  	Wait  1`
+  174:  EndLoop
+  17C:  Return
+  184:  End
+}
+
+#new:Script $Script_Defeat_802438C8_flo_09 {
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0 
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  SetSelfVar    ( 00000000 00000002 )
+   3C:  		Call  BindNpcAI     ( .Npc:Self $Script_NpcAI_8024373C_flo_09 )
+   50:  		Call  DoNpcDefeat ( )
+   5C:  	Case  ==  .Outcome:PlayerLost % 1
+   68:  	Case  ==  .Outcome:PlayerFled % 2
+   74:  EndSwitch
+   7C:  Return
+   84:  End
+}
+
+#new:Script $Script_Init_80243954_flo_09 {
+    0:  Call  BindNpcIdle   ( .Npc:Self $Script_NpcAI_8024373C_flo_09 )
+   14:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_802438C8_flo_09 )
+   28:  Return
+   30:  End
+}
+

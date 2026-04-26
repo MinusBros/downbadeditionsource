@@ -46,19 +46,45 @@
 }
 
 
+%Change this cutscene and make you required to go get the Ninji
+
 @	$Script_80252EB0
 {
     0:  If  *GB_StoryProgress  !=  .Story:Ch6_ReturnedToToadTown % 3C
    10:  	Return
    18:  EndIf
+		If  *FoundNinjigo == .True
+			Goto  NinjigoScene
+		EndIf
+		If  *DonlonNeedsNinjigo == .False
+		   20:  Call  DisablePlayerInput    ( .True )
+		   30:  Call  SetNpcPos     ( .NpcID:Ninji_29  -278` -1000`  -376` )  %He's not here yet
+		   60:  Wait  40`
+		   6C:  Call  SetPlayerSpeed        ( *Fixed[3.0] )
+		   7C:  Call  PlayerMoveTo  (  -276`  -305`  0` )
+		   94:  Wait  10`
+		  148:  Call  GetNpcPos     ( 00000000 *Var0 *Var1 *Var2 )
+		  164:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+		  180:  Wait  6`
+		   A0:  Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00030047 ) % Go find Ninjigo
+		   D4:  Wait  15`
+		  1AC:  Call  ResetCam      ( .Cam:Default  5` )
+		  39C:  Call  DisablePlayerInput    ( .False )		
+				Set   *DonlonNeedsNinjigo .True
+				Return
+		EndIf
+		If  *FoundNinjigo == .False
+			Return
+		EndIf
+		Label NinjigoScene
    20:  Call  DisablePlayerInput    ( .True )
    30:  Call  SetNpcPos     ( .NpcID:Ninji_29  -278`  20`  -376` )
    4C:  Call  SetNpcYaw     ( .NpcID:Ninji_29  0` )
    60:  Wait  40`
-   6C:  Call  SetPlayerSpeed        ( *Fixed[3.0] )
+   6C:  Call  SetPlayerSpeed        ( *Fixed[4.5] )
    7C:  Call  PlayerMoveTo  (  -276`  -305`  0` )
    94:  Wait  10`
-   A0:  Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00030047 ) % Oh, it's you! You came at such a good time. There' ...
+   A0:  Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 000300F8 ) % Everyone is here
    C0:  Call  NpcFacePlayer ( .NpcID:Ninji_29 00000005 )
    D4:  Wait  15`
    E0:  Call  GetNpcPos     ( .NpcID:Ninji_29 *Var0 *Var1 *Var2 )
@@ -160,11 +186,17 @@
   140:  		Set   *Var0  00030071
   150:  		Set   *Var1  00030071
   160:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
-  16C:  		Set   *Var0  00030072
-  17C:  		Set   *Var1  00030072
+				Call  RandInt   ( 1` *Var8 )
+				If    *Var8  == 0`
+  16C:  			Set   *Var0  00030072
+  17C:  			Set   *Var1  00030072
+				Else
+  198:  			Set   *Var0  00030073
+  1A8:  			Set   *Var1  00030073
+				EndIf
   18C:  	Case  <  .Story:Epilogue % 60
-  198:  		Set   *Var0  00030073
-  1A8:  		Set   *Var1  00030073
+  198:  			Set   *Var0  000300F6
+  1A8:  			Set   *Var1  000300F6
   1B8:  	Case  >=  .Story:Epilogue % 60
   1C4:  		Set   *Var0  00010042
   1D4:  		Set   *Var1  00010042
@@ -245,6 +277,86 @@
   600:  EndIf
   608:  Return
   610:  End
+}
+
+
+@	$Script_80258A68
+{
+    0:  Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+   18:  Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 *Var4 ) % variable string ID
+   38:  Wait  5`
+   44:  Call  UseSettingsFrom   ( .Cam:Default  266`  27`  373` )
+   60:  Call  SetPanTarget  ( .Cam:Default  266`  27`  373` )
+   7C:  Call  SetCamSpeed   ( .Cam:Default  1` )
+		Call  SetNpcSpeed       ( .Npc:Self *Fixed[6.0] )
+   90:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   A8:  Call  InterpNpcYaw  ( .Npc:Self  90`  1` )
+   C0:  Call  SetNpcAnimation   ( .Npc:Self 00A80003 )
+   D4:  Call  NpcMoveTo     ( .Npc:Self  175`  444`  0` )
+   F0:  Call  NpcJump0      ( .Npc:Self  200`  27`  435`  0` )
+  110:  Switch  *Var5
+  11C:  	Case  ==  00000000
+  128:  		Call  NpcMoveTo ( .Npc:Self  200`  407`  0` )
+  144:  	Case  ==  00000001
+  150:  		Call  NpcMoveTo ( .Npc:Self  220`  420`  0` )
+  16C:  		Call  NpcMoveTo ( .Npc:Self  200`  270`  0` )
+  188:  	Case  ==  00000002
+  194:  		Call  NpcMoveTo ( .Npc:Self  310`  420`  0` )
+  1B0:  		Call  NpcMoveTo ( .Npc:Self  330`  270`  0` )
+  1CC:  	Case  ==  00000003
+  1D8:  		Call  NpcMoveTo ( .Npc:Self  310`  420`  0` )
+  1F4:  		Call  NpcMoveTo ( .Npc:Self  330`  407`  0` )
+  210:  EndSwitch
+  218:  Call  SetNpcAnimation   ( .Npc:Self 00A80005 )
+  22C:  Wait  16`
+  238:  Call  PlaySoundAtNpc    ( .Npc:Self 000002A1 00000000 )
+  250:  Switch  *Var5
+  25C:  	Case  ==  00000000
+  268:  		Call  EnableModel   ( ~Model:o375 .True )
+  27C:  		Call  EnableModel   ( ~Model:o370 .True )
+  290:  	Case  ==  00000001
+  29C:  		Call  EnableModel   ( ~Model:o377 .True )
+  2B0:  		Call  EnableModel   ( ~Model:o372 .True )
+  2C4:  	Case  ==  00000002
+  2D0:  		Call  EnableModel   ( ~Model:o376 .True )
+  2E4:  		Call  EnableModel   ( ~Model:o371 .True )
+  2F8:  	Case  ==  00000003
+  304:  		Call  EnableModel   ( ~Model:o378 .True )
+  318:  		Call  EnableModel   ( ~Model:o373 .True )
+  32C:  EndSwitch
+  334:  If  *Var3  !=  00000003
+  344:  	Thread
+  34C:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  364:  		Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  380:  		Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  39C:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  3B4:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  3C8:  		Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  3E0:  	EndThread
+  3E8:  EndIf
+  3F0:  Call  InterpNpcYaw      ( .Npc:Self  270`  1` )
+  408:  Call  SetNpcAnimation   ( .Npc:Self 00A80003 )
+  41C:  Switch  *Var5
+  428:  	Case  ==  00000001
+  434:  		Call  NpcMoveTo ( .Npc:Self  220`  420`  0` )
+  450:  	CaseOR  ==  00000002
+  45C:  	CaseOR  ==  00000003
+  468:  		Call  NpcMoveTo ( .Npc:Self  310`  420`  0` )
+  484:  	EndCaseGroup
+  48C:  EndSwitch
+  494:  Call  NpcMoveTo ( .Npc:Self  186`  425`  0` )
+  4B0:  Call  NpcJump0  ( .Npc:Self  175`  20`  444`  0` )
+  4D0:  Call  NpcMoveTo ( .Npc:Self  150`  480`  0` )
+  4EC:  Call  SetNpcAnimation   ( .Npc:Self 00A80001 )
+  500:  Call  SetNpcFlagBits    ( .Npc:Self 00000100 .False )
+  518:  If  *Var3  ==  00000003
+  528:  	Call  InterpNpcYaw  ( .NpcID:MinhT_18  90`  0` )
+  540:  	ExecWait  $Script_80258684
+  54C:  	Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80006 00A80001 00000000 00030070 ) % Kyaaaaaaaah!! At first it just looked like the flo ...
+  56C:  	Set   *GB_StoryProgress  .Story:Ch6_FlowerGateOpen
+  57C:  EndIf
+  584:  Return
+  58C:  End
 }
 
 
@@ -706,23 +818,23 @@
  FFFFFF80	.Item:FirstAttack     50`    00240087 % 
  FFFFFF80	.Item:Multibounce     75`    0024005E % 
  FFFFFF80	.Item:DDownPound      75`    00240069 % Now renamed Piercing Blow.
- FFFFFFCB	.Item:SpinSmash      100`    00240068 %
  FFFFFFCB	.Item:SleepStomp      75`    0024005C % 
  FFFFFFCB	.Item:DoubleDip      150`    0024006D % 
  FFFFFFCB	.Item:DodgeMaster    100`    00240080 % Now renamed Tatsujin.
+ FFFFFFCB	.Item:HPPlusC        150`    00240071 % 
  FFFFFFF3	.Item:JumpCharge     100`    0024005A % 
  FFFFFFF3	.Item:MedicineMan    150`    0023011C % Medicine Man added.
- FFFFFFF3	.Item:HPPlusC        150`    00240071 % 
- FFFFFFF3	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp
+ FFFFFFF3	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp.
+ FFFFFFF3	.Item:Hanatatsu      150`    00230155 % New Hanatatsu Badge.
  00000007   .Item:TornadoJump_1  200`    00230115 % Tornado Jump added.
  00000007	.Item:DamageDodgeA   150`    00240075 % 
- 00000007	.Item:SSmashChg      100`    00240065 % 
+ 00000007	.Item:SSmashChg      150`    00240065 % 
  00000007	.Item:PityFlower     150`    0023011B % Pity Flower added.
  00000029	.Item:MegaQuake      350`    0024006C %
  00000029   .Item:SuperSmash     300`	 00230067 % Multi-Smash added.
- 00000029	.Item:AllorNothing   275`    00240093 % 
- 0000003B   .Item:MegaHPDrain    200`	 00230114 % Mega HP Drain added.
- 0000003B	.Item:FPPlusC        200`    00240072 % 
+ 00000029   .Item:MegaHPDrain    200`	 00230114 % Mega HP Drain added.
+ 0000003B	.Item:AllorNothing   275`    00240093 % 
+ 0000003B	.Item:FPPlusC        225`    00240072 % 
  0000003B	.Item:ShrinkSmash    400`    0023011D % Recoil Throw added.
 }
 
@@ -1007,7 +1119,14 @@
 					If *ShopState == 00000000
 						Set *ShopState 00000001
 						Wait  24`
-						Call  SetMusicTrack ( 00000000 .Song:Donlon 00000000 00000008 )
+						If  *FoundNinjigo == .True
+							If	*GB_StoryProgress  <  .Story:Ch7_InvitedToStarbornValley
+								Call  SetMusicTrack ( 00000000 .Song:StarbornValley 00000001 00000008 )
+							EndIf
+						Else
+							Call  SetMusicTrack ( 00000000 .Song:Donlon 00000000 00000008 )
+						EndIf
+						
 					EndIf
 				EndIf
 				EndThread
@@ -1377,12 +1496,21 @@
 					If    *Var5 > 25`
 						Call  SpeakToPlayer     ( 00000000 00A5000D 00A5000C 00000000 0003003A ) % Ah, Mario. Do you want me to predict the path you  ...
 					Else
-  87C:  				Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % If you want me to predict your future, talk to me  ...
+						If    *DonlonNeedsNinjigo == .False
+							Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % If you want me to predict your future, talk to me  ...
+						Else
+							Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 000300F7 )
+						EndIf
+  87C:  				
   89C:  			EndIf
 					EndIf
   8A4:  		EndIf
   8AC:  	Default
-  8B4:  		Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % If you want me to predict your future, talk to me  ...
+					If    *DonlonNeedsNinjigo == .False
+						Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % If you want me to predict your future, talk to me  ...
+					Else
+						Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 000300F7 )
+					EndIf
   8D4:  EndSwitch
   8DC:  ExecWait  $Script_8024E1F4
   8E8:  ExecWait  $Script_8024E244

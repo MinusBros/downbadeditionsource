@@ -15,6 +15,24 @@
 	ADDIU     SP, SP, 18
 }
 
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3B6
+	JAL       8011BB74
+	ADDIU     A1, R0, 3E8
+	ADDIU     A0, R0, 19
+	ADDIU     A1, R0, 37
+	ADDIU     A2, R0, 37
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
 #string $MapTattle
 {
 [Style Tattle]
@@ -35,6 +53,8 @@ your drugs from![BR]
 ~Vec4f:Entry1 %  coordinates
 }
 
+#import AutoSave.mpat
+
 #new:Script_Main $Script_Main
 {
 	Set      *GB_WorldLocation 0000000A % sets the location on the pause screen map
@@ -46,10 +66,16 @@ your drugs from![BR]
 	Switch  *GB_StoryProgress
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Call     SetMusicTrack    	( 00000000 .Song:CastleSaved 00000001  00000008 )  %New Prologue variation
+				Call     MakeNpcs           ( .False $NpcGroupListChapter8 )
+				Call $Function_SetupFog ( )
+				Thread
+					Wait 15`
+					Exec  $AutoSave
+				EndThread
 			Default
 				Call     SetMusicTrack    	( 00000000 .Song:DBE_Prologue 00000001  00000008 )
+				Call     MakeNpcs           ( .False $NpcGroups_KMR_33 )
 	EndSwitch
-	Call     MakeNpcs           ( .False $NpcGroups_KMR_33 )
 	Call     802D60E8 ( 000000FA ) % stupid chirping birds I hope you die
 	ExecWait $Script_MakeEntities 
 	Set		*Var[0] $Script_MakeExits 
@@ -72,6 +98,47 @@ your drugs from![BR]
 	Return
 	End
 }
+
+
+#new:NpcGroup $KamiGoomba1
+{
+	00000010 $NpcSettings_Chomp ~Vec3f:KamiGoomba1
+	00002C00 00000000 00000000 00000000 0000005A
+	~Items:5:Mushroom:A ~HP:GenerousWhenLow:2 ~FP:GenerousWhenLow:2 ~NoCoinBonus
+	~Movement:KamiGoomba1
+	~AnimationTable:KamiGoomba1
+	00000000 00000000 00000000 00000000 
+}
+
+#new:NpcGroup $KamiGoomba2
+{
+	00000011 $NpcSettings_Chomp ~Vec3f:KamiGoomba2
+	00002C00 00000000 00000000 00000000 0000005A
+	~Items:5:Mushroom:A ~HP:GenerousWhenLow:2 ~FP:GenerousWhenLow:2 ~NoCoinBonus
+	~Movement:KamiGoomba2
+	~AnimationTable:KamiGoomba2
+	00000000 00000000 00000000 00000000 
+}
+
+#new:NpcGroup $KamiGoomba3
+{
+	00000012 $NpcSettings_Chomp ~Vec3f:KamiGoomba3
+	00002C00 00000000 00000000 00000000 0000005A
+	~Items:5:Mushroom:A ~HP:GenerousWhenLow:2 ~FP:GenerousWhenLow:2 ~NoCoinBonus
+	~Movement:KamiGoomba3
+	~AnimationTable:KamiGoomba3
+	00000000 00000000 00000000 00000000 
+}
+
+
+#new:NpcGroupList	$NpcGroupListChapter8
+{
+	00000001 $KamiGoomba1 000D0000
+	00000001 $KamiGoomba2 000E0000
+	00000001 $KamiGoomba3 000F0000
+	00000000 00000000 00000000
+}
+
 	 
 #new:NpcGroupList $NpcGroups_KMR_33
 {
@@ -124,13 +191,13 @@ your drugs from![BR]
 	 
 #new:AISettings $AISettings_Chomp
 {
-    2.6 % move speed
+    2.9 % move speed
     60` % move time
     30` % wait time
    200.0 % alert radius
     0.0
     5`
-    3.9 % chase speed
+    5.1 % chase speed
     60`
     15`
   400.0 % chase radius

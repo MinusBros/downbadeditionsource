@@ -88,8 +88,15 @@
 
 #new:DefenseTable $DefenseTable_80218280_0A
 {
-.Element:Normal 00000003
-.Element:Shock  FFFFFFFF
+.Element:Normal 3`
+.Element:Fire   99`
+.Element:Water  0`
+.Element:Ice    0`
+.Element:Hammer 2`
+.Element:Throw  2`
+.Element:Shock  -1`
+.Element:Cosmic 0`
+.Element:Magic  -1`
 .Element:End
 }
 
@@ -579,12 +586,14 @@
   77C:  		Call     UseIdleAnimation 	( .Actor:Self .True )
   790:  		Return
   798:  EndSwitch
+		Call  YieldTurn ( )
   81C:  Call     SetGoalToTarget 	( .Actor:Self )
   82C:  Wait     2`
   838:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 80020300 12` 00000020 )
   860:  Switch  *Var[0] 
   86C:  	CaseOR  ==  00000000 
   878:  	CaseOR  ==  00000002 
+  
   884:  		Call     UseBattleCamPreset 	( 00000002 )
   894:  		Call     MakeLerp    	( 0000005A 00000000 0000000A 00000000 )
   8B0:  		Label    00000005 
@@ -594,7 +603,6 @@
   8F0:  		If  *Var[1]  ==  00000001 
   900:  			Goto     00000005 
   90C:  		EndIf
-  914:  		Call     8027D7F0 ( )
   920:  		Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
   938:  		Switch  *Var[0] 
   944:  			Case  ==  00000000 
@@ -787,8 +795,15 @@
   85C:  Call     SetTargetActor ( .Actor:Self .Actor:Player )
   870:  Call     SetGoalToTarget 	( .Actor:Self )
   880:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
-  89C:  Call     SetPartMoveSpeed ( .Actor:Self 00000006 *Fixed[20.0] )
-  8B4:  Call     SetPartJumpGravity 	( .Actor:Self 00000006 *Fixed[0.10058594] )
+		Call     RandInt     	( 2` *Var[7] )
+		If       *Var7 == 0`
+		  Wait    15`
+		  Call     SetPartMoveSpeed ( .Actor:Self 00000006 *Fixed[10.0] )
+		  Call     SetPartJumpGravity 	( .Actor:Self 00000006 *Fixed[2.10058594] )
+		Else
+		  Call     SetPartMoveSpeed ( .Actor:Self 00000006 *Fixed[20.0] )
+		  Call     SetPartJumpGravity 	( .Actor:Self 00000006 *Fixed[0.10058594] )
+		EndIf
   8CC:  Call     SetAnimation 	( .Actor:Self 00000006 00ED0616 )
   8E4:  Call     JumpPartTo 	( .Actor:Self 00000006 *Var[0] *Var[1] *Var[2] 00000000 .True )
   90C:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 80020300 10` 00000020 )

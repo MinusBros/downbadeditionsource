@@ -1,14 +1,14 @@
-#new:Actor $E2_Scuttlebug
+#new:Actor $Scuttlebug
 {
 % stats
-[Index]        E2b 
-[Level]        13`b 
-[MaxHP]        7`b 
-[Coins]         4`b 
+[Index]        F6b 
+[Level]        52`b 
+[MaxHP]        28`b 
+[Coins]         5`b 
 [Flags]       00000000
 [StatusTable] $StatusTable_Scuttlebug
 % ai
-[PartsCount]   2`s 
+[PartsCount]   3`s 
 [PartsTable]  $PartsTable_Scuttlebug
 [Script]      $Script_Init_Scuttlebug
 % move effectiveness
@@ -29,29 +29,30 @@
 #new:PartsTable $PartsTable_Scuttlebug {
 00800000 01000000 FF2100FF $IdleAnimations_Scuttlebug $DefenseTable_Scuttlebug 00000000 00000000 00FC0000 00000000 
 00120001 02000000 000000FF $IdleAnimations_Rock $DefenseTable_Scuttlebug 00000000 00000000 00000000 00000000 
+00124002 03000000 000C00FF $IdleAnimations_Rope $DefenseTable_Scuttlebug 00000000 00000000 00000000 00000000 
 }
 
-#new:IdleAnimations $IdleAnimations_Scuttlebug_Rope {
-.Status:Normal    00EF000B
+#new:IdleAnimations $IdleAnimations_Rope {
+.Status:Normal    00F0000B
 .Status:End
 
 }
 
 #new:IdleAnimations $IdleAnimations_Scuttlebug {
-.Status:Normal    00EF0001
-.Status:Frozen    00EF0006
-.Status:Sleep     00EF0008
-.Status:Poison    00EF0008
-.Status:Stop      00EF0000
-.Status:Static    00EF0000
-.Status:Paralyze  00EF0000
-.Status:Dizzy     00EF0009
-.Status:Fear      00EF0000
+.Status:Normal    00F00001
+.Status:Frozen    00F00006
+.Status:Sleep     00F00008
+.Status:Poison    00F00008
+.Status:Stop      00F00000
+.Status:Static    00F00000
+.Status:Paralyze  00F00000
+.Status:Dizzy     00F00009
+.Status:Fear      00F00000
 .Status:End
 }
 
 #new:IdleAnimations $IdleAnimations_Rock {
-.Status:Normal    00EF000A
+.Status:Normal    00F0000A
 .Status:End
 }
 
@@ -79,6 +80,13 @@
 
 #new:DefenseTable $DefenseTable_Scuttlebug {
 .Element:Normal 00000000
+.Element:Fire   -2`
+.Element:Throw  -1`
+.Element:Ice    -1`
+.Element:Shock  -1`
+.Element:Water  -1`
+.Element:Cosmic 2`
+.Element:Magic  -1`
 .Element:End
 }
 
@@ -87,6 +95,7 @@
     Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_Scuttlebug )
     Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_Scuttlebug )
     Call  BindNextTurn ( .Actor:Self $Script_NextTurn_Scuttlebug )
+	
     % get spawn pos
     Call    RandInt ( 100` *Var0 )
     If *Var0 < 50`
@@ -102,6 +111,11 @@
         Call    SetHomePos ( .Actor:Self *Var0 *Var1 *Var2 )
         Call    SetActorVar ( .Actor:Self 00000002 .False )
     EndIf
+	Wait  2`
+	Call    GetHomePos ( .Actor:Self *Var0 .False *Var1 )
+	Add    *Var0 2`
+	Sub    *Var1 16`
+	Call    SetPartPos ( .Actor:Self 00000003 *Var0 -5` *Var2 )
     Call    HPBarToHome ( .Actor:Self )
     Return
     End
@@ -116,44 +130,44 @@
     If *Var0 < 60` % shoot downwards
         Call    SetActorVar ( .Actor:Self 00000000 .False )
         Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-        Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+        Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
     Else % shoot upwards
         Call    SetActorVar ( .Actor:Self 00000000 .True )
         Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-        Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+        Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
     EndIf
     Call    GetActorVar ( .Actor:Self 00000000 *VarA )
     % move the head for a little bit or instantly shoot?
     Call    RandInt ( 100` *Var0 )
     If *Var0 < 50`
         If *VarA == .False
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
         Else
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
             Call    PlaySoundAtActor ( .Actor:Self 02D5 )
             Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+            Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
         EndIf
     EndIf
     Call    PlaySoundAtActor ( .Actor:Self 02D5 )
@@ -161,10 +175,10 @@
     % attack target
     Call    RandInt ( 100` *Var0 )
     If *Var0 < 50` % shoot a single time
-        Set     *Var9 2
+        Set     *Var9 9`
         Set     *VarD 1
     Else % shoot multiple times
-        Set     *Var9 1
+        Set     *Var9 6`
         Set     *VarD 3
     EndIf
     Loop *VarD
@@ -178,16 +192,16 @@
                 If *Var3 < 60`
                     Call    SetActorVar ( .Actor:Self 00000000 .False )
                     Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-                    Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+                    Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
                 Else
                     Call    SetActorVar ( .Actor:Self 00000000 .True )
                     Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-                    Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+                    Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
                 EndIf
             Else
                 Call    SetActorVar ( .Actor:Self 00000000 .False )
                 Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-                Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+                Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
             EndIf
         Else % shoot actor in the back
             %
@@ -198,16 +212,16 @@
                 If *Var3 < 60`
                     Call    SetActorVar ( .Actor:Self 00000000 .True )
                     Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-                    Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+                    Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
                 Else
                     Call    SetActorVar ( .Actor:Self 00000000 .False )
                     Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-                    Call    SetAnimation ( .Actor:Self 00000001 00EF0004 )
+                    Call    SetAnimation ( .Actor:Self 00000001 00F00004 )
                 EndIf
             Else
                 Call    SetActorVar ( .Actor:Self 00000000 .True )
                 Call    SetTargetActor  ( .Actor:Self .Actor:Player )
-                Call    SetAnimation ( .Actor:Self 00000001 00EF0005 )
+                Call    SetAnimation ( .Actor:Self 00000001 00F00005 )
             EndIf
         EndIf
         Call    GetAnimation ( .Actor:Self 00000001 *Var0 )
@@ -233,7 +247,7 @@
         Call    SetGoalToTarget ( .Actor:Self )
         Call    SetActorVar ( .Actor:Self 00000001 .False )
         Call    GetGoalPos ( .Actor:Self *Var0 *Var1 *Var2 )
-        Call    SetAnimation ( .Actor:Self 00000002 00EF000A )
+        Call    SetAnimation ( .Actor:Self 00000002 00F0000A )
         Call    EnemyTestTarget   ( .Actor:Self *Var3 ~Flags:DamageType:0 00000000 00000001 00000010 )
         Switch  *Var3
             CaseOR  ==  .HitResult:Miss % 6
@@ -278,59 +292,59 @@
     	CaseOR  ==  .Event:HitCombo % 9
     	CaseOR  ==  .Event:Hit % A
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoNormalHit 
     	EndCaseGroup
     	Case  ==  .Event:BurnHit % E
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0007 
-    		SetConst  *Var2  00EF0007 
+    		SetConst  *Var1  00F00007 
+    		SetConst  *Var2  00F00007 
     		ExecWait  DoBurnHit 
     	Case  ==  .Event:BurnDeath % 24
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0007 
-    		SetConst  *Var2  00EF0007 
+    		SetConst  *Var1  00F00007 
+    		SetConst  *Var2  00F00007 
     		ExecWait  DoBurnHit 
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0007 
+    		SetConst  *Var1  00F00007 
     		ExecWait  DoDeath 
     		Return
     	Case  ==  .Event:SpinSmashHit % B
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoSpinSmashHit 
     	Case  ==  .Event:SpinSmashDeath % 21
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoSpinSmashHit 
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoDeath 
     		Return
     	Case  ==  .Event:ShockHit % 2F
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoShockHit 
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoJumpBack 
     		Call  JumpToGoal    ( .Actor:Self 00000005 .False .True .False )
     		Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[2.0] )
-    		Call  SetAnimation  ( .Actor:Self 00000001 00EF0001 )
+    		Call  SetAnimation  ( .Actor:Self 00000001 00F00001 )
     		Call  SetGoalToHome ( .Actor:Self )
     		Call  SetActorSpeed ( .Actor:Self *Fixed[8.0] )
     		Call  RunToGoal     ( .Actor:Self 00000000 .False )
     		Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[1.0] )
     		Wait  5`
-    		Call  SetAnimation  ( .Actor:Self 00000001 00EF0001 )
+    		Call  SetAnimation  ( .Actor:Self 00000001 00F00001 )
     		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.6] )
     		Call  JumpToGoal    ( .Actor:Self 00000005 .False .True .False )
     	Case  ==  .Event:ShockDeath % 26
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoShockHit 
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoDeath 
     		Return
     	Case  ==  .Event:StarBeam % 13
@@ -338,40 +352,40 @@
     	CaseOR  ==  .Event:Immune % 19
     	CaseOR  ==  .Event:AirLiftFailed % 1F
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0001 
+    		SetConst  *Var1  00F00001 
     		ExecWait  DoImmune 
     	EndCaseGroup
     	Case  ==  .Event:Death % 20
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoNormalHit 
     		Wait  10`
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoDeath 
     		Return
     	Case  ==  .Event:RecoverStatus % 31
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0001 
+    		SetConst  *Var1  00F00001 
     		ExecWait  DoRecover 
     	Case  ==  .Event:ScareAway % 39
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0001 
-    		SetConst  *Var2  00EF0006 
+    		SetConst  *Var1  00F00001 
+    		SetConst  *Var2  00F00006 
     		ExecWait  DoScareAway 
     		Return
     	Case  ==  .Event:BeginAirLift % 3A
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoAirLift 
     	Case  ==  .Event:BlowAway % 16
     		SetConst  *Var0  00000001 
-    		SetConst  *Var1  00EF0006 
+    		SetConst  *Var1  00F00006 
     		ExecWait  DoBlowAway 
     		Return
     	Default
     EndSwitch
-    Call  SetAnimation      ( .Actor:Self 00000001 00EF0001 )
+    Call  SetAnimation      ( .Actor:Self 00000001 00F00001 )
     Call  EnableIdleScript  ( .Actor:Self 00000001 )
     Call  UseIdleAnimation  ( .Actor:Self .True )
     Return
@@ -423,44 +437,4 @@
     Return
     End
 }
-#new:Actor $E3_cuttlebugstring {
-    % stats
-    [Index]        E3b 
-    [Level]         9`b 
-    [MaxHP]         7`b 
-    [Coins]         2`b 
-    [Flags]       00640004 
-    [StatusTable] 00000000 
-    % ai
-    [PartsCount]    1`s 
-    [PartsTable]  $PartsTable_Scuttlebug_string
-    [Script]      $Script_Scuttlebug_string
-    % move effectiveness
-    [Escape]       80`b 
-    [Item]         80`b 
-    [AirLift]       0`b 
-    [Hurricane]    80`b % Bow's "Spook" as well
-    [UpAndAway]    90`b 
-    [PowerBounce]  90`b 
-    [SpinSmash]     4`b % weight (0-4)
-    % ui positions
-    [Size]         80`b  1000`b % width height
-    [HealthBar]     0`b   0`b % dx dy
-    [StatusTurn]  -10`b  20`b % dx dy
-    [StatusIcon]   10`b  20`b % dx dy
-    }
-
-    
-    #new:PartsTable $PartsTable_Scuttlebug_string {
-    00020004 01000000 000000FF $IdleAnimations_Scuttlebug_Rope 00000000 00000000 00000000 00000000 00000000
-    }
-        
-    #new:Script $Script_Scuttlebug_string {
-    0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
-    18:  If  *Var0  ==  00000001 
-    28:  	Call  SetPartScale  ( .Actor:Self 00000001 *Fixed[0.4] *Fixed[0.4] *Fixed[0.4] )
-    48:  EndIf
-    50:  Return
-    58:  End
-    }
     
