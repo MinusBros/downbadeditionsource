@@ -83,18 +83,23 @@ get laid.[BR]
 	% you should only be able to refight the boss after entering the room again so we have to set a byte here
 	Set      .Disastar 	00000001
 	Bind     $Script_TalkEye  .Trigger:WallPressA ~Collider:talkeye  00000001 00000000 
-	If  *CheckXinSui == .False
-		Exec    $AutoSaveCheck
-	EndIf
 	Exec    $PriestCutscene
 	Call	GetLoadType 	( *Var[1] )
 	If		*Var[1] ==  00000001 
 		Exec	EnterSavePoint 
 		Exec	$Script_MakeExits
 	Else
-				Set		*Var[0] $Script_MakeExits 
-		Exec	EnterWalk 
-		Set		*Var[0] $Script_MakeExits 
+		Call  GetEntryID        ( *Var0 )
+		If  *Var0  ==  ~Entry:Entry0
+			Exec  $XinSuiDefeat
+		Else
+			Set		*Var[0] $Script_MakeExits 
+			Exec	EnterWalk
+			If  *CheckXinSui == .False
+				Exec    $AutoSaveCheck
+			EndIf
+		EndIf
+	Set		*Var[0] $Script_MakeExits 
 	EndIf
 	Return
 	End
@@ -138,7 +143,6 @@ Call     ShowMessageAtScreenPos     	( $FirstTimeString 000000A0 00000028 )
 Set  *GF_DNJ29_Disastar  00000001 
 Return	
 Else
-	Call     ShowMessageAtScreenPos     	( $DefaultString 000000A0 00000028 )
 	If      .Disastar  ==  00000001
 		Call     ShowMessageAtScreenPos     	( $Refight 000000A0 00000028 )
 		Call     ShowChoice		( 001E001D ) % yes / no
@@ -175,12 +179,6 @@ NO MESSAGES (ENGLISH)
 [Wait][End]
 }
 
-#string $DefaultString
-{
-[DelayOff][Style Inspect]
-Womp
-[Wait][End]
-}
 
 
 

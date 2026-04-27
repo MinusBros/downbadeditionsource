@@ -1329,11 +1329,75 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
 
 %Bower only gets one heal when in the hallway, so set it 
 %to a flat number regardless of difficulty.
+%Also update the music
 
 @	$Script_HealSelf1
 {
-  [428]  Wait  15`
-  [4E4]  Call  HealActor ( .Actor:Self 69` .False )
+    0:  Call  GetActorVar       ( .Actor:Self 00000007 *Var0 )
+   18:  Sub   *Var0  00000001
+   28:  Call  SetActorVar       ( .Actor:Self 00000007 *Var0 )
+   40:  Call  GetStatusFlags    ( .Actor:Self *Var3 )
+   54:  If  *Var3  !&  ~Flags:StatusFlags:Shrink % 80000
+   64:  	Call  UseBattleCamPreset    ( 00000013 )
+   74:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+   90:  	Sub   *Var0  0000000F
+   A0:  	Add   *Var1  00000041
+   B0:  	Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+   C8:  	Call  SetBattleCamZoom      (  420` )
+   D8:  	Call  SetBattleCamOffsetZ   (  0` )
+   E8:  	Call  MoveBattleCamOver     (  20` )
+   F8:  Else
+  100:  	Call  UseBattleCamPreset    ( 00000013 )
+  110:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  12C:  	Sub   *Var0  00000006
+  13C:  	Add   *Var1  0000001A
+  14C:  	Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+  164:  	Call  SetBattleCamZoom      (  294` )
+  174:  	Call  SetBattleCamOffsetZ   (  0` )
+  184:  	Call  MoveBattleCamOver     (  20` )
+  194:  EndIf
+  19C:  Call  SetAnimation      ( .Actor:Self 00000001 0081000F )
+  1B4:  Call  $Function_802192FC ( )
+  1C0:  Call  PlaySoundAtActor  ( .Actor:Self 00002126 )
+  1D4:  Call  GetStatusFlags    ( .Actor:Self *Var3 )
+  1E8:  If  *Var3  !&  ~Flags:StatusFlags:Shrink % 80000
+  1F8:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  214:  	Add   *Var0  0000000F
+  224:  	Add   *Var1  0000005A
+  234:  	Sub   *Var2  00000003
+  244:  	Call  PlayEffect    ( ~FX:EnergyIn:YellowPoints *Var0 *Var1 *Var2 *Fixed[1.0] 00000032 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  288:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  2A4:  	Add   *Var0  0000000F
+  2B4:  	Sub   *Var2  00000003
+  2C4:  	Call  PlayEffect    ( ~FX:RadialFlowOut:YellowEnergy *Var0 0000005A *Var2 *Fixed[0.3] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  308:  Else
+  310:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  32C:  	Add   *Var0  00000006
+  33C:  	Add   *Var1  00000024
+  34C:  	Sub   *Var2  00000003
+  35C:  	Call  PlayEffect    ( ~FX:EnergyIn:YellowPoints *Var0 *Var1 *Var2 *Fixed[0.4] 00000032 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3A0:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  3BC:  	Add   *Var0  00000006
+  3CC:  	Sub   *Var2  00000003
+  3DC:  	Call  PlayEffect    ( ~FX:RadialFlowOut:YellowEnergy *Var0 00000024 *Var2 *Fixed[0.12] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  420:  EndIf
+  428:  Wait  24`
+		Call  $Function_SongVariationOn ( )
+  468:  Thread
+  470:  	Wait  5`
+  47C:  	Call  PlaySoundAtActor  ( .Actor:Self 0000206D )
+  490:  	Call  PlaySoundAtActor  ( .Actor:Self 00000214 )
+  4A4:  	Wait  30`
+  4B0:  	Call  PlaySoundAtActor  ( .Actor:Self 0000025C )
+  4C4:  EndThread
+  4CC:  Thread
+  4D4:  	Call  8026BF48  ( 00000001 )
+  4E4:  	Call  HealActor ( .Actor:Self 69` .False )
+  4FC:  	Call  8026BF48  ( 00000000 )
+  50C:  EndThread
+  514:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  528:  Return
+  530:  End
 }
 
 @	$Script_802257EC
@@ -3788,6 +3852,19 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
   1DC:  CLEAR     V0
   1E0:  JR        RA
   1E4:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }
 
 

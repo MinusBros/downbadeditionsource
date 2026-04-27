@@ -76,7 +76,7 @@
 }
 
 #new:IdleAnimations $IdleAnimations_80219760_00 {
-.Status:Normal    009E0005
+.Status:Normal    009E0007
 .Status:Stone     009E0000
 .Status:Sleep     009E0014
 .Status:Poison    009E0001
@@ -90,7 +90,30 @@
 
 
 
+#new:Script  $MonitorPos
+{
 
+	Loop
+	Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+		If  *Var7 > -88`
+			BreakLoop
+		EndIf
+		Wait  1`
+	Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+		If  *Var7 > -45`
+			BreakLoop
+		EndIf
+	Wait 1`
+		Add  *Var6  1`
+		Switch  *Var6
+		Case  > 32`
+			Call  $TurnOffChannels ( )
+		EndSwitch
+	EndLoop
+	Call  $TurnOnChannels ( )
+	Return
+	End
+}
 
 
 #new:Script $ShowSongGoombaria
@@ -169,7 +192,7 @@
    64:  	CaseOR  ==  .Event:HitCombo % 9
    70:  	CaseOR  ==  .Event:Hit % A
    7C:  		SetConst  *Var0  00000001 
-				Call  GetLastDamage ( .Actor:Self *VarB )
+				Call  GetLastDamage ( .Actor:Self *VarC )
 				If  *VarC  <  10` 
 					SetConst  *Var1  009E000A
 				Else
@@ -286,6 +309,7 @@
 
 #new:Script $Script_TakeTurn_Goombaria {
 	ExecWait  $Script_Headbonk
+	ExecWait  $ComeForthDolly
 	Return
 	End
 }
@@ -416,8 +440,8 @@
   8FC:  			Call  SetAnimation  ( .Actor:Self 00000001 009E0012 )
   914:  		EndThread
 				%Randomize speed a little bit
-				Set   *Var8  14`
-				Call  RandInt   ( 5` *Var7 )
+				Set   *Var8  12`
+				Call  RandInt   ( 8` *Var7 )
 				Add   *Var8  *Var7
   91C:  		Call  JumpToGoal    ( .Actor:Self  *Var8 .False .True .False )
   93C:  		Call  SetAnimation  ( .Actor:Self 00000001 009E0013 )
@@ -468,15 +492,62 @@
 }
 
 
+#new:Script  $ComeForthDolly
+{
+	Call  EnableIdleScript  ( .Actor:Self 00000000 )
+	Call  UseIdleAnimation  ( .Actor:Self .False )
+	Call  UseBattleCamPreset    ( 0000000D )
+	Call  BattleCamTargetActor  ( .Actor:Enemy0 )
+    Call  MoveBattleCamOver (  20` )	
+	Call  ActorSpeak        ( 000B012A .Actor:Enemy0 00000001 009E0008 009E0002 )
+	Wait  5`
+	ExecWait $Script_ShowDolly
+	Call  PlaySound ( 000001ED )
+	Call     SummonEnemy		( $DollySpecial 00000000 )
+	Call  EnableIdleScript  ( .Actor:Self 00000001 )
+	Call  UseIdleAnimation  ( .Actor:Self .True )
+	Return
+	End
+}
 
 
 
 
+%Porting over the "show item" joke from Dark Star Edition.
+
+#new:Script $Script_ShowDolly
+{
+	SetConst *Var[A] 00000056 %Dolly sprite
+	ExecWait $Script_MakeItem
+	Call	UseBattleCamPreset 	( 00000002 )
+	Call	MoveBattleCamOver 	( 00000014 )
+	Wait     0000000A 
+	Return
+	End
+}
+
+
+#new:Script $Script_MakeItem
+{
+	Call     GetActorPos 		( .Actor:Enemy0 *Var[0] *Var[1] *Var[2] )
+	Call     PlaySoundAtActor 	( .Actor:Enemy0 0000208D )
+	Wait     00000004
+	Add      *Var[1] 0000002D
+	Set      *Var[3] *Var[1]
+	Add      *Var[3] 0000000C
+	Call     PlayEffect  	( 00000033 00000001 *Var[0] *Var[3] *Var[2] *Fixed[1.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call     MakeItemEntity ( *Var[A] *Var[0] *Var[1] *Var[2] 00000001 00000000 )
+	Set      *Var[A] *Var[0]
+	Wait     0000001F
+	Call     RemoveItemEntity ( *Var[A] )
+	Return
+	End
+}
 
 
 #new:Actor $Dolly {
 % stats
-[Index]        F2b 
+[Index]        F9b 
 [Level]       100`b 
 [MaxHP]       200`b 
 [Coins]         1`b 
@@ -535,7 +606,7 @@
 }
 
 #new:PartsTable $PartsTable_Dolly {
-00800000 01000000 E56C00FF $IdleAnimations_Goombaria $DefenseTable_Dolly 00000000 00000000 00F60000 00000000 
+00800000 01000000 E56C00FF $IdleAnimations_Dolly $DefenseTable_Dolly 00000000 00000000 00F60000 00000000 
 }
 
 #new:IdleAnimations $IdleAnimations_Dolly {
@@ -555,16 +626,29 @@
 
 #new:Script $Script_Init_Dolly {
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_Goombaria )
-   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_Goombaria )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_Dolly )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_Goombaria )
+		Call     SetActorScale 	( .Actor:Self *Fixed[3.0] *Fixed[3.0] *Fixed[3.0] )
    3C:  Return
    44:  End
 }
 
 
+#new:Vector3D $DollyPos
+{
+500` 0` 0` 
+}
 
+#new:SpecialFormation $DollySpecial
+{
+$Dolly	$DollyPos 00000009 00000000 00000000 00000000 00000000 
+}
 
-
+#new:Script  $Script_Idle_Dolly
+{
+	Return
+	End
+}
 
 
 #new:Function $Function_80218000_00 {
@@ -753,4 +837,34 @@
 0.951057 0.956305 0.961262 0.965926 0.970296 0.97437  0.978148 0.981627
 0.984808 0.987688 0.990268 0.992546 0.994522 0.996195 0.997564 0.99863
 0.999391 0.999848 1.0
+}
+
+
+
+
+#new:Function $TurnOnChannels
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+
+#new:Function $TurnOffChannels
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

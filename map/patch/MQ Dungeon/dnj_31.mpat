@@ -1,0 +1,883 @@
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000001 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]Welp, we've finally made it to the[BR]
+very bottom.[BR]
+Boy, I totally deserve a reward[BR]
+for the heck I went through.[BR]
+[Wait][Next]
+[Wave]A nice lady, perhaps?[/fx][BR]
+[Pause 10][PrintRising]No,[/fx] how about a crepe with some[BR]
+Royal Jelly spread?[BR]
+[Wait][Next]
+[SizeWave]Mmmmmm,[/fx] on second thought...[BR]
+[Pause 8]Save the crepe for after I[BR]
+get laid.[BR]
+[Pause 8]Aftercare is important.[BR]
+[Wait][End]
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH	RA
+	/%
+	% Override map geometry
+	LIA       A0, 800D9230
+	LIA       A1, "XXX_shape"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	% Override map collision
+	LIA       A0, 800D91E0
+	LIA       A1, "XXX_hit"
+	JAL       {Func:StringPrintf}
+	RESERVED
+	%/
+	% Override texture package
+	LIA		A0, 800B0CF0
+	LIA		A1, "kpa_tex"
+	JAL		~Func:sprintf
+	RESERVED
+	% Done
+	DADDU	V0, R0, R0
+	JPOP	RA
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+}
+
+#define .Disastar *GameByte[061]
+
+#new:Script_Main $Script_Main
+{
+	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
+	Call  SetSpriteShading  ( .Shading:mim_07 )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	If  	 *GF_DNJ29_Disastar == .False
+		Call     SetMusicTrack ( 00000000 .Song:BowsersCastleFalls 00000000 00000008 )
+	Else
+		Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	EndIf
+	Call     MakeNpcs           ( 00000001 $NpcGroupList_Disastar)
+	Call	GetLoadType 	( *Var[1] )
+	If		*Var[1] ==  00000001 
+		Exec	EnterSavePoint 
+		Exec	$Script_MakeExits
+	Else
+		Call  GetEntryID        ( *Var0 )
+		If  *Var0  ==  ~Entry:Entry0
+			Exec  $XinSuiDefeat
+		Else
+			Set		*Var[0] $Script_MakeExits 
+			Exec	EnterWalk
+		EndIf
+	Set		*Var[0] $Script_MakeExits 
+	EndIf
+	Return
+	End
+}
+
+	
+
+#string $PriestMatte
+{
+[Style Right]
+[PrintRising][Size 24]Stop! [BR]
+[Pause 10]Do not touch that eye!
+[Wait][End]
+}
+
+
+
+
+#new:Script $PriestInit
+{
+	Call  BindNpcIdle   ( .Npc:Self $PriestIdle )
+	Return
+	End
+}
+
+
+
+#new:Script  $PriestIdle
+{
+    0:  Loop
+    C:  	Call  GetSelfVar    ( 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+		Thread
+	   70:  Call  GetNpcPos      ( .Npc:Priest *Var0 *Var1 *Var2 )
+	   88:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+	   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
+	   C0:  Call  SetCamDistance    ( .Cam:Default  500` )
+	   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
+	   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
+	  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+		EndThread
+		Call  DisablePlayerInput    ( .False )
+		Call  SetMusicTrack ( 00000000 .Song:Deadline 00000000 00000008 )
+		Call  StartBossBattle   ( .Song:Deadline )
+		Wait  2`
+		Return
+		End
+}
+
+
+#new:Script  $XinSuiDefeat
+{
+	
+	Return
+	End
+}
+
+#new:Script $Script_Init_Disastar
+{
+		Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+		Call     BindNpcDefeat 	( .Npc:Self $Script_XinSuiDefeat )
+		Call     BindNpcInteract	( .Npc:Self $Script_Interact )
+     Return
+     End
+}
+ 
+#new:Script $Script_IdleAI
+{
+	Loop
+		If  *MapFlag[0]  ==  .True 
+		 	Call     StartBossBattle 	( .Song:SunTowerSunny )
+		EndIf
+		Wait     00000001 
+	EndLoop
+	Return
+	End
+}
+ 
+ 
+#new:Script $Script_XinSuiDefeat
+{
+		Call     DisablePlayerInput	( .False )
+		Call     EnablePartnerAI 	( )
+		Set  *GF_DNJ29_Disastar  00000001 
+		Set  *MapFlag[0] .False 
+		Set      .Disastar 	00000000
+   Return
+   End 
+}
+
+#new:NpcGroupList $NpcGroupList_Disastar
+{
+00000001 $NpcGroup_Disastar 3D000000 
+00000001 $Priest			3D020000 
+00000000 00000000 00000000
+}
+   
+#new:NpcGroup $NpcGroup_Disastar
+{
+0000000A $BlankSettings ~Vec3f:disastar % 1260 0 -40
+00A40D01 $Script_Init_Disastar 00000000 00000000 00000000 
+~NoItems ~NoHP ~NoFP ~NoCoinBonus
+~Movement:disastar
+00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000 
+00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000
+00000000 00000000 00000000 001A0122 % he has a tattle now!
+}
+
+
+
+#define .Npc:Priest       B
+
+#new:NpcGroup $Priest
+{
+	.Npc:Priest $NpcSettings_Priest ~Vec3f:Priest
+	00840505 $PriestInit 00000000 00000000 180`
+	~NoItems ~NoHP ~NoFP ~NoCoinBonus
+	~Movement:Priest
+	~AnimationTable:Priest
+	00000000 00000000 00000000 00000000 
+}
+
+
+#new:NpcSettings $BlankSettings
+{
+00000000 00200018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000
+}
+
+#new:NpcSettings $NpcSettings_Priest
+{
+	00870000 00200018 00000000 00000000 00000000 80077F70 00000000 00000000 
+	00000000 00000000 00630000
+}
+	
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Exit0  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Return
+	End
+}
+	
+	#new:Script $Script_Exit0
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "dnj_28" 00000001 )
+	Wait     00000064 
+	Return
+	End		
+}
+	
+#new:Script $Script_Interact
+{
+	Return
+	End
+}
+
+	
+
+
+
+
+#new:Script $Script_TexturePan_Update
+{
+    SetGroup  00000000
+    If  *Var[5]  ==  00000001
+        If  *Var[6]  ==  00000001
+            If  *Var[7]  ==  00000001
+                If  *Var[8]  ==  00000001
+                    Call  $Function_TexturePan_Simple ( )
+                    Return
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+    Call  $Function_TexturePan_Complex ( )
+    Return
+    End
+}
+
+#new:Function $Function_TexturePan_Simple
+{
+    ADDIU       SP, SP, FFE8
+    SW          S0, 10 (SP)
+    COPY        S0, A0
+    SW          RA, 14 (SP)
+    LW          V1, A8 (S0)
+    LW          V0, 88 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o30
+    SW          V1, A8 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o40
+    ADDU        V0, V1, V0
+    .o30
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o44
+    SUBU        V0, V1, A0
+    .o40
+    SW          V0, A8 (S0)
+    .o44
+    LW          V1, AC (S0)
+    LW          V0, 8C (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o64
+    SW          V1, AC (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o74
+    ADDU        V0, V1, V0
+    .o64
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o78
+    SUBU        V0, V1, A0
+    .o74
+    SW          V0, AC (S0)
+    .o78
+    LW          V1, B0 (S0)
+    LW          V0, 90 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o98
+    SW          V1, B0 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oA8
+    ADDU        V0, V1, V0
+    .o98
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oAC
+    SUBU        V0, V1, A0
+    .oA8
+    SW          V0, B0 (S0)
+    .oAC
+    LW          V1, B4 (S0)
+    LW          V0, 94 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .oCC
+    SW          V1, B4 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oDC
+    ADDU        V0, V1, V0
+    .oCC
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oE0
+    SUBU        V0, V1, A0
+    .oDC
+    SW          V0, B4 (S0)
+    .oE0
+    LW          A0, 84 (S0)
+    JAL         8011BC1C
+    LW          A1, A8 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC34
+    LW          A1, AC (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC4C
+    LW          A1, B0 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC64
+    LW          A1, B4 (S0)
+    LW          RA, 14 (SP)
+    LW          S0, 10 (SP)
+    CLEAR       V0
+    JR          RA
+    ADDIU       SP, SP, 18
+}
+
+#new:Function $Function_TexturePan_Complex
+{
+    ADDIU       SP, SP, FFE8
+    SW          S0, 10 (SP)
+    COPY        S0, A0
+    BEQ         A1, R0, .o24
+    SW          RA, 14 (SP)
+    SW          R0, 70 (S0)
+    SW          R0, 74 (S0)
+    SW          R0, 78 (S0)
+    SW          R0, 7C (S0)
+    .o24
+    LW          V0, 70 (S0)
+    BNE         V0, R0, .o64
+    NOP
+    LW          V1, A8 (S0)
+    LW          V0, 88 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o50
+    SW          V1, A8 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o60
+    ADDU        V0, V1, V0
+    .o50
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o64
+    SUBU        V0, V1, A0
+    .o60
+    SW          V0, A8 (S0)
+    .o64
+    LW          V0, 74 (S0)
+    BNE         V0, R0, .oA4
+    NOP
+    LW          V1, AC (S0)
+    LW          V0, 8C (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o90
+    SW          V1, AC (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oA0
+    ADDU        V0, V1, V0
+    .o90
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oA4
+    SUBU        V0, V1, A0
+    .oA0
+    SW          V0, AC (S0)
+    .oA4
+    LW          V0, 78 (S0)
+    BNE         V0, R0, .oE4
+    NOP
+    LW          V1, B0 (S0)
+    LW          V0, 90 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .oD0
+    SW          V1, B0 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .oE0
+    ADDU        V0, V1, V0
+    .oD0
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .oE4
+    SUBU        V0, V1, A0
+    .oE0
+    SW          V0, B0 (S0)
+    .oE4
+    LW          V0, 7C (S0)
+    BNE         V0, R0, .o124
+    NOP
+    LW          V1, B4 (S0)
+    LW          V0, 94 (S0)
+    ADDU        V1, V1, V0
+    BGEZ        V1, .o110
+    SW          V1, B4 (S0)
+    LUI         V0, 2
+    BEQ         R0, R0, .o120
+    ADDU        V0, V1, V0
+    .o110
+    LUI         A0, 2
+    SLT         V0, A0, V1
+    BEQ         V0, R0, .o124
+    SUBU        V0, V1, A0
+    .o120
+    SW          V0, B4 (S0)
+    .o124
+    LW          A0, 84 (S0)
+    JAL         8011BC1C
+    LW          A1, A8 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC34
+    LW          A1, AC (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC4C
+    LW          A1, B0 (S0)
+    LW          A0, 84 (S0)
+    JAL         8011BC64
+    LW          A1, B4 (S0)
+    LW          V0, 70 (S0)
+    LW          V1, 78 (S0)
+    LW          A0, 98 (S0)
+    ADDIU       V0, V0, 1
+    SW          V0, 70 (S0)
+    LW          V0, 74 (S0)
+    ADDIU       V1, V1, 1
+    SW          V1, 78 (S0)
+    LW          V1, 70 (S0)
+    ADDIU       V0, V0, 1
+    SW          V0, 74 (S0)
+    LW          V0, 7C (S0)
+    SLT         V1, V1, A0
+    ADDIU       V0, V0, 1
+    BNE         V1, R0, .o198
+    SW          V0, 7C (S0)
+    SW          R0, 70 (S0)
+    .o198
+    LW          V0, 74 (S0)
+    LW          V1, 9C (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1AC
+    SW          R0, 74 (S0)
+    .o1AC
+    LW          V0, 78 (S0)
+    LW          V1, A0 (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1C0
+    SW          R0, 78 (S0)
+    .o1C0
+    LW          V0, 7C (S0)
+    LW          V1, A4 (S0)
+    SLT         V0, V0, V1
+    BEQL        V0, R0, .o1D4
+    SW          R0, 7C (S0)
+    .o1D4
+    LW          RA, 14 (SP)
+    LW          S0, 10 (SP)
+    CLEAR       V0
+    JR          RA
+    ADDIU       SP, SP, 18
+}
+
+
+#new:String $PriestSpeech
+{
+[Style Right]
+[Shake]Gahahahahaaa![/fx][BR]
+[Pause 10]You don't get it, do you?[BR]
+You're too stupid to realize what[BR]
+it is you've done...[BR]
+[Wait][Next]
+The [SaveColor][Color:09]Love Deities[RestoreColor] were the ones[BR]
+holding the seals to [SaveColor][Color:07]The Almighty[RestoreColor].[BR]
+[Pause 10]In freeing them, you've only served[BR]
+the purpose of assisting me![BR]
+[Wait][Next]
+We're mere moments from witnessing[BR]
+[SaveColor][Color:07]Our Overlord[RestoreColor]'s rebirth![BR]
+[Pause 5][SizeWave]An overjoyed feeling...[/fx][BR]
+[Wait][Next]
+[Size 48][Pause 8][Shake][InputOff][Speed delay=4 chars=1]Awaken!!![BR]
+[Pause 60][End]
+}
+
+#new:String $PriestSpeech2
+{
+[Style Right]
+[PrintRising]At last! [Shake]At long last![/fx][/fx][BR]
+[Pause 15][SaveColor][Color:07]Our Overlord[RestoreColor] is finally going to[BR]
+grant us his panacea![BR]
+[Wait][Next]
+[PrintRising]We're all ascending![BR]
+[Pause 12]Honey, I'm coming home![/fx][BR]
+[Pause 5][SizeJitter][Size 24]Gaaahahahahaaaa![/fx]
+[Wait][End]
+}
+
+#new:String $PriestSpeech3
+{
+[Style Right]
+Since you meddlesome heretics[BR]
+have decided to disrupt my plans, I[BR]
+think I will toy with you for a while.[BR]
+[Pause 10][Wave]Fufufufu.....[/fx]
+[Wait][End]
+}
+
+#new:String $PriestSpeech4
+{
+[Style Right]
+My children, you are committing a[BR]
+grave sin by being here.[BR]
+[Pause 10]You could have disrupted the rebirth[BR]
+of [SaveColor][Color:07]The Almighty[RestoreColor].[BR]
+[Wait][Next]
+[PrintGrowing][GlobalWave]Mmmmm...[/fx] splendid.[/fx][BR]
+[Pause 3]You're all still alive and well, I see.[BR]
+[Pause 10]All of you will be quite useful[BR]
+indeed for the forthcoming.[BR]
+[Wait][End]
+}
+
+#new:String $GoombariusCounter
+{
+[Style Right]
+Yeah, and that "[SaveColor][Color:1D]Almighty[RestoreColor]" is exactly[BR]
+what I've come here to destroy.[BR]
+[Pause 10][PrintRising]That worthless thing ain't gonna do[BR]
+a dang thing![/fx][BR]
+[Wait][Next]
+Not if [Wave]I[/fx] have anything to say about[BR]
+it, anyway![BR]
+You picked the wrong Goomba to mess[BR]
+with, lousy Pope.[BR]
+[Wait][End]
+}
+
+#new:String $KooperCounter
+{
+[Style Right]
+Woah, now.[BR]
+Your methods hardly seem[BR]
+trustworthy, bud.[BR]
+[Wait][Next]
+Maybe just go home and let us do[BR]
+our thing, alright?[BR]
+[Pause 10]We came this far as it stands.[Wait][End]
+}
+
+#new:String $BombetteCounter
+{
+[Style Right]
+Pssh! I think you're full of yourself.[BR]
+[Pause 10]Don't make me nuke you right here[BR]
+and now, you dumb priest.[BR]
+[Wait][End]
+}
+
+#new:String $ParakariusCounter
+{
+[Style Right]
+Uh-oh... [Pause 5]You're not going to do[BR]
+something that'll get me in trouble[BR]
+with my boss, are you?
+[Wait][End]
+}
+
+#new:String $WattageCounter
+{
+[Style Right]
+Hey, Mister.[BR]
+If you're thinkin' of doin' somethin'[BR]
+bad, then you have some electricity[BR]
+coming your way!
+[Wait][End]
+}
+
+#new:String $SushieCounter
+{
+[Style Right]
+Still not going to spill the beans[BR]
+about who you really are?[BR]
+[Pause 10]I might have to have a word with[BR]
+your parents, young man.
+[Wait][End]
+}
+
+#new:String $JonathanCounter
+{
+[Style Right]
+Dang, dude.[BR]
+Are you off the deep end?[BR]
+[Pause 10]And here I was thinking this religion[BR]
+was a harmless gig.[BR]
+[Wait][Next]
+Guess I should have considered[BR]
+the possibility...[BR]
+[Wait][End]
+}
+
+#new:String $BowCounter
+{
+[Style Right]
+I was promised the finest coffee.[BR]
+[Pause 5]You better not be telling lies, or[BR]
+else I will tear you a new one.[BR]
+[Wait][Next]
+Liars don't fare well in the[BR]
+afterlife, Mr. Priest.[BR]
+[Wait][End]
+}
+
+#new:String $PriestGoombarius
+{
+[Style Right]
+You've been a haphazard felon[BR]
+since day 1, Goombarius.[BR]
+[Pause 8]It's time I make you shut your mouth[BR]
+once and for all.[BR]
+[Wait][Next]
+Anyone who dares talk back to[BR]
+[SaveColor][Color:07]Our Overlord[RestoreColor] will be plunged into[BR]
+[PrintRising]the eighth door of hell![/fx][BR]
+[Wait][End]
+}
+
+#new:String $PriestKooper
+{
+[Style Right]
+Trustworthy?[PrintRising] Trustworthy!?[/fx][BR]
+[Pause 10]My son, the only untrustworthy[BR]
+person here is you.[BR]
+[Wait][Next]
+[PrintRising]You dare talk back to me?[BR]
+The incubator of [SaveColor][Color:07]Our Overlord[RestoreColor]?[BR]
+[Pause 10]Pathetic wretch!
+[Wait][End]
+}
+
+#new:String $PriestBombette
+{
+[Style Right]
+A useless weapon like yourself has[BR]
+no right talking back to me, the[BR]
+holy incubator.[BR]
+[Wait][Next]
+Know your place and worship[BR]
+[SaveColor][Color:07]Our Overlord[RestoreColor]!
+[Wait][End]
+}
+
+#new:String $PriestParakarius
+{
+[Style Right]
+[Shake]Fufufufu...[/fx][BR]
+[Wave]Don't worry, my son.[/fx][BR]
+[Pause 5]I won't tell a soul as long as you[BR]
+join our cause...[BR]
+[Wait][Next]
+After all, why would [SaveColor][Color:07]Our Overlord[RestoreColor][BR]
+care for snitches?
+[Wait][End]
+}
+
+#new:String $PriestBow
+{
+[Style Right]
+Lie?[Pause 10] What reason would I have to[BR]
+lie about something like that?[BR]
+[Pause 10]If you can't put your faith in me[BR]
+and [SaveColor][Color:07]The Almighty[RestoreColor]...[BR]
+[Wait][Next]
+Then you have no business talking.[BR]
+[Pause 8]It would be a waste for me to call[BR]
+you my daughter.[BR]
+[Wait][End]
+}
+
+#new:String $PriestWattage
+{
+[Style Right]
+Trivial.[BR]
+[Pause 8]My lightning of the holy realm will[BR]
+prove to be an excellent counter to[BR]
+your weak powers.[BR]
+[Wait][Next]
+Such a young soul.[BR]
+Your shocks could make even Zeus[BR]
+cry, as long as we have blessings[BR]
+from [SaveColor][Color:07]Our Overlord[RestoreColor].[BR]
+[Wait][End]
+}
+
+#new:String $PriestSushie
+{
+[Style Right]
+[SizeJitter]Silence.[/fx] [Pause 8]What use is there for[BR]
+parents when [SaveColor][Color:07]The Almighty[RestoreColor] is a far[BR]
+superior substitute?[BR]
+[Wait][Next]
+And besides...[BR]
+Don't you want to see your[BR]
+husband again?[BR]
+[Wait][Next]
+Even [SaveColor][Color:07]Our Overlord[RestoreColor] could grant[BR]
+such a demand...
+[Wait][End]
+}
+
+#new:String $PriestJonathan
+{
+[Style Right]
+It is quite far from insanity.[BR]
+[Pause 8]We all yearn for longevity.[BR]
+[SaveColor][Color:07]The Almighty[RestoreColor] is the best chance we[BR]
+have at a perfect life.[BR]
+[Wait][Next]
+[PrintGrowing]Join us...[/fx] [Pause 9]and you can obtain that[BR]
+infinity life you desire.
+[Wait][End]
+}
+
+#new:String $PriestDefeat
+{
+[Style Right]
+[Pause 5][PrintGrowing]Kuso...[/fx] [Pause 5]How in blazes were you able[BR]
+to match my strength?[BR]
+[Pause 11]You fools have been pitiful since the[BR]
+very beginning.[BR]
+[Wait][Next]
+You may have been able to defeat[BR]
+[SaveColor][Color:08]Tutankoopa[RestoreColor] and the [SaveColor][Color:0D]Black Crystal[BR]
+King[RestoreColor],[Pause 3] but.....[Pause 15] to even best me...?[BR]
+[Wait][Next]
+N-[Pause 5][PrintGrowing]noroida..[/fx].[DelayOff][BR]
+  [Size 10]C-curses...
+[Wait][End]
+}
+
+#new:String $GoombariusHaha
+{
+[Style Right]
+Bro, that was free.[BR]
+[Pause 5]And here I was thinking you'd[BR]
+actually be a challenging dude to[BR]
+face off against.[BR]
+[Wait][Next]
+Instead you're sat here, wallowing[BR]
+like the big loser you are.[BR]
+[Pause 10]Oh,[Pause 3] and you smell,[Pause 3] and you're[BR]
+weak as shiitake,[Pause 3] and...[BR]
+[Wait][End]
+}
+
+#new:String $KooperHaha
+{
+[Style Right]
+Quit crying.[BR]
+How about you leave like I was[BR]
+saying earlier?
+[Wait][End]
+}
+
+#new:String $BombetteHaha
+{
+[Style Right]
+I don't have time for this.[BR]
+[Pause 8]Mario? Permission to nuke this guy[BR]
+to heck and back?
+[Wait][End]
+}
+
+#new:String $ParakariusHaha
+{
+[Style Right]
+I'm terribly sorry...[BR]
+[Pause 10]I had no choice. You really needed[BR]
+to be taught a lesson, Father.[BR]
+[Wait][End]
+}
+
+#new:String $BowHaha
+{
+[Style Right]
+[Wave]Hmmmmmm...[/fx][BR]
+[Pause 5]I suppose you were lying about the[BR]
+beverages promise earlier, am I[BR]
+understanding that right?[BR]
+[Wait][Next]
+Golly, you'd really be a terrible[BR]
+servant for me.[BR]
+[Wait][End]
+}
+
+#new:String $WattageHaha
+{
+[Style Right]
+That's for trying to take advantage[BR]
+of my powers!
+[Wait][End]
+}
+
+#new:String $SushieHaha
+{
+[Style Right]
+The gig is up.[BR]
+[Pause 8]How about you tell us who you[BR]
+really are?
+[Wait][End]
+}
+
+#new:String $JonathanHaha
+{
+[Style Right]
+Move outta the way, man.[BR]
+[Pause 5]This creepy crypt ain't the place[BR]
+for you to be messin' with.[BR]
+[Wait][Next]
+In fact, we should all get the heck[BR]
+outta here before we get cursed or [BR]
+somethin' worse.
+[Wait][End]
+}
+
+#new:String $PriestLaughter
+{
+[Style Right]
+[Wave]Fufufufu.....[/fx][BR][Down 5]
+[Pause 15][Right 64][SizeWave]Hmhmhmhm....[/fx][BR][Down 5]
+[Pause 20][Right 128][Shake][Yield]Hahahahahaha!!![/fx]
+[Wait][End]
+}
+
