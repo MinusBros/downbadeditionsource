@@ -39,8 +39,6 @@ Use High-Res Full Alpha Channel: ON
 
 You may use Parallel core if you wish, but crashes can happen, so be mindful if you do decide to use it. Rosalie's Mupen GUI and Bizhawk have been tested with mostly success. Please don't use Project 64. It doesn't work with Paper Mario hacks.
 
-Listen to the soundtrack here: https://www.youtube.com/playlist?list=PLuUrVHOy3UjmafCVhM0kh8prgicOW7J7W
-
 
 
 
@@ -54,3 +52,8 @@ Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lo
 Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
 
 GreenBean501: https://www.youtube.com/playlist?list=PLqMbi64zLouM5Y5_DVcaSH-coN_Vd8020
+
+
+
+
+Listen to the soundtrack here: https://www.youtube.com/playlist?list=PLuUrVHOy3UjmafCVhM0kh8prgicOW7J7W
