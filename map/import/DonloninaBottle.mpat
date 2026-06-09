@@ -11,6 +11,9 @@
 
 #new:Script $Script_Init_802529FC
 {
+		If   *IWannaBeTheGuy == .True
+			Call  SetNpcPos     ( .Npc:Self 0` -1000` 0` )	
+		EndIf
 		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
 		Call  NpcFacePlayer ( .Npc:Self 00000005 )
 		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
@@ -50,7 +53,34 @@
 						Set *Var0 $String_Hard
 			EndSwitch
 				Call    SetMessageString ( *Var0 0 )
-				%Call    SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 $String_Settings_Difficulty )
+				If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
+					If  *Byte_Settings_Difficulty == 2` %Gamer
+						Call    ShowChoice ( $String_Choice_Settings_DifficultyExtreme )
+						Switch *Var0 
+							CaseOR == 0`
+							CaseOR == 1`
+							CaseOR == 2`
+								Set     *Byte_Settings_Difficulty *Var0
+							EndCaseGroup
+							Case   == 3`  %I Wanna Be The Guy
+								Call  CloseChoice ( )
+								Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 000300F9 )
+								Call    ShowChoice ( 001E000E )
+								If   *Var0 == 0`
+									Set     *Byte_Settings_Difficulty 2`
+									Set     *IWannaBeTheGuy .True
+									Goto  FortuneSelected
+								Else
+									Call  CloseMessage
+									Goto 69
+								EndIf
+							Case   == 4` %Cancel
+								Call  CloseMessage
+								Goto 69
+						EndSwitch
+					EndIf
+				EndIf
+				
 				Call    ShowChoice ( $String_Choice_Settings_Difficulty )
 				If *Var0 != 3 % Cancel
 					Set     *Byte_Settings_Difficulty *Var0
@@ -60,6 +90,7 @@
 					Goto 69
 				EndIf
 		EndSwitch
+		Label FortuneSelected
 		Call  SetNpcAnimation   ( .Npc:Self 00A50108 )
 		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
 			Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 000300F4 ) % Excellent. Now relax while I read what your future ...
@@ -75,7 +106,13 @@
   1D4:  EndIf
   1DC:  UseArray  *MapVar[C]
   1E8:  ExecWait  $Script_8024EC64
-  1F4:  Wait  10`	
+		If  *IWannaBeTheGuy == .True
+			Call  PlaySoundAtPlayer ( 00002127 00000000 )
+			Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+			Add   *Var2  00000005
+			Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		EndIf
+  1F4:  Wait  5`	
 		Call  PopSong ( )
 		Switch *Byte_Settings_Difficulty
 					Case == 0
@@ -85,6 +122,12 @@
 					Case == 2
 						Call  SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 00210002 )
 		EndSwitch
+		If   *IWannaBeTheGuy == .True
+  288:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  2A4:  	Call  PlaySoundAtNpc    ( .Npc:Self .Sound:SmokeBurst 00000000 )
+  2BC:  	Call  PlayEffect    ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
+  300:  	Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+		EndIf
 		Label 69
 		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
   B88:  Call  DisablePlayerInput    ( .False )
@@ -95,7 +138,11 @@
 
 #new:Script $Script_80246824
 {
-		Call  PushSong      ( .Song:MerleeSpell 00000001 )
+		If   *IWannaBeTheGuy == .False
+			Call  PushSong      ( .Song:MerleeSpell 00000001 )
+		Else
+			Call  PushSong      ( .Song:TubbaBlubbaTheme 00000000 )
+		EndIf
    1C:  Return
    24:  End
 }
@@ -195,6 +242,17 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
 [Option 0][SaveColor][Color:01]Casual[RestoreColor][BR]
 [Option 1][SaveColor][Color:21]Normal[RestoreColor][BR]
 [Option 2][SaveColor][Color:20]Gamer[RestoreColor][BR]
+[EndChoice cancel=3][End]
+}
+
+#string $String_Choice_Settings_DifficultyExtreme
+{
+[Style Choice pos=101,80 size=108,75]
+[StartChoice]
+[Option 0][SaveColor][Color:01]Casual[RestoreColor][BR]
+[Option 1][SaveColor][Color:21]Normal[RestoreColor][BR]
+[Option 2][SaveColor][Color:20]Gamer[RestoreColor][BR]
+[Option 3][SaveColor][Color:40]IWBTG[RestoreColor][BR]
 [EndChoice cancel=3][End]
 }
 

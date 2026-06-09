@@ -57,6 +57,20 @@
 	[PowerBounce]  50`b
 }
 
+@	$DefenseTable_8022AAFC
+{
+	.Element:Normal  0`
+	.Element:Fire   -2`
+	.Element:Ice    99`
+	.Element:Water   2`
+	.Element:Shock  -1`
+	.Element:Blast  -1`
+	.Element:Magic   4`
+	.Element:Cosmic  1`
+	.Element:Hammer -1`
+	.Element:End
+}
+
 
 @	$StatusTable_8022AB18
 {
@@ -238,7 +252,9 @@
 		Wait  5`
   6F8:  Call  SetAnimation      ( .Actor:Self 00000001 00360105 )
   710:  Wait  5`
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   71C:  Call  SetAnimation      ( .Actor:Self 00000001 00360106 )
   734:  Wait  1`
   740:  Wait  2`
@@ -419,7 +435,9 @@
   708:  Call  SetAnimation      ( .Actor:Self 00000001 00360105 )
   720:  Wait  4`
   72C:  Call  SetAnimation      ( .Actor:Self 00000001 00360106 )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   750:  Wait  2`
   75C:  Call  SetGoalToTarget   ( .Actor:Self )
   76C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 0000000A 00000020 )
@@ -478,10 +496,24 @@
 
 @	$Gulpit
 {
-	[Level]        41`b
+	[Level]        40`b
 	[MaxHP]        18`b
 	[Coins]         5`b
 	[PowerBounce]  50`b
+}
+
+@	$DefenseTable_80227E34
+{
+	.Element:Normal 1`
+	.Element:Fire   0`
+	.Element:Water  0`
+	.Element:Ice    2`
+	.Element:Shock  0`
+	.Element:Blast  0`
+	.Element:Magic -1`
+	.Element:Cosmic 3`
+	.Element:Jump   0`
+	.Element:End
 }
 
 @	$StatusTable_80227E40
@@ -615,6 +647,12 @@
   6A8:  		Wait  2`
   6B4:  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000020 )
   6DC:  EndSwitch
+		Call  RandInt   ( 00000001 *Var0 )
+		If  *Var0  ==  00000000
+			ExecWait $Script_80228518
+		Else
+			Wait 1`
+		EndIf
   6E4:  Switch  *Var0
   6F0:  	CaseOR  ==  .HitResult:Hit % 0
   6FC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -629,13 +667,6 @@
   7D4:  		ExecWait  $Script_80227FDC
   7E0:  	EndCaseGroup
   7E8:  EndSwitch
-		Call  RandInt   ( 00000001 *Var0 )
-		If  *Var0  ==  00000000
-			ExecWait $Script_80228518
-		Else
-			Wait 1`
-		EndIf
-  7C8:  Call  YieldTurn ( )
   7F0:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   804:  Call  UseIdleAnimation  ( .Actor:Self .True )
   818:  Return
@@ -652,6 +683,38 @@
 	[PowerBounce]  40`b
 }
 
+
+@	$DefenseTable_80229B0C
+{
+	.Element:Normal 1`
+	.Element:Fire  -2`
+	.Element:Ice   99`
+	.Element:Water  3`
+	.Element:Shock -1`
+	.Element:Blast -1`
+	.Element:Quake  0`
+	.Element:Cosmic 1`
+	.Element:Magic  1`
+	.Element:Hammer 2`
+	.Element:Throw  2`
+	.Element:End
+}
+
+
+@	$Script_Init_80229C20
+{
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8022A18C )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_80229C6C )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80229C7C )
+		If  *GB_StoryProgress  <  .Story:Ch5_WhaleMouthOpen
+			Call  $Function_SetTattle_C ( 38 001C00E4 )  %Different tattle for the one in Chapter 3	
+		EndIf
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $WhiteClubba 48` )
+		EndIf
+   3C:  Return
+   44:  End
+}
 
 @	$StatusTable_80229B28
 {
@@ -868,6 +931,7 @@
 }
 
 
+
 @	$StatusTable_8021AF00
 {
 	.Status:Normal      0`
@@ -952,7 +1016,9 @@
   3C8:  Wait  2`
   3D4:  Call  SetGoalToTarget   ( .Actor:Self )
   3E4:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000007 00000020 )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   40C:  Switch  *Var0
   418:  	CaseOR  ==  .HitResult:Hit % 0
   424:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -1200,20 +1266,63 @@
 }
 
 
-
-#new:Stage $Stage_Tubba
+#new:Formation $Formation_0F
 {
-	"dgb_tex"
-	"dgb_bt05_shape"
-	"dgb_bt05_hit"
-	00000000
-	00000000
-	00000000
-	00000000
-	00000000
-	00000000
-	00000000
+	$FrostPiranha 00000000 0000000A 00000000 00000000 00000000 00000000
+	$Gulpit 00000001 00000009 00000000 00000000 00000000 00000000
+	$Gulpit 00000002 00000008 00000000 00000000 00000000 00000000
+	$FreezeeDayzee 00000003 00000007 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_802307D8 00000009 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_802307E4 00000008 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_802307F0 00000007 00000001 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_802307FC 00000006 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230808 00000005 00000001 00000000 00000000 00000000
 }
+
+#new:Formation $Formation_10
+{
+	$Gulpit $PitPos1 00000014 00000000 00000000 00000000 00000000
+	$FreezeeDayzee $PitPos2 00000013 00000000 00000000 00000000 00000000
+	$FreezeeDayzee $PitPos3 00000012 00000000 00000000 00000000 00000000
+	$WhiteClubba $PitPos4 00000011 00000000 00000000 00000000 00000000
+	$WhiteClubba $PitPos5 00000010 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230724 00000009 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230730 00000008 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_8023073C 00000007 00000001 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230748 00000006 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230754 00000005 00000001 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_11
+{
+	$WhiteClubba 0 0000000A 00000000 00000000 00000000 00000000
+	$FrostPiranha 1 00000009 00000000 00000000 00000000 00000000
+	$FrostPiranha 2 00000008 00000000 00000000 00000000 00000000
+	$Blizzar 7 00000007 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_12
+{
+	$FreezeeDayzee $PitPos1 00000014 00000000 00000000 00000000 00000000
+	$Gulpit $PitPos2 00000013 00000000 00000000 00000000 00000000
+	$FrostPiranha $PitPos3 00000012 00000000 00000000 00000000 00000000
+	$Gulpit $PitPos4 00000011 00000000 00000000 00000000 00000000
+	$FrostPiranha $PitPos5 00000010 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230724 00000009 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230730 00000008 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_8023073C 00000007 00000001 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230748 00000006 00000000 00000000 00000000 00000000
+	$GulpitRocks $Vector3D_80230754 00000005 00000001 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_13
+{
+	$FrostPiranha 0 0000000A 00000000 00000000 00000000 00000000
+	$FreezeeDayzee 1 00000009 00000000 00000000 00000000 00000000
+	$Blizzar 6 00000008 00000000 00000000 00000000 00000000
+	$Blizzar 7 00000007 00000000 00000000 00000000 00000000
+}
+
 
 @	$FormationTable
 {
@@ -1232,6 +1341,12 @@
 	$SJIS_802314A0 00000003 $Formation_0C $Stage_8022F3B4 00000000
 	$SJIS_80231470 00000003 $Formation_0D $Stage_8022F3B4 00000000
 	00000000       00000001 $Formation_0E $Stage_Tubba    00000000
+	%Pit formations
+	0 9 $Formation_0F $Stage_Pit 0
+	0 10` $Formation_10 $Stage_Pit 0
+	0 4 $Formation_11 $Stage_Pit 0
+	0 10` $Formation_12 $Stage_Pit 0
+	0 4 $Formation_13 $Stage_Pit 0
 	00000000 00000000 00000000 00000000 00000000
 }
 
@@ -1245,5 +1360,21 @@
 	$ASCII_80231614 $Stage_80230230
 	$ASCII_8023160C $Stage_80230644
 	00000000        $Stage_Tubba
+	0 $Stage_Pit
 	00000000 00000000
+}
+
+
+#new:Stage $Stage_Tubba
+{
+	"dgb_tex"
+	"dgb_bt05_shape"
+	"dgb_bt05_hit"
+	00000000
+	00000000
+	00000000
+	00000000
+	00000000
+	00000000
+	00000000
 }

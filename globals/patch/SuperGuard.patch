@@ -454,6 +454,8 @@
             Set   *Var2  00000000 
             ExecWait  80298724 
             Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+			Call  SetActorRotation  ( .Actor:Self 0 0 0 )
+			Call  GetActorPos   ( .Actor:Player *Var5 0` *Var7 )			
         EndCaseGroup
         CaseOR  ==  00000017 % 17
         CaseOR  ==  .Event:Immune % 19
@@ -475,6 +477,8 @@
             SetConst  *Var1  00010014 
             ExecWait  80298948 
             Wait  10`
+			Call  SetActorRotation  ( .Actor:Self 0 0 0 )
+			Call  GetActorPos   ( .Actor:Player *Var5 0` *Var7 )	
         EndCaseGroup
         Case  ==  .Event:BurnHit % E
             SetConst  *Var1  00050003 
@@ -546,7 +550,7 @@
 }
 
 
-%Superguarding has been nerfed to lose 1 FP per superguard. (And a bit of Love Piety too)
+%Superguarding has been nerfed to lose 1/10 of current FP per superguard. (And a bit of Love Piety too)
 %If Hanatatsu is equipped, revert Superguarding costs to nothing.
 
 % var0 = Sprite Part
@@ -557,7 +561,15 @@
     Call    SetAnimation  ( .Actor:Self *Var0 *Var1 )
 			Call  $IsBadgeEquippedScriptVer ( 0000018E *VarC )  %Check for Hanatatsu Badge
 			If  *VarC == 0`
-				Set *Var[E] -1
+				Call  $ReadAddress ( 8010F290 0 *Var5 5 .False ) % get FP 
+				Div  *Var5 10`
+				If   *Var5 < 1`
+					Set  *Var5 1`
+				EndIf
+				Set  *Var6 *Var5
+				Sub  *Var5 *Var6  %There could be a better way of doing this...
+				Sub  *Var5 *Var6
+				Set *Var[E] *Var5
 				Call $Function_FPHeal ( *Var[E] )
 				Call	GetActorPos ( .Actor:Player *Var[0] *Var[1] *Var[2] )
 				Add	*Var[0] 10

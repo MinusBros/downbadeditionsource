@@ -28,9 +28,9 @@
 % move effectiveness
 [Escape]       30`b 
 [Item]         50`b 
-[AirLift]      50`b 
+[AirLift]      75`b 
 [Hurricane]    10`b % Bow's "Spook" as well
-[UpAndAway]    50`b 
+[UpAndAway]    75`b 
 [PowerBounce]  50`b 
 [SpinSmash]     0`b % weight (0-4)
 % ui positions
@@ -87,14 +87,15 @@
 
 #new:DefenseTable $DefenseTable_DarkBoo
 {
-.Element:Normal 00000000
+.Element:Normal  0`
 .Element:Fire   -2`
 .Element:Blast  -2`
-.Element:Water  1`
-.Element:Ice    2`
+.Element:Water  -2`  %Holy water weakness
+.Element:Ice     2`
 .Element:Shock  -1`
-.Element:Magic  6`
-.Element:Cosmic 6`
+.Element:Magic   6`
+.Element:Cosmic  6`
+.Element:Throw   2`
 .Element:End
 }
 
@@ -514,8 +515,11 @@
 	Wait	1`
 	Call	EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 80080264 9` 00000020 )
 	Label	10
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
 	Wait	10`
-	Call  YieldTurn ( )
+	
 	Call	SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
 	Call     MakeLerp	( 150` 100` 6` 00000000 )
 	Label    2
@@ -526,6 +530,7 @@
 	If  *Var[1]  ==  .True 
 		Goto     2
 	EndIf
+	Call  YieldTurn ( )
 	Wait	10`
 	Call	UseBattleCamPreset 	( 00000002 )
 	Call	MoveBattleCamOver 	( 00000014 )

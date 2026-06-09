@@ -8,6 +8,7 @@
 #define .Npc:Mouser     	5`
 #define .Npc:Yoshi      	6`
 #define .Npc:Receptionist   7`
+#define .Npc:Receptionist2  8`
 
 #new:Header $Header
 {
@@ -76,7 +77,7 @@
 #new:Script $Script_CreateExitTriggers
 {
 	Bind  $Script_Exit_Entry0 .Trigger:FloorAbove ~Collider:exit0 00000001 00000000
-	Bind  $Script_Exit_Entry1 .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	%Bind  $Script_Exit_Entry1 .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
 	Return
 	End
 }
@@ -201,8 +202,6 @@
 {
 
 		Switch  *GB_StoryProgress
-			Case  <  .Story:Ch4_StarSpritDeparted
-				Set   *Var0  $SpikeTop1
 			Case  <  .Story:Ch6_StarSpiritRescued
 				Set   *Var0  $SpikeTop2
 		Case  >=  .Story:Ch6_StarSpiritRescued
@@ -234,7 +233,7 @@
 			Case  <  .Story:Ch6_StarSpiritRescued
 				Set   *Var0  $Mouser1
 		Case  >=  .Story:Ch6_StarSpiritRescued
-				Set   *Var0  $Mouser1
+				Set   *Var0  $Mouser2
 		EndSwitch
 		Call  SpeakToPlayer ( .Npc:Self 00940306 00930301 00000000 *Var0 ) % variable string ID
 		Return
@@ -287,22 +286,37 @@
 			Case  <  .Story:Ch1_StarSpritDeparted
 				Set   *Var0  $Receptionist1
 			Case  <  .Story:Ch2_StarSpritDeparted
-				Set   *Var0  $Receptionist1
+				Set   *Var0  $Receptionist2
 			Case  <  .Story:Ch3_StarSpritDeparted
 				Set   *Var0  $Receptionist1
 			Case  <  .Story:Ch4_StarSpritDeparted
-				Set   *Var0  $Receptionist1
+				Set   *Var0  $Receptionist2
 			Case  <  .Story:Ch5_StarSpritDeparted
 				Set   *Var0  $Receptionist1
 			Case  <  .Story:Ch6_StarSpiritRescued
-				Set   *Var0  $Receptionist1
+				Set   *Var0  $Receptionist2
 			Case  <  .Story:Ch7_StarSpritDeparted
 				Set   *Var0  $Receptionist1
 			Case  >=  .Story:Ch7_StarSpiritRescued
-				Set   *Var0  $Receptionist1
+				Set   *Var0  $Receptionist2
 		EndSwitch
 		Call  SpeakToPlayer ( .Npc:Receptionist 008C0104 008C0101 00000000 *Var0 ) % variable string ID
 		Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+
+#new:Script $Script_Init_NotDone
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_NotDone )
+   68:  Return
+   70:  End
+}
+
+#new:Script  $Script_Interact_NotDone
+{
+		Call  SpeakToPlayer ( .Npc:Receptionist2 008C0106 008C0102 00000000 $LoveHotelIsntFinished )
 		Return
 		End
 }
@@ -374,11 +388,19 @@
 	00000000 00000000 00000000 $ReceptionistTattle
 	%
 	%
+	.Npc:Receptionist2 $NpcSettings_Basic ~Vec3f:Receptionist2
+	00012D09 $Script_Init_NotDone 00000000 00000000 270`
+	~NoDrops
+	~Movement:Receptionist2
+	~AnimationTable:Receptionist2
+	00000000 00000000 00000000 $NotDoneTattle
+	%
+	%
 }
 
 #new:NpcGroupList $NpcGroupList_LoveHotel
 {
-	00000008 $NpcGroup_LoveHotel 00000000
+	00000009 $NpcGroup_LoveHotel 00000000
 	00000000 00000000 00000000
 }
 
@@ -775,21 +797,21 @@
 #new:String $MusicToad1
 {
 	[Style Left]
-	I love composing music.[BR]
+	[CustomVoice soundIDs=0xF3,0x0][Volume percent=85]I love composing music.[BR]
 	[Pause 10]The legendary writer, [SaveColor][Color:02]Toadofsky[RestoreColor][BR]
 	told me to come here to gather[BR]
 	inspiration for my pieces.[BR]
 	[Wait][Next]
 	I do suppose music can be quite[BR]
 	romantic.[BR]
-	Horns are a wonderful misstress.
+	Horns are a wonderful misstress.[BR]
 	[Wait][End]
 }
 
 #new:String $MusicToad2
 {
 [Style Left]
-How do you do, Mario?[BR]
+[CustomVoice soundIDs=0xF3,0x0][Volume percent=85]How do you do, Mario?[BR]
 [Pause 5]Toadofsky was right in saying I[BR]
 should come to the Love Hotel.[BR]
 [Wait][Next]
@@ -805,28 +827,28 @@ My heartbeat is like a metronome.[BR]
 #new:String $MusicToad3
 {
 [Style Left]
-I've seen a lot more activity at[BR]
+[CustomVoice soundIDs=0xF3,0x0][Volume percent=85]I've seen a lot more activity at[BR]
 the Love Hotel recently.[BR]
 [Pause 10]What could have caused such a[BR]
 massive spike in popularity?[BR]
 [Wait][Next]
 [Wave]No matter.[/fx][BR]
 [Pause 5]I shall play my beloved tunes for[BR]
-everyone!
+everyone![BR]
 [Wait][End]
 }
 
 #new:String $LeftShyGuy1
 {
 [Style Inspect]
-.................
+.................[BR]
 [Wait][End]
 }
 
 #new:String $LeftShyGuy2
 {
 [Style Inspect]
-.................
+.................It hurts....[BR]
 [Wait][End]
 }
 
@@ -1334,5 +1356,40 @@ go 'round, especially here.
 #new:String $Receptionist8
 {
 [END]
+}
+
+#new:String $LoveHotelIsntFinished
+{
+[Style Right]
+I'm [Pause 7][PrintRising]terribly[/fx] [Pause 3]sorry, [SaveColor][Color:02]sir[RestoreColor],[Pause 5] but I'm afraid[BR]
+not all of the [SaveColor][Color:09]Love Hotel[RestoreColor] is quite[BR]
+finished yet.[BR]
+[Wait][Next]
+The construction will take time,[BR]
+[Pause 4]so you'll have to come back in a[BR]
+few months or so, [SaveColor][Color:02]sir[RestoreColor].[BR]
+[Wait][End]
+}
+
+#new:String $NotDoneTattle
+{
+[Style Tattle]
+[EnableCDownNext]
+He says that not all of the[BR]
+Love Hotel is finished yet.[BR]
+[Pause 10]Wait... if that's the case...[BR]
+[Wait][Next]
+...then how are all those[BR]
+other contestants going to[BR]
+[SaveColor][Color:09]Love's Ladder[RestoreColor], huh?[BR]
+[Wait][Next]
+[PrintRising][Shake]Grrrr![/fx][BR]
+Dang beta testers.[BR]
+Always getting stuff early.[/fx][BR]
+[Wait][Next]
+[PrintRising]It's no fair.[/fx][BR]
+[Pause 5]Whatever.[Pause 5] Guess we'll have[BR]
+to wait, Mario.
+[Wait][End]
 }
 

@@ -5,16 +5,6 @@
 #define .NpcID:Whacka_04            04
 #define .NpcID:Whacka_05            05
 
-@	$Script_ExitWalk_80240350
-{
-   [40]  Wait  50`
-}
-
-@ $Script_ExitWalk_802403AC
-{
-   [40]  Wait  50`
-}
-
 
 %Super Paragoomba
 %Paragoomba in this room ported from Dark Star.
@@ -107,6 +97,29 @@
 }
 
 
+@	$Script_MakeEntities
+{
+    0:  If  *GF_IWA01_Hammer1Block  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Hammer1BlockThick ~Vec4d:Entity80240650 80000000 )
+   34:  	Call  AssignScript  ( $Script_80240620 )
+   44:  EndIf
+   4C:  Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item8024068C .ItemSpawnMode:Fixed_NeverVanish *GF_IWA00_Item_CoinA )
+   70:  Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item802406B0 .ItemSpawnMode:Fixed_NeverVanish *GF_IWA00_Item_CoinB )
+   94:  Call  MakeItemEntity    ( .Item:Coin ~Vec3d:Item802406D4 .ItemSpawnMode:Fixed_NeverVanish *GF_IWA00_Item_CoinC )
+   B8:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity802406F8 .Item:SleepySheep 80000000 )
+   E0:  Call  AssignBlockFlag   ( *GF_IWA00_ItemBlock_SleepySheep )
+   F0:  Call  MakeEntity        ( .Entity:RedArrowSigns ~Vec4d:Entity80240730 90` 80000000 )
+  118:  Call  MakeEntity        ( .Entity:RedArrowSigns ~Vec4d:Entity80240758 90` 80000000 )
+		If *GB_IWA00_Whacka_HitCount >= 00000008
+			If  *WhackaDefeated == .False
+				Call  MakeItemEntity        ( .Item:GoldWhackaBump 725` -30` 225` .ItemSpawnMode:Fall_NeverVanish *WhackaDefeated )
+			EndIf
+		EndIf
+  140:  Return
+  148:  End
+}
+
+
 %Changing how Whacka works.
 %He now works like in TTYD Remake where after the 8th hit
 %he'll do a tough boss fight with you.
@@ -153,6 +166,7 @@
 	EndSwitch
 	If *GB_IWA00_Whacka_HitCount == 8`
 		Call     SpeakToPlayer 	( 00000004 00920005 00920001 00000000 $WhackaAngryString )
+		Set      *GB_IWA00_Whacka_HitCount 00000007
 		Call     StartBossBattle ( .Song:Faith )
 	Else
 		ExecWait $Script_WhackaHit
@@ -187,9 +201,10 @@ from ol' Whankha![/fx][WAIT][END]
 	Call     GetBattleOutcome ( *Var[0] )
 	Switch   *Var[0] 
 		Case     ==  00000000 	% player won
+				Set  *GB_IWA00_Whacka_HitCount 8`
 				ExecWait $Script_WhackaHit
 		Case == 00000002 %player fled
-			Sub *GB_IWA00_Whacka_HitCount 1 %reset his hit count back to what it was before
+			Set      *GB_IWA00_Whacka_HitCount 00000007
 			Call	DisablePlayerInput 	( .False )
 	EndSwitch
 	Return
@@ -213,12 +228,11 @@ from ol' Whankha![/fx][WAIT][END]
 			EndIf
 			Add      *Var[4] 0000001E 
 			Add      *Var[5] 00000002 
-			Call     MakeItemEntity		( .Item:WhackasBump *Var[3] *Var[4] *Var[5] 0000000D 00000000 )
-			If *GB_IWA00_Whacka_HitCount >= 00000008 %you get way too many bumps, hopefully you used at least 5 items in the fight or else you're not gonna have room
-				Loop 4
-					Wait 	 00000001
-					Call     MakeItemEntity		( .Item:WhackasBump *Var[3] *Var[4] *Var[5] 0000000D 00000000 )
-				EndLoop
+			
+			If *GB_IWA00_Whacka_HitCount >= 00000008
+				Call  MakeItemEntity        ( .Item:GoldWhackaBump *Var0 00000190 *Var2 .ItemSpawnMode:Fall_NeverVanish *WhackaDefeated )
+			Else
+				Call     MakeItemEntity		( .Item:WhackasBump *Var[3] *Var[4] *Var[5] 0000000D 00000000 )
 			EndIf
 			Call     SetNpcAnimation	( 00000004 00920001 )
 			Wait     00000005 

@@ -4,7 +4,7 @@
 % stats
 [Index]        46b 
 [Level]        44`b 
-[MaxHP]        19`b 
+[MaxHP]        22`b 
 [Coins]         5`b 
 [Flags]       00000000 
 [StatusTable] $StatusTable_80218978_22 
@@ -136,8 +136,13 @@
 #new:DefenseTable $DefenseTable_80218960_22 {
 .Element:Normal 5`
 .Element:Hammer 4`
-.Element:Fire   7`
+.Element:Fire   10`
 .Element:Ice    3`
+.Element:Shock  3`
+.Element:Water  6`
+.Element:Mystery 6`
+.Element:Cosmic 4`
+.Element:Magic  2`
 .Element:End
 }
 
@@ -289,8 +294,6 @@
   1BC:  		Call  SetAnimation      ( .Actor:Self 00000001 0055002F )
   1D4:  		Wait  5`
   1E0:  		Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_80218830_22 )
-  1F8:  	Case  ==  00000002 
-  204:  	Case  ==  00000003 
   210:  EndSwitch
   218:  Return
   220:  End
@@ -300,6 +303,8 @@
 %get up and attack on the same turn.
 
 #new:Script $Script_TakeTurn_80219110_22 {
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
     0:  Call  GetActorVar   ( .Actor:Self 00000008 *Var0 )
    18:  Switch  *Var0 
    24:  	Case  ==  00000000 
@@ -451,8 +456,6 @@
 }
 
 #new:Script $Script_Tackle_22 {
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
-   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  GetBattlePhase    ( *Var0 )
    4C:  If  *Var0  ==  00000001 
@@ -467,8 +470,6 @@
   124:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
   140:  	Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var0 *Var1 *Var2 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
   184:  	Wait  5`
-  190:  	Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var0 *Var1 *Var2 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
-  1D4:  	Wait  3`
   1E0:  	Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var0 *Var1 *Var2 00000020 00000004 00000000 0000000A 00000000 00000000 00000000 00000000 00000000 )
   224:  EndThread
   22C:  Call  PlaySoundAtActor  ( .Actor:Self 00002021 )
@@ -515,8 +516,10 @@
   534:  Call  RunToGoal ( .Actor:Self  0` .False )
   54C:  Call  ResetAllActorSounds   ( .Actor:Self )
   55C:  Wait  2`
-  568:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 00000008 00000020 )
-		Call  YieldTurn ( )
+  568:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 10` 00000020 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   590:  Switch  *Var0 
   59C:  	CaseOR  ==  .HitResult:Hit % 0
   5A8:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -684,8 +687,6 @@
 }
 
 #new:Script $Script_Tackle_Spikes_22 {
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
-   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  GetBattlePhase    ( *Var0 )
    4C:  If  *Var0  ==  00000001 
@@ -826,7 +827,7 @@
   AF4:  Call  JumpToGoal    ( .Actor:Self  10` .False .True .False )
   B14:  Call  ResetAllActorSounds   ( .Actor:Self )
   B24:  Wait  2`
-  B30:  Call  EnemyDamageTarget     ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 0000000A 00000020 )
+  B30:  Call  EnemyDamageTarget     ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 12` 00000020 )
   B58:  Switch  *Var0 
   B64:  	CaseOR  ==  .HitResult:Hit % 0
   B70:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -840,7 +841,9 @@
   BF8:  				Wait  1`
   C04:  			EndLoop
   C0C:  		EndThread
-				Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   C14:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.8] )
   C28:  		Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
   C44:  		Sub   *Var0  00000032 
@@ -985,8 +988,6 @@
 }
 
 #new:Script $Script_FlipOver_22 {
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
-   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  GetActorVar       ( .Actor:Self 00000009 *Var0 )
    54:  Sub   *Var0  00000001 
@@ -1119,8 +1120,6 @@
 }
 
 #new:Script $Script_FlipOver_Spikes_22 {
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
-   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  GetActorVar       ( .Actor:Self 00000009 *Var0 )
    54:  Sub   *Var0  00000001 

@@ -4,7 +4,7 @@
 %Pokey Mummies work differently from normal Pokeys. They
 %like to throw all of their segments at once, which makes
 %them a bit tougher to dodge. Their headbonk attack also
-%does 4 damage.
+%does more damage.
 
 %Oh yeah they're now called Stone Pokeys btw.
 %Borrowed sprites from Master Quest.
@@ -15,6 +15,20 @@
 	[Level]        13`b
 	[MaxHP]         7`b
 	[Coins]         2`b
+}
+
+@	$DefenseTable_80218C10
+{
+	.Element:Normal 0`
+	.Element:Fire  99`
+	.Element:Water -2`
+	.Element:Shock 99`
+	.Element:Quake -1`
+	.Element:Blast -1`
+	.Element:Magic -1`
+	.Element:Cosmic -1`
+	.Element:Throw -1`
+	.Element:End
 }
 
 
@@ -249,7 +263,7 @@
   470:  Wait  1`
   47C:  ExecWait  $Script_8021B1B4
   488:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-  49C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000002 00000020 )
+  49C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000002 00000000 )
   4C0:  Switch  *Var0
   4CC:  	CaseOR  ==  .HitResult:Miss % 6
   4D8:  	CaseOR  ==  .HitResult:Lucky % 5
@@ -281,7 +295,7 @@
   6C8:  Call  SetPartJumpGravity    ( .Actor:Self 00000006 *Fixed[0.1] )
   6E0:  Call  SetAnimation      ( .Actor:Self 00000006 00ED0016 )
   6F8:  Call  JumpPartTo        ( .Actor:Self 00000006 *Var0 *Var1 *Var2  0` .True )
-  720:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 ~DebuffType:Poison:3:40` 00000001 00000020 )
+  720:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 ~DebuffType:Poison:3:40` 00000001 00000000 )
   730: Wait 1`
   748:  Call  GetActorVar       ( .Actor:Self 00000002 *Var1 )
   760:  Call  SetAnimation      ( .Actor:Self 00000001 *Var1 )
@@ -371,7 +385,9 @@
   658:  		Return
   660:  	EndCaseGroup
   668:  EndSwitch
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   670:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
   684:  Call  SetGoalToTarget   ( .Actor:Self )
   694:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
@@ -516,7 +532,9 @@
   5F8:  		Return
   600:  	EndCaseGroup
   608:  EndSwitch
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   610:  Call  SetGoalToTarget       ( .Actor:Self )
   620:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.1] )
   634:  ChildThread
@@ -582,10 +600,26 @@
 
 {
 	[Level]        12`b
-	[MaxHP]         5`b
+	[MaxHP]         6`b
 	[Coins]         2`b
 }
 
+
+@	$DefenseTable_8021C4B0
+{
+	.Element:Normal 0`
+	.Element:Fire   2`
+	.Element:Water  1`
+	.Element:Ice   -1`
+	.Element:Shock -1`
+	.Element:Blast  0`
+	.Element:Magic  2`
+	.Element:Cosmic 1`
+	.Element:Throw -2`
+	.Element:Jump   1`
+	.Element:Quake -1`
+	.Element:End
+}
 
 
 @	$Script_8021D7E4
@@ -630,6 +664,29 @@
 	[Level]        12`b
 	[MaxHP]         5`b
 	[Coins]         2`b
+}
+
+@	$DefenseTable_8021E4C0
+{
+	.Element:Normal 2`
+	.Element:Fire   99`
+	.Element:Water  4`
+	.Element:Ice    4`
+	.Element:Shock  4`
+	.Element:Blast  99`
+	.Element:Magic  4`
+	.Element:Cosmic 4`
+	.Element:Hammer 4`
+	.Element:Throw  3`
+	.Element:End
+}
+
+@ $DefenseTable_8021E4DC
+{
+	.Element:Normal  0`
+	.Element:Hammer  1`
+	.Element:Throw  -1`
+	.Element:End
 }
 
 
@@ -737,7 +794,9 @@
   774:  Call  SetGoalToTarget   ( .Actor:Self )
   784:  Call  SetActorSpeed     ( .Actor:Self *Fixed[24.0] )
   798:  Call  RunToGoal ( .Actor:Self  0` .False )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   7B0:  Wait  1`
   7BC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 0000FFFF 00000000 00000003 00000020 )
   7E4:  Switch  *Var0
@@ -786,17 +845,17 @@
 
 @	$DefenseTable_8022154C
 {
-	.Element:Normal 00000002
-	.Element:Blast  00000004
-	.Element:Fire   00000004
-	.Element:Ice    00000001
-	.Element:Shock  00000003
-	.Element:Water  00000000
-	.Element:Cosmic 00000001
-	.Element:Magic  00000000
-	.Element:Mystery 00000001
-	.Element:Quake  00000000
-	.Element:Throw  00000003
+	.Element:Normal 2`
+	.Element:Blast  4`
+	.Element:Fire   6`
+	.Element:Ice    0`
+	.Element:Shock  3`
+	.Element:Water -1`
+	.Element:Cosmic 1`
+	.Element:Magic  0`
+	.Element:Mystery 0`
+	.Element:Quake  0`
+	.Element:Throw  3`
 	.Element:End
 }
 
@@ -924,6 +983,32 @@
 	$Flubba 00000003 00000007 00000000 00000000 00000000 00000000
 }
 
+
+#new:Formation $Formation_14
+{
+	$PokeyMummy $PitPos1 0000000A 00000000 00000000 00000000 00000000
+	$PokeyMummy $PitPos2 00000009 00000000 00000000 00000000 00000000
+	$Flubba     $PitPos3 00000008 00000000 00000000 00000000 00000000
+	$BuzzyBeetle $PitPos4 00000007 00000000 00000000 00000000 00000000
+	$Flubba     $PitPos5 00000006 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_15
+{
+	$BuzzyBeetle 0 0000000A 00000000 00000000 00000000 00000000
+	$Swooper $Vector3D_8022407C 00000009 00000001 00000000 00000000 00000000
+	$Swooper $Vector3D_80224088 00000008 00000001 00000000 00000000 00000000
+	$PokeyMummy 3 00000007 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_16
+{
+	$StoneChomp 0 0000000A 00000000 00000000 00000000 00000000
+	$PokeyMummy 1 00000009 00000000 00000000 00000000 00000000
+	$BuzzyBeetle 2 00000008 00000000 00000000 00000000 00000000
+	$BuzzyBeetle 3 00000007 00000000 00000000 00000000 00000000
+}
+
 @ $FormationTable
 {
 	$SJIS_80224CE0 00000003 $Formation_00 $Stage_80223E64 00000000
@@ -946,5 +1031,30 @@
 	$SJIS_80224B68 00000003 $Formation_11 $Stage_80223BC4 00000000
 	$SJIS_80224B50 00000004 $Formation_12 $Stage_80223BC4 00000000
 	$SJIS_80224B30 00000003 $Formation_13 $Stage_80223BC4 00000000
+	%Pit loadouts
+	0 5 $Formation_14 $Stage_Pit 0
+	0 4 $Formation_15 $Stage_Pit 0
+	0 4 $Formation_16 $Stage_Pit 0	
 	00000000 00000000 00000000 00000000 00000000
+}
+
+
+
+@	$StageTable
+{
+	$ASCII_80224D50 $Stage_802238FC
+	$ASCII_80224D48 $Stage_8022397C
+	$ASCII_80224D40 $Stage_80223A0C
+	$ASCII_80224D38 $Stage_80223E64
+	$ASCII_80224D30 $Stage_80223F14
+	$ASCII_80224D28 $Stage_80223A8C
+	$ASCII_80224D20 $Stage_80223D5C
+	$ASCII_80224D18 $Stage_80223B30
+	$ASCII_80224D10 $Stage_80223BC4
+	$ASCII_80224D08 $Stage_80223C54
+	$ASCII_80224D00 $Stage_80223FB8
+	$ASCII_80224CF8 $Stage_80223CE4
+	$ASCII_80224CF0 $Stage_80224044
+	0  $Stage_Pit
+	00000000 00000000
 }

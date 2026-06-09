@@ -141,10 +141,118 @@
   22C:  Exec  $Script_802428F0
   238:  Exec  $Script_80243880
   244:  Exec  $Script_EnterWalk_802437CC
+		Bind  $Death .Trigger:FloorTouch ~Collider:killplane 00000001 00000000
   250:  Set   *GF_MAC01_RowfBadgesChosen  .False
   260:  Wait  1`
   26C:  Return
   274:  End
+}
+
+
+
+%Modified version of the train script
+#new:Script  $Death
+{
+   50:  Call  DisablePlayerInput    ( .True )
+   60:  Call  DisablePlayerPhysics  ( .True )
+   70:  Call  DisablePartnerAI  ( 00000000 )
+   94:  Set   *MapVar[0]  00000000
+   A4:  Set   *MapVar[1]  00000000
+   B4:  Set   *MapFlag[05]  .False
+   C4:  Set   *MapFlag[00]  .True
+   E0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitk 7FFFFE00 )
+   F8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:kisya1 7FFFFE00 )
+  110:  Call  ModifyColliderFlags   ( 00000000 ~Collider:kisya2 7FFFFE00 )
+  128:  Call  ModifyColliderFlags   ( 00000000 ~Collider:kisya3 7FFFFE00 )
+  140:  Call  ModifyColliderFlags   ( 00000000 ~Collider:humikiri 7FFFFE00 )
+  158:  Call  ModifyColliderFlags   ( 00000000 ~Collider:fumikiri 7FFFFE00 )
+  170:  Call  SetNpcFlagBits    ( .NpcID:TrainStationToad_00 00000100 .True )
+  198:  Call  SetNpcPos ( .NpcID:TrainStationToad_01 -424` 74` 2` )
+  300:  Set   *MapFlag[01]  .True
+  4E0:  Exec  $Script_802452DCAlt
+  4EC:  Call  UseSettingsFrom   ( .Cam:Default  0`  0`  0` )
+  508:  Call  SetCamDistance    ( .Cam:Default *Fixed[240.0] )
+  51C:  Call  SetCamPosB        ( .Cam:Default *Fixed[-100.0] *Fixed[-50.0] )
+  534:  Call  SetCamPitch       ( .Cam:Default *Fixed[-2.5] *Fixed[-3.5] )
+  54C:  Call  SetCamSpeed       ( .Cam:Default *Fixed[2.0] )
+  560:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  578:  Wait  1`
+  5AC:  Call  SetPanTarget      ( .Cam:Default -424` 74` 2` )
+  5C8:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  5E0:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+		Call  SetPlayerPos      (  434`  1`  0` )
+  5F4:  Call  SpeakToPlayer     ( .NpcID:TrainStationToad_01 008C0004 008C0000 00000005 00050009 ) % Sit tight, folks. Now departing for Mt. Rugged.
+  614:  Call  PlaySound ( 00000082 )
+  624:  Thread
+  62C:  	Loop  000003E8
+  638:  		AddF  *MapVar[1]  *Fixed[0.03125]
+  648:  		If  *MapVar[1]  >  0000000A
+  658:  			SetF  *MapVar[1]  *Fixed[10.0]
+  668:  		EndIf
+  670:  		Wait  1`
+  67C:  	EndLoop
+  684:  EndThread
+  68C:  Wait  40`
+		Call  SetCamPitch       ( .Cam:Default *Fixed[-2.0] *Fixed[-3.0] )
+		Call  SetCamDistance    ( .Cam:Default *Fixed[260.0] )
+  5AC:  Call  SetPanTarget      ( .Cam:Default 394`  3`  0` )
+  5C8:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+  5E0:  Call  WaitForCam        ( .Cam:Default *Fixed[1.0] )
+  6B0:  Exec  $Script_FollowToadInstead *Var9
+  6C0:  Wait  140`
+		Call  PlaySound ( 000003E0 )
+		Call  PlaySound ( 0000034E )
+  D04:  Call  PlayEffect    ( ~FX:Firework:White 434`  1`  0` 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7A2:  Call  PlayEffect    ( ~FX:Explosion3 434`  1`  0` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call  SetPlayerAnimation    ( 0001003C )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Wait  80`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+  6EC:  Return
+  6F4:  End
+}
+
+
+#new:Script $Script_802452DCAlt
+{
+		Label  0
+		Add   *Var0  00000000
+  178:  Add   *Var1  FFFFFFFA
+  188:  Add   *Var2  FFFFFFD8
+  198:  Call  SetNpcPos ( .NpcID:TrainStationToad_01 *Var0 *Var1 *Var2 )
+  1B4:  Wait  1`
+  1C0:  Goto  0
+  1CC:  Return
+  1D4:  End
+}
+
+
+#new:Script $Script_FollowToadInstead
+{
+    0:  Label  0
+    C:  Call  GetNpcPos  ( .NpcID:TrainStationToad_01 *Var0 *Var1 *Var2 )
+   24:  If  *MapFlag[05]  ==  .False
+   34:  	If  *Var0  >  0000015E
+   44:  		Set   *Var0  0000015E
+   54:  	EndIf
+   5C:  	Add   *Var0  00000028
+   6C:  	Set   *Var1  0000001E
+   7C:  	Add   *Var2  00000028
+   8C:  Else
+   94:  	If  *Var0  >  0000015E
+   A4:  		Set   *Var0  0000015E
+   B4:  	EndIf
+   BC:  	Add   *Var0  FFFFFFD8
+   CC:  	Set   *Var1  0000001E
+   DC:  	Add   *Var2  00000028
+   EC:  EndIf
+		Add  *Var0  50`
+   F4:  Call  SetCamTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  110:  Wait  1`
+  11C:  Goto  0
+  128:  Return
+  130:  End
 }
 
 #new:Script  $DarknessFollow

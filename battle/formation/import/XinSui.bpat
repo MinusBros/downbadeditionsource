@@ -3,6 +3,9 @@
 %This is Disastar but retweaked
 %Note: Xīn Suì means "Heartbreak" in Chinese
 
+%If you factor in Pries T.'s HP, plus the heals in both fights,
+%the grand total is 386 HP
+
 #new:Actor $XinSui
 {
 % stats
@@ -155,8 +158,11 @@
 
 #new:DefenseTable $DefenseTable_XinSui
 {
-.Element:Normal   00000000
-.Element:Cosmic   00000063
+.Element:Normal   0`
+.Element:Throw   -1`
+.Element:Quake   -3`
+.Element:Magic   -1`
+.Element:Cosmic  99`
 .Element:End
 }
 
@@ -755,12 +761,12 @@
   6B0:  Wait     00000001 % way faster than normal monstar attack  
   6C8:  Call     SetGoalToTarget 	( .Actor:Self )
   % ADDED THIS TO MAKE IT HARDER
-			Call     $SPSubtractMainFunction ( 00000002 00000000 )
+			Call     $SPSubtractMainFunction ( 00000002 00000000 )  % -2 bars of Love Piety
 			Call	PlaySoundAtActor	( .Actor:Player 000002D8 )
 			Thread % added
 				Call	8026BF48	 ( 00000001 )
-				Call	BoostDefense ( .Actor:Player 000002FF )
-				Call	BoostAttack ( .Actor:Player 000001FF )
+				Call	BoostDefense ( .Actor:Player 000002FF )  % -2 defense
+				Call	BoostAttack ( .Actor:Player 000002FF )  % -2 attack
 				Call	8026BF48	 ( 00000000 )
 			EndThread % added
   700:  Switch  *Var[0] 
@@ -894,8 +900,8 @@
   6C8:  Call     SetGoalToTarget 	( .Actor:Self )
   Call     GetActorVar 	( .Actor:Self 00000003 *Var[9] )
 Loop  *Var[9]
-	Wait 5`
-	Call     EnemyDamageTarget 	( .Actor:Self *Var[0] ~Flags:DamageType:NoContact|MultiBounce|Cosmic 00000000 00000000 00000004 00000020 )
+	Wait 6`
+	Call     EnemyDamageTarget 	( .Actor:Self *Var[0] ~Flags:DamageType:NoContact|MultiBounce|Cosmic 00000000 00000000 00000005 00000020 )
 EndLoop
   700:  Switch  *Var[0] 
   70C:  	CaseOR  ==  00000000 
@@ -1078,9 +1084,18 @@ EndSwitch
 			Case  ==  00000005
 				Call     SetDefenseTable 	( .Actor:Enemy0 00000001 $DefenseTable_5 )
 				Call     SetDefenseTable 	( .Actor:Enemy0 00000002 $DefenseTable_5 )
-			Default
+			Case  ==  00000006
 				Call     SetDefenseTable 	( .Actor:Enemy0 00000001 $DefenseTable_6 )
-				Call     SetDefenseTable 	( .Actor:Enemy0 00000002 $DefenseTable_6 )
+				Call     SetDefenseTable 	( .Actor:Enemy0 00000002 $DefenseTable_6 )				
+			Default
+				Call     GetActorVar 	( .Actor:Self 00000006 *Var5 )
+				If      *Var5 > 0`
+					Call     SetDefenseTable 	( .Actor:Enemy0 00000001 $DefenseTable_0 )
+					Call     SetDefenseTable 	( .Actor:Enemy0 00000002 $DefenseTable_0 )
+					Thread
+						Call  ActorSpeak        ( 001F00D1 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )  %Defence is now 0!
+					EndThread
+				EndIf
 		EndSwitch
   Return
   End
@@ -1321,7 +1336,6 @@ Join me,[Pause 8] and come with.
 				Call  SetActorScale     ( .Actor:Self *Fixed[1.5] *Fixed[1.5] *Fixed[1.0] )
 				Call     SetActorRotation 	( .Actor:Self 0` 0` 0` )
 				Call     SetAnimation 	( .Actor:Self 00000001 007E0200 )
-				Call  SetActorFlagBits  ( .Actor:Self 00000200 .False )  %No longer flying
 				Wait  1`
 				Call  SetHomePos			( .Actor:Self 105` 0` -10` )
 				Call  SetGoalToHome     ( .Actor:Self )
@@ -1374,15 +1388,15 @@ Join me,[Pause 8] and come with.
 			Case == 1`
 				Wait  5`
 				ChildThread
-					Call  ShakeCam  ( .Cam:Battle 00000000  800` *Fixed[0.69] )
+					Call  ShakeCam  ( .Cam:Battle 00000000  800` *Fixed[1.25] )
 				EndChildThread
 				Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
 				Call  PlaySound     ( 000000A3 )
 				Call  PlayEffect    ( ~FX:LightRays:SharpA *Var0 96` *Var2 0000000F 0` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
 				Call     SetActorVar 	( .Actor:Self 00000006 2` )
-				Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[0.33] )
-				Call  SetAnimationRate      ( .Actor:Partner 00000001 *Fixed[0.33] )
-				Call  SetAnimationRate      ( .Actor:Player 00000001 *Fixed[0.33] )
+				Call  SetAnimationRate      ( .Actor:Self 00000001 *Fixed[0.32] )
+				Call  SetAnimationRate      ( .Actor:Partner 00000001 *Fixed[0.32] )
+				Call  SetAnimationRate      ( .Actor:Player 00000001 *Fixed[0.32] )
 				Thread
 					Loop 100`
 						Call  $BlurScreen ( )
@@ -1395,12 +1409,16 @@ Join me,[Pause 8] and come with.
 					Call  $UnblurScreen ( )
 				EndThread
 				Wait  3`
-				Call  GotoMapSpecial    ( "dnj_29" 0` 7` )
+				Call  GotoMapSpecial    ( "dnj_31" 1` 7` )
 		EndSwitch
   32C:  Return
   334:  End
 }
 
+
+%This attack is a little jank, but bear with me.
+%You time your dodges as the blue lines align with Mario.
+%Blocking reduces the damage by over half.
 
 #new:Script $Script_XinSuiUltimate {
 		Exec  $ShowMessageFreedom
@@ -1504,19 +1522,19 @@ Join me,[Pause 8] and come with.
   698:  		Return
   6A0:  	EndCaseGroup
   6A8:  EndSwitch
-		Wait  10`
+		Wait  12`
   6C8:  Call  SetGoalToTarget   ( .Actor:Self )
-  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 7` 00000020 )  %Hit 1
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 8` 00000020 )  %Hit 1
   6B0:  Wait  31`
-  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 7` 00000020 )  %Hit 2
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 8` 00000020 )  %Hit 2
   6B0:  Wait  15`
-  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 7` 00000020 )  %Hit 3
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 8` 00000020 )  %Hit 3
   6B0:  Wait  14`
-  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 7` 00000020 )  %Hit 4
-  6B0:  Wait  26`
-  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 7` 00000020 )  %Hit 5
-  6B0:  Wait  46`
-  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 7` 00000020 )  %Hit 6
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 8` 00000020 )  %Hit 4
+  6B0:  Wait  28`
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 8` 00000020 )  %Hit 5
+  6B0:  Wait  43`
+  6D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|MultiBounce 00000000 00000000 8` 00000020 )  %Hit 6
   6B0:  Wait  24`
   6BC:  Wait  2`
   700:  Switch  *Var0 

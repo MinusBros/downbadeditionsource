@@ -1,7 +1,43 @@
 #define .NpcID:KoopaBros_04         04
 #define .NpcID:KoopaBros_05         05
 #define .Npc:Joseph    16
+#define .Npc:BowsersBrother    17
 
+
+
+@	$Script_EnterSingleDoor_80240A30
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Set   *Var2  ~Model:o2
+   38:  		Set   *Var3  .DoorSwing:Out % FFFFFFFF
+   48:  		ExecWait  EnterSingleDoor
+   54:  		Exec  $Script_80240A04
+   60:  	Case  ==  ~Entry:Entry1
+   6C:  		Switch  *GB_StoryProgress
+   78:  			Case  ==  .Story:Ch1_BeganPeachMission % FFFFFFB4
+   84:  				Exec  $Script_80241550
+   90:  				Exec  $Script_80244AF4
+   9C:  			Case  ==  .Story:Ch2_BeganPeachMission % FFFFFFCA
+   A8:  				Exec  $Script_80241550
+   B4:  				Exec  $Script_80244C70
+   C0:  			Case  ==  .Story:Ch3_BeganPeachMission % FFFFFFF2
+   CC:  				Exec  $Script_802453F4
+   D8:  			Default
+   E0:  				Exec  $Script_80241550
+   EC:  				Exec  $Script_80240A04
+   F8:  		EndSwitch
+  100:  	Case  ==  ~Entry:Entry2  
+				If  *GB_StoryProgress < .Story:Ch3_BeganPeachMission
+  10C:  			Exec  $Script_80241A70
+				Else
+					Exec  $BowerBrotherCutscene
+				EndIf
+  118:  EndSwitch
+  120:  Return
+  128:  End
+}
 
 
 %Prologue intermission
@@ -583,6 +619,43 @@
   E48:  Call  DisablePlayerInput    ( .False )
   E58:  Return
   E60:  End
+}
+
+
+
+
+
+#new:Script  $BowerBrotherCutscene
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerPhysics  ( .True )
+   20:  Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
+   3C:  Call  SetNpcPos     ( 00000000  -70`  0`  -55` )
+   58:  Call  InterpNpcYaw  ( 00000000  90`  0` )
+   70:  Call  SetNpcAnimation   ( 00000000 00800002 )
+   84:  Call  UseSettingsFrom   ( .Cam:Default  -20`  0`  0`  )
+  274:  Call  SetPanTarget  ( .Cam:Default  -20`  0`  0` )
+  290:  Call  SetCamDistance    ( .Cam:Default *Fixed[225.0] )
+  2A4:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-13.0] )
+  2BC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.5] )
+  2D0:  Wait  5`
+		Thread
+			Call  SetNpcAnimation   ( 00000000 00800010 )
+			Wait  10`
+			Call  SetNpcAnimation   ( 00000000 00800003 )
+		EndThread
+  2DC:  Call  SpeakToNpc    ( 00000001 00600004 00600001 00000000 00000000 00140002 ) % Please, please, Your Vileness! Try to be calm. Goo ...
+  300:  Call  SetPanTarget  ( .Cam:Default  -50`  0`  0` )
+  31C:  Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
+  330:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-17.0] )
+  348:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )
+  37C:  Wait  10`
+  388:  Call  SpeakToNpc    ( 00000000 00800009 00800003 00000000 00000001 00140003 ) % Yes, yes. Very good! Gwaaa ha ha ha ha!!
+  3AC:  Call  SetNpcAnimation   ( 00000000 00800002 )
+  3C0:  Wait  10`
+  3CC:  Call  SpeakToNpc    ( 00000000 00800006 00800002 00000000 00000001 00140004 ) % By the way, Kammy Koopa, those Star Spirits we cap ...
+		Return
+		End
 }
 
 

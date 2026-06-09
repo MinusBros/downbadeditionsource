@@ -72,7 +72,7 @@
    50:  Add   *Var0  00000028
    60:  Add   *Var1  00000014
    70:  Call  SetGoalPos    ( .Actor:Partner *Var0 *Var1 *Var2 )
-   8C:  Call  FlyToGoal     ( .Actor:Partner  15`  0` .Easing:CosInOut )
+   8C:  Call  FlyToGoal     ( .Actor:Partner  5`  0` .Easing:CosInOut )
    A8:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 00100001 )
    C0:  Call  InitTargetIterator ( )
    CC:  Call  SetGoalToTarget       ( .Actor:Partner )
@@ -134,8 +134,11 @@
   518:  		Set   *Var0  *Var7
   528:  		Set   *Var1  *Var8
   538:  		Set   *Var2  *Var9
-  548:  		Call  JumpPartTo    ( .Actor:Partner 00000002 *Var7 *Var8 *Var9  5` )
-  56C:  		Call  LandJumpPart  ( .Actor:Partner 00000002 )
+				Thread
+  548:  			Call  JumpPartTo    ( .Actor:Partner 00000002 *Var7 *Var8 *Var9  5` )
+  56C:  			Call  LandJumpPart  ( .Actor:Partner 00000002 )
+				EndThread
+				Wait  5`
   580:  	Case  ==  00000000
   58C:  		Call  SetAnimation  ( .Actor:Self 00000002 00100015 )
   5A4:  		Call  SetPartJumpGravity    ( .Actor:Partner 00000002 *Fixed[0.1] )
@@ -338,7 +341,10 @@
   754:  	Goto  C
   760:  EndIf
   768:  Call  GetActionCommandResult    ( *VarA )
-  778:  Call  $Function_80238B50 ( )
+  778:  Call  $Function_80238B50 ( )	
+		If  *JonathanChargeCount > 0`
+			Add  *VarF 1`
+		EndIf  
 		Set *VarD *JonathanChargeCount
 		Add *VarF *VarD
   784:  Switch  *Var0
@@ -390,52 +396,53 @@
    28:  Call     SetActorFlagBits 	( .Actor:Player 20000000 .True )
    40:  Call     LoadActionCommand 	( 00000016 )
    50:  Call     802A9000 ( 00000002 )
-   60:  Call     80269344 ( 00000032 )
+   60:  Call     80269344 ( 00000009 ) %HUD wait time
    70:  Call     InitTargetIterator 	( )
    7C:  Call     SetGoalToHome 	( .Actor:Partner )
    8C:  Call     UseBattleCamPreset 	( 0000000A )
    9C:  Call     BattleCamTargetActor ( .Actor:Self )
    AC:  Call     SetBattleCamOffsetZ 	( 00000011 )
    BC:  Call     SetBattleCamZoom  	( 0000012C )
-   CC:  Call     MoveBattleCamOver 	( 0000001E )
+   CC:  Call     MoveBattleCamOver 	( 0000000E )
    DC:  Call     8024EDA4 ( )
-   E8:  Wait     00000008 
+   E8:  Wait     1`
    F4:  Thread
    FC:  	Call     GetActorPos 	( .Actor:Partner *Var[0] *Var[1] *Var[2] )
   118:  	Add  *Var[1]  00000028 
   128:  	Call     SetGoalPos 	( .Actor:Partner *Var[0] *Var[1] *Var[2] )
-  144:  	Call     FlyToGoal  	( .Actor:Partner 00000019 00000000 .Easing:CosInOut )
+  144:  	Call     FlyToGoal  	( .Actor:Partner 00000009 00000000 .Easing:CosInOut )
   160:  EndThread
-  168:  Wait     0000000F 
   174:  Set  *Var[0]  00000000 
   184:  Loop     0000000A 
   190:  	Add  *Var[0]  00000012 
   1A0:  	Call     SetActorYaw 	( .Actor:Partner *Var[0] )
   1B4:  	Wait     00000001 
   1C0:  EndLoop
-  1C8:  Wait     0000000A 
   1D4:  Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100005 )
-  1EC:  Wait     00000005 
-  1F8:  Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100004 )
-  210:  Wait     0000000F 
+		Thread
+  1EC:  	Wait     00000005 
+  1F8:  	Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100004 )
+		EndThread
   21C:  Call     GetActorPos 	( .Actor:Partner *Var[0] *Var[1] *Var[2] )
   238:  Add  *Var[0]  FFFFFFF4 
   248:  Add  *Var[1]  0000000D 
   258:  Add  *Var[2]  FFFFFFFB 
   268:  Call     SetActorSpeed 	( .Actor:Player *Fixed[4.0] )
-  27C:  Call     SetActorJumpGravity 	( .Actor:Player *Fixed[1.0] )
+  27C:  Call     SetActorJumpGravity 	( .Actor:Player *Fixed[2.4] )
   290:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00010008 00010020 )
   2B0:  Call     SetGoalPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
-  2CC:  Call     80273444 ( 00000012 00000000 00000000 )
-  2E4:  Call     SetAnimation 	( .Actor:Player 00000000 00010020 )
-  2FC:  Wait     00000003 
-  308:  Call     SetAnimation 	( .Actor:Player 00000000 00010002 )
+  2CC:  Call     80273444 ( 00000008 00000000 00000000 )
+		Thread
+			Call     SetAnimation 	( .Actor:Player 00000000 00010009 )
+			Wait     7`
+			Call     SetAnimation 	( .Actor:Player 00000000 00010002 )
+		EndThread
   320:  Call     802A9398 ( 00000000 00000061 00000003 )
   338:  Call     AddBattleCamZoom  	( FFFFFFB5 )
   348:  Call     MoveBattleCamOver 	( 00000064 )
   358:  Call     8024ECF8 ( 00000000 00000000 00000001 )
-  370:  Wait     00000064 
-  37C:  Wait     00000003 
+  370:  Wait     100`
+  37C:  Wait     2` 
   388:  Call     AddBattleCamZoom  	( 00000032 )
   398:  Call     MoveBattleCamOver 	( 00000005 )
   3A8:  Call     GetActionCommandResult ( *Var[A] )
@@ -455,28 +462,11 @@
   %8F8:  	Call     $Function_802A1414 ( )
   904:  EndThread
 %EndSmooch
-  /% 
-  44C:  Thread
-  454:  	Call     GetActorPos 	( .Actor:Player *Var[3] *Var[4] *Var[5] )
-  470:  	Loop     0000000A 
-  47C:  		Set  *Var[0]  *Var[3] 
-  48C:  		Set  *Var[1]  *Var[4] 
-  49C:  		Set  *Var[2]  *Var[5] 
-  4AC:  		Call     RandInt     	( 00000028 *Var[6] )
-  4C0:  		Sub  *Var[6]  00000014 
-  4D0:  		Add  *Var[0]  *Var[6] 
-  4E0:  		Call     RandInt     	( 0000001E *Var[6] )
-  4F4:  		Sub  *Var[6]  0000000F 
-  504:  		Add  *Var[1]  *Var[6] 
-  514:  		Call     PlayEffect  	( {FX:FloatingCloudPuff} *Var[0] *Var[1] *Var[2] *Fixed[1.0] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  558:  		Wait     00000001 
-  564:  	EndLoop
-  56C:  EndThread
-  %/
+
   574:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 00010008 00010020 )
   594:  Set  *Var[1]  00000000 
   5A4:  Call     SetGoalPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
-  5C0:  Call     PlayerFallToGoal ( 0000000A )
+  5C0:  Call     PlayerFallToGoal ( 00000008 )
   5D0:  Call     SetAnimation 	( .Actor:Partner FFFFFFFF 00100002 )
   5E8:  Call     SetAnimation 	( .Actor:Player 00000000 00010020 )
   600:  Wait     00000007 
@@ -493,22 +483,19 @@
   6B8:  	Call     GetActorPos 	( .Actor:Partner *Var[0] *Var[1] *Var[2] )
   6D4:  	Sub  *Var[1]  00000028 
   6E4:  	Call     SetGoalPos 	( .Actor:Partner *Var[0] *Var[1] *Var[2] )
-  700:  	Call     FlyToGoal  	( .Actor:Partner 0000001E 00000000 .Easing:CosInOut )
+  700:  	Call     FlyToGoal  	( .Actor:Partner 00000008 00000000 .Easing:CosInOut )
   71C:  EndThread
-  724:  Wait     0000000F 
   730:  Set  *Var[0]  000000B4 
-  740:  Loop     0000000A 
-  74C:  	Sub  *Var[0]  00000012 
-  75C:  	Call     SetActorYaw 	( .Actor:Partner *Var[0] )
-  770:  	Wait     00000001 
-  77C:  EndLoop
+		Thread
+	  740:  Loop     0000000A 
+	  74C:  	Sub  *Var[0]  00000012 
+	  75C:  	Call     SetActorYaw 	( .Actor:Partner *Var[0] )
+	  770:  	Wait     00000001 
+	  77C:  EndLoop
+		EndThread
   784:  Call     UseBattleCamPreset 	( 00000002 )
   794:  Call     MoveBattleCamOver 	( 0000001E )
   7A4:  Wait     0000000A 
- % 7B0:  If  *Var[A]  >  00000000 
- % 7C0:  	Call     ShowMessageBox ( 00000028 0000003C )
-  %7D4:  	Call     WaitForMessageBoxDone ( )
-  %7E0:  EndIf
   7E8:  Call     SetBattleFlagBits 	( 00000008 .True )
   7FC:  Return
   804:  End
@@ -588,17 +575,20 @@
   754: 		Goto     0000000B
   760: 	EndIf
 		% Make this do varying damage
-		% 100 divided by 20 = 5, which is the max damage
+		% Starts at a flat 1
+		% 100 divided by 20 = 5, bringing the damage with no charge to 6
 		% Also add Jonathan's charge count to final damage
-		% Max damage afterwards is 9
+		% Max damage afterwards is 10
 		Call  GetActionCommandResult    ( *VarF )
 		If *VarF == 64
 			 Div *VarF 20`
+			 Add *VarF 1`
 			 Set *VarD *JonathanChargeCount
 			 Add *VarF *VarD
 			 Call     PartnerDamageEnemy 	( *Var[2] ~Flags:DamageType:NoContact|NoOtherDamagePopups|Water|IgnoreDefense 00000000 00000000 *VarF 00000070 )
 		Else
 			 Div *VarF 20`
+			 Add *VarF 1`
 			 Set *VarD *JonathanChargeCount
 			 Add *VarF *VarD
 			Call     PartnerDamageEnemy 	( *Var[2] ~Flags:DamageType:NoContact|NoOtherDamagePopups|Water|IgnoreDefense 00000000 00000000 *VarF 00000030 )

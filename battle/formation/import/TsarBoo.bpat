@@ -35,8 +35,8 @@
 [Item]          0`b 
 [AirLift]       0`b 
 [Hurricane]     0`b % Bow's "Spook" as well
-[UpAndAway]     0`b 
-[PowerBounce]   3`b 
+[UpAndAway]     1`b 
+[PowerBounce]   6`b 
 [SpinSmash]     4`b % weight (0-4)
 % ui positions
 [Size]        100`b 100`b % width height
@@ -574,7 +574,6 @@
 
 #new:Script $CheckDeath
 {
-		Label 1
 		Call FindItem  ( .Item:LifeShroom *VarE ) 
 		If *VarE == 00000000
 			Set  *VarD  1`
@@ -585,14 +584,17 @@
 				Loop 60`
 				Call  GetActorHP    ( .Actor:Player *VarC )
 				If  *VarC  ==  00000000 
-						Call  SetMusicTrack ( 00000000 .Song:MailCall 00000001 00000008 )  %Ending stinger
+						ChildThread
+							Call  PushSong      ( .Song:MailCall 00000001 ) %Ending stinger
+							Wait  200`
+							Call  PopSong ( )
+						EndChildThread
 						Return
 				EndIf
 				Wait  1`
 				EndLoop
 		EndIf
 		Wait 1`
-		Goto  1
 		Return
 		End
 }

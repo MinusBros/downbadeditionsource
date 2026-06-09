@@ -717,3 +717,109 @@
 	Return
 	End
 }
+
+
+@	$Script_802414D0
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry8
+   28:  		If  *AreaFlag[02C]  !=  .False
+   38:  			Call  SetMusicTrack ( 00000000 .Song:MagicBeanstalk 00000000 00000008 )
+   54:  		Else
+   5C:  			Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsSunny 00000000 00000008 )
+   78:  		EndIf
+   80:  	Case  ==  ~Entry:Entry9
+   8C:  		Call  SetMusicTrack ( 00000000 .Song:SunshineReturns 00000000 00000008 )
+   A8:  	Case  ==  ~Entry:EntryA
+   B4:  		Call  SetMusicTrack ( 00000000 .Song:StarSpiritTheme 00000001 00000008 )
+   D0:  		Thread
+   D8:  			Loop
+   E4:  				Wait  1`
+   F0:  				If  *GB_StoryProgress  >=  .Story:Ch6_StarSpritDeparted % 3B
+  100:  					BreakLoop
+  108:  				EndIf
+  110:  			EndLoop
+  118:  			Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsSunny 00000000 00000008 )
+  134:  		EndThread
+  13C:  	Case  ==  0000000B
+  148:  		Call  FadeInMusic   ( 00000000 .Song:FlowerFieldsSunny 00000000 00000BB8 00000000 0000007F )
+  16C:  	Default
+  174:  		Switch  *GB_StoryProgress
+  180:  			Case  <  .Story:Ch6_DestroyedPuffPuffMachine % 35
+  18C:  				Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsCloudy 00000000 00000008 )
+  1A8:  			Default
+  1B0:  				Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsSunny 00000000 00000008 )
+  1CC:  		EndSwitch
+  1D4:  EndSwitch
+  1DC:  Return
+  1E4:  End
+}
+
+
+
+@   $Script_802477EC
+{
+    0:  If  *AreaFlag[02C]  ==  .False
+   10:  	Call  DisablePlayerInput    ( .True )
+   20:  	Call  802D2B6C ( )
+   2C:  	Wait  15`
+   38:  	Call  DisablePartnerAI  ( 00000000 )
+   48:  	Set   *AreaFlag[02C]  .True
+   58:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o261 7FFFFE00 )
+   70:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o351 7FFFFE00 )
+   88:  	Set   *Var9  *Fixed[-59.0]
+   98:  	Set   *VarA  *Fixed[22.0]
+   A8:  	Set   *VarB  *Fixed[125.0]
+   B8:  	Set   *VarC  *Fixed[-55.0]
+   C8:  	Set   *VarD  *Fixed[24.0]
+   D8:  	Set   *VarE  *Fixed[145.0]
+   E8:  	Call  PlayerMoveTo      ( *Var9 *VarB  8` )
+  100:  	Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.0] )
+  114:  	Call  NpcJump0  ( .Npc:Partner *VarC *VarD *VarE  5` )
+  134:  	Call  PlaySound ( 0000019C )
+  144:  	Call  SetMusicTrack     ( 00000000 .Song:MagicBeanstalk 00000000 00000008 )
+  160:  	Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+  174:  	Call  SetPlayerAnimation    ( .PlayerAnim:Walking )
+  184:  	Call  $Function_80240F10    ( *Var3 *Var4 )
+  198:  	Switch  *Var4
+  1A4:  		Case  <  0000005A
+  1B0:  			Set   *AreaFlag[010]  .False
+  1C0:  			Call  InterpPlayerYaw   (  90`  0` )
+  1D4:  			Call  InterpNpcYaw      ( .Npc:Partner  90`  0` )
+  1EC:  		Case  >=  0000010E
+  1F8:  			Set   *AreaFlag[010]  .True
+  208:  			Call  InterpPlayerYaw   (  270`  0` )
+  21C:  			Call  InterpNpcYaw      ( .Npc:Partner  270`  0` )
+  234:  	EndSwitch
+  23C:  	Call  TranslateModel    ( ~Model:o142 *Fixed[-0.26] *Fixed[2.0] *Fixed[1.4775391] )
+  258:  	Call  UpdateColliderTransform   ( ~Collider:o240 )
+  268:  	Set   *MapVar[A]  00000000
+  278:  	Thread
+  280:  		Set   *VarF  00000000
+  290:  		Loop
+  29C:  			Add   *VarF  00000001
+  2AC:  			Call  $Function_802411EC    ( *VarF *Var0 00000000 000002BC 00000320 00000000 00000000 )
+  2D4:  			Exec  $Script_80247770
+  2E0:  			SetF  *Var2  *Var0
+  2F0:  			MulF  *Var2  *Fixed[-3.0]
+  300:  			SetF  *Var3  *Var0
+  310:  			Call  $Function_80240F80 ( )
+  31C:  			Call  $Function_802410B4 ( )
+  328:  			If  *VarF  ==  0000015E
+  338:  				Set   *MapVar[A]  00000001
+  348:  			EndIf
+  350:  			Wait  1`
+  35C:  		EndLoop
+  364:  	EndThread
+  36C:  	Label  A
+  378:  	If  *MapVar[A]  ==  00000000
+  388:  		Wait  1`
+  394:  		Goto  A
+  3A0:  	EndIf
+  3A8:  	Call  GotoMap   ( $ASCII_80249378 00000003 ) % flo_19
+  3BC:  	Wait  100`
+  3C8:  EndIf
+  3D0:  Return
+  3D8:  End
+}

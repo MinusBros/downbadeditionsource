@@ -9,7 +9,7 @@
 % stats
 [Index]        6Cb 
 [Level]        42`b 
-[MaxHP]        20`b 
+[MaxHP]        21`b 
 [Coins]         4`b 
 [Flags]       00000000
 [StatusTable] $StatusTable_BulkyBobomb
@@ -38,45 +38,6 @@
 
 #new:IdleAnimations $IdleAnimations_BulkyBobomb_1 {
 .Status:Normal    00EB0001
-.Status:Frozen    00EB0000
-.Status:Sleep     00EB0015
-.Status:Poison    00EB0001
-.Status:Stop      00EB0000
-.Status:Static    00EB0000
-.Status:Paralyze  00EB0000
-.Status:Dizzy     00EB0015
-.Status:Fear      00EB0000
-.Status:End
-}
-
-#new:IdleAnimations $IdleAnimations_BulkyBobomb_2 {
-.Status:Normal    00EB0002
-.Status:Frozen    00EB0000
-.Status:Sleep     00EB0015
-.Status:Poison    00EB0001
-.Status:Stop      00EB0000
-.Status:Static    00EB0000
-.Status:Paralyze  00EB0000
-.Status:Dizzy     00EB0015
-.Status:Fear      00EB0000
-.Status:End
-}
-
-#new:IdleAnimations $IdleAnimations_BulkyBobomb_3 {
-.Status:Normal    00EB0003
-.Status:Frozen    00EB0000
-.Status:Sleep     00EB0015
-.Status:Poison    00EB0001
-.Status:Stop      00EB0000
-.Status:Static    00EB0000
-.Status:Paralyze  00EB0000
-.Status:Dizzy     00EB0015
-.Status:Fear      00EB0000
-.Status:End
-}
-
-#new:IdleAnimations $IdleAnimations_BulkyBobomb_4 {
-.Status:Normal    00EB0004
 .Status:Frozen    00EB0000
 .Status:Sleep     00EB0015
 .Status:Poison    00EB0001
@@ -133,6 +94,7 @@
     Call    BindTakeTurn  ( .Actor:Self $Script_TakeTurn_BulkyBobomb )
     Call    BindHandleEvent   ( .Actor:Self $Script_HandleEvent_BulkyBobomb )
     Call    BindIdle ( .Actor:Self $Script_Idle_BulkyBobomb )
+	Call    SetActorVar ( .Actor:Self 00000000 00000000 )
     Return
     End
 }
@@ -143,72 +105,7 @@
 	Call    EnableIdleScript ( .Actor:Self 0 )
     Call    GetActorVar ( .Actor:Self 00000000 *Var0 )
     Switch *Var0
-        Case == 0 % light fuse
-            Call    SetAnimation ( .Actor:Self 00000001 00EB0006 )
-            Call    PlaySoundAtActor ( .Actor:Self 20CC )
-            Wait    12`
-            Call    SetAnimation ( .Actor:Self 00000001 00EB0002 )
-            Call    PlaySound ( 0287 )
-            Wait    6`
-            Call    StopSound ( 0287 )
-            Wait    10`
-            Call    SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_BulkyBobomb_2 )
-            Call    SetActorVar ( .Actor:Self 00000000 00000001 )
-			ExecWait  $Script_TakeTurn_BulkyBobomb
-        Case == 1 % defense boost
-			/%
-            Call    SetAnimation ( .Actor:Self 00000001 00EB0009 )
-            Wait    15`
-            Call    SetAnimation ( .Actor:Self 00000001 00EB0007 )
-            Call    PlaySoundAtActor ( .Actor:Self 20CC )
-            Wait    15`
-            % Show blue arrow
-            Call    GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
-            Add     *Var0  15` % x
-            Add     *Var1  35` % y
-            Set     *VarF  6 % z
-            Call    PlayEffect    ( ~FX:StatChange:DefensePlus1 *Var0 *Var1 *Var2 *Fixed[1.5] 60` .False .False .False .False .False .False .False )
-            % set arrowFx's number
-            Call    $ReadAddress ( $Data_LastFX 2 *Var0 C .True  )
-            Call    $WriteAddress ( *Var0 2 3 20 .False  ) % set amount inside the arrow
-            % show wave fx
-            Call    GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
-            Add     *Var1 15` % y
-            Add     *Var2 2 % z
-            Call    PlayEffect ( ~FX:Debuff:Blue *Var0 *Var1 *Var2 .False .False .False .False .False .False .False .False .False )
-            % sfx
-            Call    PlaySoundAtActor ( .Actor:Self 208F ) % Charging
-            % end
-			%/
-            Wait    10`
-            Call    SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_BulkyBobomb_3 )
-            Call    SetActorVar ( .Actor:Self 00000000 00000002 )
-			ExecWait  $Script_TakeTurn_BulkyBobomb
-        Case == 2 % attack boost
-            Call    SetAnimation ( .Actor:Self 00000001 00EB000A )
-            Wait    5`
-            Call    SetAnimation ( .Actor:Self 00000001 00EB0008 )
-            Call    PlaySoundAtActor ( .Actor:Self 20CC )
-            Wait    5`
-            % Show red arrow
-            Call    GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
-            Add     *Var0  15` % x
-            Add     *Var1  35` % y
-            Set     *VarF  6 % z
-            Call    PlayEffect    ( ~FX:StatChange:AttackPlus1 *Var0 *Var1 *Var2 *Fixed[1.5] 60` .False .False .False .False .False .False .False )
-            % show wave fx
-            Call    GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
-            Add     *Var1 15` % y
-            Add     *Var2 2 % z
-            Call    802712A0 % ShowDebuffFX_Yellow, reads var0/1/2 > FXpos
-            % sfx
-            Call    PlaySoundAtActor ( .Actor:Self 208E ) % pipe
-            % end
-            Wait    10`
-            Call    SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_BulkyBobomb_4 )
-            Call    SetActorVar ( .Actor:Self 00000000 00000003 )
-			ExecWait  $Script_TakeTurn_BulkyBobomb
-        Case == 3 % charge
+        Case == 0 % charge
             Call    SetAnimation ( .Actor:Self 00000001 00EB000B )
             Wait    5`
             Call    SetAnimation ( .Actor:Self 00000001 00EB0017 )
@@ -230,8 +127,8 @@
             EndIf
             Wait    14`
             Call    SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_BulkyBobomb_5 )
-            Call    SetActorVar ( .Actor:Self 00000000 00000004 )
-        Case == 4 % explode
+            Call    SetActorVar ( .Actor:Self 00000000 00000001 )
+        Case == 1 % explode
             Call    SetAnimation ( .Actor:Self 00000001 00EB000C )
             Wait    10`
             ExecWait $Script_ExplosionFX
@@ -264,7 +161,7 @@
                 Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
             EndIf
         Default
-            Call    EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense|Blast 00000000 00000000 0000000C 00000020 )
+            Call    EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense|Blast 00000000 00000000 15` 00000020 )
             Wait    2
         EndCaseGroup
     EndSwitch
@@ -288,7 +185,7 @@
                 Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
             EndIf
         Default
-            Call    EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense|Blast 00000000 00000000 0000000C 00000020 )
+            Call    EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|IgnoreDefense|Blast 00000000 00000000 15` 00000020 )
             Wait    2
         EndCaseGroup
     EndSwitch
@@ -338,12 +235,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoNormalHit
@@ -364,18 +255,12 @@
                 Return
             Else
                 SetConst  *Var0  00000001 
-                Switch *VarA
-                    Case == 0
-                        SetConst  *Var1  00EB000D
-                    Case == 1
-                        SetConst  *Var1  00EB000E
-                    Case == 2
-                        SetConst  *Var1  00EB000F
-                    Case == 3
-                        SetConst  *Var1  00EB0010
-                    Case == 4
-                        SetConst  *Var1  00EB0011
-                EndSwitch
+    		Switch *VarA
+                Case == 0
+                    SetConst  *Var1  00EB000D
+                Case == 1
+                    SetConst  *Var1  00EB0011
+            EndSwitch
                 ExecWait  DoNormalHit
             EndIf
     	EndCaseGroup
@@ -400,12 +285,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoSpinSmashHit
@@ -415,12 +294,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoSpinSmashHit 
@@ -429,12 +302,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoDeath 
@@ -445,12 +312,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoShockHit 
@@ -459,12 +320,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoJumpBack 
@@ -485,12 +340,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoShockHit 
@@ -499,12 +348,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoDeath 
@@ -534,33 +377,21 @@
                 Return
             Else
                 SetConst  *Var0  00000001 
-                Switch *VarA
-                    Case == 0
-                        SetConst  *Var1  00EB000D
-                    Case == 1
-                        SetConst  *Var1  00EB000E
-                    Case == 2
-                        SetConst  *Var1  00EB000F
-                    Case == 3
-                        SetConst  *Var1  00EB0010
-                    Case == 4
-                        SetConst  *Var1  00EB0011
-                EndSwitch
+    		Switch *VarA
+                Case == 0
+                    SetConst  *Var1  00EB000D
+                Case == 1
+                    SetConst  *Var1  00EB0011
+            EndSwitch
                 ExecWait  DoNormalHit 
                 Wait  10`
                 SetConst  *Var0  00000001 
-                Switch *VarA
-                    Case == 0
-                        SetConst  *Var1  00EB000D
-                    Case == 1
-                        SetConst  *Var1  00EB000E
-                    Case == 2
-                        SetConst  *Var1  00EB000F
-                    Case == 3
-                        SetConst  *Var1  00EB0010
-                    Case == 4
-                        SetConst  *Var1  00EB0011
-                EndSwitch
+    		Switch *VarA
+                Case == 0
+                    SetConst  *Var1  00EB000D
+                Case == 1
+                    SetConst  *Var1  00EB0011
+            EndSwitch
                 ExecWait  DoDeath 
                 Return
             EndIf
@@ -586,15 +417,9 @@
     		SetConst  *Var1  00EB0013
     		Switch *VarA
                 Case == 0
-                    SetConst  *Var2  00EB000D
+                    SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var2  00EB000E
-                Case == 2
-                    SetConst  *Var2  00EB000F
-                Case == 3
-                    SetConst  *Var2  00EB0010
-                Case == 4
-                    SetConst  *Var2  00EB0011
+                    SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoScareAway 
     		Return
@@ -604,12 +429,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoAirLift 
@@ -619,12 +438,6 @@
                 Case == 0
                     SetConst  *Var1  00EB000D
                 Case == 1
-                    SetConst  *Var1  00EB000E
-                Case == 2
-                    SetConst  *Var1  00EB000F
-                Case == 3
-                    SetConst  *Var1  00EB0010
-                Case == 4
                     SetConst  *Var1  00EB0011
             EndSwitch
     		ExecWait  DoBlowAway 
@@ -647,7 +460,7 @@
         Goto  A
     EndIf
     Call    GetActorVar ( .Actor:Self 00000000 *Var0 )
-    If *Var0 != 4 % about to explode
+    If *Var0 != 1 % about to explode
         Wait    1
         Goto    A
     EndIf

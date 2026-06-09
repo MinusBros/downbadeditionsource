@@ -60,9 +60,10 @@
    4C:  EndIf
    54:  If  *Var0  <  FFFFFDA8
    64:  	Goto  0
-   70:  EndIf
+   70:  EndIf	
    78:  Call  DisablePlayerInput        ( .True )
    88:  Call  ShowMessageAtScreenPos    ( 000D000E  320`  150` ) % Ah... No... Confound it! Where could it be...?
+		Call  PushSong  ( .Song:FlowerGateAppears 1` ) %Parakarius's theme
    A0:  Thread
    A8:  	Call  SetPlayerAnimation    ( 0001002A )
    B8:  	Call  PlaySoundAtPlayer     ( 00000263 00000000 )
@@ -214,6 +215,7 @@
 				Wait  10`
 		EndIf
   9F0:  Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0011 ) % The name's Parakarry. I deliver letters. Um... I'm ...
+		Call  PopSong ( )
   A10:  Set   *GB_StoryProgress  .Story:Ch2_SpokeWithParakarry
   A20:  Call  ResetCam      ( .Cam:Default *Fixed[3.0] )
   A34:  Call  DisablePlayerPhysics  ( .False )
@@ -221,6 +223,110 @@
   A54:  Call  BindNpcAI     ( .NpcID:WorldParakarry_04 $Script_Idle_802474F8 )
   A68:  Return
   A70:  End
+}
+
+
+@	$Script_Interact_80246E90
+{
+    0:  Set   *Flag[00]  .False
+   10:  If  *GB_IWA10_ReturnedLetterCount  ==  00000002
+   20:  	Set   *Var0  00000000
+   30:  	If  *GF_IWA01_Item_Letter01  ==  .True
+   40:  		Add   *Var0  00000001
+   50:  	EndIf
+   58:  	If  *GF_IWA03_Item_Letter25  ==  .True
+   68:  		Add   *Var0  00000001
+   78:  	EndIf
+   80:  	If  *GF_IWA04_Item_Letter10  ==  .True
+   90:  		Add   *Var0  00000001
+   A0:  	EndIf
+   A8:  	If  *Var0  ==  00000003
+   B8:  		Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+   D0:  		Call  GetNpcPos     ( .NpcID:WorldParakarry_04 *Var4 *Var5 *Var6 )
+   EC:  		If  *Var1  <  *Var4
+   FC:  			Add   *Var4  FFFFFFE2
+  10C:  		Else
+  114:  			Add   *Var4  0000001E
+  124:  		EndIf
+  12C:  		Call  PlayerMoveTo  ( *Var4 *Var6  10` )
+  144:  		Call  PlayerFaceNpc ( .NpcID:WorldParakarry_04 .False )
+  158:  		Wait  3`
+  164:  		Call  802CF56C      ( 00000002 )
+  174:  		Call  AdjustCam     ( .Cam:Default *Fixed[4.0] *Fixed[0.0] *Fixed[300.0] *Fixed[17.5] *Fixed[-10.0] )
+  198:  	EndIf
+  1A0:  EndIf
+  1A8:  Set   *Var0  $???_80246E80
+  1B8:  Set   *Var1  00000004
+  1C8:  ExecWait  $Script_802463B8
+  1D4:  Switch  *Var0
+  1E0:  	Case  ==  00000000
+  1EC:  		Switch  *GB_IWA10_ReturnedLetterCount
+  1F8:  			Case  ==  00000000
+  204:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0012 ) % If you find a letter lying around somewhere, could ...
+  224:  			Case  ==  00000001
+  230:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0015 ) % I'm still looking for those two missing letters... ...
+  250:  			Case  ==  00000002
+  25C:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0017 ) % One more letter... Please, I really need it! I'll  ...
+  27C:  			Case  ==  00000003
+  288:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D001C ) % Hello again! You changed your mind? Can I go with  ...
+  2A8:  				Call  ShowChoice    ( 001E000F ) % Take Don't take
+  2B8:  				If  *Var0  !=  00000000
+  2C8:  					Call  ContinueSpeech    ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D001B ) % Oh... I understand. I suppose I'm asking too much. ...
+  2E8:  					Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  2FC:  					Return
+  304:  				EndIf
+  30C:  				Set   *Flag[00]  .True
+  31C:  		EndSwitch
+  324:  	Case  ==  FFFFFFFF
+  330:  		Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0013 ) % Uh...? That... looks like the letter I'm looking f ...
+  350:  	Default
+  358:  		Call  RemoveKeyItemAt   ( *Var0 )
+  368:  		Add   *GB_IWA10_ReturnedLetterCount  00000001
+  378:  		Switch  *GB_IWA10_ReturnedLetterCount
+  384:  			Case  ==  00000001
+  390:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0014 ) % Oh! That's the one! Aw, thanks for finding it! I'm ...
+  3B0:  			Case  ==  00000002
+  3BC:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0016 ) % Oh! There we go! That's one of the ones I dropped  ...
+  3DC:  			Case  ==  00000003
+  3E8:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040007 00040001 00000000 000D0018 ) % The last letter! You found it! Now I've got all th ...
+  408:  				Call  SetPlayerAnimation    ( .PlayerAnim:Question )
+  418:  				Wait  28`
+  424:  				Call  SetPlayerAnimation    ( 00010002 )
+  434:  				Call  SpeakToPlayer ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D0019 ) % Actually... To be honest... I haven't just lost le ...
+  454:  				Call  ShowChoice    ( 001E000F ) % Take Don't take
+  464:  				If  *Var0  !=  00000000
+  474:  					Call  ContinueSpeech    ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D001A ) % I see. May I ask why not? Please, Mario, I'm in a  ...
+  494:  					Call  ShowChoice        ( 001E000F ) % Take Don't take
+  4A4:  					If  *Var0  !=  00000000
+  4B4:  						Call  ContinueSpeech    ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D001B ) % Oh... I understand. I suppose I'm asking too much. ...
+  4D4:  						Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  4E8:  						Return
+  4F0:  					EndIf
+  4F8:  				EndIf
+  500:  				Set   *Flag[00]  .True
+  510:  		EndSwitch
+  518:  EndSwitch
+  520:  If  *Flag[00]  ==  .True
+  530:  	Call  DisablePartnerAI  ( 00000000 )
+  540:  	Call  ContinueSpeech    ( .NpcID:WorldParakarry_04 00040006 00040001 00000000 000D001D ) % Oh, praise the Stars! I wasn't looking forward to  ...
+  560:  	Call  $Function_80241030        ( 00000004 00000004 )
+  574:  	Set   *GB_StoryProgress  .Story:Ch2_ParakarryJoinedParty
+  584:  	Call  $Function_80241510 ( )
+  590:  	Exec  $Script_8024187C
+  59C:  	Wait  5`
+  5A8:  	Call  ShowMessageAtScreenPos    ( 001D018C  160`  40` ) % Parakarry joined your party!! Press to have him ca ...
+  5C0:  	Exec  $Script_802418B0
+  5CC:  	Wait  5`
+  5D8:  	Call  SpeakToPlayer     ( .Npc:Partner 00040006 00040001 00000000 000D001E ) % Now! Onward! Oh, but hey... By the way, if you wan ...
+  5F8:  	Call  AddKeyItem        ( .Item:Letter01 )
+  608:  	Call  AddKeyItem        ( .Item:Letter25 )
+  618:  	Call  AddKeyItem        ( .Item:Letter10 )
+  628:  EndIf
+  630:  Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+  644:  Call  EnablePartnerAI ( )
+  650:  Return
+  658:  Return
+  660:  End
 }
 
 %==================

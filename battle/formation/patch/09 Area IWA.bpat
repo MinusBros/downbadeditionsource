@@ -52,9 +52,13 @@
 
 @	$DefenseTable_80218710
 {
-	.Element:Normal 00000004
-	.Element:Fire   00000063
-	.Element:Magic  00000000
+	.Element:Normal 4`
+	.Element:Water  0`
+	.Element:Ice    1`
+	.Element:Blast  2`
+	.Element:Fire  99`
+	.Element:Magic  5`
+	.Element:Cosmic 5`
 	.Element:End
 }
 
@@ -206,10 +210,18 @@
 
 @	$DefenseTable_8021B650
 {
-	.Element:Normal 00000000
-	.Element:Hammer FFFFFFFF
-    .Element:Jump   00000000
-	.Element:Throw  FFFFFFFD
+	.Element:Normal  0`
+	.Element:Hammer -1`
+	.Element:Fire    2`
+	.Element:Ice    -1`
+	.Element:Water  -2`
+	.Element:Shock  99`  %Cuz they're underground
+	.Element:Blast  -1`
+	.Element:Cosmic  2`
+	.Element:Magic  -1`
+    .Element:Jump    0`
+	.Element:Throw  -2`
+	.Element:Quake  99`
 	.Element:End
 }
 
@@ -275,10 +287,13 @@
   42C:  Call  SetPartMoveSpeed  ( .Actor:Self 00000003 *Fixed[24.0] )
   444:  Call  SetPartJumpGravity    ( .Actor:Self 00000003 *Fixed[0.2] )
   45C:  Call  SetAnimation      ( .Actor:Self 00000003 002F000F )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   474:  Call  FlyPartTo ( .Actor:Self 00000003 *Var0 *Var1 *Var2  0`  20` .Easing:Linear )
   4A0:  Wait  2`
   4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000003 00000020 )
+		Call  YieldTurn ( )
   4D4:  Switch  *Var0
   4E0:  	CaseOR  ==  .HitResult:Hit % 0
   4EC:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -339,8 +354,21 @@
 
 @	$Buzzar
 {
-	[Level]        52`b
+	[Level]        57`b
 	[MaxHP]        58`b
+}
+
+@	$DefenseTable_8021B650
+{
+	.Element:Normal  0`
+	.Element:Fire    3`
+	.Element:Water   1`
+	.Element:Ice    -1`
+	.Element:Shock  -1`
+	.Element:Magic   1`
+	.Element:Cosmic  1`
+	.Element:Throw  -1`
+	.Element:End
 }
 
 
@@ -429,6 +457,7 @@
 @	$Script_8021CCE8
 {
    [9C]  Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] )
+  [1BC]  Call  FlyToGoal     ( .Actor:Self  0`  -9` .Easing:CosInOut )
   [304]  Wait  8`
   [3A4]  Wait  5`
   [438]  	Wait  10`
@@ -439,11 +468,19 @@
   [5CC]  Call  SetPartJumpGravity    ( .Actor:Self 00000004 *Fixed[0.1] )
   [5E4]  Call  SetPartMoveSpeed  ( .Actor:Self 00000005 *Fixed[10.0] )
   [5FC]  Call  SetPartJumpGravity    ( .Actor:Self 00000005 *Fixed[0.1] )
-  [B54]  Wait  1`
+  [C2C]  			Call  JumpPartTo        ( .Actor:Self 00000004 *Var0 *Var1 *Var2  3` .True )
   [C74]  			Wait  5`
+  [D6C]  			Call  JumpPartTo        ( .Actor:Self 00000005 *Var0 *Var1 *Var2  5` .True )
   [DB4]  			Wait  8`
+  [EAC]  			Call  JumpPartTo        ( .Actor:Self 00000003 *Var0 *Var1 *Var2  7` .True )
   [EF4]  			Wait  8`
-  [F6C]  		Wait  14`
+  [F6C]  		Wait  10`
+}
+
+
+@	$Script_8021DCB8
+{
+  [248]  Call  FlyToGoal     ( .Actor:Self  90`  0` .Easing:Linear )
 }
 
 %Ram Attack%
@@ -451,10 +488,13 @@
 @	$Script_8021F030
 {
    [94]  Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] )
+  [1B4]  Call  FlyToGoal ( .Actor:Self  0`  -7` .Easing:CosInOut )
   [228]  		Wait  5`
   [248]  		Call  SetActorSpeed ( .Actor:Self *Fixed[10.0] )
   [428]  Wait  6`
   [448]  Call  SetActorSpeed ( .Actor:Self *Fixed[16.0] )
+  [4A8]  Call  JumpToGoal    ( .Actor:Self  3` .False .True .False )
+  [550]  Call  FlyToGoal     ( .Actor:Self  4`  0` .Easing:Linear )
   [6F8]  		Call  SetActorSpeed     ( .Actor:Self *Fixed[20.0] )
   [740]  		Wait  6`
 }
@@ -552,6 +592,38 @@
 @	$Formation_0D
 {
 	$Whacka 00000002 0000000A 00000000 00000000 00000000 00000000
+	$WhackaRocks $Vector3D_Rocks 00000009 0 0 0 0
+}
+
+#new:Vector3D $Vector3D_Rocks
+{
+	90` -270` 0`
+}
+
+#new:Formation $Formation_0E
+{
+	$MontyMole $PitPos1 0000000A 00000000 00000000 00000000 00000000
+	$MontyMole $PitPos2 00000009 00000000 00000000 00000000 00000000
+	$Cleft   $PitPos3 00000008 00000000 00000000 00000000 00000000
+	$Cleft $PitPos4 00000007 00000000 00000000 00000000 00000000
+	$MontyMole $PitPos5 00000006 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_0F
+{
+	$Cleft 			0 0000000A 00000000 00000000 00000000 00000000
+	$BombshellKoopa 1 00000009 00000000 00000000 00000000 00000000
+	$SuperParagoomba 6 00000008 00000000 00000000 00000000 00000000
+	$SuperParagoomba 7 00000007 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_10
+{
+	$SuperParagoomba $PitPos6 0000000A 00000000 00000000 00000000 00000000
+	$MontyMole $PitPos2 00000009 00000000 00000000 00000000 00000000
+	$MontyMole $PitPos3 00000008 00000000 00000000 00000000 00000000
+	$MontyMole $PitPos4 00000007 00000000 00000000 00000000 00000000
+	$Cleft    $PitPos5 00000006 00000000 00000000 00000000 00000000
 }
 
 @	$FormationTable
@@ -569,6 +641,20 @@
 	$SJIS_8022226C 00000003 $Formation_0A $Stage_802208B0 00000000
 	$SJIS_80222248 00000003 $Formation_0B $Stage_802208B0 00000000
 	$SJIS_8022223C 00000003 $Formation_0C $Stage_802215CC 00000000
-	$SJIS_80222230 00000001 $Formation_0D $Stage_802215CC 00000000
+	$SJIS_80222230 00000002 $Formation_0D $Stage_802215CC 00000000
+	%Pit loadouts
+	0 5 $Formation_0E $Stage_Pit 0
+	0 4 $Formation_0F $Stage_Pit 0
+	0 5 $Formation_10 $Stage_Pit 0
 	00000000 00000000 00000000 00000000 00000000
+}
+
+
+@	$StageTable
+{
+	$ASCII_8022234C $Stage_802208B0
+	$ASCII_80222344 $Stage_80221560
+	$ASCII_8022233C $Stage_802215CC
+	00000000 $Stage_Pit
+	00000000 00000000
 }

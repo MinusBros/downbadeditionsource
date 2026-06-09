@@ -2,7 +2,7 @@
 #new:Header $Header
 {
 00000000 00000000 00000000 00000000 
-$Script_Main $EntryList 00000004 00000000 
+$Script_Main $EntryList 00000005 00000000 
 00000000 00000000 00000000 00000000 
 00000000 00000000 80200000 $Function_GetTattle 
 }
@@ -66,13 +66,17 @@ TMI?[Pause 10] [Wave]Oops.[Pause 10] Sorry not sorry.[/fx][BR]
 ~Vec4f:Entry1 %  coordinates
 ~Vec4f:Entry2 %  coordinates
 ~Vec4f:Entry3 %  coordinates
+~Vec4f:Entry4
 }
 	
 	
 #import AutoSave.mpat
+#import EnterViaPipe.mpat
 	
 #new:Script_Main $Script_Main
 {
+		Set *Var0 .False
+		Set     *Byte_Settings_BGM *Var0
 	Set     *GB_WorldLocation  .Location:PeachCastleGrounds %Yokubou no Naizou
 	Call  SetSpriteShading  ( .Shading:mim_05 )
 	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
@@ -80,6 +84,7 @@ TMI?[Pause 10] [Wave]Oops.[Pause 10] Sorry not sorry.[/fx][BR]
 	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
 	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
 	Call     SetMusicTrack    	( 00000000 .Song:Alone 00000000 00000008 )
+	ExecWait  $MakeEntities
 	If  *GF_DNJ19_Gate  ==  00000001
 		Call     ModifyColliderFlags 	( 00000000 ~Collider:barsdown 7FFFFE00 )
 		Set *Var[2] -1000`
@@ -90,16 +95,52 @@ TMI?[Pause 10] [Wave]Oops.[Pause 10] Sorry not sorry.[/fx][BR]
 	EndIf
 	Bind     $Script_TalkLeft  .Trigger:WallPressA ~Collider:talkeyeleft  00000001 00000000 
 	Bind     $Script_TalkRight  .Trigger:WallPressA ~Collider:talkeyeright  00000001 00000000 
+	If   *YokubouBluePipeA == .False
+		Exec   $CheckBluePipe
+	EndIf
+	Call  GetEntryID    ( *Var0 )
+	If   *Var0 !=	~Entry:Entry4
 		Set		*Var[0] $Script_MakeExits 
 		Exec	EnterWalk 
 		Wait	1
 		Exec  $AutoSave
+	Else
+		Set   *VarA  $Script_MakeExits 
+		Exec  $Script_EnterVerticalPipe		
+		Wait  1`
+	EndIf
 	Return
 	End
 }
 
 
+#new:Script $CheckBluePipe
+{
+	Loop
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		If  *Var0 > 295`
+			BreakLoop
+		EndIf
+		Wait  1`
+	EndLoop
+	If   *YokubouBluePipeA == .False
+		Thread
+			Call  PlaySound ( 0000208E )
+			Set  *YokubouBluePipeA .True
+			Set  *AreaFlag[003] .True
+		EndThread
+	EndIf
+	Return
+	End
+}
 
+
+#new:Script  $MakeEntities
+{
+	Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry4 $Script_UseBluePipe ~Index:*YokubouBluePipeA 80000000 )
+	Return
+	End
+}
 
 	
 #new:Script $Script_TalkLeft
@@ -122,59 +163,94 @@ End
 
 #string $LeftString
 {
-[DelayOff][Style Inspect]
-* THE STUDY OF LUST ENDED UP[BR]
-  BEING A LOST CAUSE, ONCE[BR]
-  THE CHINESE REPUBLIC[BR]
-  DISCOVERED THE LOVE DEITIES[BR]
-[Wait][Next]
+[DelayOff][Style Upgrade pos=30,25 size=255,188]
+* THE STUDY OF LUST ENDED[BR]
+  UP BEING A LOST CAUSE,[BR]
+  ONCE THE CHINESE REPUBLIC[BR]
+  DISCOVERED THE EXISTENCE[BR]
+  OF THE LOVE DEITIES.[BR]
 * UNPREDICTABLE AT FIRST,[BR]
   COULD THESE BEINGS REALLY[BR]
-  BE ALLOWED TO CLAIM THE TITLE[BR]
-  OF DEITY?[BR]
+  BE ALLOWED TO CLAIM THE [BR]
+  TITLE OF DEITY?[BR]
 [WAIT][NEXT]
-* MASUTA-SANS WISHES ENDED[BR]
-  UP BEING TWISTED BY THE[BR]
-  LOVE DEITIES.[BR]
+* MASUTA-SAN'S WISHES [BR]
+  ENDED UP BEING TWISTED BY[BR]
+  THE LOVE DEITIES.[BR]
 * THEY HAD TO BE CALMED.[BR]
-[WAIT][NEXT]
-* HIS HEART YEARNED FOR LOVE[BR]
-  TO BE UNDERSTOOD, BUT IT[BR]
-  ULTIMATELY WAS HARDER TO[BR]
-  FATHOM THAN BEFORE.[BR]
+* HIS HEART YEARNED FOR[BR]
+  LOVE TO BE UNDERSTOOD,[BR]
+  BUT IT WAS ULTIMATELY[BR]
+  HARDER TO FATHOM THAN [BR]
+  BEFORE.[BR]
 [WAIT][NEXT]
 * YEARS WENT BY AND THE[BR]
   FIRST LOVE DEITY KNOWN AS[BR]
   ELDSTAR WAS ABLE TO CALM[BR]
   HIMSELF ON HIS OWN.[BR]
-[WAIT][NEXT]
 * THE LOVE DEITIES AREN'T[BR]
   JUST TOOLS FOR RESEARCH.[BR]
-* UNLIKE THE ROD OF LUST, THEY[BR]
-  HAD A SOUL.[BR]
+* UNLIKE THE ROD OF LUST,[BR]
+  THEY HAD A SOUL.[BR]
+* THIS DIFFERENCE IS WHAT[BR]
+  SET APART MASUTA-SAN[BR]
+  FROM XINGYU'S RESEARCH.[BR]
 [WAIT][NEXT]
-* THIS DIFFERENCE IS WHAT SET[BR]
-  APART MASUTA-SAN FROM [BR]
-  XINGYU'S RESEARCH.[BR]
-[WAIT][NEXT]
-* INEVITABLY, XINGYU'S JEALOUSY[BR]
-  WAS TAKEN TOO FAR.[BR]
-* HIS MIND WAS GONE AND BEGAN[BR]
-  OPPOSING ELDSTAR.[BR]
-[WAIT][NEXT]
-* WITH ROD IN HAND, MURMURED[BR]
+* INEVITABLY, XINGYU'S [BR]
+  JEALOUSY WAS TAKEN TOO [BR]
+  FAR.[BR]
+* HIS MIND WAS GONE AND[BR]
+  BEGAN OPPOSING ELDSTAR.[BR]
+* ROD IN HAND, HE MURMURED[BR]
    ITS TRUE NAME.[BR]
-* "YÙWÀNG."
+[Wait][Next][BR]
+
+* "YÙWÀNG."[BR]
 [DelayOn][Wait][End]
 }
 
 #string $RightString
 {
-[DelayOff][Style Inspect]
-YOU SHOULD WATCH YOUR STEP[BR]
-TO AVOID YOUR DOOM[BR]
-THE LEFT HOLDS THE KEY[BR]
-TO WIN THE SWITCH ROOM[BR]
+[DelayOff][Style Upgrade pos=30,25 size=255,188]
+*  THIS IS XINGYU.[BR]
+*  I'VE BEEN ATTACKED BY AN[BR]
+   UNKNOWN SPECTRE.[BR]
+*  IT'S SAYING IT'LL BRING[BR]
+   ABOUT A BRAND NEW ERA[BR]
+   FOR ALL MANKIND.[BR]
+*  IT MUST HAVE BEEN THAT[BR]
+   CURSED ROD...[BR]
+*  IF I NEVER BRANDISHED IT,[BR]
+   THIS TRAVESTY WOULD[BR]
+   NEVER HAVE OCCURED...[BR]
+[WAIT][NEXT]
+*  THE RESEARCH IS A BUST.[BR]
+*  EVERYONE BE ON YOUR[BR]
+   GUARD AND DO NOT BREAK[BR]
+   YOUR RESOLVES.[BR]
+*  ...........[BR]
+   IT'S GETTING CLOSER.[BR]
+*  I WON'T LET IT CONVERT ME.[BR]
+*  ACK! I... CAN'T MOVE...[BR]
+   MY BODY...[BR]
+*  WHAT IS THIS? PARALYSIS?[BR]
+[WAIT][NEXT]
+*  BEGONE, FIEND![BR]
+*  YOU SHOULD HAVE NEVER[BR]
+   BEEN CONCEIVED![BR]
+*  STAY BACK! [BR]
+   I'M WARNING YOU![BR]
+[WAIT]*  AAAAAAAAACK![BR]
+[Color:04]*  MWAAAHAHAHAHAAA![BR]
+   IT IS FINALLY TIME I REPAY[BR]
+   THE FAVOUR UPON MANKIND.[BR]
+*  YOUR OWN CURIOSITY LED[BR]
+   TO YOUR DOWNFALL![BR]
+[WAIT][NEXT]
+*  BE IN AWE OF THE ALMIGHTY[BR]
+   THE RESPLENDENT FUTURE[BR]
+   OF EVERY LIVING BEING.[BR]
+*  SUBMIT AND COME WITH!
 [DelayOn][Wait][End]
 }
 
@@ -232,4 +308,13 @@ End
 	Wait     00000064 
 	Return
 	End	
+}
+
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "kmr_37" 2 )
+	Wait     95` 
+	Return
+	End
 }

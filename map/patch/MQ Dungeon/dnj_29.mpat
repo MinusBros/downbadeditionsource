@@ -2,7 +2,7 @@
 #new:Header $Header
 {
 00000000 00000000 00000000 00000000 
-$Script_Main $EntryList 00000001 00000000 
+$Script_Main $EntryList 00000002 00000000 
 00000000 00000000 00000000 00000000 
 00000000 00000000 80200000 $Function_GetTattle 
 }
@@ -62,6 +62,7 @@ get laid.[BR]
 #new:EntryList $EntryList
 {
 ~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1
 }
 
 #define .Disastar *GameByte[061]
@@ -80,25 +81,17 @@ get laid.[BR]
 	EndIf
 	Exec  $Script_SetupTexturePan
 	Call     MakeNpcs           ( 00000001 $NpcGroupList_Disastar)
-	% you should only be able to refight the boss after entering the room again so we have to set a byte here
-	Set      .Disastar 	00000001
-	Bind     $Script_TalkEye  .Trigger:WallPressA ~Collider:talkeye  00000001 00000000 
 	Exec    $PriestCutscene
 	Call	GetLoadType 	( *Var[1] )
 	If		*Var[1] ==  00000001 
 		Exec	EnterSavePoint 
 		Exec	$Script_MakeExits
 	Else
-		Call  GetEntryID        ( *Var0 )
-		If  *Var0  ==  ~Entry:Entry0
-			Exec  $XinSuiDefeat
-		Else
 			Set		*Var[0] $Script_MakeExits 
 			Exec	EnterWalk
 			If  *CheckXinSui == .False
 				Exec    $AutoSaveCheck
 			EndIf
-		EndIf
 	Set		*Var[0] $Script_MakeExits 
 	EndIf
 	Return
@@ -122,54 +115,8 @@ get laid.[BR]
 	End
 }
 	
-	
-#new:Script $Script_TalkEye
-{
-Call	 DisablePlayerInput ( .True )
-If *GF_DNJ29_Disastar == 00000000
-Call     ShowMessageAtScreenPos     	( $FirstTimeString 000000A0 00000028 )
-	Thread
-		Call     PlaySoundAtCollider 	( ~Collider:talkeye 00000187 00000000 )
-		Call     ShakeCam    	( .Cam:Default 00000000 00000028 *Fixed[1.0] )
-		%Call     SetPlayerAnimation 	( 0001002A )
-		%Call     PlaySoundAtPlayer 	( 00000263 00000000 )
-		%Call     ShowEmote   	( 00000000 .Emote:Question 00000000 00000014 00000000 00000000 00000000 00000000 00000000 )
-		Wait 0000000A
-		Wait 00000002
-	EndThread
-	Wait 00000032
-	Call     ShowMessageAtScreenPos     	( $PriestMatte 000000A0 00000028 )
-	Set  *MapFlag[0] .True
-Set  *GF_DNJ29_Disastar  00000001 
-Return	
-Else
-	If      .Disastar  ==  00000001
-		Call     ShowMessageAtScreenPos     	( $Refight 000000A0 00000028 )
-		Call     ShowChoice		( 001E001D ) % yes / no
-		If	*Var[0]  ==  0
-			Set  *MapFlag[0] .True
-			Return	
-		EndIf
-	EndIf
-EndIf
-Call	 DisablePlayerInput ( .False )
-Return
-End
-}
 
-#string $FirstTimeString
-{
-[Style Inspect]
-NO MESSAGES (ENGLISH)
-[Wait][End]
-}
 
-#string $Refight
-{
-[Style Inspect]
-NO MESSAGES (ENGLISH)
-[Wait][End]
-}
 
 #string $PriestMatte
 {
@@ -215,20 +162,21 @@ NO MESSAGES (ENGLISH)
 		Wait  10`
 		Call  SetNpcPos ( .Npc:Priest  257`  110`  -470` )
 		Call  SetNpcAnimation   ( .Npc:Priest 00870406 )	
+				Call  SetCamType    ( .Cam:Default 00000001 .False )
 				Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
 				Sub   *Var0  80`
 				Sub   *Var1  25`
 				Call  UseSettingsFrom   ( .Cam:Default  *Var0 *Var1 *Var2 )
 				Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )	
-				Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
-				Call  SetCamDistance    ( .Cam:Default 300` )
-				Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+				Call  SetCamDistance    ( .Cam:Default 300` )	
+				Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )	
+				Call  PanToTarget       ( .Cam:Default 00000000 00000001 )				
 				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
 		Wait  2`
 		Thread
-			Wait  2`
+			Wait  4`
 	   A4:  Call  SetPanTarget      ( .Cam:Default -10` 140`  -602` )
-	   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[1.0] )
+	   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[1.2] )
 			Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
 			Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
 		EndThread
@@ -242,13 +190,14 @@ NO MESSAGES (ENGLISH)
 		EndThread
 		Thread
 			Call  DisablePartnerAI  ( 00000000 )
-			Call  NpcMoveTo ( .Npc:Partner -32`  -643`  15` )
+			Wait  1`
+			Call  NpcMoveTo ( .Npc:Partner -32`  -643`  13` )
 			Call  NpcMoveTo ( .Npc:Partner -30`  -643`  1` )
 			Call  SetNpcPos ( .Npc:Partner  -30` 140` -643` )
 		EndThread
 		Call  NpcJump1  ( .Npc:Priest  154`  140`  -600` 20` )
 		Call  SetNpcAnimation   ( .Npc:Priest 00870406 )
-		Call  NpcMoveTo ( .Npc:Priest  54` -602` 8` )
+		Call  NpcMoveTo ( .Npc:Priest  54` -602` 9` )
 		Call  SetNpcAnimation   ( .Npc:Priest 00870405 )
 		Wait  10`
 		Thread
@@ -379,8 +328,9 @@ NO MESSAGES (ENGLISH)
 				Thread
 			   70:  Call  GetNpcPos      ( .Npc:Priest *Var0 *Var1 *Var2 )
 					Sub   *Var0  50`
+					Add   *Var1  4`
 			   A4:  Call  SetPanTarget      ( .Cam:Default *Var0 *Var1 *Var2 )
-			   C0:  Call  SetCamDistance    ( .Cam:Default  170` )
+			   C0:  Call  SetCamDistance    ( .Cam:Default  164` )
 			   D4:  Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-6.0] )
 			   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[1.25] )
 			  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
@@ -402,19 +352,59 @@ NO MESSAGES (ENGLISH)
 		 11B4:  	Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[8.0] )
 		 11D0:  EndThread
 		 11D8:  Call  PlaySound ( 00002127 )
-		 1214:  Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 15` 213` -867` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )		
+		 1214:  Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 16` 213` -867` 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )		
 				Wait  10`
 				Call  SetNpcAnimation   ( .Npc:Priest 0087040E )
 				Call     PlaySoundAtCollider 	( ~Collider:talkeye 00000187 00000000 )
 				Call     ShakeCam    	( .Cam:Default 00000000 00000028 *Fixed[1.0] )
 				Wait 60`
 				Call  SpeakToPlayer    ( .Npc:Priest 00870415 00870415 00000000 $PriestSpeech2 )
+				Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-8.0] )
+				Call  SetCamDistance    ( .Cam:Default  440` )
 				Call  StopSound ( 00000187 )
-				Wait  10`
+				Call  PlaySound ( 0000018A )
+				Call  PlaySound ( 00000224 )
+				Wait  20`
+				Call  SetNpcAnimation   ( 0000000A 007E0207 )  %Xin Sui's ID is A cuz I'm too lazy to define it
+				Call  SetNpcPos ( 0000000A  0`  195`  -750` )  %Set Disastar's location
+				Call  PlayEffect    ( ~FX:BigSmokePuff 0`  215`  -750` 00000002 00000002 00000002 00000002 00000000 00000000 00000000 00000000 00000000 00000000 )
+				Wait  60`
+				Call  SetNpcAnimation   ( 0000000A 007E0201 )
+				Call  SpeakToPlayer    ( .Npc:Priest 00870415 00870415 00000000 $PriestSpeech5 )
+				Call  SpeakToNpc    ( 0000000A 007E0209 007E0202 00000200 .Npc:Priest $XinSuiDialogue )
+				Wait  5`
+				Call  SetNpcAnimation   ( 0000000A 007E0207 )
+				Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
+				Call  PlaySound ( 00002127 )
+				Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )	
+				Exec  $RotatePriesT
+				Wait  60`
+				Call  SetNpcAnimation   ( 0000000A 007E020E )
 				Set  *MapFlag[0] .True
 				Wait  1`
 				Return
 				End
+}
+
+
+
+#new:Script  $RotatePriesT
+{
+					Call  SetNpcAnimation   ( .Npc:Priest 00870409 )
+					Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
+					Add   *Var0  300`
+					Add   *Var1  200`
+					Thread
+						Call  NpcJump0      ( .Npc:Priest *Var0 *Var1 *Var2 35` )
+					EndThread
+   CC:  			Call  GetNpcYaw ( .Npc:Priest *Var0 )
+   E0:  			Loop  00000037
+   EC:  				Add   *Var0  00000016
+   FC:  				Call  SetNpcRotation    ( .Npc:Priest 00000000 00000000 *Var0 )
+  118:  				Wait  1`
+  124:  			EndLoop
+					Return
+					End
 }
 
 
@@ -431,7 +421,7 @@ NO MESSAGES (ENGLISH)
 {
 	Loop
 		If  *MapFlag[0]  ==  .True 
-		 	Call     StartBossBattle 	( .Song:SunTowerSunny )
+		 	Call     StartBossBattle 	( .Song:SunTowerSunny )  %NSMBW Final Boss Phase 2
 		EndIf
 		Wait     00000001 
 	EndLoop
@@ -464,8 +454,7 @@ NO MESSAGES (ENGLISH)
 00A40D01 $Script_Init_Disastar 00000000 00000000 00000000 
 ~NoItems ~NoHP ~NoFP ~NoCoinBonus
 ~Movement:disastar
-00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000 
-00950001 00950002 00950003 00950003 00950001 00950001 00950000 00950000
+~AnimationTable:disastar
 00000000 00000000 00000000 001A0122 % he has a tattle now!
 }
 
@@ -1167,6 +1156,28 @@ somethin' worse.
 [Wave]Fufufufu.....[/fx][BR][Down 5]
 [Pause 15][Right 64][SizeWave]Hmhmhmhm....[/fx][BR][Down 5]
 [Pause 20][Right 128][Shake][Yield]Hahahahahaha!!![/fx]
+[Wait][End]
+}
+
+#new:String $PriestSpeech5
+{
+[Style Right]
+[Wave]Fufufufu....[/fx] It's here![BR]
+[Pause 10]Now you understand the sacrifices[BR]
+we all had to take to ascend into[BR]
+this paradise![BR]
+[Wait][Next]
+[Pause 12]Now... [SaveColor][Color:04]Xin Suì[RestoreColor], bless these fools[BR]
+and convert them gracefully![BR]
+[Pause 5][Size 24][Shake]Quickly![/fx][BR]
+[Wait][End]
+}
+
+#new:String $XinSuiDialogue
+{
+[Style Right][CustomVoice soundIDs=0x3D3,0x3DB][Volume percent=50]
+[Shake][Color:04]Very good...[BR]
+You have served your purpose...[BR]
 [Wait][End]
 }
 

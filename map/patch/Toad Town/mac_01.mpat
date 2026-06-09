@@ -156,6 +156,26 @@
 
 
 
+%The bulletin board has been turned into the sidequest board
+%Checks from SideQuestBoard.patch
+@	$Script_80248720
+{
+    C:  Call  DisablePlayerInput        ( .True )
+		ExecWait  $CheckForSidequests
+   5C:  Call  DisablePlayerInput        ( .False )
+   6C:  Return
+   74:  End
+}
+
+
+@	$Script_80248818
+{
+    0:  Bind  $Script_80248720 .Trigger:WallPressA ~Collider:syoumen 00000001 00000000
+		%Bind  $Script_8024879C .Trigger:WallPressA ~Collider:yoko_ushiro 00000001 00000000    %Unbind this for now
+   38:  Return
+   40:  End
+}
+
 
 @	$Script_Interact_802591CC
 {
@@ -601,6 +621,7 @@
 		If  *Var1 > 9`
 			If  *Var2 > 107`
 				If  *LipState  ==  0`
+					Wait  2`
 					Set   *LipState  1`
 					Call  PushSong      ( .Song:KoopaVillage 00000001 ) %This is actually Lip's Theme
 					Wait  2`
@@ -803,7 +824,7 @@
 
 % When the number of badges in the table is changed,
 % be sure to update this number! Maximum is 40 (64`).
-#define .NumRowfBadges 22`
+#define .NumRowfBadges 21`
 
 %FFFFFF80 == After Chapter 1
 %FFFFFFCB == After Chapter 2
@@ -821,7 +842,6 @@
  FFFFFFCB	.Item:SleepStomp      75`    0024005C % 
  FFFFFFCB	.Item:DoubleDip      150`    0024006D % 
  FFFFFFCB	.Item:DodgeMaster    100`    00240080 % Now renamed Tatsujin.
- FFFFFFCB	.Item:HPPlusC        150`    00240071 % 
  FFFFFFF3	.Item:JumpCharge     100`    0024005A % 
  FFFFFFF3	.Item:MedicineMan    150`    0023011C % Medicine Man added.
  FFFFFFF3	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp.
@@ -1310,6 +1330,10 @@
 
 @	$Script_8024F27C
 {
+		If   *IWannaBeTheGuy == .True
+			Call  SpeakToPlayer     ( 00000000 00A50006 00A50006 00000000 000300FA )  %No difficulty change
+			Return
+		EndIf
 		Call  DisablePlayerInput    ( .True )
    10:  Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030036 ) % Ah, Mario. Do you want me to predict the path you  ...
 		Set     *Var1 *Var0
@@ -1673,6 +1697,92 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
   3EC:  EndIf
   3F4:  Return
   3FC:  End
+}
+
+
+
+
+
+
+@	$Script_Idle_8025C5F8
+{
+    0:  Loop
+    C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  	If  *Var0  <  00000230
+   34:  		BreakLoop
+   3C:  	EndIf
+   44:  	Wait  1`
+   50:  EndLoop
+   58:  Call  SetMusicTrack     ( 00000000 .Song:TwinkTheme 00000000 00000008 )
+   74:  Call  DisablePlayerInput        ( .True )
+   84:  Call  SetPlayerSpeed    ( *Fixed[5.0] )
+   94:  Call  PlayerMoveTo      (  500`  -20`  0` )
+   AC:  Call  WaitForPlayerMoveToComplete ( )
+   B8:  Call  InterpPlayerYaw   (  270`  0` )
+   CC:  Call  ShowMessageAtScreenPos    ( 000300DB  160`  40` ) % Mario!!
+   E4:  Loop  00000002
+   F0:  	Call  InterpPlayerYaw   (  90`  7` )
+  104:  	Wait  8`
+  110:  	Call  InterpPlayerYaw   (  270`  7` )
+  124:  	Wait  8`
+  130:  EndLoop
+  138:  Wait  25`
+  144:  Call  GetPlayerPos  ( *Var4 *Var5 *Var6 )
+  15C:  SubF  *Var4  *Fixed[50.0]
+  16C:  AddF  *Var5  *Fixed[40.0]
+  17C:  Call  InterpNpcYaw  ( .NpcID:Twink_28  90`  0` )
+  194:  Call  LoadPath      ( 00000023 $VectorList_8025C5B0 00000003 .Easing:CosInOut )
+  1B0:  Loop
+  1BC:  	Call  GetNextPathPos ( )
+  1C8:  	AddF  *Var1  *Var4
+  1D8:  	AddF  *Var2  *Var5
+  1E8:  	Call  SetNpcPos ( .NpcID:Twink_28 *Var1 *Var2 *Var3 )
+  204:  	Wait  1`
+  210:  	If  *Var0  ==  00000000
+  220:  		BreakLoop
+  228:  	EndIf
+  230:  EndLoop
+  238:  Call  SetPlayerAnimation    ( 0001002A )
+  248:  Call  AdjustCam     ( .Cam:Default *Fixed[3.0]  -10`  -300`  15`  -9` )
+  26C:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DC ) % Mario! Mario! It's me, Twink. Remember me?
+  28C:  Wait  3`
+  298:  Call  SetPlayerAnimation    ( 00080007 )
+  2A8:  Wait  25`
+  2B4:  Call  SetPlayerAnimation    ( 0001002A )
+  2C4:  Wait  10`
+  2D0:  Call  SetNpcJumpscale       ( .NpcID:Twink_28 *Fixed[1.0] )
+  2E4:  Call  GetNpcPos     ( .NpcID:Twink_28 *Var0 *Var1 *Var2 )
+  300:  Call  NpcJump0      ( .NpcID:Twink_28 *Var0 *Var1 *Var2  8` )
+  320:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DD ) % I heard you saved the honorable Star Spirit who wa ...
+  340:  Wait  3`
+  34C:  Call  SetPlayerAnimation    ( 0001002D )
+  35C:  Wait  25`
+  368:  Call  SetPlayerAnimation    ( 0001002A )
+  378:  Call  AdjustCam     ( .Cam:Default *Fixed[3.0]  -40`  -200`  15`  -15` )
+  39C:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DE ) % But enough celebration for now. I come bearing imp ...
+  3BC:  Wait  3`
+		Set   *GB_StoryProgress  .Story:Ch1_ReturnedToToadTown
+		Call  DisablePlayerInput    ( .False )
+  3C8:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  3E0:  Call  InterpNpcYaw  ( .NpcID:Twink_28  270`  0` )
+  3F8:  Call  GetNpcPos     ( .NpcID:Twink_28 *Var4 *Var5 *Var6 )
+  414:  Call  LoadPath      ( 00000023 $VectorList_8025C5D4 00000003 .Easing:QuadraticIn )
+  430:  Loop
+  43C:  	Call  GetNextPathPos ( )
+  448:  	Add   *Var1  *Var4
+  458:  	Add   *Var2  *Var5
+  468:  	Add   *Var3  *Var6
+  478:  	Call  SetNpcPos ( .NpcID:Twink_28 *Var1 *Var2 *Var3 )
+  494:  	Wait  1`
+  4A0:  	If  *Var0  ==  00000000
+  4B0:  		BreakLoop
+  4B8:  	EndIf
+  4C0:  EndLoop
+  4C8:  Call  SetNpcPos ( .NpcID:Twink_28  0`  -1000`  0` )
+  4E4:  Exec  $Script_80246770
+  500:  Call  SetPlayerAnimation    ( 00010002 )
+  520:  Return
+  528:  End
 }
 
 

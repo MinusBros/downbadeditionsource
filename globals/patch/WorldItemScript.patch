@@ -1,4 +1,5 @@
 %World item usage script
+%World item usage script
 %Gets dmaed at 802C05CC / 32579C
 
 
@@ -51,65 +52,16 @@
 				Call  802C031C ( )
 				Return
 			Case == .Item:ReturnPipe
-				Switch  *GB_StoryProgress
-					Case  .Story:Ch1_MarioActivatedTrap to .Story:Ch1_BombetteJoinedParty  %To prevent leaving the cell early
-							ExecWait $CantUsePipe	
-							Return
-					Case  ==  .Story:Ch1_StarSpritDeparted  %To prevent skipping Mr. Trooper
-							ExecWait $CantUsePipe	
-							Return
-					Case ==   .Story:Ch2_StarSpritDeparted   %No skipping Mr. Trooper and Buzzar after Chapter 2 is done
-						If  *GF_SBK30_MrTrooper == .False
-							ExecWait $CantUsePipe	
-							Return
-						EndIf
-						If  *GF_IWA04_Defeated_Buzzar == .False
-							ExecWait $CantUsePipe	
-							Return
-						EndIf
-					Case  .Story:Ch3_GotSuperBoots  to  .Story:Ch3_StarSpritDeparted %No skipping Mr. Trooper
-						If *GF_MIM10_Defeated_JrTroopa == .False
-							ExecWait $CantUsePipe	
-							Return
-						EndIf
-					Case  .Story:Ch3_TubbaWokeUp  to  .Story:Ch3_EscapedTubbasManor
-							ExecWait $CantUsePipe	
-							Return							
-					Case  .Story:Ch3_HeartFledFirstTunnel  to  .Story:Ch3_HeartEscapedWindyMill %This would mess with the Tubbs cutscene
-							ExecWait $CantUsePipe	
-							Return
-					Case .Story:Ch5_ReachedLavaLavaIsland to .Story:Ch5_ReturnedToToadTown %Again, no skipping Mr. Trooper
-						If *GF_MAC01_Defeated_JrTroopa4 == .False
-							ExecWait $CantUsePipe	
-							Return
-						EndIf
-					Case .Story:Ch5_RafaelLeftNest to .Story:Ch5_RafaelMovedRoot  %You're kind of locked in this state
-							ExecWait $CantUsePipe	
-							Return
-					Case .Story:Ch5_DefeatedLavaPiranha to .Story:Ch5_BeganPeachMission  %No escaping Mt. Lavalava
-							ExecWait $CantUsePipe	
-							Return
-					Case  ==  .Story:Ch6_SpokeWithTheSun  %To prevent skipping Jonathan, not like you'd be able to progress anyway
-							ExecWait $CantUsePipe	
-							Return
-					Case  ==  .Story:Ch7_MayorMurderMystery  %It'd be awkward since the penguin prevents you from leaving
-							ExecWait $CantUsePipe	
-							Return
-					Case  ==  .Story:Ch8_ReachedBowsersCastle  %No early jail escape
-						If *GB_KPA81_BowserDoorState == 00000001 %Fell for trapdoor
-							ExecWait $CantUsePipe	
-							Return
-						EndIf
-				EndSwitch
-					%A new check for a miniboss I added
-					If *GF_TIK25_GiantChest == .True
-					  If *GF_TIK25_CodyDefeated == .False
-							ExecWait $CantUsePipe	
-							Return
-					  EndIf
-					EndIf
+				If   *ReturnPipeLock == .True
+					Call  PlaySound	( 0000021D ) %bzzt
+					Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
+					Call  ShowMessageAtScreenPos    ( $CannotUse  160`  40` )
+					Call  DisablePlayerInput    ( .False )
+					Return
+				EndIf
 				Call     PlaySound   		( 00000163 )
 			    %Call  802C03E8 ( ) %This removes it from Mario's inventory, so no.
+				Call  PopSong ( )
 			    Call  DisablePlayerInput    ( .False )
 			    Call  802C031C ( ) %Not having this prevents Mario from picking up items and coins.
 				Call  FadeOutMusic  ( 00000001 00000BB8 )
@@ -165,15 +117,6 @@
 	End
 }
 
-#new:Script:Map  $CantUsePipe
-{
-							Call  PlaySound	( 0000021D ) %bzzt
-							Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
-							Call  ShowMessageAtScreenPos    ( $CannotUse  160`  40` )
-							Call  DisablePlayerInput    ( .False )
-							Return		
-							End
-}
 
 #string $CannotUse
 {

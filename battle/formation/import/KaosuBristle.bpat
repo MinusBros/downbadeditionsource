@@ -20,7 +20,7 @@
 % stats
 [Index]        F5b  %Bristle ID
 [Level]        52`b
-[MaxHP]        18`b
+[MaxHP]        16`b
 [Coins]         5`b
 [Flags]       00000000
 [StatusTable] $StatusTable_Bristle 
@@ -47,14 +47,14 @@
 #new:StatusTable $StatusTable_Bristle
 {
 .Status:Normal            0`
-.Status:Sleep             0`
+.Status:Sleep            10`
 .Status:Poison            0`
 .Status:Frozen            0`
-.Status:Dizzy            30`
+.Status:Dizzy            60`
 .Status:Static            0`
-.Status:Paralyze          0`
-.Status:Shrink            0`
-.Status:Stop              0`
+.Status:Paralyze         30`
+.Status:Shrink           40`
+.Status:Stop             50`
 .Status:SleepTurnMod      0`
 .Status:PoisonTurnMod     0`
 .Status:FrozenTurnMod     0`
@@ -75,7 +75,7 @@
 {
 .Status:Normal    00F20001
 .Status:Stone     00F20000
-.Status:Sleep     00F20001
+.Status:Sleep     00F20000
 .Status:Poison    00F20001
 .Status:Stop      00F20000
 .Status:Static    00F20001
@@ -86,12 +86,14 @@
 
 #new:DefenseTable $DefenseTable_Bristle
 {
-.Element:Normal 00000005
-.Element:Throw  00000003
-.Element:Fire 	00000063 % immune
-.Element:Blast  00000006
-.Element:Shock  00000063 % also no
-.Element:Quake  00000000 %Quake pierces anyways, so whatever
+.Element:Normal 5`
+.Element:Throw  3`
+.Element:Fire 	99` % immune
+.Element:Blast  4`
+.Element:Ice    4`
+.Element:Water  1`
+.Element:Shock  99`
+.Element:Quake  0` %Quake pierces anyways, so whatever
 .Element:End
 }
 
@@ -349,7 +351,7 @@
 	Call     SetGoalToTarget 	( .Actor:Self )
 	% Damage the sucker
 	Set *VarF 5
-	Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 11` 00000020 )
+	Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000000 00000000 00000000 9` 00000020 )
 	Call     UseBattleCamPreset 	( 00000002 )
 	Call     PlaySoundAtActor   ( .Actor:Self 0000030F)
 	Wait     00000002
@@ -385,15 +387,17 @@
 	Call     JumpToGoal  	( .Actor:Self 0000000F 00000000 00000001 00000002 )	
 	Goto  0 %if none of the above conditions are met, keep going!
 	Label 1
+
 	Call     SetActorJumpGravity 	( .Actor:Self *Fixed[0.6] )
 	Call     SetGoalToHome 	( .Actor:Self )
 	Call     JumpToGoal  	( .Actor:Self 0000000F 00000000 00000001 00000002 )
 	Call     8027D7F0 ( )
 	Wait     12`
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
 	Call     SetAnimation 	  ( .Actor:Self 00000001 .AnimCloseSpikes )
 	Wait     8`
-	Call     SetAnimation 	( .Actor:Self 00000001 00F20000 )
-	Wait	 8` 
 	Call	 EnableIdleScript  ( .Actor:Self 00000001 )
 	Call	 UseIdleAnimation  ( .Actor:Self .True )
 	Call	GetActorVar		( .Actor:Self 00000001 *Var0 )

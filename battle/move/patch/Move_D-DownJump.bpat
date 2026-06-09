@@ -3,6 +3,233 @@
    [D8]  Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
 }
 
+@	$Script_802A16B8
+{
+  [12C]  Call  80273444      ( 00000003 00000000 00000002 )   %Was 6, 2
+  [15C]  Wait  3`
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
+}
+
+@	$Script_802A18A4
+{
+  [12C]  Call  80273444      ( 00000003 00000000 00000002 )
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
+}
+
+@	$Script_802A1A90
+{
+  [12C]  Call  80273444      ( 00000003 00000000 00000002 )
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
+}
+
+@	$Script_802A1C7C
+{
+  [12C]  Call  80273444      ( 00000003 00000000 00000002 )
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[12.0] )
+}
+
+
+@	$Script_802A1E68
+{
+    0:  Call  80276EFC ( )
+    C:  Call  SetBattleFlagBits ( 00000100 .False )
+   20:  Call  EnablePlayerBlur  ( FFFFFFFF )
+   30:  Call  UseBattleCamPreset    ( 00000003 )
+   40:  Call  802693F0 ( )
+   4C:  Call  SetGoalToHome     ( .Actor:Player )
+   5C:  Call  GetGoalPos        ( .Actor:Player *Var0 *Var1 *Var2 )
+   78:  Add   *Var0  0000003C
+   88:  Set   *Var1  00000000
+   98:  Call  SetGoalPos        ( .Actor:Player *Var0 *Var1 *Var2 )
+   B4:  Call  SetActorJumpGravity   ( .Actor:Player *Fixed[1.0] )
+   C8:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010017 00010017 00010009 )
+   E8:  Call  $Function_802A1000 ( )
+   F4:  Call  80273444  ( *Var0 00000000 00000000 )
+  10C:  ChildThread
+  114:  	Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[1.0] )
+  130:  EndChildThread
+  138:  Call  AddGoalPos    ( .Actor:Player  -30`  0`  0` )
+  154:  Call  80273444      ( 00000008 00000000 00000002 )
+  16C:  ChildThread
+  174:  	Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[1.0] )
+  190:  EndChildThread
+  198:  Call  AddGoalPos    ( .Actor:Player  -20`  0`  0` )
+  1B4:  Call  SetGoalPos    ( .Actor:Player *Var0 *Var1 *Var2 )
+  1D0:  Call  80273444      ( 00000006 00000000 00000002 )
+  1E8:  ChildThread
+  1F0:  	Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[1.0] )
+  20C:  EndChildThread
+		
+  214:  Call  SetGoalToHome ( .Actor:Player )
+  224:  Call  80273444      ( 00000004 00000000 00000002 )
+  23C:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+  254:  Return
+  25C:  End
+}
+
+@	$Script_802A20CC
+{
+    0:  Call  SetJumpAnimations ( .Actor:Player 00000000 00000000 00000000 0001000C )
+   20:  Call  PlayerLandJump ( )
+   2C:  Call  SetAnimation      ( .Actor:Player 00000000 0001000C )
+   44:  Wait  2`
+   50:  ChildThread
+   58:  	Call  ShakeCam  ( .Cam:Battle 00000000  5` *Fixed[1.0] )
+   74:  EndChildThread
+   7C:  Call  PlaySoundAtActor  ( .Actor:Player 00000162 )
+   90:  Call  SetAnimation      ( .Actor:Player 00000000 00010030 )
+   A8:  Wait  8`
+   B4:  Call  SetAnimation      ( .Actor:Player 00000000 00010031 )
+   CC:  Wait  16`
+   D8:  Call  SetBattleFlagBits ( 00000100 .False )
+   EC:  Call  UseBattleCamPreset    ( 00000003 )
+   FC:  Call  802693F0 ( )
+  108:  Call  EnablePlayerBlur  ( FFFFFFFF )
+  118:  Call  80276EFC ( )
+  124:  Call  SetGoalToHome     ( .Actor:Player )
+  134:  Call  SetActorSpeed     ( .Actor:Player *Fixed[12.0] )
+  148:  Call  SetAnimation      ( .Actor:Player 00000000 00010005 )
+  160:  Call  PlayerRunToGoal   ( 00000000 )
+  170:  Call  SetAnimation      ( .Actor:Player 00000000 00010002 )
+  188:  Return
+  190:  End
+}
+
+@	$Script_802A2310
+{
+   [D8]  Wait  3`
+  [10C]  		Call  802752AC  ( 00000001 00000001 )  %Was 3, 1
+  [128]  		Call  802752AC  ( 00000003 00000001 )  %Was 5, 1
+}
+
+
+
+
+%Make D-Down Jump work like in TTYD Encore where the second hit does one less damage.
+%Ignore Normal Boots since it already does 1.
+
+@	$Script_802A2B24
+{
+    0:  ExecWait  $Script_802A2264
+    C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 00000000 )
+   30:  If  *Var0  ==  .HitResult:Miss % 6
+   40:  	ExecWait  $Script_802A20CC
+   4C:  	Return
+   54:  EndIf
+   5C:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+   78:  Call  $Function_802A10E4    ( *Var0 *Var1 *Var2 )
+   90:  Call  PlaySoundAtActor  ( .Actor:Player 0000210B )
+   A4:  Wait  1`
+   B0:  Call  DidActionSucceed  ( *Var0 )
+   C0:  Switch  *Var0
+   CC:  	Case  >  .False
+   D8:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+   F4:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:IgnoreDefense|Jump 00000000 00000000 00000002 00000050 )
+  118:  	Default
+  120:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+  13C:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:IgnoreDefense|Jump 00000000 00000000 00000001 00000030 )
+  160:  EndSwitch
+  168:  Switch  *Var0
+  174:  	CaseOR  ==  .HitResult:Hit % 0
+  180:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  18C:  		ExecWait  $Script_802A1A90
+  198:  		Return
+  1A0:  	EndCaseGroup
+  1A8:  	CaseOR  ==  00000001 % 1
+  1B4:  	CaseOR  ==  00000003 % 3
+  1C0:  	EndCaseGroup
+  1C8:  EndSwitch
+  1D0:  Call  80269524  ( *VarF )
+  1E0:  ChildThread
+  1E8:  	Call  UseBattleCamPreset    ( 0000001B )
+  1F8:  	Wait  5`
+  204:  	Call  SetGoalToTarget       ( .Actor:Player )
+  214:  	Call  UseBattleCamPreset    ( 00000023 )
+  224:  EndChildThread
+  22C:  Call  CloseActionCommandInfo ( )
+  238:  Call  LoadActionCommand ( .ActionCommand:Jump )
+  248:  Call  802A9000 ( )
+  254:  Call  802694A4  ( 00000000 )
+  264:  Call  802A9120  ( 00000025 00000003 )
+  278:  Call  SetGoalToTarget   ( .Actor:Player )
+  288:  Call  EnablePlayerBlur  ( 00000001 )
+  298:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 0001000A 0001000B )
+  2B8:  Call  802752AC  ( 00000014 00000004 )
+  2CC:  Wait  4`
+  2D8:  Call  802752AC  ( 00000003 00000005 )
+  2EC:  Call  EnablePlayerBlur  ( 00000000 )
+  2FC:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+  318:  Call  $Function_802A10E4    ( *Var0 *Var1 *Var2 )
+  330:  Call  PlaySoundAtActor  ( .Actor:Player 0000210B )
+  344:  Wait  1`
+  350:  Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+  36C:  Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:IgnoreDefense|Jump 00000000 00000000 00000001 000000E0 )
+  390:  Call  80269550  ( *VarF )
+  3A0:  ExecWait  $Script_802A16B8
+  3AC:  Return
+  3B4:  End
+}
+
+@	$Script_802A2EE0
+{
+    0:  ExecWait  $Script_802A2264
+    C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 00000000 )
+   30:  If  *Var0  ==  .HitResult:Miss % 6
+   40:  	ExecWait  $Script_802A20CC
+   4C:  	Return
+   54:  EndIf
+   5C:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+   78:  Call  $Function_802A10E4    ( *Var0 *Var1 *Var2 )
+   90:  Call  PlaySoundAtActor  ( .Actor:Player 0000210C )
+   A4:  Wait  1`
+   B0:  Call  DidActionSucceed  ( *Var0 )
+   C0:  Switch  *Var0
+   CC:  	Case  >  .False
+   D8:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+   F4:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:IgnoreDefense|Jump 00000000 00000000 00000003 00000050 )
+  118:  	Default
+  120:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  13C:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:IgnoreDefense|Jump 00000000 00000000 00000002 00000030 )
+  160:  EndSwitch
+  168:  Switch  *Var0
+  174:  	CaseOR  ==  .HitResult:Hit % 0
+  180:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  18C:  		ExecWait  $Script_802A1A90
+  198:  		Return
+  1A0:  	EndCaseGroup
+  1A8:  	CaseOR  ==  00000001 % 1
+  1B4:  	CaseOR  ==  00000003 % 3
+  1C0:  	EndCaseGroup
+  1C8:  EndSwitch
+  1D0:  Call  80269524  ( *VarF )
+  1E0:  ChildThread
+  1E8:  	Call  UseBattleCamPreset    ( 0000001C )
+  1F8:  	Wait  5`
+  204:  	Call  SetGoalToTarget       ( .Actor:Player )
+  214:  	Call  UseBattleCamPreset    ( 00000023 )
+  224:  EndChildThread
+  22C:  Call  CloseActionCommandInfo ( )
+  238:  Call  LoadActionCommand ( .ActionCommand:Jump )
+  248:  Call  802A9000 ( )
+  254:  Call  802694A4  ( 00000000 )
+  264:  Call  802A9120  ( 00000019 00000003 )
+  278:  Call  SetGoalToTarget   ( .Actor:Player )
+  288:  Call  EnablePlayerBlur  ( 00000001 )
+  298:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010007 0001000C )
+  2B8:  Call  80275F00  ( 00000019 00000004 )
+  2CC:  Call  EnablePlayerBlur  ( 00000000 )
+  2DC:  Call  GetActorPos       ( .Actor:Player *Var0 *Var1 *Var2 )
+  2F8:  Call  $Function_802A10E4    ( *Var0 *Var1 *Var2 )
+  310:  Call  PlaySoundAtActor  ( .Actor:Player 0000210C )
+  324:  Wait  1`
+  330:  Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  34C:  Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:IgnoreDefense|Jump 00000000 00000000 00000002 000000E0 )
+  370:  Call  80269550  ( *VarF )
+  380:  ExecWait  $Script_802A16B8
+  38C:  Return
+  394:  End
+}
+
 %This is the "squatting" script. Remove it to eliminate the need for squat-cancelling
 @	$Script_802A1210
 {

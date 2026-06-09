@@ -1,3 +1,15 @@
+#define .NpcID:Boo_00               00
+#define .NpcID:Boo_01               01
+#define .NpcID:Boo_02               02
+#define .NpcID:Boo_03               03
+#define .NpcID:Boo_04               04
+#define .NpcID:WorldTubba_05        05
+#define .NpcID:Boo_06               06
+#define .NpcID:Boo_07               07
+#define .NpcID:Boo_08               08
+#define .NpcID:Boo_09               09
+
+
 @ $Header
 {
 00000000 00000000 00000000 00000000 
@@ -33,6 +45,28 @@ $Script_Main $EntryList 00000003 00000000
 	End
 }
 
+
+@	$Script_80241360
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch3_SawTubbaEatBoo % FFFFFFDF
+   18:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+				Call  $Function_SongVariationOn ( )
+   34:  	Case  <  .Story:Ch3_TubbaWokeUp % FFFFFFE3
+   40:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+				Call  $Function_SongVariationOn ( )
+   5C:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   68:  		Call  SetMusicTrack ( 00000000 .Song:TubbaEscape 00000000 00000008 )
+   84:  	Default
+   8C:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
+				Call  $Function_SongVariationOn ( )
+   A8:  EndSwitch
+   B0:  Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+   C0:  Return
+   C8:  End
+}
+
+
 #import SwapToGoombarius.mpat
 
 
@@ -63,6 +97,46 @@ $Script_Main $EntryList 00000003 00000000
 		End
 }
 
+
+
+@	$Script_Init_8024202C
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241AB4 )
+   14:  Switch  *GB_StoryProgress
+   20:  	Case  <  .Story:Ch3_SawTubbaEatBoo % FFFFFFDF
+   2C:  		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+   44:  	Case  <  .Story:Ch3_TubbaChasedMarioInFoyer % FFFFFFE6
+   50:  		Call  RemoveNpc ( .Npc:Self )
+   60:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   6C:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   88:  		Call  RemoveNpc ( .Npc:Self )
+   98:  	Case  <  .Story:Ch3_BeganPeachMission % FFFFFFF2
+   A4:  		Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   C0:  		Call  RemoveNpc ( .Npc:Self )
+   D0:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+   DC:  	Case  >=  .Story:Ch5_StarSpritDeparted % 27
+				If  *GF_ARN05_GaveGiftAdvice == .False
+					Exec  $StanleyProblem
+				EndIf
+   E8:  EndSwitch
+   F0:  Return
+   F8:  End
+}
+
+
+#new:Script  $StanleyProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Boo_02 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *GF_ARN05_GaveGiftAdvice == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
 @	$Script_Interact_80241AB4
 {
     0:  Switch  *GB_StoryProgress
@@ -87,23 +161,26 @@ $Script_Main $EntryList 00000003 00000000
   15C:  			Call  ContinueSpeech    ( .Npc:Self 0095010A 00950101 00000000 000E00AC ) % First, I figured I'd express my feelings by giving ...
   17C:  			Call  ShowChoice        ( 001E001E ) % Fire Flower Volt Shroom No idea
   18C:  			Switch  *Var0
-  198:  				Case  ==  00000000
-  1A4:  					Call  SetNpcAnimation   ( .Npc:Self 00950105 )
-  1B8:  					Call  ContinueSpeech    ( .Npc:Self 00950105 00950101 00000000 000E00AD ) % Oh...OK. Thanks. I'll do it.
-  1D8:  					Call  SetNpcAnimation   ( .Npc:Self 00950101 )
-  1EC:  					Set   *GF_ARN05_GaveGiftAdvice  .True
-  1FC:  					Set   *AreaFlag[009]  .True
-  20C:  				Case  ==  00000001
+  198:  				CaseOR  ==  00000000
+  20C:  				CaseOR  ==  00000001
   218:  					Call  SetNpcAnimation   ( .Npc:Self 00950105 )
   22C:  					Call  ContinueSpeech    ( .Npc:Self 00950105 00950101 00000000 000E00AD ) % Oh...OK. Thanks. I'll do it.
   24C:  					Call  SetNpcAnimation   ( .Npc:Self 00950101 )
+					 128C:  Set   *Var0  0000014A
+					 129C:  Set   *Var1  00000002
+					 12AC:  ExecWait  $Script_ShowItem
+					 12B8:  Call  AddBadge      ( .Item:HPPlusC *Var0 )
   260:  					Set   *GF_ARN05_GaveGiftAdvice  .True
   270:  					Set   *AreaFlag[009]  .True
+							ExecWait  $ProblemSolved
+						EndCaseGroup
   280:  				Case  ==  00000002
   28C:  					Call  ContinueSpeech    ( .Npc:Self 00950104 00950101 00000000 000E00AF ) % Oh . . . Thanks for nothing...
 							Call  GetCurrentPartnerID   ( *Var0 )
 							If  *Var0  ==  .Partner:Bow 
+								Call  DisablePartnerAI  ( 00000000 )
 								Call  SpeakToPlayer ( .Npc:Partner 0005000A 00050001 00000005 000E0114 ) % Bow roast
+								Call  EnablePartnerAI ( )
 								Call  SpeakToPlayer ( .Npc:Self 00950104 00950101 00000000 000E0115 ) % Sad boo
 							EndIf
   2AC:  			EndSwitch
@@ -113,6 +190,14 @@ $Script_Main $EntryList 00000003 00000000
   2CC:  End
 }
 
+
+#new:Script $Script_ShowItem
+{
+    0:  Call  ShowGotItem   ( *Var0 .True 00000000 )
+   18:  Return
+   20:  Return
+   28:  End
+}
 
 @	$Script_Interact_80241794
 {
@@ -141,4 +226,41 @@ $Script_Main $EntryList 00000003 00000000
 @	$Script_Interact_80241E28
 {
    [C4]  	Case  <  .Story:Ch4_BeganPeachMission % FFFFFFF2
+}
+
+
+
+
+
+
+
+
+
+
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

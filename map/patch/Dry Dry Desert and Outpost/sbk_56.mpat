@@ -20,9 +20,127 @@
   128:  Exec  EnterWalk
   134:  Exec  $Script_802426EC
 		Exec  $AutoSave
+		If  *UpgradeBlockBlurb  == .False
+			Exec $UpgradeBlurb
+		EndIf
   140:  Return
   148:  End
 }
 
 
 #import AutoSave.mpat
+
+
+
+#new:Script  $UpgradeBlurb
+{
+				Label 0
+				If  *UpgradeBlockBlurb  == .False
+					Wait  1`
+					Goto  0
+				EndIf
+				Wait  25`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SetPlayerFlagBits ( 000000C0 .True )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D0121 )
+					Wait  145`
+					Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D0122 )
+				Case  ==  .Partner:Bombette % 3
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D0123 ) 
+				Case  ==  .Partner:Parakarry % 4
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D0124 ) 
+				EndSwitch
+				Return
+				End
+}
+
+
+@	$Script_802415F8
+{
+    0:  If  *GF_SBK56_SuperBlock  ==  .True
+   10:  	Return
+   18:  EndIf
+   20:  Call  IsStartingConversation    ( *Var0 )
+   30:  If  *Var0  ==  .True
+   40:  	Return
+   48:  EndIf
+   50:  Call  $Function_80240D88 ( )
+   5C:  If  *Var0  ==  .True
+   6C:  	Return
+   74:  EndIf
+   7C:  Call  ModifyGlobalOverrideFlags ( 00000001 00200000 )
+   90:  Call  $Function_80240080 ( )
+   9C:  Call  DisablePlayerInput    ( .True )
+   AC:  Call  DisablePartnerAI      ( 00000000 )
+   BC:  Call  SetNpcFlagBits        ( .Npc:Partner 00000100 .True )
+   D4:  Call  $Function_80240500    ( *MapVar[0] *Var9 )
+   E8:  Call  FindKeyItem   ( .Item:UltraStone *VarC )
+   FC:  Call  $Function_802401A0 ( )
+  108:  If  *Var0  ==  FFFFFFFF
+  118:  	Call  ShowMessageAtScreenPos    ( 001D00DC  160`  40` ) % You have no member you can upgrade now.
+  130:  	Wait  10`
+  13C:  	Call  $Function_80240590        ( *Var9 )
+  14C:  	Call  DisablePlayerInput        ( .False )
+  15C:  	Call  EnablePartnerAI ( )
+  168:  	Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  17C:  	Call  $Function_8024009C ( )
+  188:  	Return
+  190:  EndIf
+  198:  If  *GF_Tutorial_SuperBlock  ==  .False
+  1A8:  	Set   *GF_Tutorial_SuperBlock  .True
+  1B8:  	Call  ShowMessageAtScreenPos    ( 001D00DA  160`  40` ) % This is a Super Block. With this, you can upgrade  ...
+  1D0:  Else
+  1D8:  	Call  ShowMessageAtScreenPos    ( 001D00DB  160`  40` ) % With this, you can upgrade one of your party membe ...
+  1F0:  EndIf
+  1F8:  Call  $Function_8024024C ( )
+  204:  If  *Var0  ==  FFFFFFFF
+  214:  	Call  $Function_80240590        ( *Var9 )
+  224:  	Call  DisablePlayerInput        ( .False )
+  234:  	Call  EnablePartnerAI ( )
+  240:  	Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  254:  	Call  $Function_8024009C ( )
+  260:  	Return
+  268:  EndIf
+  270:  Set   *VarA  *Var0
+  280:  Set   *VarB  *Var1
+  290:  Call  EnablePartnerAI ( )
+  29C:  Call  GetCurrentPartnerID   ( *Var0 )
+  2AC:  If  *Var0  !=  *VarB
+  2BC:  	Call  $Function_8024049C    ( *VarB )
+  2CC:  Else
+  2D4:  	Call  802CF56C  ( 00000002 )
+  2E4:  EndIf
+  2EC:  Wait  10`
+  2F8:  Call  ShowMessageAtScreenPos    ( 001D00DF  160`  40` ) % Do you want to upgrade this member?
+  310:  Call  ShowChoice    ( 001E000D ) % Yes No
+  320:  Call  CloseMessage ( )
+  32C:  If  *Var0  !=  00000000
+  33C:  	Call  $Function_80240590        ( *Var9 )
+  34C:  	Call  DisablePlayerInput        ( .False )
+  35C:  	Call  EnablePartnerAI ( )
+  368:  	Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  37C:  	Call  $Function_8024009C ( )
+  388:  	Return
+  390:  EndIf
+  398:  ExecWait  $Script_80241494
+  3A4:  Call  $Function_802400E8    ( *VarB *VarD )
+  3B8:  Set   *GF_SBK56_SuperBlock  .True
+  3C8:  Call  $Function_80240590    ( *Var9 )
+  3D8:  Call  $Function_802404C8 ( )
+  3E4:  If  *VarD  ==  00000001
+  3F4:  	Call  ShowMessageAtScreenPos    ( 001D00DD  160`  40` ) % is upgraded to Super-rank!
+  40C:  Else
+  414:  	Call  ShowMessageAtScreenPos    ( 001D00DE  160`  40` ) % is upgraded to Ultra-rank!
+  42C:  EndIf
+  434:  Call  DisablePlayerInput        ( .False )
+  444:  Call  EnablePartnerAI ( )
+  450:  Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  464:  Call  $Function_8024009C ( )
+		Set   *UpgradeBlockBlurb .True
+  470:  Return
+  478:  End
+}

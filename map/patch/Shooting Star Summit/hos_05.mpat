@@ -43,6 +43,35 @@
   1FC:  End
 }
 
+
+
+@	$Script_Init_80247D54
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ~Entry:Entry0  to  ~Entry:Entry1
+   2C:  		Call  SetNpcAnimation   ( .NpcID:WorldMamar_01 00130007 )
+   40:  		Call  SetNpcAnimation   ( .NpcID:WorldMuskular_03 00150005 )
+   54:  		Call  SetNpcAnimation   ( .NpcID:WorldKlevar_05 00170007 )
+   68:  		Switch  *GB_StoryProgress
+   74:  			Case  ==  .Story:Ch8_ReachedStarHaven % 5B
+   80:  				Exec  $Script_802466E8
+   8C:  				Call  GetSelfNpcID  ( *Var0 )
+   9C:  				If  *Var0  ==  00000000
+							If   *YokubounoNaizouIncomplete == .False
+   AC:  						Call  BindNpcIdle   ( .Npc:Self $Script_Idle_80246BF0 )
+							EndIf
+   C0:  				EndIf
+   C8:  			Case  >=  .Story:Ch8_StarShipActivated % 5C
+   D4:  				Exec  $Script_802466E8
+   E0:  			Default
+   E8:  				Call  RemoveNpc ( .Npc:Self )
+   F8:  		EndSwitch
+  100:  EndSwitch
+  108:  Return
+  110:  End
+}
+
 #import SwapToGoombarius.mpat
 
 @	$Script_Idle_80246BF0
@@ -83,6 +112,19 @@
   23C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   254:  Wait  3`
 		Exec  $SwapToGoombarius
+		If    *GF_DNJ29_Disastar == .False
+				Call  SpeakToPlayer ( .NpcID:WorldEldstar_00 00120002 00120001 00000200 000A0084 )
+				Call  DisablePartnerAI  ( 00000000 )
+				Set  *YokubounoNaizouIncomplete .True
+		 10B0:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+		 10D0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+		 10E4:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+		 10FC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )		
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000A0085 )
+				Call  EnablePartnerAI ( )
+				Return
+		EndIf
+		Call  DisablePartnerAI  ( 00000000 )
   260:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_00 00120002 00120001 00000200 000A0069 ) % Mario, you finally made it. The time has come to t ...
   280:  Call  802D2C14      ( 00000000 )
   290:  Wait  18`

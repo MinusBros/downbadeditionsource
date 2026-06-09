@@ -909,14 +909,17 @@ Still, it's quite useful.[BR]
 }
 
 %There's a lot of precautionary things set up on load for this map
-%as it is where you go after using the Return Pipe.
+%as it is where you go after using the Return Pipe or Death Warping.
 
 @	$Script_Main
 {
+		Set *Var0 .True
+		Set     *Byte_Settings_BGM *Var0
 		Set *ShopState 00000000  %In case you Return Pipe inside a shop
 		ExecWait  $NukeBossChecks  %This is only for retrying boss fights
 		Set  *DidDojoFight  0`    %Fix Master dialogue and music
 		Call $ClearFlagCarryOverworldMusicToBattle()   %Fix battle music not working
+		Set  *ReturnPipeLock .False
     0:  Switch  *GB_StoryProgress
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Exec  $DarknessFollow
@@ -997,6 +1000,18 @@ Still, it's quite useful.[BR]
 		EndIf
   40C:  Return
   414:  End
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity802452A8 ~Model:o262 80000000 )
+   28:  Call  AssignPanelFlag   ( *GF_MAC00_HiddenPanel )
+   38:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item802452E0 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC00_Item_StarPiece )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *MAC00_NewStarPiece )
+   5C:  Bind  $Script_80245260 .Trigger:WallPressA ~Collider:sign 00000001 00000000
+   78:  Return
+   80:  End
 }
 
 @	$Script_EnterWalk_80244D74
@@ -1173,7 +1188,11 @@ Still, it's quite useful.[BR]
 			EndIf
    58:  EndIf
 		If   *DidDojoFight == 1`
-			Set   *Var0  00020136   %If you've already done a dojo battle, have something different to say
+			If  *GB_MAC00_DojoRank != 4`
+				Set   *Var0  00020136   %If you've already done a dojo battle, have something different to say
+			Else
+				Set   *Var0  00020152   %If you've already done a dojo battle, have something different to say
+			EndIf
 		EndIf
    60:  Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 *Var0 ) % variable string ID
    80:  Call  ShowChoice    ( 001E0016 ) % Try Only drop in
@@ -1217,7 +1236,11 @@ Still, it's quite useful.[BR]
   210:  	Case  ==  00000003
   21C:  		Set   *Var1  0002002C
   22C:  	Case  ==  00000004
-  238:  		Set   *Var1  0002002D
+				If  *AttemptedMaster3 == .False
+  238:  			Set   *Var1  0002002D
+				Else
+					Set   *Var1  00020151
+				EndIf
   248:  EndSwitch
   250:  Call  ContinueSpeech    ( 00000003 00A20009 00A20002 00000000 *Var1 ) % variable string ID
   270:  Wait  10`
@@ -1231,7 +1254,13 @@ Still, it's quite useful.[BR]
   2F4:  EndThread
   2FC:  Call  NpcMoveTo     ( .Npc:Self  375`  -400`  30` )
   318:  Call  InterpNpcYaw  ( 00000003  225`  0` )
+		Wait  3`
+		Call  SetNpcAnimation   ( 00000003 00A2000B )
+		Wait  2`
+		Call  PlaySoundAtNpc    ( 00000000 00002116 00000000 )
 		Wait  5`
+		Call  PlaySoundAtNpc    ( 00000000 00002116 00000000 )
+		Wait  10`
   33C:  Call  SetNpcFlagBits    ( 00000003 00000100 .False )
   354:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_8024B164 )
   368:  Wait  1`
@@ -1270,12 +1299,40 @@ Still, it's quite useful.[BR]
    D8:  	Wait  1`
    E4:  EndLoop
    EC:  Call  GetSelfVar    ( 00000001 *Var0 )
+		Call  SetNpcAnimation   ( 00000003 00A20002 )
   100:  Switch  *Var0
   10C:  	Case  ==  00000001
   118:  		Call  $Function_80242224 ( )
 				Call	$Function_LoadItems ( )
+				Switch  *GB_MAC00_DojoRank
+					CaseOR == 0`
+					CaseOR == 1`
+						If   *DidDojoFight == 0`
+							Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020042 ) % Hm... You lack strength. You have skill, though. P ...
+						Else
+							Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 0002014F ) % Hm... You lack strength. You have skill, though. P ...
+						EndIf
+					EndCaseGroup
+					CaseOR == 2`
+					CaseOR == 3`
+					CaseOR == 4`
+						If  *LostToShisho == .False
+							Set *LostToShisho .True
+							Call  SpeakToPlayer ( 00000003 00A20010 00A20012 00000000 00020150 )
+						Else
+							If   *DidDojoFight == 0`
+								Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020042 ) % Hm... You lack strength. You have skill, though. P ...
+							Else
+								Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 0002014F ) % Hm... You lack strength. You have skill, though. P ...
+							EndIf						
+						EndIf
+					EndCaseGroup
+				EndSwitch
+				If  *SoaringFistFail == .True
+					Set  *SoaringFistFail .False
+					Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020153 )
+				EndIf
 				Set *DidDojoFight 1`
-  124:  		Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020042 ) % Hm... You lack strength. You have skill, though. P ...
 				Call  FullyRestoreHPandFP ( )
 				Call  FullyRestoreSP ( )
 				Set *Var0 .True
@@ -1312,7 +1369,7 @@ Still, it's quite useful.[BR]
   2A4:  				Set   *Var2  0000000D
   2B4:  		EndSwitch
   2BC:  		Add   *GB_MAC00_DojoRank  00000001
-  2CC:  		Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 *Var1 ) % variable string ID
+  2CC:  		Call  SpeakToPlayer ( 00000003 00A20046 00A20002 00000000 *Var1 ) % variable string ID
   2EC:  		Call  FindKeyItem   ( *Var2 *Var1 )
   300:  		If  *Var1  !=  FFFFFFFF
   310:  			Call  RemoveKeyItemAt   ( *Var1 )
@@ -1406,6 +1463,11 @@ Still, it's quite useful.[BR]
    8C:  End
 }
 
+
+@	$ExtraAnimationList_8024CFFC
+{
+	00A20000 00A20002 00A20005 00A20009 00A2000B 00A20010 00A20012 00A20046 FFFFFFFF
+}
 
 
 @	$Script_ToggleVis_802455A0

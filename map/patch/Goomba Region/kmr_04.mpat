@@ -13,6 +13,26 @@
    24:  End
 }
 
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_KMR04_Hammer1Block  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Hammer1Block ~Vec4d:Entity80241AB0 80000000 )
+   34:  	Call  AssignScript  ( $Script_80241A80 )
+   44:  EndIf
+   4C:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80241AEC 80000000 )
+   70:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80241B10 80000000 )
+   94:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80241B34 80000000 )
+   B8:  Call  MakeEntity    ( .Entity:BrickBlock ~Vec4d:Entity80241B58 80000000 )
+   DC:  Call  MakeEntity    ( .Entity:MultiCoinBrick ~Vec4d:Entity80241B7C 80000000 )
+  100:  Call  AssignBlockFlag   ( *GF_KMR04_MultiCoinBrick )
+		If    *IWannaBeTheGuy == .False
+  110:  	Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80241BB0 80000000 )
+		EndIf
+  134:  Return
+  13C:  End
+}
+
 %Don't trigger Hammer cutscene if Goompa was skipped
 @	$Script_Bush7_Callback
 {
@@ -132,4 +152,68 @@
 {
    [4C]  Wait  20`
    [9C]  Wait  5`
+}
+
+%After Chapter 1, Goompa's screwdriver becomes accessible in one of the bushes
+
+
+@	$Script_8024349C
+{
+    0:  Set   *Var0  $SearchBushEvent_Bush1
+   10:  Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o402 00000001 00000000
+		If  *GB_StoryProgress  >=  .Story:Ch1_StarSpritDeparted
+			If  *GoompaScrewdriverObtained == .False
+				Set   *Var0  $SearchBushEvent_Bush2Screwdriver
+			Else
+				Set   *Var0  $SearchBushEvent_Bush2
+			EndIf
+		Else
+			Set   *Var0  $SearchBushEvent_Bush2
+		EndIf
+		Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o415 00000001 00000000
+   58:  Set   *Var0  $SearchBushEvent_Bush3
+   68:  Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o409 00000001 00000000
+   84:  Set   *Var0  $SearchBushEvent_Bush4
+   94:  Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o412 00000001 00000000
+   B0:  Set   *Var0  $SearchBushEvent_Bush5
+   C0:  Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o399 00000001 00000000
+   DC:  If  *GB_StoryProgress  >=  .Story:Ch0_FoundHammer % FFFFFF89
+   EC:  	Set   *Var0  $SearchBushEvent_Bush6
+   FC:  	Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o410 00000001 00000000
+  118:  	Set   *Var0  $SearchBushEvent_Bush6
+  128:  	Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o410_1 00000001 00000000
+  144:  Else
+  14C:  	Set   *Var0  $SearchBushEvent_Bush7
+  15C:  	Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o410 00000001 00000000
+  178:  	Set   *Var0  $SearchBushEvent_Bush8
+  188:  	Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o410_1 00000001 00000000
+  1A4:  EndIf
+  1AC:  Set   *Var0  $SearchBushEvent_Bush9
+  1BC:  Bind  $Script_SearchBush_80242090 .Trigger:WallPressA ~Collider:o413 00000001 00000000
+  1D8:  Set   *Var0  $ShakeTreeEvent_Tree1
+  1E8:  Bind  $Script_ShakeTree_802423F0 .Trigger:WallHammer ~Collider:o407 00000001 00000000
+  204:  Bind  $Script_ShakeTree_802423F0 .Trigger:PointBomb $TriggerCoord_8024324C 00000001 00000000
+  220:  Set   *Var0  $ShakeTreeEvent_Tree2
+  230:  Bind  $Script_ShakeTree_802423F0 .Trigger:WallHammer ~Collider:o271 00000001 00000000
+  24C:  Bind  $Script_ShakeTree_802423F0 .Trigger:PointBomb $TriggerCoord_802432BC 00000001 00000000
+  268:  Set   *Var0  $ShakeTreeEvent_Tree3
+  278:  Bind  $Script_ShakeTree_802423F0 .Trigger:WallHammer ~Collider:o341 00000001 00000000
+  294:  Bind  $Script_ShakeTree_802423F0 .Trigger:PointBomb $TriggerCoord_8024348C 00000001 00000000
+  2B0:  Return
+  2B8:  End
+}
+
+
+#new:TreeDropList $TreeDropList_Bush2Screwdriver
+{
+	00000001
+	.Item:Screwdriver ~Vec3d:Bush2_Drop1 .ItemSpawnMode:Toss *GoompaScrewdriverObtained *MapFlag[0B]
+}
+
+#new:SearchBushEvent $SearchBushEvent_Bush2Screwdriver
+{
+	$TreeModelList_Bush2_Bush
+	$TreeDropList_Bush2Screwdriver
+	$TreeEffectVectors_Bush2
+	00000000
 }

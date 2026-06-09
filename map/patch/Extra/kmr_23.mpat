@@ -1,3 +1,26 @@
+@	$Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  00000009
+	[Background]  00000000
+	[MapTattle]   00000000
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry1 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry2 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry3 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry4 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry5 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry6 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry7 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry8
+}
+
+
 @	$Script_Main
 {
     0:  Call  DisablePlayerInput    ( .True )
@@ -43,6 +66,8 @@
   2F8:  		Call  MakeNpcs  ( .False $NpcGroupList_802437A8 )
   30C:  	Case  ==  ~Entry:Entry6
   318:  		Call  MakeNpcs  ( .False $NpcGroupList_802437C0 )
+			Case  ==  ~Entry:Entry7
+				Call  MakeNpcs  ( .False $NpcGroupList_80243730 )
   32C:  EndSwitch
   334:  Call  DisablePlayerInput    ( .True )
   344:  Call  DisablePlayerPhysics  ( .True )
@@ -54,7 +79,11 @@
   398:  	Wait  10`
 			Call  GetEntryID    ( *Var0 )
 			If    *Var0 < ~Entry:Entry4
-  3A4:  		Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000000 00000008 )
+				If  *ChangeEndofChapter == .False
+  3A4:  			Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000000 00000008 )
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000001 00000008 )
+				EndIf
 			Else
 				Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000001 00000008 )  %Play a different song for post Chapter 5, 6 and 7
 			EndIf
@@ -64,11 +93,125 @@
   3DC:  End
 }
 
+
 @	$Script_80241810
 {
-   [D4]  Wait  25`
-  [104]  Wait  25`
-  [16C]  Wait  50`
-  [1B4]  Wait  12`
-  [2DC]  Wait  5`
+    0:  Thread
+    8:  	Set   *MapFlag[0B]  .False
+   18:  	Call  GetEntryID    ( *Var0 )
+   28:  	Call  GetNpcPos ( 00000000 *Var1 *Var2 *Var3 )
+   44:  	Call  $Function_80240040    ( *Var0 *Var1 *Var2 *Var3 )
+   60:  EndThread
+   68:  Wait  1`
+		Call  GetEntryID    ( *Var0 )
+		If  *Var0 !=	~Entry:Entry7
+   74:  Thread
+   7C:  	Call  $Function_80240274    ( 0000000A )
+   8C:  EndThread
+   94:  Thread
+   9C:  	Call  $Function_80240300    ( 00000014 00000096 )
+   B0:  EndThread
+   B8:  Call  $Function_802403A8    ( 00000005 00000000 0000003C 00000096 )
+		EndIf
+   D4:  Wait  30`
+   E0:  Call  $Function_80240494    ( 00000001 00000078 )
+   F4:  Call  $Function_80240528    ( 0000003C )
+  104:  Wait  30`
+  110:  Call  $Function_8024061C ( )
+  11C:  Call  $Function_802407B8    ( 00000708 00000064 )
+  130:  Call  $Function_8024088C    ( 00000024 00000000 00000037 0000003C )
+		Call  GetEntryID    ( *Var0 )
+		If  *Var0 !=	~Entry:Entry7
+  14C:  Thread
+  154:  	Call  $Function_80240274    ( 00000000 )
+  164:  EndThread
+		EndIf
+  16C:  Wait  60`
+  178:  Set   *MapFlag[0B]  .True
+  188:  Wait  1`
+  194:  Call  SetNpcAnimation   ( 00000000 00000209 )
+  1A8:  Call  $Function_80240D14 ( )
+  1B4:  Wait  16`
+  1C0:  Call  GetEntryID        ( *Var0 )
+  1D0:  Set   *Var1  001D01A5
+  1E0:  Switch  *Var0
+  1EC:  	Case  ==  ~Entry:Entry0
+  1F8:  		Set   *Var1  001D01A5
+  208:  	Case  ==  ~Entry:Entry1
+  214:  		Set   *Var1  001D01A6
+  224:  	Case  ==  ~Entry:Entry2
+  230:  		Set   *Var1  001D01A7
+  240:  	Case  ==  ~Entry:Entry3
+  24C:  		Set   *Var1  001D01A8
+  25C:  	Case  ==  ~Entry:Entry4
+  268:  		Set   *Var1  001D01A9
+  278:  	Case  ==  ~Entry:Entry5
+  284:  		Set   *Var1  001D01AA
+  294:  	Case  ==  ~Entry:Entry6
+  2A0:  		Set   *Var1  001D01AB
+  2B0:  EndSwitch
+		If  *ChangeEndofChapter == .True
+			Set   *Var1  001F00D8
+		EndIf
+  2B8:  Call  ShowMessageAtScreenPos    ( *Var1  160`  40` ) % variable string ID
+  2D0:  Call  $Function_80240D5C ( )
+  2DC:  Wait  15`
+  2E8:  Set   *MapFlag[0A]  .True
+  2F8:  Return
+  300:  End
+}
+
+
+
+@ $Script_80241190
+{
+    0:  Set   *MapFlag[0A]  .False
+   10:  Loop
+   1C:  	If  *MapFlag[0A]  !=  .False
+   2C:  		BreakLoop
+   34:  	EndIf
+   3C:  	Wait  1`
+   48:  EndLoop
+		If   *ChangeEndofChapter == .True
+			Set  *YokubounoNaizouIncomplete .False
+			Set  *ChangeEndofChapter .False
+			Set  *TriggerPostShishoCutscene .True
+			Call  GotoMapSpecial   ( "kmr_37" 00000001 0000000B )	
+		Else
+   50:  Call  GetEntryID    ( *Var0 )
+   60:  If  *Var0  !=  ~Entry:Entry4
+   70:  	Call  GotoMapSpecial    ( $ASCII_802437E8 00000000 00000006 ) % kmr_24
+   88:  Else
+   90:  	Call  GotoMapSpecial    ( $ASCII_802437E0 00000003 0000000F ) % kzn_19
+   A8:  EndIf
+		EndIf
+   B0:  Call  FadeOutMusic  ( 00000000 000007D0 )
+   C4:  Call  $Function_80240010 ( )
+   D0:  Wait  100`
+   DC:  Return
+   E4:  End
+}
+
+#new:NpcGroup $NpcGroup_YokubounoNaizou
+{
+	00000000 $NpcSettings_80241660 ~Vec3f:Yokubou
+	00000F01 $Script_Init_80241B18 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:Yokubou
+	~AnimationTable:Yokubou
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80243350[1F0]
+	00000001 $NpcSettings_80241660 ~Vec3f:Yokubou2
+	00000F01 $Script_Init_80241B98 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:Yokubou2
+	~AnimationTable:Yokubou2
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroupList $NpcGroupList_YokubounoNaizo
+{
+	00000002 $NpcGroup_YokubounoNaizou 00000000
+	00000000 00000000 00000000
 }

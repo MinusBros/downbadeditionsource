@@ -26,14 +26,32 @@
 %They also attack both Mario and the Partner
 %with the bubble spit attack in the same turn.
 
+%Higher HP but extra weak to water and ice
+
 @	$LavaBubble
 {
 	% stats
 	[Index]        2Bb
 	[Level]        29`b
-	[MaxHP]        15`b
+	[MaxHP]        16`b
 	[Coins]         2`b
 	[Hurricane]    25`b % Bow's "Spook" as well
+}
+
+
+@	$DefenseTable_80218E10
+{
+	.Element:Normal  0`
+	.Element:Fire   99`
+	.Element:Water  -3`
+	.Element:Ice    -3`
+	.Element:Shock   1`
+	.Element:Quake  -1`
+	.Element:Blast  -1`
+	.Element:Throw  -1`
+	.Element:Magic   3`
+	.Element:Cosmic  1`
+	.Element:End
 }
 
 
@@ -232,7 +250,9 @@
   4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000004 00000020 )
   4E0:  Wait  12`
   4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000004 00000020 )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   4E0:  Wait  12`
   4EC:  Switch  *Var0
   4F8:  	CaseOR  ==  .HitResult:Hit % 0
@@ -251,10 +271,24 @@
 @	$PutridPiranha
 {
 	[Level]        32`b
-	[MaxHP]        16`b
+	[MaxHP]        18`b
 	[Coins]         3`b
 }
 
+
+@	$DefenseTable_8021B0EC
+{
+	.Element:Normal 0`
+	.Element:Fire   4`  %They are from the volcano so makes sense
+	.Element:Water -1`
+	.Element:Ice   -1`
+	.Element:Shock  2`
+	.Element:Blast  0`
+	.Element:Cosmic -1`
+	.Element:Magic  3`
+	.Element:Throw  1`
+	.Element:End
+}
 
 
 %They bite twice now and deal a lot
@@ -377,7 +411,9 @@
   744:  Wait  1`
   750:  Wait  2`
   75C:  Call  SetGoalToTarget   ( .Actor:Self )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   76C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000005 00000000 )
   794:  Set   *VarF  *Var0
   7A4:  Switch  *VarF
@@ -491,7 +527,9 @@
   4A4:  		Else
   4A5: 	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:StatusAlwaysHits 0000FFFF ~DebuffType:Dizzy:2:100` 00000004 00000020 )
   4A6:  EndIf
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   4D8:  Set   *VarF  *Var0
   4E8:  Switch  *VarF
   4F4:  	CaseOR  ==  .HitResult:Hit % 0
@@ -661,7 +699,9 @@
   75C:  Call  SetGoalToTarget   ( .Actor:Self )
   76C:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 00000007 00000020 )
   3BB:  Wait  4`
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   794:  Set   *VarF  *Var0
   7A4:  Switch  *VarF
   7B0:  	CaseOR  ==  .HitResult:Hit % 0
@@ -736,6 +776,33 @@
 	[Escape]       40`b
 	[Hurricane]    25`b % Bow's "Spook" as well
 }
+
+@	$DefenseTable_8021C8B0
+{
+	.Element:Normal 4`
+	.Element:Water  2`
+	.Element:Ice    2`
+	.Element:Fire   99`
+	.Element:Blast  99`
+	.Element:Shock  5`
+	.Element:Magic  3`
+	.Element:Cosmic 3`
+	.Element:Hammer 6`
+	.Element:Throw  5`
+	.Element:End
+}
+
+@	 $DefenseTable_8021C8CC
+{
+	.Element:Normal 1`
+	.Element:Water -1`
+	.Element:Ice   -1`
+	.Element:Shock  2`
+	.Element:Hammer 3`
+	.Element:Throw  2`
+	.Element:End
+}
+
 
 
 @	$StatusTable_8021C8D8
@@ -882,7 +949,9 @@
 		
   7CC:  Wait  2`
 		Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
-		Call  YieldTurn ( )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
   7D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 0000FFFF 00000000 00000005 00000020 )
   800:  Switch  *Var0
   80C:  	CaseOR  ==  .HitResult:Hit % 0
@@ -1088,6 +1157,42 @@
 	$LazyBones 00000003 00000005 00000000 00000000 00000000 00000000
 }
 
+
+#new:Formation $Formation_15
+{
+	$PutridPiranha 00000000 0000000A 00000000 00000000 00000000 00000000
+	$SpikeTop 00000001 00000009 00000000 00000000 00000000 00000000
+	$LavaBubble 00000006 00000008 00000000 00000000 00000000 00000000
+	$LavaBubble 00000007 00000007 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_16
+{
+	$SpikeTop $PitPos1 0000000A 00000000 00000000 00000000 00000000
+	$SpikeTop $PitPos2 00000009 00000000 00000000 00000000 00000000
+	$SpikeTop $PitPos3 00000008 00000000 00000000 00000000 00000000
+	$LazyBones $PitPos4 00000007 00000000 00000000 00000000 00000000
+	$LazyBones $PitPos5 00000006 00000000 00000000 00000000 00000000
+}
+
+#new:Formation $Formation_17
+{
+	$LavaBubble 00000000 0000000A 00000000 00000000 00000000 00000000
+	$PutridPiranha 00000001 00000009 00000000 00000000 00000000 00000000
+	$Chompy 	00000002 00000008 00000000 00000000 00000000 00000000
+	$PutridPiranha 00000003 00000007 00000000 00000000 00000000 00000000
+}
+
+
+#new:Formation $Formation_18
+{
+	$LazyBones $PitPos1 0000000A 00000000 00000000 00000000 00000000
+	$Chompy $PitPos2 00000009 00000000 00000000 00000000 00000000
+	$PutridPiranha $PitPos3 00000008 00000000 00000000 00000000 00000000
+	$SpikeTop $PitPos4 00000007 00000000 00000000 00000000 00000000
+	$LavaBubble $PitPos5 00000006 00000000 00000000 00000000 00000000
+}
+
 @	$FormationTable
 {
 	$SJIS_8022A3AC 00000003 $Formation_00 $Stage_802277F8 00000000
@@ -1111,5 +1216,24 @@
 	$SJIS_8022A1F0 00000004 $Formation_12 $Stage_802277F8 00000000
 	$SJIS_8022A1C0 00000004 $Formation_13 $Stage_802277F8 00000000
 	$SJIS_8022A188 00000004 $Formation_14 $Stage_802277F8 00000000
+	%Pit formations
+	0 4 $Formation_15 $Stage_Pit 0
+	0 5 $Formation_16 $Stage_Pit 0
+	0 4 $Formation_17 $Stage_Pit 0
+	0 5 $Formation_18 $Stage_Pit 0
 	00000000 00000000 00000000 00000000 00000000
+}
+
+
+@	$StageTable
+{
+	$ASCII_8022A3E8 $Stage_802277F8
+	$ASCII_8022A3E0 $Stage_80227884
+	$ASCII_8022A3D8 $Stage_80227DB8
+	$ASCII_8022A3D0 $Stage_80228348
+	$ASCII_8022A3C8 $Stage_802288D8
+	$ASCII_8022A3C0 $Stage_80228E10
+	$ASCII_8022A3B8 $Stage_8022975C
+	0 $Stage_Pit
+	00000000 00000000
 }

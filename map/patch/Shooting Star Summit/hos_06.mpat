@@ -93,14 +93,104 @@
 }
 
 
+@	$Script_80245E38
+{
+		If  *GB_StoryProgress  <  .Story:Ch2_GotPulseStone
+			Call  SpeakToPlayer ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0045 ) % Ah... My, my... Hello there, Mario! This spot is a ...
+			Return
+		EndIf
+		If  *GF_HOS06_Gift_MerluvleesAutograph  ==  .True
+			Call  SpeakToPlayer ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0045 ) % Ah... My, my... Hello there, Mario! This spot is a ...
+		Else
+			ExecWait  $Script_802456FC
+			ExecWait  $Script_80245620
+		EndIf
+   38:  Return
+   40:  End
+}
+
+%We're adding the Crystal Ball sidequest back into the game and recontextualizing it
+
+@	$Script_80245620
+{
+   10:  	If  *GF_HOS06_MerluvleeRequestedCrystalBall  ==  .False
+   3C:  		Call  SetPlayerAnimation    ( 00080007 )
+   4C:  		Wait  20`
+   58:  		Call  SpeakToPlayer ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0046 ) % ... Excuse me? You want... ...my autograph? My, my ...
+   78:  		Wait  10`
+   84:  		Call  ContinueSpeech        ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0047 ) % You really do? Well! This is a first! What shall I ...
+   A4:  		Set   *GF_HOS06_MerluvleeRequestedCrystalBall  .True
+   B4:  	EndIf
+   C4:  Return
+   CC:  End
+}
 
 
+@	$Script_802456FC
+{
+    0:  If  *GF_HOS06_MerluvleeRequestedCrystalBall  ==  .False
+   10:  	Return
+   18:  EndIf
+   20:  If  *GF_HOS06_Gift_MerluvleesAutograph  ==  .True
+   30:  	Return
+   38:  EndIf
+   40:  Call  FindKeyItem   ( .Item:CrystalBall *Var0 )
+   54:  If  *Var0  ==  FFFFFFFF
+   64:  	Call  SpeakToPlayer ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0048 ) % Have you seen my sister yet? I'm sorry...but I sim ...
+   84:  Else
+   8C:  	Set   *Var0  $???_802456F4
+   9C:  	Set   *Var1  00000000
+   AC:  	ExecWait  $Script_8024471C
+   B8:  	If  *Var0  !=  FFFFFFFF
+				Set   *GF_HOS06_Gift_MerluvleesAutograph  .True
+   C8:  		Call  SpeakToPlayer ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0049 ) % Oh! Mercy! Thank you! I'll cherish this. And for y ...
+				Loop  2`
+		   10:  	Set   *Var0  0000015C
+		   20:  	Set   *Var1  00000003
+		  108:  	ExecWait  $Script_80244770
+		  114:  	Call  AddStarPieces ( 00000001 )
+					Wait  1`
+				EndLoop
+  134:  	Else
+  13C:  		Call  SpeakToPlayer ( .NpcID:Merluvlee_00 00B00004 00B00001 00000000 000A0048 ) % Have you seen my sister yet? I'm sorry...but I sim ...
+  15C:  	EndIf
+  164:  EndIf
+  16C:  Return
+  174:  End
+}
 
 
+@	$Script_Init_80243C04
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802435D0 )
+   14:  Exec  $Script_80245604
+		If  *GB_StoryProgress  >=  .Story:Ch2_GotPulseStone
+			If  *GF_HOS06_Gift_MerluvleesAutograph  == .False
+				Exec  $DonluvleeProblem
+			EndIf
+		EndIf
+   20:  Return
+   28:  End
+}
+
+#new:Script  $DonluvleeProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Merluvlee_00 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *GF_HOS06_Gift_MerluvleesAutograph == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
 
 
 
 %Add new Badges to Donluvlee's hints
+
+%Left: string data      middle: Badge ID       right: story progression to unlock
 @	$BadgeHintData
 {
 	00220001 0000010A FFFFFFF3
@@ -150,7 +240,7 @@
 	00220034 000000FA FFFFFFF6
 	00220035 000000EC 00000019
 	00220036 000000E5 FFFFFFC2
-	0022002F 00000112 FFFFD8F0
+	0022002F 00000112 FFFFFFCB   %Changed any time to after Chapter 2 to incentivize people to do the sidequest
 	0022002D 00000111 FFFFFFF3
 	0022002E 0000010D FFFFFFCB
 	00220030 000000F9 FFFFFFDF
@@ -197,14 +287,14 @@
 
 
 %Badge shop increase ported from Master Quest and Dark Star Edition.
-%There are approximately 185 Star Pieces as of 0.9.9.1
+%There are at least 190 Star Pieces as of 1.0
  
 #define .BadgeCount 18`
 
 @ $MerlowBadgeInventory
 {
 	.Item:AttackFXA        1`    0024008D % Changes the sound effects when Mario's attacking.
-	.Item:Peekaboo         1`    0024009F % Makes it possible to see your enemy's HP.
+	.Item:Peekaboo         2`    0024009F % Makes it possible to see your enemy's HP.
 	.Item:ChillOut         3`    00240098 % Keeps you from being hit by a First Strike.
 	.Item:HappyFlowerA     4`    0024007A % Restores FP automatically during battle at a slow  ...
 	.Item:PrettyLucky      5`    00240081 % Makes enemies fail to attack Mario every once in a ...
@@ -217,10 +307,10 @@
 	.Item:FlowerSaverA    12`    0024007B % During battle, saves 1 FP every time you attack.
 	.Item:ZapTap          14`    00240099 % In battle, makes most enemies who touch Mario take ...
 	.Item:MoneyMoney      15`    0024009A % After a battle, lets Mario get twice as many coins ...
-	.Item:FeelingFine     16`    0024008C % Protects Mario from poisoning and dizziness during ...
+	.Item:FeelingFine     18`    0024008C % Protects Mario from poisoning and dizziness during ...
 	.Item:FlowerFanatic   20`	 0024007B
-	.Item:PowerPlusA      24`    00240073 % Increases Mario's Jump and Hammer attack powers by ...
-	.Item:PowerPlusP      24`    00230145 % Mario's partner
+	.Item:PowerPlusA      25`    00240073 % Increases Mario's Jump and Hammer attack powers by ...
+	.Item:PowerPlusP      25`    00230145 % Mario's partner
 }
 
 
@@ -236,16 +326,17 @@
    30:  EndIf
    38:  If  *MerlowSaleCount  >=  18`
    48:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004C ) % Oh, you wanna trade Star Pieces for Badges, do you ...
+			ExecWait $DonluvleeOnlyFans
    68:  	Return
    70:  EndIf
    78:  If  *MapFlag[00]  ==  .True
    88:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004D ) % You want to trade more?
    A8:  Else
    B0:  	If  *GF_HOS06_Met_Merlow  ==  .False
-   C0:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004A ) % I'm the famous Merlow of Shooting Star Summit. I c ...
+   C0:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A004A ) % I'm the famous Merlow of Shooting Star Summit. I c ...
    E0:  		Set   *GF_HOS06_Met_Merlow  .True
    F0:  	Else
-   F8:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004B ) % I'm the famous Merlow of Shooting Star Summit. Got ...
+   F8:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A004B ) % I'm the famous Merlow of Shooting Star Summit. Got ...
   118:  	EndIf
   120:  EndIf
   128:  Call  ShowChoice    ( 001E0014 ) % Yes No
@@ -302,16 +393,19 @@
 			ExecWait  $Script_80242C0C
 			Call  AddBadge  ( .Item:SpeedySpin *Var0 )
 		EndIf 
-  43C:  If  *MerlowSaleCount  >=  00000011
-  44C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
+		If  *MerlowSaleCount  >=  16`
+			ExecWait $DonluvleeOnlyFans
+		EndIf
+  43C:   If  *MerlowSaleCount  >=  18`
+  44C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
   46C:  	Return
   474:  EndIf
   47C:  Call  $Function_80240A68    ( *Var0 )
   48C:  If  *Var0  <=  00000000
-  49C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
+  49C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
   4BC:  	Return
   4C4:  EndIf
-  4CC:  Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0056 ) % All right then, mister. Why don't we swap some mor ...
+  4CC:  Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0056 ) % All right then, mister. Why don't we swap some mor ...
   4EC:  Call  ShowChoice    ( 001E000D ) % Yes No
   4FC:  If  *Var0  ==  00000001
   50C:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0057 ) % You don't want to? Oh well. At least I was able to ...
@@ -321,6 +415,22 @@
   548:  Goto  0
   554:  Return
   55C:  End
+}
+
+
+#new:Script  $DonluvleeOnlyFans
+{
+			If  *MerluvleeOnlyFans == .False
+					Set   *MerluvleeOnlyFans .True
+					Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0086 )
+	   E8:  		Set   *Var0  000001A7
+	   F8:  		Set   *Var1  00000001
+	  108:  		ExecWait  $Script_80244770
+	  114:  		Call  AddKeyItem    ( .Item:OnlyFans )
+					Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0087 )
+			EndIf
+			Return
+			End
 }
 
 

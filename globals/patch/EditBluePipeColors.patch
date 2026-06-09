@@ -1,0 +1,135 @@
+%Edit blue pipe colors
+%Now the pit pipe and cave pipes look more fitting
+
+%Palette
+% 00000570 --> 0A000570
+/%
+#new:Unknown $???_0A000570
+{
+	112508DD 3B6D11A5 19E7009D 19AB1163 00555433 1A6700DF 222D2AAD 08E155B9
+}
+%/
+
+
+%The pipe itself
+#new:Data $IntTable_DefaultBluePipeColors
+{
+	112508DD 3B6D11A5 19E7009D 19AB1163 00555433 1A6700DF 222D2AAD 08E155B9
+	00000000
+}
+
+/%
+	1125	(00010 00100 10010 1) (00100 00100 00100 1) (0010 0001 0000 1001) (2109)	 (4)
+	08DD 	(00001 00011 01110 1) (00011 00011 00011 1) (0001 1000 1100 0111) (18C7)	 (3)
+	3B6D	(00111 01101 10110 1) (00101 00101 00101 1) (0010 1001 0100 1011) (294B) 	 (5)
+	11A5 	(00010 00110 10010 1) (00100 00100 00100 1) (0010 0001 0000 1001) (2109)	 (4)
+	19E7	(00011 00111 10011 1) (00100 00100 00100 1) (0010 0001 0000 1001) (2109)	 (4)
+	009D 	(00000 00010 01110 1) (00011 00011 00011 1) (0001 1000 1100 0111) (18C7)	 (3)
+	19AB	(00011 00110 10101 1) (00101 00101 00101 1) (0010 1001 0100 1011) (294B) 	 (5)
+	1163 	(00010 00101 10001 1) (00100 00100 00100 1) (0010 0001 0000 1001) (2109)	 (4)
+	0055	(00000 00001 01010 1) (00010 00010 00010 1) (0001 0000 1000 0101) (1085)	 (2)
+	5433 	(01010 10000 11001 1) (00110 00110 00110 1) (0011 0001 1000 1101) (318D)	 (6)
+	1A67	(00011 01001 10011 1) (00100 00100 00100 1) (0010 0001 0000 1001) (2109)	 (4)
+	00DF 	(00000 00011 01111 1) (00011 00011 00011 1) (0001 1000 1100 0111) (18C7)	 (3)
+	222D	(00100 01000 10110 1) (00101 00101 00101 1) (0010 1001 0100 1011) (294B)	 (5)
+	2AAD 	(00101 01010 10110 1) (00101 00101 00101 1) (0010 1001 0100 1011) (294B)	 (5)
+	08E1	(00001 00011 10000 1) (00100 00100 00100 1) (0010 0001 0000 1001) (2109)	 (4)
+	55B9	(01010 10110 11100 1) (00111 00111 00111 1) (0011 1001 1100 1111) (39CF)	 (7)
+	
+	Gray color codes
+		0 = 0001
+		1 = 0843
+		2 = 1085
+		3 = 18C7
+		4 = 2109
+		5 = 294B
+		6 = 318D
+		7 = 39CF
+%/
+
+
+#new:Data $IntTable_GrayPipeColors
+{
+	%10850843 18C71085 10850843 18C71085 00012109 10850843 18C718C7 1085294B	%darker
+	%112508DD 3B6D11A5 19E7009D 19AB1163 00555433 1A6700DF 222D2AAD 08E155B9	%original
+	18C71085 210918C7 18C71085 210918C7 0843294B 18C71085 21092109 18C7318D		%Normal dark
+	00000000
+}
+
+#export:Data $BluePipeFlag
+{
+	00000000
+}
+
+#export:Data $BluePipePalettePointer
+{
+	$IntTable_DefaultBluePipeColors
+}
+
+#export:Data $BluePipeLocation
+{
+	00000000
+}
+
+%Version 2: change the pointer and not the palette?
+%Maybe mupen won't explode then?
+
+#export:Function $FindBluePipePalettePointer
+{
+	PUSH	S0, S1, S2, S3
+	LAB		S0, 800740AB	%Area byte
+	%Check against every area
+	LI		S1, 1C
+	BEQ		S0, S1, .black
+	LI		S1, 1D
+	BEQ		S0, S1, .black
+	LI		S1, 1E
+	BEQ		S0, S1, .black
+	NOP
+	.rainbow
+	LI		S3, $IntTable_DefaultBluePipeColors
+	BEQ		R0, R0, .end
+	NOP
+	.black
+	LI		S3, $IntTable_GrayPipeColors
+	BEQ		R0, R0, .end
+	NOP
+	.end
+	SAW		S3, $BluePipePalettePointer
+	POP		S0, S1, S2, S3
+	JR		RA
+	NOP
+}
+
+%function that will work with the above data structures
+%Will not copy if the first value is identical for both
+%NEW: will not copy if thing to overwrite is not equal to the original
+%A0 = int table
+#export:Function $SetBluePipeColorWithTable
+{
+	PUSH	RA, S0, S1, S2, S3
+	LAW		S0, $BluePipeLocation		%<-- will cause problems if invalid pointer			%The stuff around here doesn't seem to affect anything
+	LUI		S1, 8000
+	AND		S1, S0, S1
+	BEQ		S1, R0, .end
+	NOP
+	LAW		S3, $IntTable_DefaultBluePipeColors
+	ADDI	S0, S0, 570
+	LW		S1, 0 (S0)
+	LW		S2, 0 (A0)
+	BNE		S1, S3, .end
+	NOP
+	BEQ		S1, S2, .end		%check for the same
+	NOP
+	.looptop
+	LW		S1, 0 (A0)
+	BEQ		S1, R0, .end
+	NOP	
+	SW		S1, 0 (S0)
+	ADDI	S0, S0, 4
+	ADDI	A0, A0, 4
+	BEQ		R0, R0, .looptop
+	NOP
+	.end
+	JPOP	RA, S0, S1, S2, S3
+}

@@ -13,6 +13,7 @@
 #define .NpcID:Paragoomba_12        0C
 #define .NpcID:WorldSkolar_13       0D
 #define .NpcID:Paragoomba_14        0E
+#define .Npc:Yakkey 				0F
 
 
 %Add a new Paragoomba because why not.
@@ -27,6 +28,16 @@
 	00000001 00000000 00000000 00000000 % no tattle string
 }
 
+#new:NpcGroup $NpcGroup_Yakkey
+{
+	.Npc:Yakkey $NpcSettings_80243D48 ~Vec3f:Yakkey % 0 -1000 0
+	00000D01 0` 00000000 00000000 180`
+	~NoDrops
+	~Movement:Yakkey
+	~AnimationTable:Yakkey
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
 
 @	$NpcGroupList_802478B8
 {
@@ -35,6 +46,43 @@
 	00000001 $NpcGroup_8024749C 0E080002
 	00000001 $NpcGroup_Paragoomba_14 0E060002
 	00000000 00000000 00000000
+}
+
+
+@	$NpcGroupList_8024787C
+{
+	00000002 $NpcGroup_80245D0C 0E100002
+	00000006 $NpcGroup_802460EC 00000000
+	00000001 $NpcGroup_80246C8C 00000000
+	00000001 $NpcGroup_80246E7C 00000000
+	00000001 $NpcGroup_Yakkey   00000000
+	00000000 00000000 00000000
+}
+
+
+
+@	$Script_80241F10
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch3_TubbaWokeUp % FFFFFFE3
+   18:  		Call  SetMusicTrack     ( 00000000 .Song:GustyGulch 00000000 00000008 )
+   34:  		Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+				Call  $Function_SongVariationOff ( )
+   44:  	Case  <  .Story:Ch3_HeartEscapedWindyMill % FFFFFFEF
+   50:  		Call  SetMusicTrack     ( 00000000 .Song:TubbaEscape 00000000 00000008 )
+   6C:  		Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+   7C:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   88:  		Call  SetMusicTrack     ( 00000000 .Song:TubbaBlubbaTheme 00000000 00000008 )
+   A4:  		Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+   B4:  	Case  ==  .Story:Ch3_BeganPeachMission % FFFFFFF2
+   C0:  		Call  SetMusicTrack ( 00000000 .Song:StarSpiritTheme 00000001 00000008 )
+   DC:  	Default
+   E4:  		Call  SetMusicTrack     ( 00000000 .Song:GustyGulch 00000000 00000008 )
+  100:  		Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+				Call  $Function_SongVariationOff ( )
+  110:  EndSwitch
+  118:  Return
+  120:  End
 }
 
 
@@ -218,6 +266,9 @@
 		Set     *Byte_Settings_BGM *Var0
 		Call $ClearFlagCarryOverworldMusicToBattle()
 		ExecWait  $NukeBossChecks
+		If    *GF_MIM10_Defeated_JrTroopa == .True
+			Set   *ReturnPipeLock .False
+		EndIf
     0:  Wait  10`
     C:  Call  SetNpcAnimation   ( .Npc:Self 006A0022 )
    20:  Wait  15`
@@ -596,4 +647,84 @@
   978:  Call  DisablePlayerInput    ( .False )
   988:  Return
   990:  End
+}
+
+
+
+
+@	$Script_802439B0
+{
+    0:  SetGroup  00000000
+    C:  Call  SetTimeFreezeMode ( 00000001 )
+   1C:  Call  ShowKeyChoicePopup ( )
+   28:  If  *Var0  ==  00000000
+   38:  	Call  ShowMessageAtScreenPos    ( 001D00D8  160`  40` ) % It's locked! You can't open it.
+   50:  	Call  CloseChoicePopup ( )
+   5C:  	Call  SetTimeFreezeMode ( 00000000 )
+   6C:  	Return
+   74:  EndIf
+   7C:  If  *Var0  ==  FFFFFFFF
+   8C:  	Call  CloseChoicePopup ( )
+   98:  	Call  SetTimeFreezeMode ( 00000000 )
+   A8:  	Return
+   B0:  EndIf
+   B8:  Call  FindKeyItem       ( .Item:MysticalKey *Var0 )
+   CC:  Call  RemoveKeyItemAt   ( *Var0 )
+   DC:  Call  CloseChoicePopup ( )
+		Call  DisablePlayerInput    ( .True )
+		Call  PlayerMoveTo  (  -18`  -128`  10` )
+		Call  PlayerMoveTo  (  -17`  -128`  5` )
+		Call  SetNpcAnimation       ( .Npc:Yakkey 00C00001 )
+		Wait  1`
+		Call  SetNpcAnimation       ( .Npc:Yakkey 00C00003 )
+		Call  SetNpcPos     ( .Npc:Yakkey  26`  38`  -144` )
+		Call  PlaySound     ( 00000229 )
+		Wait  30`
+		Call  SetNpcPos     ( .Npc:Yakkey  26`  34`  -144` )
+		Call  PlaySound     ( 000001FE )
+		Wait  20`
+   E8:  Set   *GB_StoryProgress  .Story:Ch3_UnlockedWindyMill
+   F8:  Call  $Function_802408A4    ( *MapVar[0] *Var0 *Var1 *Var2 )
+		Call  SetNpcPos     ( .Npc:Yakkey  26`  -900`  -144` )
+  114:  Call  PlaySoundAt       ( 00000269 00000000 *Var0 *Var1 *Var2 )
+  134:  Set   *Var0  *MapVar[0]
+  144:  Call  $Function_80240870 ( )
+  150:  Call  SetTimeFreezeMode ( 00000000 )
+		Call  PushSong ( .Song:BattleEnd 00000002 )  
+ 16BC: 	Wait  3`
+ 16C8:  Call  ShowMessageAtScreenPos    ( 000E011F  160`  40` ) %Key left :(
+		Call  PopSong ( )
+		Wait  5`
+		Call  DisablePlayerInput    ( .False )
+  160:  Unbind
+  168:  Return
+  170:  End
+}
+
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

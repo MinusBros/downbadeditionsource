@@ -42,6 +42,7 @@ Mario?
 #new:Script $Script_RockDestroyed
 {
 	Set  *GF_HOS07_Rock  .True 
+	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition 00000011 *GF_HOS07_StarPiece )
 	Return
 	End
 }
@@ -66,14 +67,7 @@ Mario?
 	Call	SetCamLeadPlayer 	( .Cam:Default .False )
 	Exec	$Script_ShootingStars 
 	Call	SetMusicTrack 	( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
-	If  *GF_HOS07_Rock  ==  .False 
-		Call     MakeEntity  	( .Entity:BombableRock1 ~Vec4d:RockPosition 80000000 )
-		Call     AssignScript 	( $Script_RockDestroyed )
-	EndIf
-	Call  MakeEntity        ( .Entity:SimpleSpring ~Vec4d:Spring 28` 80000000 )
-	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition 00000011 *GF_HOS07_StarPiece )
-	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition2 00000011 *GF_HOS07_StarPiece2 )
-	Call 	MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:pipeloc 00000003 $Script_UseBluePipe ~Index:*GF_Star_BluePipeB 80000000 )
+	Exec  $MakeEntities
 	Call  GetEntryID    ( *Var0 )	
 	Switch  *Var0
 		Case == 3`
@@ -100,6 +94,32 @@ Mario?
 			Exec	EnterWalk 
 	EndSwitch
 	Wait	1
+	Return
+	End
+}
+
+#new:Script  $MakeEntities
+{
+	If  *GF_HOS07_Rock  ==  .False 
+		Call     MakeEntity  	( .Entity:BombableRock1 ~Vec4d:RockPosition 80000000 )
+		Call     AssignScript 	( $Script_RockDestroyed )
+		Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition 00000011 *GF_HOS07_StarPiece )
+	EndIf
+	Call  MakeEntity        ( .Entity:SimpleSpring ~Vec4d:Spring 28` 80000000 )
+	Call	MakeItemEntity	( .Item:StarPiece ~Vec3d:StarPiecePosition2 00000011 *GF_HOS07_StarPiece2 )
+	Call 	MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:pipeloc 00000003 $Script_UseBluePipe ~Index:*GF_Star_BluePipeB 80000000 )
+	Call  MakeEntity    ( .Entity:Signpost ~Vec4d:Sign 80000000 )
+	Call  AssignScript    ( $Script_ReadSign_Sign )
+	Return
+	End
+}
+
+
+#new:Script $Script_ReadSign_Sign
+{
+	Call  DisablePlayerInput        ( .True )
+	Call  ShowMessageAtScreenPos    ( $Sign 000000A0 00000028 )
+	Call  DisablePlayerInput        ( .False )
 	Return
 	End
 }
@@ -309,3 +329,12 @@ Mario?
   118:  JR        RA
   11C:  ADDIU     SP, SP, 68
 }
+
+#new:String $Sign
+{
+[Style Sign]
+[DelayOff][BR]
+[Size 24][Right 48]Love Hotel  [UP]
+[Wait][END]
+}
+

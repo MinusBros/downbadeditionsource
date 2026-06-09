@@ -18,9 +18,21 @@ $Script_Main $EntryList 00000001 00000000
 #string $MapTattle
 {
 [Style Tattle]
-[EnableCDownNext]The platforms here are all[BR]
-different colors. Do you think[BR]
-that means anything?[BR]
+[EnableCDownNext]This better not be Simon.[BR]
+[Shake]I hate Simon.[/fx][BR]
+[Pause 10]He took my bubblegum in 5th grade,[BR]
+that dullard.[BR]
+[Wait][Next]
+And didn't I already mention[BR]
+memory isn't my forte?[BR]
+[Pause 8]You figure it out, Mario.[BR]
+[Wait][Next]
+Don't forget I am a hundred times[BR]
+smarter than you,[Pause 5] but this [Wave]might[/fx][BR]
+just be the exception.[BR]
+[Wait][Next]
+I wonder how Simon is doing[BR]
+these days...[BR]
 [Wait][End]
 }
 
@@ -67,41 +79,44 @@ that means anything?[BR]
 	ExecWait $Script_CreateEntities
 		Set		*Var[0] $Script_MakeExits 
 		Exec	EnterWalk 
+	Set *DNJ27_RedSwitch 0`
 	Return
 	End
 }
 	
 	#new:Script $Script_CreateEntities
 {
-		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchred 80000000 )
-	    Call	AssignScript	( $Script_TriggerRED )
-		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchblue 80000000 )
-	    Call	AssignScript	( $Script_TriggerBLU )
-		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchyellow 80000000 )
-	    Call	AssignScript	( $Script_TriggerYLW )
-		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchpurple 80000000 )
-	    Call	AssignScript	( $Script_TriggerPUR )
-		Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchgreen 80000000 )
-	    Call	AssignScript	( $Script_TriggerGRN )
+		If  *GF_DNJ19_Gate == .False
+			Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchred 80000000 )
+			Call	AssignScript	( $Script_TriggerRED )
+			Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchblue 80000000 )
+			Call	AssignScript	( $Script_TriggerBLU )
+			Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchyellow 80000000 )
+			Call	AssignScript	( $Script_TriggerYLW )
+			Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchpurple 80000000 )
+			Call	AssignScript	( $Script_TriggerPUR )
+			Call	MakeEntity		( .Entity:RedSwitch ~Vec4d:switchgreen 80000000 )
+			Call	AssignScript	( $Script_TriggerGRN )
+		EndIf
 	Return
 	End
 }
 			
 	#new:Script $Script_TriggerRED
 {
-	If *Flag_NOK_3D == 00000000
-		Set *Flag_NOK_3D 00000001
+	If *DNJ27_RedSwitch == 00000000
+		Set *DNJ27_RedSwitch 00000001
 	Else
-		If *Flag_NOK_47 == 00000000
+		If *DNJ27_TriggerFight == 1
 			Call	 DisablePlayerInput ( .True )
-			Set *Flag_NOK_3D 00000000
+			Set *DNJ27_RedSwitch 00000000
 			Set *MapFlag[0] .True
 		Else
-			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
-			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
-			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
-			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
-			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+			Set *DNJ27_RedSwitch 00000000 % gotta reset all of these flags if you goof
+			Set *DNJ27_BlueSwitch 00000000 % this part is being a real pain and I dont
+			Set *DNJ27_YellowSwitch 00000000 % know why. Probably because im tired and
+			Set *DNJ27_PurpleSwitch 00000000 % dont even feel like coding this bit. I
+			Set *DNJ27_PurpleSwitch 00000000 % know theres gotta be an easier way...
 		EndIf
 	EndIf
 	Return
@@ -110,20 +125,20 @@ that means anything?[BR]
 				
 	#new:Script $Script_TriggerBLU
 {
-	If *Flag_NOK_3D == 00000001
-		Set *Flag_NOK_43 00000001
-		Set *Flag_NOK_3D 00000000
+	If *DNJ27_RedSwitch == 00000001
+		Set *DNJ27_BlueSwitch 00000001
+		Set *DNJ27_RedSwitch 00000000
 	Else
-		If *Flag_NOK_47 == 00000000
+		If *DNJ27_TriggerFight == 1
 			Call	 DisablePlayerInput ( .True )
-			Set *Flag_NOK_3D 00000000
+			Set *DNJ27_RedSwitch 00000000
 			Set *MapFlag[0] .True
 		Else
-			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
-			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
-			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
-			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
-			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+			Set *DNJ27_RedSwitch 00000000 % gotta reset all of these flags if you goof
+			Set *DNJ27_BlueSwitch 00000000 % this part is being a real pain and I dont
+			Set *DNJ27_YellowSwitch 00000000 % know why. Probably because im tired and
+			Set *DNJ27_PurpleSwitch 00000000 % dont even feel like coding this bit. I
+			Set *DNJ27_PurpleSwitch 00000000 % know theres gotta be an easier way...
 		EndIf
 	EndIf
 	Return
@@ -132,20 +147,20 @@ that means anything?[BR]
 				
 	#new:Script $Script_TriggerYLW
 {
-	If *Flag_NOK_43 == 00000001
-		Set *Flag_NOK_44 00000001
-		Set *Flag_NOK_43 00000000
+	If *DNJ27_BlueSwitch == 00000001
+		Set *DNJ27_YellowSwitch 00000001
+		Set *DNJ27_BlueSwitch 00000000
 	Else
-		If *Flag_NOK_47 == 00000000
+		If *DNJ27_TriggerFight == 1
 			Call	 DisablePlayerInput ( .True )
-			Set *Flag_NOK_3D 00000000
+			Set *DNJ27_RedSwitch 00000000
 			Set *MapFlag[0] .True
 		Else
-			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
-			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
-			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
-			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
-			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+			Set *DNJ27_RedSwitch 00000000 % gotta reset all of these flags if you goof
+			Set *DNJ27_BlueSwitch 00000000 % this part is being a real pain and I dont
+			Set *DNJ27_YellowSwitch 00000000 % know why. Probably because im tired and
+			Set *DNJ27_PurpleSwitch 00000000 % dont even feel like coding this bit. I
+			Set *DNJ27_PurpleSwitch 00000000 % know theres gotta be an easier way...
 		EndIf
 	EndIf
 	Return
@@ -154,20 +169,20 @@ that means anything?[BR]
 				
 	#new:Script $Script_TriggerPUR
 {
-	If *Flag_NOK_44 == 00000001
-		Set *Flag_NOK_45 00000001
-		Set *Flag_NOK_44 00000000
+	If *DNJ27_YellowSwitch == 00000001
+		Set *DNJ27_PurpleSwitch 00000001
+		Set *DNJ27_YellowSwitch 00000000
 	Else
-		If *Flag_NOK_47 == 00000000
+		If *DNJ27_TriggerFight == 1
 			Call	 DisablePlayerInput ( .True )
-			Set *Flag_NOK_3D 00000000
+			Set *DNJ27_RedSwitch 00000000
 			Set *MapFlag[0] .True
 		Else
-			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
-			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
-			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
-			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
-			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+			Set *DNJ27_RedSwitch 00000000 % gotta reset all of these flags if you goof
+			Set *DNJ27_BlueSwitch 00000000 % this part is being a real pain and I dont
+			Set *DNJ27_YellowSwitch 00000000 % know why. Probably because im tired and
+			Set *DNJ27_PurpleSwitch 00000000 % dont even feel like coding this bit. I
+			Set *DNJ27_PurpleSwitch 00000000 % know theres gotta be an easier way...
 		EndIf
 	EndIf
 	Return
@@ -176,21 +191,20 @@ that means anything?[BR]
 				
 	#new:Script $Script_TriggerGRN
 {
-	If *Flag_NOK_45 == 00000001
-		Set *Flag_NOK_46 00000001 % I have no idea why I need to use all these flags but im too tired to figure it out. Its so late @_@
-		Set *Flag_NOK_45 00000000
+	If *DNJ27_PurpleSwitch == 00000001
+		Set *DNJ27_PurpleSwitch 00000000
 		ExecWait $ShakeIt
 	Else
-		If *Flag_NOK_47 == 00000000
+		If *DNJ27_TriggerFight == 1
 			Call	 DisablePlayerInput ( .True )
-			Set *Flag_NOK_3D 00000000
+			Set *DNJ27_RedSwitch 00000000
 			Set *MapFlag[0] .True
 		Else
-			Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
-			Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
-			Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
-			Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
-			Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+			Set *DNJ27_RedSwitch 00000000 % gotta reset all of these flags if you goof
+			Set *DNJ27_BlueSwitch 00000000 % this part is being a real pain and I dont
+			Set *DNJ27_YellowSwitch 00000000 % know why. Probably because im tired and
+			Set *DNJ27_PurpleSwitch 00000000 % dont even feel like coding this bit. I
+			Set *DNJ27_PurpleSwitch 00000000 % know theres gotta be an easier way...
 		EndIf
 	EndIf
 	Return
@@ -199,6 +213,7 @@ that means anything?[BR]
  
 #new:Script $ShakeIt
 {
+Set  *GF_DNJ19_Gate .True
 Call	 DisablePlayerInput ( .True )
 	Thread
    		Call     PlaySoundAtCollider 	( ~Collider:exit1 00000187 00000000 )
@@ -214,15 +229,15 @@ Return
 End
 }
  
-#new:Script $Script_802421A8
+#new:Script $Script_Defeat
 {
 		Call     DisablePlayerInput	( .False )
-		Set *Flag_NOK_47 00000001
-		Set *Flag_NOK_3D 00000000 % gotta reset all of these flags if you goof
-		Set *Flag_NOK_43 00000000 % this part is being a real pain and I dont
-		Set *Flag_NOK_44 00000000 % know why. Probably because im tired and
-		Set *Flag_NOK_45 00000000 % dont even feel like coding this bit. I
-		Set *Flag_NOK_46 00000000 % know theres gotta be an easier way...
+		Set *DNJ27_TriggerFight 00000000
+		Set *DNJ27_RedSwitch 00000000 % gotta reset all of these flags if you goof
+		Set *DNJ27_BlueSwitch 00000000 % this part is being a real pain and I dont
+		Set *DNJ27_YellowSwitch 00000000 % know why. Probably because im tired and
+		Set *DNJ27_PurpleSwitch 00000000 % dont even feel like coding this bit. I
+		Set *DNJ27_PurpleSwitch 00000000 % know theres gotta be an easier way...
 		Set  *MapFlag[0] .False 	
    Return
    End 
@@ -231,8 +246,8 @@ End
 #new:Script $Script_Init_Disastar
 {
 		Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
-      If  *Flag_NOK_3D == 00000000
-     	Call     BindNpcDefeat 	( .Npc:Self $Script_802421A8 )
+      If  *GF_DNJ19_Gate == .False
+     	Call     BindNpcDefeat 	( .Npc:Self $Script_Defeat )
      Else
      	Call     RemoveEncounter ( FFFFFFFF )
      EndIf
@@ -267,7 +282,7 @@ End
 {
 	Loop
 		If  *MapFlag[0]  ==  .True 
-		 	Call     StartBossBattle 	( .Song:SpecialBattle )
+		 	Call     StartBossBattle 	( .Song:Kazuya )
 		EndIf
 		Wait     00000001 
 	EndLoop

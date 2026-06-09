@@ -37,11 +37,13 @@
 				Call  SetMusicTrack ( 00000000 .Song:ChapterEnd 00000002 00000008 )  %Sailor Mercury song
 			Case  >= .Story:Ch0_GateCrushed 
    10:  		Call  SetMusicTrack     ( 00000000 .Song:GoombaVillage 00000000 00000008 )
+				Call  $Function_SongVariationOn ( )
    2C:  		Call  PlayAmbientSounds ( .AmbientSounds:Birds )
    3C:  EndSwitch
    44:  Return
    4C:  End
 }
+
 
 @	$Script_MakeEntities
 {
@@ -82,8 +84,7 @@
 
 
 %This makes the battle theme normal.
-%It will change when you get to
-%Chapter 8.
+%It will change depending on the area.
 
 @	$Script_Main_EnterWalk
 {
@@ -756,4 +757,32 @@ End
 #new:ConstDouble $ConstDouble_StretchIntensity
 {
 	0.090000d
+}
+
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }
