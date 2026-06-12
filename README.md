@@ -20,22 +20,20 @@ Anyways you can click the release page for the most recent version.
 
 
 
-All testing was done in Retroarch with Mupen64 and GlideN64 plugin.
+All of my testing was done in Retroarch with Mupen64Plus-Next and GLideN64 plugin.
 =
 
-Frame rate set to Fullspeed (for no in-game slowdown)
+Here are my settings:
 
+CPU Core: Dynarec
+RSP Plugin: HLE
+Framerate: Fullspeed (for no in-game slowdown)
 Resolution: 1080p
-
 LOD Emulation: ON
-
+Framebuffer Emulation: On
 Copy Auxiliary Buffers To RDRAM: ON
-
 Don't filter background textures: ON
-
 Use High-Res Full Alpha Channel: ON
-
-
 
 You may use Parallel core if you wish, but crashes can happen, so be mindful if you do decide to use it. Rosalie's Mupen GUI and Bizhawk have been tested with mostly success. Please don't use Project 64. It doesn't work with Paper Mario hacks.
 
