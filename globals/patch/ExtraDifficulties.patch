@@ -33,9 +33,10 @@ NOP
 BEQ     R0, R0, .CheckCap % Very Hard
 ADDU    V0, V0, V0 % just sum enemyHP twice = EnemyHPx2
 .Easy
-SRL T0, V0, 2   % Get 25% of enemy HP
-SUBU V0, V0, T0 % Subtract the calculated 25%
-MFLO    T0
+COPY T0, V0 % save the original HP in T0
+ADDU V0, V0, T0 % hp now hpx2 
+ADDU V0, V0, T0 % hp now hpx3
+SRL     V0, V0, 2 % divide by 4 to get 75% ((hpx3)/4)
 BEQL    V0, R0, .CheckCap
 ORI     V0, R0, 1
 BEQ     R0, R0, .CheckCap
@@ -194,9 +195,12 @@ SB		V0, 01B9 (S1) % write max hp
     BEQ		R0, R0, .End % Very Hard
     ADDU    V0, V0, V0 % damage x2
 	.Easy
-	SRL T0, V0, 2   % Get 25% of enemy ATK
+	COPY T0, V0 % save the original damage in T0
+    ADDU V0, V0, T0 % dmg x2
+    ADDU V0, V0, T0 % dmg x3
+    SRL V0, V0, 2 % divide by 4 to get 75% ((dmgx3)/4)
 	BEQL R0, R0, .End % 
-	SUBU V0, V0, T0 % Subtract the calculated 25%
+	NOP
 	.Hard
     ORI     V1, R0, 2 % get 50%
     DIV     V0, V1 % damage / 2 = 50%
