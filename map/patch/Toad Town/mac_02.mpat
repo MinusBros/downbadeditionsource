@@ -10,6 +10,7 @@
 #define .NpcID:Bootler_09           09
 #define .NpcID:ShyGuy_11            0B
 
+#import AutoSave.mpat
 
 @	$Script_802435C0
 {
@@ -35,14 +36,118 @@
 }
 
 
+#new:Script  $CheckOddKey
+{
+	If  *GF_MAC02_Item_OddKey == .True
+		Return
+	EndIf
+	Label  A
+	If  *GF_MAC02_Item_OddKey == .True
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		If  *Var0  >  -400`
+			Call  DisablePlayerInput        ( .True )
+			Wait  64`
+			Call  PlaySoundAtNpc    ( .NpcID:Toad_05 00000262 00000000 )
+			Call  ShowEmote ( .NpcID:Toad_05 .Emote:Exclamation  -30`  20` .True  0`  0`  0`  0` )
+			Wait  25`
+			Call  SetNpcAnimation   ( .NpcID:Toad_05 00830102 )
+			Call  NpcMoveTo ( .NpcID:Toad_05 -365` -221` 10` )
+			Call  SetNpcAnimation   ( .NpcID:Toad_05 00830101 )
+			If    *OddKeyCount < 2`
+				Call  SpeakToPlayer ( .NpcID:Toad_05 00830108 00830101 00000000 000400A2 )
+				Set   *GF_MAC02_Item_OddKey .False
+				Call  FindKeyItem   ( .Item:OddKey *Var0 )
+				Call  RemoveKeyItemAt ( *Var0 )			
+			Else
+				Call  SpeakToPlayer ( .NpcID:Toad_05 00830108 00830101 00000000 000400B2 )
+				Set   *GF_MAC02_Item_OddKey .False
+				Call  FindKeyItem   ( .Item:OddKey *Var0 )
+				Call  RemoveKeyItemAt ( *Var0 )			
+				Call  PlaySound ( 00000371 )
+				Call  SetPlayerAnimation    ( 00010022 )
+				Wait  36`
+				Call  PlaySound ( 000003FB )
+				Call  SetPlayerAnimation    ( 00010003 )
+				Wait  60`
+				Call  GotoMap   ( "gv_01" 00000003 )
+				Return
+			EndIf	
+			Call  PushSong ( .Song:BattleEnd 00000002 ) 
+			Wait  3`
+			Call  ShowMessageAtScreenPos    ( 000400A3  160`  40` ) %Key left :(
+			Call  PopSong ( )
+			Wait  5`
+			Call  FindKeyItem   ( .Item:OddKey *Var0 )
+			Call  RemoveKeyItemAt ( *Var0 )	
+			Add   *OddKeyCount 1`
+			Call  DisablePlayerInput        ( .False )
+		EndIf
+		Return
+	EndIf
+	Wait   1`
+	Goto   A
+	Return
+	End
+}
+
+
 @	$Script_Interact_8024BA9C
 {
   [210]  Call  SpeakToPlayer ( .NpcID:Toad_03 00830A04 00830A01 00000000 *Var0 ) % variable string ID
 }
 
+
+%Mai T.
+
 @	$Script_Interact_8024BE98
 {
-  [1C8]  Call  SpeakToPlayer ( .NpcID:ThreeSisters_04 00840504 00840501 00000000 *Var0 ) % variable string ID
+		If    *CathyHasCookedBefore == .True
+			If  *MaiTFangirlMoment == .False
+				Set  *MaiTFangirlMoment .True
+				Call  SpeakToPlayer ( .NpcID:ThreeSisters_04 00840504 00840501 00000000 000400A4 )
+				Return
+			EndIf
+		EndIf
+
+
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  0004004A
+   38:  		Else
+   40:  			Set   *Var0  0004004B
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  0004004C
+   74:  	Case  <  .Story:Ch4_GotTayceTsCake % FFFFFFFD
+   80:  		Set   *Var0  0004004D
+   90:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   9C:  		Set   *Var0  0004004E
+   AC:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+   B8:  		If  *GF_MAC02_TayceT_HasCookbook  ==  .False
+   C8:  			Set   *Var0  0004004F
+   D8:  		Else
+   E0:  			Switch  *GB_StoryProgress
+   EC:  				Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   F8:  					Set   *Var0  00040050
+  108:  				Case  <  .Story:Ch5_StarSpritDeparted % 27
+  114:  					Set   *Var0  00040051
+  124:  				Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  130:  					Set   *Var0  00040052
+  140:  				Case  <  .Story:Ch6_StarSpiritRescued % 39
+  14C:  					Set   *Var0  00040053
+  15C:  				Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  168:  					Set   *Var0  00040054
+  178:  				Case  <  .Story:Ch7_StarSpritDeparted % 59
+  184:  					Set   *Var0  00040055
+  194:  			EndSwitch
+  19C:  		EndIf
+  1A4:  	Case  <  .Story:Epilogue % 60
+  1B0:  		Set   *Var0  00040056
+  1C0:  EndSwitch
+  1C8:  Call  SpeakToPlayer ( .NpcID:ThreeSisters_04 00840504 00840501 00000000 *Var0 ) % variable string ID
+  1E8:  Return
+  1F0:  End
 }
 
 @	$Script_Interact_8024C3F8
@@ -51,9 +156,148 @@
 }
 
 %Nagitoad
+
+
+@	$Script_Init_8024C7DC
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024C618 )
+		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
+			If  *NagitoadCompleted == .False
+				Exec  $NagitoadProblem
+			EndIf
+		EndIf
+   14:  Return
+   1C:  End
+}
+
 @	$Script_Interact_8024C618
 {
-  [194]  Call  SpeakToPlayer ( .NpcID:Toad_08 00650505 00650501 00000000 *Var0 ) % variable string ID
+		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
+			If  *NagitoadCompleted == .False
+				Call  PushSong ( .Song:Fail 1` )	%Danganronpa theme, sketchy scuffed edition
+				If   *NagitoadAskedForHopeFragments == .False
+					Set *NagitoadAskedForHopeFragments .True
+					Call  SpeakToPlayer ( .NpcID:Toad_08 00650505 00650501 00000000 000400A5 )
+					Call  PopSong ( )
+					Return
+				Else
+					Set   *Var6  7`   %Starts at 7. Each Hope Fragment flag removes 1 from the total
+					If  *MAC00_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 0` )
+					Else
+						Call  SetMessageString   ( 000400A7 0` )
+					EndIf
+					If  *MAC01_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 1` )
+					Else
+						Call  SetMessageString   ( 000400A8 1` )
+					EndIf
+					If  *MAC02_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 2` )
+					Else
+						Call  SetMessageString   ( 000400A9 2` )
+					EndIf
+					If  *MAC03_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 3` )
+					Else
+						Call  SetMessageString   ( 000400AA 3` )
+					EndIf
+					If  *MAC04_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 4` )
+					Else
+						Call  SetMessageString   ( 000400AB 4` )
+					EndIf
+					If  *MAC05_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 5` )
+					Else
+						Call  SetMessageString   ( 000400AC 5` )
+					EndIf
+					If  *MAC07_HopeFragment == .True
+						Sub  *Var6 1`
+						Call  SetMessageString   ( 000400B1 7` )
+					Else
+						Call  SetMessageString   ( 000400AD 7` )
+					EndIf
+					Call  SetMessageValue   ( *Var6 6` )
+					If  *Var6  > 0`
+						Call  SpeakToPlayer ( .NpcID:Toad_08 00650505 00650501 00000000 000400A6 )
+						Call  SpeakToPlayer ( .NpcID:Toad_08 00650504 00650501 00000000 000400AE )
+						Call  SpeakToPlayer ( .NpcID:Toad_08 00650505 00650501 00000000 000400B0 )
+					Else
+						Set  *NagitoadCompleted .True
+						Call  SpeakToPlayer ( .NpcID:Toad_08 00650504 00650501 00000000 000400AF )
+			   10:  	Set   *Var0  000000F1
+			   20:  	Set   *Var1  00000002
+			   30:  	Call  ShowGotItem   ( *Var0 .True 00000000 )
+			   3C:  	Call  AddBadge  ( .Item:PrettyLucky *Var0 )
+						ExecWait  $ProblemSolved
+					EndIf
+				EndIf
+				Call  PopSong ( )
+				Return
+			EndIf
+		EndIf
+
+		Call  RandInt   ( 1` *Var2 )
+		If    *Var2 == 0`
+			Set  *Var1 00650504
+		Else
+			Set  *Var1 00650505
+		EndIf
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  00040078
+   38:  		Else
+   40:  			Set   *Var0  00040079
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  0004007A
+   74:  	Case  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+   80:  		Set   *Var0  0004007B
+   90:  	Case  <  .Story:Ch4_GotTayceTsCake % FFFFFFFD
+   9C:  		Set   *Var0  0004007C
+   AC:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   B8:  		Set   *Var0  0004007D
+   C8:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   D4:  		Set   *Var0  0004007E
+   E4:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+   F0:  		Set   *Var0  0004007F
+  100:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  10C:  		Set   *Var0  00040080
+  11C:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  128:  		Set   *Var0  00040081
+  138:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  144:  		Set   *Var0  00040082
+  154:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  160:  		Set   *Var0  00040083
+  170:  	Case  <  .Story:Epilogue % 60
+  17C:  		Set   *Var0  00040084
+  18C:  EndSwitch
+  194:  Call  SpeakToPlayer ( .NpcID:Toad_08 *Var1 00650501 00000000 *Var0 ) % Randomize talking animation too
+  1B4:  Return
+  1BC:  End
+}
+
+
+
+#new:Script  $NagitoadProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Toad_08 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *NagitoadCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
 }
 
 
@@ -129,6 +373,12 @@
   3D4:  Exec  $Script_80244EC8
   3E0:  Exec  $Script_80245B14
   3EC:  Exec  $Script_802435C0
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80244624
+   38:  	Return
+   40:  EndIf
   3F8:  Call  GetEntryID    ( *Var0 )
   408:  If  *Var0  <=  ~Entry:Entry3
   418:  	Set   *Var0  $Script_80244624
@@ -186,7 +436,6 @@
 
 @	$Script_8024456C
 {
-		Call  FadeOutMusic  ( 00000001 00000188 )
     0:  Call  GotoMap   ( $ASCII_8024E1F0 00000003 ) % tik_06
    14:  Wait  100`
    20:  Return
@@ -676,6 +925,7 @@
 {
     0:  Switch  *Var0
     C:  	Case  ==  00000000
+				Exec  $AutoSave
    18:  		Call  SetGroupEnabled   ( ~Model:cook_in 00000001 )
    2C:  		Set   *MapFlag[0A]  .True
 				Thread
@@ -703,21 +953,27 @@
 
 %Current recipes: 70
 
-@	$RecipesDiscovedIDs
+@	$RecipesDiscovedIDs  %51 original recipes
 {
-	000000B0 000000B1 000000B2 000000B3 000000B4 000000B5 000000B6 000000B7
-	000000B8 000000B9 000000BA 000000BD 000000BB 000000BE 000000BF 000000BC
-	000000C0 000000C1 000000C2 000000C3 000000C4 000000C5 000000C6 000000C7
-	000000C8 000000C9 000000CA 000000CB 000000CC 000000CD 000000CE 000000CF
-	000000D0 000000D1 000000D2 000000D3 000000D4 000000D5 000000D6 000000D7
-	000000D8 000000D9 000000DA 00000089 0000009A 0000009B 00000097 00000095
-	0000008B 0000008F 00000082 00000080 
+	.Item:FriedShroom .Item:HotShroom .Item:SpicySoup .Item:NuttyCake
+	.Item:SuperSoda   .Item:KoopaTea  .Item:Cake      .Item:FriedEgg
+	.Item:Spaghetti   .Item:TastyTonic .Item:HoneyShroom .Item:MapleShroom
+	.Item:HoneySuper  .Item:MapleSuper .Item:ApplePie  .Item:BigCookie
+	.Item:EggMissile  .Item:FirePop    .Item:ElectroPop  .Item:HoneyCandy
+	.Item:LemonCandy  .Item:LimeCandy  .Item:KookyCookie .Item:Koopasta
+	.Item:ShroomCake  .Item:ThunderRage .Item:VoltShroom .Item:BlandMeal
+	.Item:YummyMeal   .Item:BoiledEgg   .Item:CocoPop    .Item:DizzyDial
+    .Item:DeluxeFeast .Item:FireFlower  .Item:SpecialShake .Item:HealthyJuice
+	.Item:SweetShroom .Item:StrangeCake .Item:YoshiCookie  .Item:SleepySheep
+	.Item:SnowmanDoll .Item:PotatoSalad .Item:FrozenFries .Item:ShroomSteak 
+	.Item:JellyShroom1 .Item:JellySuper   .Item:HoneyUltra .Item:MapleUltra  
+	.Item:JellyUltra  .Item:JellyPop    .Item:Mistake
 	% NEW %
 	.Item:StarCake .Item:SuperShroomCake .Item:UltraShroomCake .Item:HealthySalad 
 	.Item:CathTea  .Item:DayzeeSyrup     .Item:CoconutBomb     .Item:ChocoCake
 	.Item:HottestDog .Item:OmeletteMeal  .Item:RoastHorsetail  .Item:RoastBump
 	.Item:VolcanoShroom  .Item:InkySauce  .Item:InkPasta     .Item:SpicyPasta      
-	.Item:PeachSyrup     .Item:FruitParfait
+	.Item:PeachSyrup     .Item:FruitParfait .Item:FreshJuice
 	00000000
 }
 
@@ -735,13 +991,13 @@
 	*GF_MAC02_DiscoveredRecipe_25 *GF_MAC02_DiscoveredRecipe_26 *GF_MAC02_DiscoveredRecipe_27 *GF_MAC02_DiscoveredRecipe_28
 	*GF_MAC02_DiscoveredRecipe_29 *GF_MAC02_DiscoveredRecipe_2A *GF_MAC02_DiscoveredRecipe_2B *GF_MAC02_DiscoveredRecipe_2C
 	*GF_MAC02_DiscoveredRecipe_2D *GF_MAC02_DiscoveredRecipe_2E *GF_MAC02_DiscoveredRecipe_2F *GF_MAC02_DiscoveredRecipe_30
-	*GF_MAC02_DiscoveredRecipe_31 *GF_MAC02_DiscoveredRecipe_32 *GF_MAC02_DiscoveredRecipe_33 *GF_MAC02_DiscoveredRecipe_34
+	*GF_MAC02_DiscoveredRecipe_31 *GF_MAC02_DiscoveredRecipe_32 *GF_MAC02_DiscoveredRecipe_33 *GF_MAC02_DiscoveredRecipe_34   %52 recipes right here
 	% NEW %
     *GF_MAC02_DiscoveredRecipe_35 *GF_MAC02_DiscoveredRecipe_36 *GF_MAC02_DiscoveredRecipe_37 *GF_MAC02_DiscoveredRecipe_38 
 	*GF_MAC02_DiscoveredRecipe_39 *GF_MAC02_DiscoveredRecipe_3A *GF_MAC02_DiscoveredRecipe_3B *GF_MAC02_DiscoveredRecipe_3C 
 	*GF_MAC02_DiscoveredRecipe_3D *GF_MAC02_DiscoveredRecipe_3E *GF_MAC02_DiscoveredRecipe_3F *GF_MAC02_DiscoveredRecipe_40
 	*GF_MAC02_DiscoveredRecipe_41 *GF_MAC02_DiscoveredRecipe_42 *GF_MAC02_DiscoveredRecipe_43 *GF_MAC02_DiscoveredRecipe_44
-	*GF_MAC02_DiscoveredRecipe_45 *GF_MAC02_DiscoveredRecipe_46
+	*GF_MAC02_DiscoveredRecipe_45 *GF_MAC02_DiscoveredRecipe_46 *GF_MAC02_DiscoveredRecipe_47								  %19 more right here, so 71 recipes	
 	00000000
 }
 
@@ -920,40 +1176,40 @@
 .Item:StrangeLeaf .Item:CakeMix .Item:StrangeCake
 .Item:HoneySyrup FFFFFFFF .Item:SuperSoda
 .Item:MapleSyrup FFFFFFFF .Item:SuperSoda
-.Item:Apple FFFFFFFF .Item:SuperSoda
-.Item:BlueBerry FFFFFFFF .Item:SuperSoda
-.Item:RedBerry FFFFFFFF .Item:SuperSoda
-.Item:YellowBerry FFFFFFFF .Item:SuperSoda
+.Item:Apple FFFFFFFF .Item:FreshJuice          %New Fresh Juice recipe
+.Item:BlueBerry FFFFFFFF .Item:FreshJuice
+.Item:RedBerry FFFFFFFF .Item:FreshJuice
+.Item:YellowBerry FFFFFFFF .Item:FreshJuice
 .Item:JamminJelly FFFFFFFF .Item:SuperSoda
 .Item:HoneySyrup .Item:MapleSyrup .Item:SuperSoda
 .Item:HoneySyrup .Item:KoopaLeaf .Item:SuperSoda
 .Item:Lime .Item:MapleSyrup .Item:SuperSoda
 .Item:Apple .Item:MapleSyrup .Item:SuperSoda
-.Item:Lime .Item:KoopaLeaf .Item:SuperSoda
-.Item:Lime .Item:Lemon .Item:SuperSoda
-.Item:Lime .Item:BlueBerry .Item:SuperSoda
-.Item:Lime .Item:RedBerry .Item:SuperSoda
-.Item:Lime .Item:YellowBerry .Item:SuperSoda
-.Item:Lime .Item:Apple .Item:SuperSoda
-.Item:Lemon .Item:BlueBerry .Item:SuperSoda
-.Item:Lemon .Item:RedBerry .Item:SuperSoda
-.Item:Lemon .Item:YellowBerry .Item:SuperSoda
+.Item:Lime .Item:KoopaLeaf .Item:FreshJuice
+.Item:Lime .Item:Lemon .Item:FreshJuice
+.Item:Lime .Item:BlueBerry .Item:FreshJuice
+.Item:Lime .Item:RedBerry .Item:FreshJuice
+.Item:Lime .Item:YellowBerry .Item:FreshJuice
+.Item:Lime .Item:Apple .Item:FreshJuice
+.Item:Lemon .Item:BlueBerry .Item:FreshJuice
+.Item:Lemon .Item:RedBerry .Item:FreshJuice
+.Item:Lemon .Item:YellowBerry .Item:FreshJuice
 .Item:Lemon .Item:MapleSyrup .Item:SuperSoda
-.Item:Lemon .Item:KoopaLeaf .Item:SuperSoda
-.Item:Lemon .Item:Apple .Item:SuperSoda
-.Item:Apple .Item:BlueBerry .Item:SuperSoda
-.Item:Apple .Item:RedBerry .Item:SuperSoda
-.Item:Apple .Item:YellowBerry .Item:SuperSoda
+.Item:Lemon .Item:KoopaLeaf .Item:FreshJuice
+.Item:Lemon .Item:Apple .Item:FreshJuice
+.Item:Apple .Item:BlueBerry .Item:FreshJuice
+.Item:Apple .Item:RedBerry .Item:FreshJuice
+.Item:Apple .Item:YellowBerry .Item:FreshJuice
 .Item:JamminJelly .Item:KoopaLeaf .Item:SuperSoda
-.Item:YellowBerry .Item:BlueBerry .Item:SuperSoda
-.Item:YellowBerry .Item:RedBerry .Item:SuperSoda
-.Item:BlueBerry .Item:RedBerry .Item:SuperSoda
-.Item:Coconut .Item:BlueBerry .Item:SuperSoda
-.Item:Coconut .Item:RedBerry .Item:SuperSoda
-.Item:Coconut .Item:YellowBerry .Item:SuperSoda
-.Item:Coconut .Item:Apple .Item:SuperSoda
-.Item:Coconut .Item:Melon .Item:SuperSoda
-.Item:Coconut .Item:KoopaLeaf .Item:SuperSoda
+.Item:YellowBerry .Item:BlueBerry .Item:FreshJuice
+.Item:YellowBerry .Item:RedBerry .Item:FreshJuice
+.Item:BlueBerry .Item:RedBerry .Item:FreshJuice
+.Item:Coconut .Item:BlueBerry .Item:FreshJuice
+.Item:Coconut .Item:RedBerry .Item:FreshJuice
+.Item:Coconut .Item:YellowBerry .Item:FreshJuice
+.Item:Coconut .Item:Apple .Item:FreshJuice
+.Item:Coconut .Item:Melon .Item:FreshJuice
+.Item:Coconut .Item:KoopaLeaf .Item:FreshJuice
 .Item:BlueBerry .Item:MapleSyrup .Item:SuperSoda
 .Item:RedBerry .Item:MapleSyrup .Item:SuperSoda
 .Item:YellowBerry .Item:MapleSyrup .Item:SuperSoda
@@ -961,6 +1217,8 @@
 .Item:Coconut .Item:MapleSyrup .Item:SuperSoda
 .Item:CakeMix .Item:UltraShroom .Item:UltraShroomCake		%Ultra shroom cake
 .Item:CakeMix .Item:LifeShroom .Item:SuperShroomCake	%Super shroom cake
+.Item:Lime FFFFFFFF .Item:TastyTonic
+.Item:Lemon FFFFFFFF .Item:TastyTonic
 .Item:RedBerry .Item:HoneySyrup .Item:TastyTonic
 .Item:YellowBerry .Item:HoneySyrup .Item:TastyTonic
 .Item:BlueBerry .Item:HoneySyrup .Item:TastyTonic
@@ -968,8 +1226,6 @@
 .Item:Lemon .Item:HoneySyrup .Item:TastyTonic
 .Item:Lime .Item:HoneySyrup .Item:TastyTonic
 .Item:Coconut .Item:HoneySyrup .Item:TastyTonic
-.Item:Lime FFFFFFFF .Item:TastyTonic
-.Item:Lemon FFFFFFFF .Item:TastyTonic
 .Item:BubbleBerry FFFFFFFF .Item:TastyTonic
 .Item:Coconut FFFFFFFF .Item:TastyTonic
 .Item:DriedFruit .Item:VoltShroom .Item:ThunderRage
@@ -1078,6 +1334,7 @@
 .Item:ShroomSteak .Item:HotShroom  .Item:DeluxeFeast
 .Item:GoldenLeaf .Item:Melon .Item:SpecialShake
 .Item:GoldenLeaf .Item:SpecialShake .Item:HealthyJuice
+.Item:IcedPotato .Item:Pebble      .Item:SnowmanDoll
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Point Swap things
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1457,10 +1714,110 @@ FFFFFFFF FFFFFFFF % End of table
 	NOP
 }
 
-@ $Function_802418FC
+
+
+
+@ $Script_MakeEntities
 {
-   [BC]  CLEAR		V0 % never spawn chuck
-   [1B8] J          $Function_802418FC[1E4]
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  If  *Var0  ==  ~Entry:Entry5
+   20:  	If  *GF_MAC02_UnlockedHouse  ==  .False
+   30:  		Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80245E20 80000000 )
+   54:  		Set   *MapVar[0]  *Var0
+   64:  		BindLock  $Script_80245C58 .Trigger:WallPressA 00004000 $ItemList_80245C50 00000000 00000001
+   84:  	EndIf
+   8C:  EndIf
+   94:  Call  MakeItemEntity    ( .Item:OddKey ~Vec3d:Item80245E84 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC02_Item_OddKey )
+		Exec  $CheckOddKey
+   B8:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity80245EA8 ~Model:o236 80000000 )
+   E0:  Call  AssignPanelFlag   ( *GF_MAC02_HiddenPanel )
+   F0:  Call  MakeEntity        ( .Entity:Signpost ~Vec4d:Entity80245EE0 80000000 )
+  114:  Call  AssignScript      ( $Script_80245D60 )
+		Call  MakeEntity  		( .Entity:Signpost ~Vec4d:RecipeSign 80000000 )
+		Call	 AssignScript ( $Script_SignPost )
+  124:  Bind  $Script_80245DA8 .Trigger:WallPressA ~Collider:sign 00000001 00000000
+		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
+			Call  MakeItemEntity    ( .Item:HopeFragment ~Vec3d:HopeFragment .ItemSpawnMode:Fixed_NeverVanish *MAC02_HopeFragment )
+		EndIf
+  140:  Return
+  148:  End
+}
+
+
+#new:Script $Script_SignPost
+{
+	0:  Call     DisablePlayerInput 	( .True )
+		Call 	$Function_CountRecipes ( *Var1 )
+		Call	 SetMessageValue ( *Var1 0 )
+		%If *Var1 < 40`
+		%	Call     ShowMessageAtScreenPos 	( $RecipeCountNoHint 000000A0 00000028 )
+		%	Goto 1
+		%EndIf
+		Call	 $Function_UnusedItem ( *Var2 )
+		If *Var2 == FFFFFFFF
+			Call     ShowMessageAtScreenPos 	( $RecipeCountComplete 000000A0 00000028 )			
+		Else
+			Call     $Function_80241874 ( *Var2 )			%Get name of item at var0
+			Call     SetMessageString 	( *Var2 00000001 )
+			Call	 $Function_UnusedItemIngredient1 ( *Var2 )
+			If *Var2 == FFFFFFFF
+				Call     ShowMessageAtScreenPos 	( $RecipeCountHint 000000A0 00000028 )
+			Else
+				Call     $Function_80241874 ( *Var2 )			%Get name of item at var0
+				Call     SetMessageString 	( *Var2 00000002 )
+				Call	 $Function_UnusedItemIngredient2 ( *Var2 )
+				If *Var2 == FFFFFFFF
+					Call     ShowMessageAtScreenPos 	( $RecipeCountHintOneIng 000000A0 00000028 )
+				Else
+					Call     $Function_80241874 ( *Var2 )			%Get name of item at var0
+					Call     SetMessageString 	( *Var2 00000003 )
+					Call     ShowMessageAtScreenPos 	( $RecipeCountHintTwoIng 000000A0 00000028 )
+				EndIf
+			EndIf
+		EndIf
+		Label 1
+	8:  Call     DisablePlayerInput 	( .False )
+   38:  Return
+   40: End
+}
+
+
+#new:String $RecipeCountNoHint
+{
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	Get to 40 recipes in order to[BR]
+	unlock access to recipe hints.[BR]
+	[DelayOn][WAIT][END] 
+}
+
+#new:String $RecipeCountHint
+{
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	Missing recipe: [Var 1][BR]
+	[DelayOn][WAIT][END] 
+}
+
+#new:String $RecipeCountHintOneIng
+{
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	Missing recipe: [Var 1][BR]
+	Cook with [Var 2] alone.[BR]
+	[DelayOn][WAIT][END] 
+}
+
+#new:String $RecipeCountHintTwoIng
+{
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	Missing recipe: [Var 1][BR]
+	Cook with [Var 2] and[BR]
+	[Var 3][BR]
+	[DelayOn][WAIT][END] 
+}
+
+#new:String $RecipeCountComplete
+{
+	[DelayOff][Style Sign]Recipes: [Color:1D][Var 0][Color:0A]/71[BR]
+	[DelayOn][WAIT][END] 
 }
 
 

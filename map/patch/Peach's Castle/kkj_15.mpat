@@ -2,7 +2,98 @@
 #define .NpcID:KoopaBros_05         05
 #define .Npc:Joseph    16
 #define .Npc:BowsersBrother    17
+#define .Npc:Cody      18
 
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  GetEntryID        ( *Var0 )
+		If  *GB_StoryProgress == .Story:PostGame
+			Call  EnableModel   ( ~Model:o79 .False )
+		Else
+			Call  EnableModel   ( ~Model:o79alt .False )
+		EndIf
+   80:  Switch  *Var0
+   8C:  	Case  ==  ~Entry:Entry2
+				If  *GB_StoryProgress < .Story:Ch0_KammyReturnedToBowser	%Interestingly, entry 2 always sets story progression to a Prologue state, so let's change that
+					Set   *GB_StoryProgress  .Story:Ch0_KammyReturnedToBowser   
+				EndIf
+   A8:  EndSwitch
+   B0:  Switch  *GB_StoryProgress
+   BC:  	Case  ==  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
+   C8:  		Call  MakeNpcs  ( .False $NpcGroupList_80246F08 )
+   DC:  	Case  ==  .Story:Ch1_BeganPeachMission % FFFFFFB4
+   E8:  		Call  MakeNpcs  ( .False $NpcGroupList_8024757C )
+   FC:  	Case  ==  .Story:Ch3_BeganPeachMission % FFFFFFF2
+  108:  		Call  MakeNpcs  ( .False $NpcGroupList_80247E34 )
+   FC:  	Case  ==  .Story:Ch4_BeganPeachMission % FFFFFFF2
+  108:  		Call  MakeNpcs  ( .False $NpcGroupList_80247E34 )  %Make Chapter 3's NPC list
+  11C:  EndSwitch
+  124:  If  *GB_StoryProgress  !=  .Story:Ch1_BeganPeachMission % FFFFFFB4
+  134:  	Call  EnableModel   ( ~Model:o76 .False )
+  148:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o76 7FFFFE00 )
+  160:  EndIf
+  168:  Call  ModifyColliderFlags   ( 00000000 ~Collider:g25 7FFFFE00 )
+  180:  Call  SetTexPanner  ( ~Model:o151 00000000 )
+  194:  Thread
+  19C:  	Set   *Var0  00000000
+  1AC:  	Set   *Var1  00000000
+  1BC:  	Set   *Var2  00000000
+  1CC:  	Set   *Var3  00000028
+  1DC:  	Set   *Var4  00000384
+  1EC:  	Set   *Var5  00000001
+  1FC:  	Set   *Var6  00000001
+  20C:  	Set   *Var7  00000001
+  21C:  	Set   *Var8  00000001
+  22C:  	Set   *Var9  00000000
+  23C:  	Set   *VarA  00000000
+  24C:  	Set   *VarB  00000000
+  25C:  	Set   *VarC  00000000
+  26C:  	Exec  $Script_UpdateTexturePan_80240750
+  278:  EndThread
+  280:  Call  SetModelCustomGfx ( ~Model:o151 00000000 FFFFFFFF )
+  298:  Call  SetCustomGfx      ( 00000000 $DisplayList_802407F0 00000000 )
+  2B0:  Call  SetTexPanner      ( ~Model:o152 00000000 )
+  2C4:  Thread
+  2CC:  	Set   *Var0  00000000
+  2DC:  	Set   *Var1  00000000
+  2EC:  	Set   *Var2  00000000
+  2FC:  	Set   *Var3  00000028
+  30C:  	Set   *Var4  00000384
+  31C:  	Set   *Var5  00000001
+  32C:  	Set   *Var6  00000001
+  33C:  	Set   *Var7  00000001
+  34C:  	Set   *Var8  00000001
+  35C:  	Set   *Var9  00000000
+  36C:  	Set   *VarA  00000000
+  37C:  	Set   *VarB  00000000
+  38C:  	Set   *VarC  00000000
+  39C:  	Exec  $Script_UpdateTexturePan_80240750
+  3A8:  EndThread
+  3B0:  Call  SetModelCustomGfx ( ~Model:o152 00000000 FFFFFFFF )
+  3C8:  Call  SetCustomGfx  ( 00000000 $DisplayList_802407F0 00000000 )
+  3E0:  Call  UseDoorSounds ( .DoorSounds:Basic )
+  3F0:  Exec  $Script_80240680
+  3FC:  Call  GetEntryID    ( *Var0 )
+  40C:  If  *Var0  ==  ~Entry:Entry1
+  41C:  	If  *GB_StoryProgress  ==  .Story:Ch3_BeganPeachMission % FFFFFFF2
+  42C:  		Call  StopSound ( 00000093 )
+  43C:  	Else
+  444:  		Call  PlaySoundAt   ( 00000093 00000000 00000032 00000005 FFFFFF38 )
+  464:  	EndIf
+  46C:  	Wait  10`
+  478:  EndIf
+  480:  Exec  $Script_EnterSingleDoor_80240A30
+  48C:  Wait  1`
+  498:  Return
+  4A0:  End
+}
 
 
 @	$Script_EnterSingleDoor_80240A30
@@ -629,50 +720,173 @@
 {
     0:  Call  DisablePlayerInput    ( .True )
    10:  Call  DisablePlayerPhysics  ( .True )
+		Call  DisablePartnerAI  ( 00000000 )
+		Call  SetPlayerPos  (  -1050`  -1000`  -250` )
+		Call  SetNpcPos ( .Npc:Partner  -1210`  -1115`  70` )
    20:  Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
-   3C:  Call  SetNpcPos     ( 00000000  -70`  0`  -55` )
-   58:  Call  InterpNpcYaw  ( 00000000  90`  0` )
+   3C:  Call  SetNpcPos     ( 00000000  -120`  0`  -55` )
+   58:  Call  InterpNpcYaw  ( 00000000  270`  0` )
+   84:  Call  UseSettingsFrom   ( .Cam:Default  -120`  0`  0`  )
+  274:  Call  SetPanTarget  ( .Cam:Default  -120`  0`  0` )
+		Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+		Wait  9`
    70:  Call  SetNpcAnimation   ( 00000000 00800002 )
-   84:  Call  UseSettingsFrom   ( .Cam:Default  -20`  0`  0`  )
-  274:  Call  SetPanTarget  ( .Cam:Default  -20`  0`  0` )
-  290:  Call  SetCamDistance    ( .Cam:Default *Fixed[225.0] )
-  2A4:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-13.0] )
+  2DC:  Call  SpeakToPlayer    ( 00000000 00800006 00800002 00000000 00140215 ) %
+  3AC:  Call  SetNpcAnimation   ( 00000000 0080000C )
+  3C0:  Wait  20`
+   84:  Call  UseSettingsFrom   ( .Cam:Default  -95` 0`  0`  )
+  274:  Call  SetPanTarget  ( .Cam:Default  -95`  0  0` )
   2BC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.5] )
-  2D0:  Wait  5`
+		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+		Call  SetNpcPos     ( .Npc:Joseph 210`  0`  0` )
+		Call  SetNpcAnimation   ( .Npc:Joseph 008F0105 )
+		Call  SetNpcSpeed   ( .Npc:Joseph *Fixed[7.0] )
+		Call  NpcMoveTo     ( .Npc:Joseph  -10` -50`  0` )	
+		Call  SetNpcAnimation   ( .Npc:Joseph 008F0102 )
+		Call  SetNpcAnimation   ( 00000000 00800002 )
+		Call  SpeakToNpc    ( .Npc:Joseph 008F0107 008F0102 00000000 00000000 00140216 )
+		Call  SpeakToNpc    ( 00000000 00800007 00800027 00000000 .Npc:Joseph 00140217 )
+		Call  SetNpcAnimation   ( .Npc:Joseph 008F0105 )
 		Thread
-			Call  SetNpcAnimation   ( 00000000 00800010 )
-			Wait  10`
-			Call  SetNpcAnimation   ( 00000000 00800003 )
+			Call  NpcMoveTo     ( 0`  -112` -83`  3` )	
 		EndThread
-  2DC:  Call  SpeakToNpc    ( 00000001 00600004 00600001 00000000 00000000 00140002 ) % Please, please, Your Vileness! Try to be calm. Goo ...
-  300:  Call  SetPanTarget  ( .Cam:Default  -50`  0`  0` )
-  31C:  Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
-  330:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-17.0] )
-  348:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )
-  37C:  Wait  10`
-  388:  Call  SpeakToNpc    ( 00000000 00800009 00800003 00000000 00000001 00140003 ) % Yes, yes. Very good! Gwaaa ha ha ha ha!!
-  3AC:  Call  SetNpcAnimation   ( 00000000 00800002 )
-  3C0:  Wait  10`
-  3CC:  Call  SpeakToNpc    ( 00000000 00800006 00800002 00000000 00000001 00140004 ) % By the way, Kammy Koopa, those Star Spirits we cap ...
+		Thread
+			Call  NpcMoveTo     ( .Npc:Joseph  -157` -55`  0` )	
+			Call  SetNpcAnimation   ( .Npc:Joseph 008F0102 )
+		EndThread
+		Wait  10`
+		Call  SpeakToPlayer    ( .Npc:Joseph 008F0107 008F0102 00000005 00140218 )
+		Call  SetNpcAnimation   ( .Npc:Joseph 008F010C )
+		Call  SpeakToPlayer    ( .Npc:Joseph 008F010C 008F010C 00000005 00140219 )
+		Thread
+			Call  SetNpcSpeed   ( 0 *Fixed[7.0] )
+			Call  SetNpcAnimation   ( 0 00800004 )
+			Call  NpcMoveTo     ( 0  -137` -55`  0` )	
+			Call  SetNpcAnimation   ( 0 00800002 )
+		EndThread
+		Wait  10`
+		Call  InterpNpcYaw  ( 00000000  270`  10` )
+		
+		Call  SpeakToPlayer    ( 00000000 00800006 00800030 00000000 0014021A )
+		Wait  20`
+		Thread
+			Wait  20`
+			Call  InterpNpcYaw  ( 00000000  90`  10` )
+		EndThread
+		Call  SetNpcAnimation   ( 0 00800028 )
+		Call  SetNpcAnimation   ( .Npc:Joseph 008F0102 )
+		Call  SpeakToPlayer    ( 00000000 00800029 00800028 00000005 0014021B )
+		Wait  10`
+		Call  SetNpcPos     ( .Npc:Cody 210`  0`  0` )
+		Call  SetNpcAnimation   ( .Npc:Cody 0056000D )
+		Call  SetNpcSpeed   ( .Npc:Cody *Fixed[5.0] )
+		Call  NpcMoveTo     ( .Npc:Cody  -15` -45`  0` )	
+		Call  SetNpcAnimation   ( .Npc:Cody 00560001 )
+		Call  SpeakToNpc    ( .Npc:Cody 00560002 00560001 00000000 0 0014021C )
+		Call  SpeakToNpc    ( 00000000 00800029 00800028 00000000 .Npc:Cody 0014021D )
+		Call  SpeakToNpc    ( .Npc:Joseph 008F0107 008F0102 00000000 .Npc:Cody 0014021E )
+		Call  SpeakToNpc    ( 00000000 00800029 00800028 00000000 .Npc:Cody 0014021F )
+		Call  SpeakToNpc    ( .Npc:Cody 00560002 00560001 00000000 0` 00140220 )
+		Call  SetNpcAnimation   ( 0 00800002 )
+		Call  SpeakToNpc    ( 00000000 00800008 00800002 00000000 .Npc:Cody 00140221 )  %Get outta my sight
+		Call  SetNpcAnimation   ( .Npc:Cody 0056000D )
+		Call  NpcMoveTo     ( .Npc:Cody  285` 15`  0` )	
+		Call  SetNpcPos     ( .Npc:Cody 200`  -1000`  0` )
+		Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000000 )
+		Call  SpeakToNpc    ( .Npc:Joseph 008F0107 008F0102 00000000 0` 00140222 )	%Bower you have company
+		Thread
+			Wait 15`
+			Call  InterpNpcYaw  ( 00000000  90`  10` )
+		EndThread
+		Call  ShowMessageAtScreenPos    ( 00140223  160`  40` )
+		Wait  5`
+  EC4:  Call  PlaySound ( 00000263 )
+  ED8:  Call  ShowEmote ( 00000000 .Emote:Question  0`  30` .True  0`  0`  0`  0` )
+		Wait  32`
+   84:  Call  UseSettingsFrom   ( .Cam:Default  -72` 0`  0`  )
+  274:  Call  SetPanTarget  ( .Cam:Default  -72`  0  0` )
+  2BC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.5] )
+		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+		Call  PushSong  ( .Song:CreepyToybox 2` )
+		Call  SetNpcPos     ( .Npc:BowsersBrother 200` 200`  0` )
+		Call  SetNpcAnimation   ( .Npc:BowsersBrother 00800813 )
+   14:  Call  SetNpcJumpscale   ( .Npc:BowsersBrother *Fixed[1.0] )
+   44:  Call  NpcJump0  ( .Npc:BowsersBrother 2` 0` -60`  8` )
+		Thread
+			Call  SetNpcAnimation   ( 0 0080002D )
+			Wait  15`
+			Call  SetNpcAnimation   ( 0 00800002 )
+		EndThread
+		Call  SetNpcAnimation   ( .Npc:BowsersBrother 00800814 )
+		Call  PlaySound    ( 000020A0 )
+		Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[2.0] )
+		Wait  12`
+		Call  SetNpcAnimation   ( .Npc:BowsersBrother 00800802 )
+		Call  SpeakToNpc    ( .Npc:BowsersBrother 00800807 00800827 00000000 0` 00140224 )		%It's me Bower's brother
+		Wait  20`
+		Call  SpeakToNpc    ( 00000000 0080000C 0080000C 00000000 .Npc:BowsersBrother 00140225 )
+		Call  SpeakToNpc    ( .Npc:Joseph 008F0107 008F0102 00000000 0` 00140226 )
+		Call  SpeakToNpc    ( 00000000 00800006 00800002 00000000 .Npc:BowsersBrother 00140227 )
+		Call  SetNpcAnimation   ( .Npc:Joseph 008F0113 )
+		Call  SpeakToNpc    ( .Npc:BowsersBrother 00800807 00800827 00000000 0` 00140228 )
+		Call  SpeakToNpc    ( 00000000 00800006 00800002 00000000 .Npc:BowsersBrother 00140229 )
+		Call  SpeakToNpc    ( .Npc:BowsersBrother 0080082C 00800827 00000000 0` 0014022A )
+		Call  InterpNpcYaw  ( .Npc:BowsersBrother  270`  10` )
+		Call  SetNpcSpeed   ( .Npc:BowsersBrother  *Fixed[16.0] )
+		Call  SetNpcAnimation   ( .Npc:BowsersBrother  00800805 )
+		Call  NpcMoveTo     ( .Npc:BowsersBrother  240` -20`  0` )
+		Call  PopSong ( )
+		Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
+		Wait  5`
+		Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
+		Wait  5`
+		Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
+		Call  SpeakToNpc    ( 00000000 00800006 00800002 00000005 .Npc:Joseph 0014022B )	%That idiot is out of here
+		Call  SpeakToNpc    ( .Npc:Joseph 008F0114 008F0113 00000005 0` 0014022C )
+		Call  SpeakToNpc    ( 00000000 00800008 00800002 00000000 .Npc:Joseph 0014022D )
+		Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000000 )
+		Wait  15`
+		Call  SpeakToNpc    ( .Npc:Joseph 008F0114 008F0113 00000000 0` 0014022E )
+		Call  SetMusicTrack ( 00000000 .Song:BowserTheme 00000000 00000008 )
+		Call  SpeakToNpc    ( 00000000 00800006 00800002 00000000 .Npc:Joseph 0014022F )
+		Thread
+			Call  SetNpcSpeed   ( 0 *Fixed[7.0] )
+			Call  SetNpcAnimation   ( 0 00800004 )
+			Call  NpcMoveTo     ( 0`  300` 10`  0` )
+		EndThread
+		Wait  20`
+		Call  SetNpcSpeed   ( .Npc:Joseph *Fixed[7.5] )
+		Call  SetNpcAnimation   ( .Npc:Joseph  008F0105 )
+		Call  NpcMoveTo     ( .Npc:Joseph   300` 10`  0` )
+		Wait  5`
+		Call  PlaySound ( 000000DC )
+		Call  GotoMapSpecial    ( "mac_04" 00000005 0000000C ) % mac_04
+		Wait  100`
 		Return
 		End
 }
 
-
+%Bowser's Prologue animation list
 @	$ExtraAnimationList_80246314
 {
 	00800000 00800002 00800003 00800006 00800007 00800009 0080000E 00800010 00800027 00800028 00800029 0080002A 0080002B 0080002E 0080002F 0080002D FFFFFFFF
 }
 
+
+%Bowser's Chapter 1 animation list
 @	$ExtraAnimationList_80246F78
 {
 	00800000 00800002 00800004 00800006 00800007 0080000D 00800008 0080000E 00800027 00800028 00800029 0080002A 0080002B 0080002E 0080002F 0080002D FFFFFFFF
 }
 
+
+%Bowser's Chapter 3 animation list.
 @	$ExtraAnimationList_80247624
 {
-	00800000 00800002 00800006 00800007 00800008 0080000F 0080000C 0080000D 
-	0080000E 00800027 00800028 00800029 0080002A 0080002E 0080002F 0080002D FFFFFFFF
+	00800000 00800002 00800004 00800005 00800006 00800007 00800008 00800009 0080000F 0080000C 0080000D 
+	0080000E 00800027 00800028 00800029 0080002A 0080002E 0080002F 0080002D 00800030 FFFFFFFF
 }
 
 
@@ -681,6 +895,8 @@
 	00600001 00600002 00600004 0060001B 0060001C 0060001D FFFFFFFF
 }
 
+
+%Koopa Bros. animation list
 @ $ExtraAnimationList_80246340
 {
 	00660002 00660003 00660004 00660005 0066000A 00660011 00660012 00660014
@@ -690,6 +906,13 @@
 @ $ExtraAnimationList_80247648
 {
 	00600001 00600002 00600004 00600005 0060001B 0060001C 0060001D FFFFFFFF
+}
+
+
+#new:ExtraAnimationList $ExtraAnimationList_BowsersBrother
+{
+	00800800 00800802 00800806 00800807 00800808 00800812 00800813 00800814 0080080F 0080080C 0080080D 
+	0080080E 00800827 00800828 00800829 0080082A 0080082C 0080082E 0080082F 0080082D FFFFFFFF
 }
 
 
@@ -968,12 +1191,68 @@
 }
 
 
+@	$Script_ExitSingleDoor_80244B40
+{
+    0:  If  *AreaFlag[006]  ==  .False
+   10:  	Call  DisablePlayerInput    ( .True )
+   20:  	Call  DisablePartnerAI      ( 00000001 )
+   30:  	Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 0014006B ) % There are still guards outside. Be careful not to  ...
+   50:  	Call  EnablePartnerAI ( )
+   5C:  	Call  DisablePlayerInput    ( .False )
+   6C:  EndIf
+   74:  Set   *Var0  ~Entry:Entry0
+   84:  Set   *Var1  ~Collider:tte
+   94:  Set   *Var2  ~Model:o2
+   A4:  Set   *Var3  .DoorSwing:Out % FFFFFFFF
+   B4:  Exec  ExitSingleDoor
+   C0:  Wait  17`
+		If  *GB_StoryProgress  ==  .Story:PostGame
+			Call  GotoMap   ( "kkj_01" 00000003 )
+		Else
+	   CC:  If  *AreaFlag[006]  ==  .False
+	   DC:  	Call  GotoMap   ( $ASCII_80247E70 00000007 ) % kkj_11
+	   F0:  Else
+	   F8:  	Call  GotoMap   ( $ASCII_80247E70 00000003 ) % kkj_11
+	  10C:  EndIf
+		EndIf
+  114:  Wait  100`
+  120:  Return
+  128:  End
+}
+
+
+@	$Script_80240A04
+{
+		If  *GB_StoryProgress  ==  .Story:PostGame
+			Bind  $Script_DoorPostGame .Trigger:WallPressA ~Collider:tte 00000001 00000000
+		Else
+			Bind  $Script_ExitSingleDoor_80240870[F0] .Trigger:WallPressA ~Collider:tte 00000001 00000000
+		EndIf
+   1C:  Return
+   24:  End
+}
+
+
+#new:Script $Script_DoorPostGame
+{
+   74:  Set   *Var0  ~Entry:Entry0
+   84:  Set   *Var1  ~Collider:tte
+   94:  Set   *Var2  ~Model:o2
+   A4:  Set   *Var3  .DoorSwing:Out % FFFFFFFF
+   B4:  Exec  ExitSingleDoor
+   C0:  Wait  17`
+		Call  GotoMap   ( "kkj_01" 00000003 )
+  114:  Wait  100`
+  120:  Return
+  128:  End
+}
+
 @	$Script_ExitSingleDoor_80240870
 {
    [2C]  Call  GotoMapSpecial    ( "kmr_34" 00000000 0000000C )
 }
 
-
+%Prologue NPCs
 @	$NpcGroupList_80246F08
 {
 	00000006 $NpcGroup_80246368 00000000
@@ -981,6 +1260,8 @@
 	00000000 00000000 00000000
 }
 
+
+%Chapter 1 NPCs
 @	$NpcGroupList_8024757C
 {
 	00000003 $NpcGroup_80246FAC 00000000
@@ -988,10 +1269,14 @@
 	00000000 00000000 00000000
 }
 
+
+%Chapter 3 NPCs
 @	$NpcGroupList_80247E34
 {
 	00000004 $NpcGroup_80247674 00000000
-	00000001 $Joseph  26070000
+	00000001 $Joseph 			26070000
+	00000001 $Cody    			00000000
+	00000001 $BowsersBrother  	00000000
 	00000000 00000000 00000000
 }
 
@@ -1005,3 +1290,25 @@
 	~AnimationTable:Joseph
 	00000000 00000000 00000000 00000000 
 }
+
+
+#new:NpcGroup $Cody
+{
+	.Npc:Cody $NpcSettings_802462E8 ~Vec3f:Cody
+	00400509 00000000 00000000 00000000 00000000
+	~NoDrops
+	~Movement:Cody
+	~AnimationTable:Cody
+	00000000 00000000 00000000 00000000 
+}
+
+#new:NpcGroup $BowsersBrother
+{
+	.Npc:BowsersBrother $NpcSettings_802475A0 ~Vec3f:BowsersBrother
+	00000D0D 00000000 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:BowsersBrother
+	~AnimationTable:BowsersBrother
+	00000000 00000000 $ExtraAnimationList_BowsersBrother 00000000 
+}
+

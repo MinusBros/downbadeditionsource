@@ -1,5 +1,7 @@
 #define .NpcID:Toad_00              00
 
+%Be mindful when doing 9 block option too many times as it can lock you out of the mini-game permanently
+
 @	$Script_Interact_802424F4
 {
     0:  Call  GetSelfVar    ( 00000001 *Var0 )
@@ -13,7 +15,12 @@
    80:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008002D ) % Greetings, my good man! This is the floor for Jump ...
    A0:  		Set   *GF_MGM_Met_JumpAttack  .True
    B0:  	Else
-   B8:  		Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008002E ) % Welcome! You need ten coins to play. How about it? ...
+				If  *TimesCheatedAtJumpAttack < 29`
+					Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008002E ) % Welcome! You need ten coins to play. How about it? ...
+				Else
+					Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 0008004F ) % You won too many times
+					Return
+				EndIf
    D8:  	EndIf
    E0:  	Call  ShowCoinCounter   ( .True )
    F0:  	Call  $Function_802416CC ( )
@@ -168,11 +175,14 @@
 						Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
   500:  				Call  $Function_CalculateScore ( )
   50C:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080035 ) % 5-Blocks Option cleared! You get coins!
+						Add   *TimesCheatedAtJumpAttack 1`
   52C:  			Case  ==  00000006
 						Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
   538:  				Call  $Function_CalculateScore ( )
   544:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080036 ) % 7-Blocks Option cleared! You get coins!
+						Add   *TimesCheatedAtJumpAttack 2`
   564:  			Case  ==  00000008
+						Add   *TimesCheatedAtJumpAttack 10`
 						Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000000 00000008 )
   570:  				Call  SpeakToPlayer ( .NpcID:Toad_00 00830E04 00830E01 00000000 00080037 ) % Wow! Yeah! 9-Blocks Option cleared! As a special b ...
   590:  				Call  $Function_80240D84 ( )

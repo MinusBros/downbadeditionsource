@@ -10,7 +10,6 @@
 
 @ $KoopaTroopa
 {
-	[Level]         7`b
 	[MaxHP]         6`b
 }
 
@@ -389,7 +388,6 @@
 
 @	$Paratroopa
 {
-	[Level]         8`b
 	[MaxHP]         6`b
 }
 
@@ -549,7 +547,6 @@
 
 @ $Bobomb
 {
-	[Level]         8`b
 	[MaxHP]		4`b
 }
 
@@ -743,7 +740,6 @@
 
 @ $BulletBill
 {
-	[Level]         6`b
 	[MaxHP] 	1`b
 }
 
@@ -822,7 +818,7 @@
 
 @	$BillBlaster
 {
-	[Level]        12`b
+	[Level]        11`b
 	[MaxHP]         6`b
 }
 
@@ -885,6 +881,94 @@
    B4:  End
 }
 
+
+
+@	$Script_HandleEvent_80219EE0
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+   28:  Call  GetLastEvent      ( .Actor:Self *Var0 )
+   3C:  Switch  *Var0
+   48:  	CaseOR  ==  .Event:HitCombo % 9
+   54:  	CaseOR  ==  .Event:Hit % A
+   60:  		SetConst  *Var0  00000001
+   70:  		SetConst  *Var1  002E0003
+   80:  		ExecWait  DoNormalHit
+   8C:  	EndCaseGroup
+   94:  	Case  ==  .Event:BurnHit % E
+   A0:  		SetConst  *Var0  00000001
+   B0:  		SetConst  *Var1  002E0003
+   C0:  		SetConst  *Var2  FFFFFFFF
+   D0:  		ExecWait  DoBurnHit
+   DC:  	Case  ==  .Event:BurnDeath % 24
+   E8:  		SetConst  *Var0  00000001
+   F8:  		SetConst  *Var1  002E0003
+  108:  		SetConst  *Var2  FFFFFFFF
+  118:  		ExecWait  DoBurnHit
+  124:  		SetConst  *Var0  00000001
+  134:  		SetConst  *Var1  002E0003
+  144:  		ExecWait  $BlasterDie
+  150:  		Return
+  158:  	CaseOR  ==  00000017 % 17
+  164:  	CaseOR  ==  .Event:Immune % 19
+  170:  	CaseOR  ==  .Event:AirLiftFailed % 1F
+  17C:  		SetConst  *Var0  00000001
+  18C:  		SetConst  *Var1  002E0001
+  19C:  		ExecWait  DoImmune
+  1A8:  	EndCaseGroup
+  1B0:  	Case  ==  .Event:Death % 20
+  1BC:  		SetConst  *Var0  00000001
+  1CC:  		SetConst  *Var1  002E0003
+  1DC:  		ExecWait  DoNormalHit
+  1E8:  		Wait  10`
+  1F4:  		SetConst  *Var0  00000001
+  204:  		SetConst  *Var1  002E0003
+  214:  		ExecWait  $BlasterDie
+  220:  		Return
+  228:  	Case  ==  .Event:RecoverStatus % 31
+  234:  		SetConst  *Var0  00000001
+  244:  		SetConst  *Var1  002E0001
+  254:  		ExecWait  DoRecover
+  260:  	Case  ==  .Event:BeginAirLift % 3A
+  26C:  		SetConst  *Var0  00000001
+  27C:  		SetConst  *Var1  002E0003
+  28C:  		ExecWait  DoAirLift
+  298:  	Case  ==  .Event:BlowAway % 16
+  2A4:  		SetConst  *Var0  00000001
+  2B4:  		SetConst  *Var1  002E0003
+  2C4:  		ExecWait  DoBlowAway
+  2D0:  		Return
+  2D8:  	Default
+  2E0:  EndSwitch
+  2E8:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  2FC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  310:  Return
+  318:  End
+}
+
+
+#new:Script  $BlasterDie
+{
+			Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_BlasterDead )
+			Call  SetAnimation  ( .Actor:Self 00000001 002E0004  )
+			Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+			Call  PlaySoundAtActor  ( .Actor:Self 00002068 )
+			Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .True ) %Skip turn, no target, no health bar
+			Call  SetActorFlagBits  ( .Actor:Self 00660000 .True ) 
+			Wait  14`
+			Call  PlaySoundAtActor  ( .Actor:Self 00002018 )
+  374:  	Call  PlayEffect    ( ~FX:Steam:FloatingRings *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  PlayEffect    ( ~FX:Explosion2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  DropStarPoints    ( .Actor:Self )
+			Wait  5`
+			Return
+			End
+}
+
+#new:IdleAnimations $IdleAnimations_BlasterDead {
+.Status:Normal    002E0004
+.Status:End
+}
 
 
 

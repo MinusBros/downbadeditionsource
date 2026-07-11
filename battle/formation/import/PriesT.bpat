@@ -149,22 +149,22 @@
 #new:Script $CheckDeathPriest
 {		
 		Label 1
-		Call FindItem  ( .Item:LifeShroom *VarE ) 
-		If *VarE == 00000000
-			Set  *VarD  1`
-		Else
-			Set  *VarD  0`
-		EndIf
-		If    *VarD  == 0`
 				Loop 60`
 				Call  GetActorHP    ( .Actor:Player *VarC )
 				If  *VarC  ==  00000000 
-						Call  SetMusicTrack ( 00000000 .Song:IllusionaryDance 00000001 00000008 )  %Ending stinger
+						Call  PushSong ( .Song:IllusionaryDance 1` )  %Ending stinger
+						Wait  300`
+						Call  GetBattlePhase    ( *VarE )
+						If   *VarE == 8` %Use Life Shroom
+							Wait  50`
+							Call  PopSong ( )
+							Wait  50`
+							Goto  1
+						EndIf
 						Return
 				EndIf
 				Wait  1`
 				EndLoop
-		EndIf
 		Wait  1`
 		Goto  1
 		Return
@@ -228,6 +228,7 @@
 
 
 #new:Script $Script_NextTurn_Priest {
+		If  *SevenMinutes == .False
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  GetBattlePhase    ( *Var0 )
@@ -241,6 +242,7 @@
    B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
    C0:  			Call  MoveBattleCamOver (  16` )
 					Call  ActorSpeak        ( $7Minutes .Actor:Self 00000001 00870408 00870405 )
+					Set  *SevenMinutes .True
   108:  		EndIf
   110:  	Case  ==  0000000C 
   11C:  	Case  ==  0000000B 
@@ -248,6 +250,7 @@
   134:  EndSwitch
   13C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   150:  Call  UseIdleAnimation  ( .Actor:Self .True )
+		EndIf
   164:  Return
   16C:  End
 }

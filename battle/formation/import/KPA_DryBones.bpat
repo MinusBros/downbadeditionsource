@@ -3,7 +3,7 @@
 #new:Actor $KPA_DryBones {
 % stats
 [Index]        47b 
-[Level]        38`b 
+[Level]        48`b 
 [MaxHP]        23`b 
 [Coins]         4`b 
 [Flags]       00000000 
@@ -51,15 +51,15 @@
 }
 
 #new:DefenseTable $DefenseTable_8021CA84_22 {
-.Element:Normal 3`
-.Element:Hammer 1`
+.Element:Normal 4`
+.Element:Jump   1`
 .Element:Throw  -1`
 .Element:Fire   1`
 .Element:Blast  1`
 .Element:Ice    2`
 .Element:Shock  1`
 .Element:Water  2`
-.Element:Magic  4`
+.Element:Magic  5`
 .Element:Cosmic 99`
 .Element:End
 }
@@ -124,12 +124,15 @@
 00120001 02000000 000000FF $IdleAnimations_8021CA78_22 $DefenseTable_8021CA84_22 00000000 00000000 00000000 00000000 
 }
 
+#define  .StarPointsFlag  1`
+
 #new:Script $Script_Init_8021CC84_22 {
     0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021DB48_22 )
    14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021CF2C_22 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021D404_22 )
    3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8021CCFC_22 )
    50:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
+		Call  SetActorVar   ( .Actor:Self .StarPointsFlag 00000000 )
    68:  Return
    70:  End
 }
@@ -204,6 +207,11 @@
     0:  Call  PlaySoundAtActor  ( .Actor:Self 000002D2 )
    14:  Call  SetAnimation      ( .Actor:Self 00000001 00530008 )
    2C:  Wait  20`
+		Call  GetActorVar   ( .Actor:Self .StarPointsFlag *Var4 )
+		If   *Var4 == 0`
+			Call  DropStarPoints    ( .Actor:Self )
+			Call  SetActorVar       ( .Actor:Self .StarPointsFlag 1 )
+		EndIf
    38:  Call  SetActorVar       ( .Actor:Self 00000008 00000001 )
    50:  Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_8021CA6C_22 )
    68:  Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_8021CAA0_22 )

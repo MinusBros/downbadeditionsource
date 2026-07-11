@@ -1,0 +1,373 @@
+#export:Data $ExtraActorData_Everyone
+{
+    00000000 00000000 00000000 00000000 % Mario
+    %
+    00000000 00000000 00000000 00000000 % Enemy0
+    00000000 00000000 00000000 00000000 % Enemy1
+    00000000 00000000 00000000 00000000 % Enemy2
+    00000000 00000000 00000000 00000000 % Enemy3
+    00000000 00000000 00000000 00000000 % Enemy4
+    00000000 00000000 00000000 00000000 % Enemy5
+    00000000 00000000 00000000 00000000 % Enemy6
+    00000000 00000000 00000000 00000000 % Enemy7
+    00000000 00000000 00000000 00000000 % Enemy8
+    00000000 00000000 00000000 00000000 % Enemy9
+    00000000 00000000 00000000 00000000 % Enemy10
+    00000000 00000000 00000000 00000000 % Enemy11
+    00000000 00000000 00000000 00000000 % Enemy12
+    00000000 00000000 00000000 00000000 % Enemy13
+    00000000 00000000 00000000 00000000 % Enemy14
+    00000000 00000000 00000000 00000000 % Enemy15
+    00000000 00000000 00000000 00000000 % Enemy16
+    00000000 00000000 00000000 00000000 % Enemy17
+    00000000 00000000 00000000 00000000 % Enemy18
+    00000000 00000000 00000000 00000000 % Enemy19
+    00000000 00000000 00000000 00000000 % Enemy20
+    00000000 00000000 00000000 00000000 % Enemy21
+    00000000 00000000 00000000 00000000 % Enemy22
+    00000000 00000000 00000000 00000000 % Enemy23
+    FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+}
+
+
+
+% A0 = actorID
+#export:Function $GetActorExtraBattleData_Pointer
+{
+    PUSH    RA, A0, A1, A2, A3, V1
+    COPY    V0, A0
+    LIO     A0, $ExtraActorData_Everyone
+    % check if actor is Partner
+    ORI     A1, R0, 0100 % .Actor:Partner
+    BEQ     V0, A1, .Partner
+    NOP
+    % actor is the player?
+    BEQ     V0, R0, .FindActorData
+    CLEAR   A2
+    % It's an enemy, format actorID
+    ANDI    A2, V0, FDFF % remove 0X00 from the ID (number 2)
+    ADDIU   A2, A2, 2
+    .FindActorData
+    % clear extra data's buffs data
+    %
+    % get data offset
+    ORI     V1, R0, 10
+    MULT    A2, V1
+    MFLO    V1
+    %
+    ORI     A2, R0, 1 % Isn't partner?
+    BEQ     V0, R0, .CopyToV0 % Player
+    ADDU    A3, A0, V1
+    BNE     V0, A2, .CopyToV0 % Enemies
+    ADDI    A3, A3, -10 % because enemies' extraActorData starts at index 0x01 unlike the FX data.
+    .Partner
+    % It's partner
+    %JAL     $GetPartnerExtraBattleData_Pointer
+    NOP
+    COPY    A3, V0
+    .CopyToV0
+    COPY    V0, A3
+    .End
+    POP     RA, A0, A1, A2, A3, V1
+    JR      RA
+    NOP
+}
+
+
+
+% Call $Heal_PlayerTeam ( ActorID amount )
+#export:Function $Heal_PlayerTeam
+{
+    PUSH    RA, A0, A1, A2, A3, V1, S0, S1, S2
+    COPY    S2, A0
+    LW	    A1, 0 (S0)
+    JAL     ~Func:get_variable
+    ADDIU	S0, S0, 4
+    COPY    S1, V0 % push arg0 in S1
+    % Arg0 = .Actor:Self ?
+    ADDIU	V0, R0, FF81
+    BNE	    S1, V0, .NotSelf
+    NOP
+    LW	    S1, 0148 (S2) % load actual actorID
+    .NotSelf
+    LW	    A1, 0 (S0)
+    ADDIU	S0, S0, 4
+    JAL     ~Func:get_variable
+    COPY    A0, S2
+    COPY    S0, V0
+    % S1 = ActorID
+    % S0 = Amount to Heal
+    BNE     S1, R0, .HealPartner
+    NOP
+    .HealMario
+    LIO     T0, 8010F292
+    LBU     T1, 0 (T0) % load current hp
+    BEQ     R0, R0, .HealActor
+    LBU     T2, 1 (T0) % load max hp
+    .HealPartner
+    LUI     T0, 8011
+    LABU    T1, 8010F2A2 % Current Partner
+    ORI     T2, R0, 1 % Goombario
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2B1
+    ORI     T2, R0, 2 % Kooper
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2B9
+    ORI     T2, R0, 3 % Bombette
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2C1
+    ORI     T2, R0, 4 % Parakarry
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2C9
+    ORI     T2, R0, 6 % Watt
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2D9
+    ORI     T2, R0, 7 % Sushie
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2E1
+    ORI     T2, R0, 8 % Lakilester
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2E9
+    ORI     T2, R0, 9 % Bow
+    BEQL    T1, T2, .LoadPartnerHPData
+    ADDIU   T0, T0, F2F1
+    .LoadPartnerHPData
+    LBU     T1, 0 (T0) % load current hp
+    LBU     T2, 1 (T0) % load max hp
+    .HealActor
+    ADD     T1, T1, S0
+    % check if HP is below zero
+    BLTZL   T1, .SetHP
+    CLEAR   T0
+    % check max HP cap
+    SLTU    T3, T1, T2
+    BEQL    T3, R0, .SetHP
+    COPY    T1, T2 % if the new amount is >= to max HP just set the HP as Max HP
+    .SetHP
+    SB      T1, 0 (T0) % save new HP
+    POP     RA, A0, A1, A2, A3, V1, S0, S1, S2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+
+
+% Call  $RecoverFP    ( amount )
+#export:Function $RecoverFP
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  LW        V0, C (A0)
+   10:  JAL       ~Func:get_variable
+   14:  LW        A1, 0 (V0)
+   18:  LA        V1, 8010F290
+   20:  LB        A0, 5 (V1) % fp
+   24:  LB        A1, 6 (V1) % fpMax
+   28:  ADDU      A0, A0, V0
+        COPY      S0, V1
+        % Check if FP is below 0
+        BLTZL     A0 .o3C
+        CLEAR     A0
+   2C:  SLT       V0, A1, A0 % check FP cap
+   30:  BEQ       V0, R0, .o3C
+        NOP
+   38:  COPY      A0, A1
+        .o3C
+   3C:  SB        A0, 5 (S0)
+   40:  LW        RA, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  LI        V0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+
+
+
+% Check status table to know if this status should trigger
+%
+% Call  $Function_TryToInflictStatus ( actorID statusID duration )
+#export:Function:Battle $Function_TryToInflictStatus
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S1, S2, R0, R0
+    COPY    S0, A0
+    LW      S1, C (S0)
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S1) % load arg0
+    COPY    A0, V0
+    % .Actor:Self was used?
+    LIO     V1, FFFFFF81
+    BNE	    A0, V1, .GetPointer
+    NOP
+    LW	    A0, 0148 (S0) % load self id
+    .GetPointer
+    JAL     ~Func:get_actor
+    SW      A0, 3C (SP) % save actorID
+    COPY    S2, V0
+    % S2 = $actor data
+    COPY    A0, S0
+    JAL     ~Func:get_variable
+    LW      A1, 4 (S1) % load arg1
+    SW      V0, 38 (SP)
+    COPY    A0, S0
+    JAL     ~Func:get_variable
+    LW      A1, 8 (S1) % load arg2
+    LW      A1, 38 (SP) % statusID
+    COPY    A2, V0 % duration
+    % update debuff data in battleStatus
+    LIO     A0, 800DC070 % battleStatus
+    SW      R0, 190 (A0)
+    SH      R0, 194 (A0)
+    ORI     A3, R0, 8000
+    SH      A3, 190 (A0)
+    ORI     A3, R0, 100`
+    SB      A2, 192 (A0)
+    SB      A3, 193 (A0)
+    SB      A3, 194 (A0)
+    SB      A2, 195 (A0)
+    % get debuff flags according to status
+    CLEAR   A2
+    LW      V1, 190 (A0)
+    ORI     A3, R0, 6 % .Status:Sleep
+    LIO     V0, 00001000 % ~DebuffType:Sleep
+    BNE     A1, A3, .CheckStatus_Static
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0020
+    .CheckStatus_Static
+    ORI     A3, R0, B % .Status:Static
+    LIO     V0, 00002000 % ~DebuffType:Static
+    BNE     A1, A3, .CheckStatus_Frozen
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0021
+    .CheckStatus_Frozen
+    ORI     A3, R0, 7 % .Status:Frozen
+    LIO     V0, 00004000 % ~DebuffType:Frozen
+    BNE     A1, A3, .CheckStatus_Paralyze
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0022
+    .CheckStatus_Paralyze
+    ORI     A3, R0, 5 % .Status:Paralyze
+    LIO     V0, 00010000 % ~DebuffType:Paralyze
+    BNE     A1, A3, .CheckStatus_Poison
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0026
+    .CheckStatus_Poison
+    ORI     A3, R0, 9 % .Status:Poison
+    LIO     V0, 00020000 % ~DebuffType:Poison
+    BNE     A1, A3, .CheckStatus_Dizzy
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0025
+    .CheckStatus_Dizzy
+    ORI     A3, R0, 4 % .Status:Dizzy
+    LIO     V0, 00040000 % ~DebuffType:Dizzy
+    BNE     A1, A3, .CheckStatus_Shrink
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0024
+    .CheckStatus_Shrink
+    ORI     A3, R0, A % .Status:Shrink
+    LIO     V0, 00080000 % ~DebuffType:Shrink
+    BNE     A1, A3, .CheckStatus_Stone
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0027
+    .CheckStatus_Stone
+    ORI     A3, R0, C % .Status:Stone
+    LIO     V0, 00100000 % ~DebuffType:Stone
+    BNE     A1, A3, .CheckStatus_Stop
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0028
+    .CheckStatus_Stop
+    ORI     A3, R0, 8 % .Status:Stop
+    LIO     V0, 00200000 % ~DebuffType:Stop
+    BNE     A1, A3, .TryToInflict
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0029
+    /%.CheckStatus_Daze
+    ORI     A3, R0, D % .Status:Daze
+    LIO     V0, 01000000 % ~DebuffType:Daze
+    BNE     A1, A3, .CheckStatus_Invisible
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0000
+    .CheckStatus_Invisible
+    ORI     A3, R0, E % .Status:Invisible
+    LIO     V0, 04000000 % ~DebuffType:Invisible
+    BNE     A1, A3, .TryToInflict
+    NOP
+    OR      V1, V1, V0
+    ORI     A2, A2, 0000%/
+    .TryToInflict
+    SW      V1, 190 (A0)
+    JAL     ~Func:try_inflict_status
+    COPY    A0, S2 % *actor
+    LW      V0, 3C (SP) % load actorID
+    BEQL    V0, R0, .End % If target was Mario
+    SB      R0, 21C (S2) % clear status
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S1, S2, R0, R0
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+
+% Call $HealActor ( ActorID Amount )
+%
+% Why not using vanilla's HealActor?
+%
+% That one already have a heart pop up and a sparkles
+% dispatcher integrated, using that one will cause some
+% problems with the items scripts.
+#new:Function:Battle $HealActor
+{
+    PUSH    RA, A0, A1, A2, A3, V1, S0, S1, S2
+    COPY    S2, A0
+    LW	    A1, 0 (S0)
+    JAL     ~Func:get_variable
+    ADDIU	S0, S0, 4
+    COPY    S1, V0 % push arg0 in S1
+    % Arg0 = .Actor:Self ?
+    ADDIU	V0, R0, FF81
+    BNE	    S1, V0, .NotSelf
+    NOP
+    LW	    S1, 0148 (S2) % load actual actorID
+    .NotSelf
+    LW	    A1, 0 (S0)
+    ADDIU	S0, S0, 4
+    JAL     ~Func:get_variable
+    COPY    A0, S2
+    COPY    S0, V0
+    % S1 = ActorID
+    % S0 = Amount to Heal
+    JAL     ~Func:get_actor % get actor pointer
+    COPY    A0, S1
+    LBU     T1, 1B8 (V0) % load current hp % ActorData(0x1B8) = HP
+    LBU     T2, 1B9 (V0) % load max hp % ActorData(0x1B9) = Max HP
+    .HealActor
+    ADD     T1, T1, S0
+    % check if HP is below zero
+    BLTZL   T1, .SetHP
+    CLEAR   T1
+    % check max HP cap
+    SLTU    T3, T1, T2
+    BEQL    T3, R0, .SetHP
+    COPY    T1, T2 % if the new amount is >= to max HP just set the HP as Max HP
+    .SetHP
+    SB      T1, 1B8 (V0) % save new HP
+    POP     RA, A0, A1, A2, A3, V1, S0, S1, S2
+    JR      RA
+    ORI     V0, R0, 2
+}
+
+
+#export $HealActor

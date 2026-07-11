@@ -127,6 +127,7 @@
    7C:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
 		Call  SetActorVar   ( .Actor:Self 00000002 00000000 ) %Check for heal
 		Call  SetActorVar   ( .Actor:Self 00000003 00000000 ) %Check how many turns invisible
+		Call  SetActorVar   ( .Actor:Self 00000004 00000000 ) %Change tactics if Kahn Dam is on
 		Set   *GB_EnemyDefense  00000000
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
 			Call	$Function_SetLevel	( $KammyKoopa 60` )
@@ -197,6 +198,10 @@
 		%Check if Mario is Stoned. If yes, charge.
 		%After 2 charges, use triple Magic Blast.
 		
+		%If Mario is wearing Kahn Dam (Feeling Fine), she will change
+		%her strategy and attack and charge on the same turn
+		
+		
 	Call  GetStatusFlags    ( .Actor:Player *Var3 )
     If  *Var3  !&  ~Flags:StatusFlags:Stone
 		If  *GB_EnemyDefense == 1`
@@ -218,6 +223,16 @@
 				EndIf
 			Return
 		EndIf
+	
+
+	Call  GetActorVar   ( .Actor:Self 00000004 *Var1 )
+	If  *Var1 == 1`
+			Exec  $ShowMessage3
+			ExecWait $MagicBlast	
+			ExecWait $Charge
+			Return
+	EndIf	
+
 		Call  RandInt   ( 00000001 *Var0 )
 		If  *Var0  ==  00000000
 			Exec  $ShowMessage3
@@ -227,8 +242,9 @@
 			ExecWait $StoneBlock
 		EndIf
 	Else
+
 		
-		%Charges for 2 turns until Stone Cap wears off.
+		%Charges until Stone Cap wears off.
 		
 		ExecWait $Charge
 	EndIf
@@ -245,6 +261,7 @@
    94:  Call  BattleCamTargetActor  ( .Actor:Self )
    A4:  Call  MoveBattleCamOver (  15` )
    B4:  Wait  15`
+		Call  SetActorVar   ( .Actor:Self 00000004 1` )	%Change tactics
   120:  Call  GetBattlePhase    ( *Var0 )
   168:  	Call  UseBattleCamPreset    ( 00000002 )
   178:  	Call  MoveBattleCamOver     (  10` ) %Set to 1 later if it's weird.
@@ -409,7 +426,7 @@
   5BC:  		Call     UseIdleAnimation 	( .Actor:Self .True )
   5D8:  	EndCaseGroup
   5E0:  EndSwitch
-  798:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|StatusAlwaysHits 00000000 00100264 00000006 00000020 )  %This inflicts Stone on Mario
+  798:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|StatusAlwaysHits|Unsuperguardable 00000000 001002FE 00000006 00000020 )  %This inflicts Stone on Mario
   7C0:  Set   *VarF  *Var0 
   7D0:  Switch  *VarF 
   7DC:  	CaseOR  ==  .HitResult:Hit % 0

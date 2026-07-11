@@ -14,26 +14,44 @@
 	~Vec4f:Entry1 %  330.0    0.0  -25.0  270.0
 }
 
+
 @	$Script_802413A0
 {
-    [0]  Call  SetMusicTrack ( 00000000 .Song:BowsersCastleCaves 00000000 00000008 )
+   1C:  Call  UseDoorSounds ( .DoorSounds:Metal )
+   58:  Return
+   60:  End
 }
+
 
 @	$Script_Main
 {
-	[10]  Call  SetSpriteShading  ( .Shading:tik_23 )
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+		Else
+			Call  SetMusicTrack ( 00000000 .Song:BowsersCastleCaves 00000000 00000008 )
+			Call  MakeNpcs  ( .True $NpcGroupList_80243994 )
+		EndIf
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_EnterDoubleDoor_80241844
+   9C:  Wait  1`
+   A8:  Exec  $Script_802413A0
+   B4:  Return
+   BC:  End
 }
 
 @	$Script_ExitDoubleDoor_80241610
 {
-   [68]  Wait  15`
-   [88]  Wait  80`
+   [68]  Wait  10`
 }
 
 @	$Script_ExitDoubleDoor_802416B4
 {
-   [68]  Wait  15`
-   [88]  Wait  80`
+   [68]  Wait  10`
 }
 
 @	$Script_ExitDoubleDoor_80241758
@@ -44,7 +62,7 @@
 
 @	$Script_802417FC
 {
-    0:  Bind  $Script_ExitDoubleDoor_80241610 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+		Bind  $Script_ExitDoubleDoor_80241610 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
    38:  Return
    40:  End
 }
@@ -80,10 +98,14 @@
    34:  	Set   *MapVar[0]  *Var0
    44:  	BindLock  $Script_80241418 .Trigger:WallPressA 00004000 $ItemList_80241410 00000000 00000001
    64:  Else
-   6C:  	Bind  $Script_ExitDoubleDoor_802416B4 .Trigger:WallPressA ~Collider:tte1 00000001 00000000
+			If  *EscapeSequence == .False
+   6C:  		Bind  $Script_ExitDoubleDoor_802416B4 .Trigger:WallPressA ~Collider:tte1 00000001 00000000
+			EndIf
    88:  EndIf
-   5C:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:NewBlock .Item:SweetShroom 80000000 )
-   84:  Call  AssignBlockFlag   ( *GF_KPA52_Block )
+		If  *EscapeSequence == .False
+			Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:NewBlock .Item:SweetShroom 80000000 )
+			Call  AssignBlockFlag   ( *GF_KPA52_Block )
+		EndIf
    90:  Return
    98:  End
 }

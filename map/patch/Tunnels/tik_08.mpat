@@ -101,3 +101,78 @@
   568:  Return
   570:  End
 }
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_TIK08_WarpPipe  ==  .False
+   44:  	Set   *MapVar[0]  *Var0
+   70:  	If  *GF_TIK08_Defeated_Blooper  ==  .True
+   80:  		Call  $Function_80240960    ( *MapVar[0] 0000005A FFFFFFF6 00000064 )
+   9C:  	EndIf
+   A4:  EndIf
+   AC:  Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:Entity80242B9C ~Entry:Entry4 $Script_80242A7C ~Index:*GF_TIK08_WarpPipe 80000000 )
+   DC:  Return
+   E4:  End
+}
+
+
+@	$Script_Defeat_80242EC0
+{
+    0:  Wait  5`
+    C:  Thread
+   14:  	Call  SetNpcAnimation   ( .Npc:Self 00500004 )
+   28:  	Call  MakeLerp  ( 00000000 00000870 00000028 .Easing:Linear )
+   44:  	Loop
+   50:  		Call  UpdateLerp ( )
+   5C:  		Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+   78:  		Wait  1`
+   84:  		If  *Var1  ==  00000000
+   94:  			BreakLoop
+   9C:  		EndIf
+   A4:  	EndLoop
+   AC:  EndThread
+   B4:  Call  PlaySoundAtNpc    ( .Npc:Self 000003DD 00000000 )
+   CC:  Call  PlaySoundAtNpc    ( .Npc:Self 000003E7 00000000 )
+		Thread
+   E4:  	Call  NpcFlyTo  ( .Npc:Self  -40`  -250`  0`  35`  0` .Easing:Linear )
+		EndThread
+		Thread
+			Call  ResetCam  ( .Cam:Default *Fixed[1.0] )
+		EndThread
+  12C:  If  *GF_TIK_DefeatedOneBlooper  ==  .False
+  13C:  	Set   *GF_TIK_DefeatedOneBlooper  .True
+  14C:  Else
+  154:  	Set   *GF_TIK_DefeatedTwoBloopers  .True
+  164:  EndIf
+  16C:  Set   *GF_TIK08_Defeated_Blooper  .True
+  17C:  Exec  $Script_80240B50
+		Exec  $Script_80242AAC		%Activate pipe automatically
+  188:  Call  DisablePlayerInput    ( .False )
+		Thread
+			Wait  60`
+  198:  	Call  RemoveNpc ( .Npc:Self )
+		EndThread
+  1A8:  Return
+  1B0:  End
+}
+
+@	$Script_80242AAC
+{
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_TIK08_WarpPipe  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+
+@	$Script_80242A7C
+{
+		Set   *Byte_Settings_BGM  1`	
+		Set   *Byte_Settings_BGM2 0`	%Activate Dragon Quest music
+    0:  Call  GotoMap   ( $ASCII_802433C8 00000003 ) % jan_03
+   14:  Wait  100`
+   20:  Return
+   28:  End
+}

@@ -3,6 +3,47 @@
 
 #import AutoSave.mpat
 
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Set   *GF_Map_BowsersCastle  .True
+   A0:  Exec  $Script_EnterWalk_80240EE8
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+		Else
+			Exec  $Script_80240470
+			ExecWait  $Script_MakeEntities
+		EndIf
+		Call  UseDoorSounds ( .DoorSounds:Metal )
+   B8:  If  *GF_KPA16_ShutOffLava  ==  .False
+   C8:  	Call  EnableGroup   ( ~Model:after .False )
+   DC:  	Exec  $Script_80241050
+   E8:  Else
+   F0:  	Call  EnableGroup   ( ~Model:before .False )
+  104:  EndIf
+  10C:  If  *GF_KPA16_ShutOffLava  ==  .False
+  11C:  	Thread
+  124:  		Wait  3`
+  130:  		Call  ModifyColliderFlags   ( 00000003 ~Collider:o1508 00000003 )
+  148:  		Call  ModifyColliderFlags   ( 00000003 ~Collider:deilie 00000003 )
+  160:  		Call  ModifyColliderFlags   ( 00000003 ~Collider:o1705 00000003 )
+  178:  		Call  ModifyColliderFlags   ( 00000003 ~Collider:o1706 00000003 )
+  190:  		Thread
+  198:  			Call  ResetFromLava ( $LavaResetList_80241160 )
+  1A8:  		EndThread
+  1B0:  	EndThread
+  1B8:  EndIf
+  1C0:  Return
+  1C8:  End
+}
+
+
 @	$Script_80240470
 {
 		Call $ClearFlagCarryOverworldMusicToBattle()
@@ -12,7 +53,6 @@
    3C:  Else
    44:  	Call  ClearAmbientSounds    ( 000000FA )
    54:  EndIf
-   5C:  Call  UseDoorSounds ( .DoorSounds:Metal )
 		Set *Var0 .False
 		Set     *Byte_Settings_BGM *Var0
 		Exec $AutoSave

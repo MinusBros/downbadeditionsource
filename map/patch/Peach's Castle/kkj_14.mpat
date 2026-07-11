@@ -3,6 +3,29 @@
 #define .Npc:Joseph 04
 
 
+@	$Function_Init
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  CLEAR     A0
+    C:  LI        A1, *GB_StoryProgress
+   10:  JAL       ~Func:get_variable
+   14:  RESERVED
+   18:  LI        V1, 005F	%Check if you're in the post-game. If yes, change background
+   1C:  BNE       V0, V1, .o38
+   20:  NOP
+   24:  LA        A0, 800D9668
+   2C:  LA        A1, $ASCII_8024A6B0
+   30:  JAL       ~Func:sprintf
+   34:  RESERVED
+        .o38
+   38:  LW        RA, 10 (SP)
+   3C:  CLEAR     V0
+   40:  JR        RA
+   44:  ADDIU     SP, SP, 18
+}
+
+
 @	$Script_Main
 {
    [10]  Call  SetSpriteShading  ( .Shading:kkj_23 )
@@ -1084,4 +1107,31 @@
 	00000004 $NpcGroup_802443D4 00000000
 	00000001 $Joseph  00000000
 	00000000 00000000 00000000
+}
+
+@	$Script_ExitSingleDoor_802407A0
+{
+    0:  Set   *Var0  *GB_KKJ_LastPartner
+   10:  Call  $Function_8024035C ( )
+   1C:  Call  PlaySound ( 000000DC )
+   2C:  Call  GotoMapSpecial    ( $ASCII_8024A6B8 00000004 0000000C ) % pra_01
+   44:  Wait  100`
+   50:  SetGroup  0000001B
+   5C:  Call  DisablePlayerInput    ( .True )
+   6C:  Set   *AreaFlag[013]  .True
+   7C:  Call  UseDoorSounds     ( .DoorSounds:Basic )
+   8C:  Set   *Var0  ~Entry:Entry0
+   9C:  Set   *Var1  ~Collider:ttw
+   AC:  Set   *Var2  ~Model:o4
+   BC:  Set   *Var3  .DoorSwing:Out % FFFFFFFF
+   CC:  Exec  ExitSingleDoor
+   D8:  Wait  17`
+   E4:  If  *GB_StoryProgress  ==  .Story:PostGame % FFFFFF80
+   F4:  	Call  GotoMap   ( $ASCII_8024A6C8 00000004 ) % kkj_01
+  108:  Else
+  110:  	Call  GotoMap   ( $ASCII_8024A6C0 00000004 ) % kkj_11
+  124:  EndIf
+  12C:  Wait  100`
+  138:  Return
+  140:  End
 }

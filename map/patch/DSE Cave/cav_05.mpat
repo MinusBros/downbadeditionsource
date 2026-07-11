@@ -1,0 +1,254 @@
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000002
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This looks like a ruined city of[BR]
+some kind. Maybe we can find[BR]
+something that was left behind.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+Thread
+	Wait 30`
+	Call  802D5FA4  ( 00000005 ) %Unmutes channel 5
+EndThread
+Return
+End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity  	( .Entity:ScriptSpring ~Vec4d:Spring1 80000000 ) %~Vec4d:spring
+	Call     AssignScript 	( $Script_Spring1 )   
+	Call     MakeEntity  	( .Entity:ScriptSpring ~Vec4d:Spring2 80000000 ) %~Vec4d:spring
+	Call     AssignScript 	( $Script_Spring2 )   
+	Call     MakeEntity  	( .Entity:Chest ~Vec4d:ItemPos 00000000 80000000 )
+	Call     AssignFlag  	( *CAV05_Chest )
+	Call     AssignScript 	( $Script_Chest )
+	Return
+	End
+}
+
+#new:Script $Script_Chest
+{
+	0:  Set  *Var[A]  .Item:DefendPlusX
+   10:  Set  *Var[B]  00000002 
+   20:  Set  *CAV05_Chest .True
+   30:  ExecWait $Script_80245E6C 
+   3C:  Return
+   44:  End
+}
+
+#new:Script $Script_80245E6C
+{
+	0:  Call     DisablePlayerInput 	( .True )
+   10:  Set  *Var[0]  *Var[A] 
+   20:  If  *Var[A]  !=  00000000 
+   30:  	ExecWait $Script_80245E04 
+   3C:  EndIf
+   44:  Switch  *Var[B] 
+   50:  	Case  ==  00000000 
+   5C:  		Call     AddItem     	( *Var[A] *Var[0] )
+   70:  	Case  ==  00000001 
+   7C:  		Call     AddKeyItem  	( *Var[A] )
+   8C:  	Case  ==  00000002 
+   98:  		Call     AddBadge    	( *Var[A] *Var[0] )
+   AC:  EndSwitch
+   B4:  Wait     0000000F 
+   C0:  Call     DisablePlayerInput 	( .False )
+   D0:  Return
+   D8:  End
+}
+
+#new:Script $Script_80245E04
+{
+	0:  SetGroup 00000000 
+    C:  Call     802D5830 ( 00000002 )
+   1C:  Wait     00000028 
+   28:  Call     ShowGotItem 	( *Var[0] 00000000 00000000 )
+   40:  Call     802D5830 ( 00000000 )
+   50:  Return
+   58:  Return
+   60:  End
+}
+
+%spring script copied from iwa_04
+#new:Script $Script_Spring1
+{
+	0:  Call     DisablePlayerInput 	( .True )
+   10:  Call     DisablePlayerPhysics 	( .True )
+   20:  Call     802D10D8 ( 00000006 )
+   30:  Wait     00000001 
+   3C:  Exec     $Script_80241420 *Var[A] 
+   4C:  If  *MapVar[9]  ==  00000000 
+   5C:  	Call     SetPlayerJumpscale 	( *Fixed[1.4003906] )
+   6C:  	Call     PlayerJump  	( -769` 150` -130` 00000010 )
+   88:  Else
+   90:  	Call     SetPlayerJumpscale 	( *Fixed[0.7001953] )
+   A0:  	Call     PlayerJump  	( -769` 150` -130` 00000018 )
+   BC:  EndIf
+   C4:  Kill     *Var[A] 
+   D0:  Call     802D10D8 ( 00000000 )
+   E0:  Call     DisablePlayerPhysics 	( .False )
+   F0:  Call     DisablePlayerInput 	( .False )
+  100:  Return
+  108:  End
+}
+
+#new:Script $Script_Spring2
+{
+	0:  Call     DisablePlayerInput 	( .True )
+   10:  Call     DisablePlayerPhysics 	( .True )
+   20:  Call     802D10D8 ( 00000006 )
+   30:  Wait     00000001 
+   3C:  Exec     $Script_80241420 *Var[A] 
+   4C:  If  *MapVar[9]  ==  00000000 
+   5C:  	Call     SetPlayerJumpscale 	( *Fixed[1.4003906] )
+   6C:  	Call     PlayerJump  	( 257` 300` -782` 00000010 )
+   88:  Else
+   90:  	Call     SetPlayerJumpscale 	( *Fixed[0.7001953] )
+   A0:  	Call     PlayerJump  	( 257` 300` -782` 00000018 )
+   BC:  EndIf
+   C4:  Kill     *Var[A] 
+   D0:  Call     802D10D8 ( 00000000 )
+   E0:  Call     DisablePlayerPhysics 	( .False )
+   F0:  Call     DisablePlayerInput 	( .False )
+  100:  Return
+  108:  End
+}
+  
+#new:Script $Script_80241420
+{
+	0:  Loop     
+    C:  	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+   24:  	Call     802CAF2C ( 00000000 *Var[0] *Var[1] *Var[2] )
+   40:  	Wait     00000001 
+   4C:  EndLoop
+   54:  Return
+   5C:  End
+}
+
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Bind     $Script_LoreText  .Trigger:WallPressA ~Collider:LoreText  00000001 00000000 
+Exec    $Script_SetMusic 
+ExecWait $Script_MakeEntities
+%entry 0 = left loading zoone
+%entry 1 = right loading zone
+Call     GetEntryID  	( *Var[0] )
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+#new:Script $Script_LoreText
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     ShowMessageAtScreenPos     	( $LoreText 000000A0 00000028 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+
+#new:String $LoreText
+{
+	[Style Inspect]AN EMPIRE ONCE GREAT[BR]
+	NOW IN A RUINED STATE[BR]
+	A TRAGIC LESSON OF OURS[BR]
+	OF THOSE WHO SPURN THE STARS[BR]
+	[WAIT][NEXT]
+	OUR EMPEROR RULED WELL[BR]
+	YET DISASTER WOULD BEFALL US[BR]
+	PLEAS TO THE STARS WERE SPURRED[BR]
+	YET OUR WISHES WERE UNHEARD[WAIT][END]
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftlz 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:rightlz 00000001 00000000
+	Return
+    End
+}
+	   
+#new:Script $Script_Entry0
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_06" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_04" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}

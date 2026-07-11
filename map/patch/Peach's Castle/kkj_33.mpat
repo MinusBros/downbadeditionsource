@@ -1,0 +1,74 @@
+% Script File: kkj_25.mscr
+% Decoded from: 0 to C720 (kkj_25)
+
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0 % -605.0    0.0    0.0   90.0
+}
+
+#new:Header $Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  00000001
+	[Background]  80200000
+	[MapTattle]   0019001A
+}
+
+#new:Script $Script_ExitDoubleDoor_80240F90
+{
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Set   *Var0  ~Entry:Entry0
+   2C:  Set   *Var1  ~Collider:ttw
+   3C:  Set   *Var2  ~Model:o84
+   4C:  Set   *Var3  ~Model:o85
+   5C:  Exec  ExitDoubleDoor
+   68:  Wait  17`
+   74:  Call  GotoMap   ( "kkj_32" 00000001 )
+   88:  Wait  100`
+   94:  Return
+   9C:  End
+}
+
+#new:Script $Script_80241034
+{
+    0:  Bind  $Script_ExitDoubleDoor_80240F90 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+   1C:  Return
+   24:  End
+}
+
+#new:Script $Script_EnterDoubleDoor_80241060
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+  200:  		Call  SetZoneEnabled    ( ~Zone:o15 .False )
+  214:  		Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+  230:  		Set   *Var0  00000000
+  240:  		Set   *Var2  ~Model:o84
+  250:  		Set   *Var3  ~Model:o85
+  260:  		ExecWait  EnterDoubleDoor
+  26C:  		Exec  $Script_80241034
+  2B4:  EndSwitch
+  2BC:  Return
+  2C4:  End
+}
+
+
+#new:Script_Main $Script_Main
+{
+   6C:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   7C:  Call  SetSpriteShading  ( .Shading:None )
+   8C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   A0:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   C0:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   DC:  Call  SetCamEnabled     ( .Cam:Default .True )
+   F0:  Call  SetCamSpeed       ( .Cam:Default *Fixed[0.75] )
+  1B4:  Call  UseDoorSounds ( .DoorSounds:Large )
+  1C4:  Exec  $Script_EnterDoubleDoor_80241060
+  2BC:  Return
+  2C4:  End
+}
+

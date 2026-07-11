@@ -32,10 +32,7 @@
   1D0:  		Call  ClearAmbientSounds    ( 000000FA )
   1E0:  		Call  FadeOutMusic  ( 00000000 000001F4 )
   1F4:  	Default
-  1FC:  		If  *GF_KKJ25_Defeated_Bowser  ==  .False
-  20C:  		Else
   214:  			Wait 1`
-  230:  		EndIf
   238:  EndSwitch
   240:  Exec  $Script_EnterWalk_802404F0
   24C:  Call  GetEntryID    ( *Var0 )
@@ -47,6 +44,7 @@
   294:  Return
   29C:  End
 }
+
 
 @	$Script_80241654
 {
@@ -94,4 +92,99 @@
   2AC:  Wait  100`
   2B8:  Return
   2C0:  End
+}
+
+
+
+%Castle destroying scene
+
+@	$Script_80242AE0
+{
+		Set  *EscapeSequence .False
+		Call  SetMusicTrack     ( 00000000 .Song:Brawl 00000000 00000008 )
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePartnerAI      ( 00000000 )
+   20:  Call  SetNpcFlagBits        ( .Npc:Partner 00000200 .False )
+   38:  Call  SetPlayerActionState  ( .ActionState:Land )
+   48:  Call  SetPlayerPos  (  0`  0`  0` )
+   60:  Call  DisablePlayerPhysics  ( .True )
+   70:  Set   *MapVar[E]  00000000
+   80:  Exec  $Script_80240CDC
+   8C:  Exec  $Script_80240F20
+   98:  Exec  $Script_80242880
+   A4:  Exec  $Script_80242994 *Var9
+   B4:  Call  SetCamPerspective     ( .Cam:Default 00000003  22`  16`  4096` )
+   D4:  Call  UseSettingsFrom       ( .Cam:Default  0`  0`  0` )
+   F0:  Call  SetCamType    ( .Cam:Default 00000001 .True )
+  108:  Call  SetPanTarget  ( .Cam:Default  -60`  0`  0` )
+  124:  Call  SetCamPitch   ( .Cam:Default *Fixed[-20.0] *Fixed[-4.0] )
+  13C:  Call  SetCamPosA    ( .Cam:Default  0`  -40` )
+  154:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  168:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  180:  Wait  20`
+  18C:  Call  SetPanTarget  ( .Cam:Default  0`  0`  0` )
+  1A8:  Call  SetCamPitch   ( .Cam:Default *Fixed[-13.0] *Fixed[15.0] )
+  1C0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.3] )
+  1D4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  1EC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  200:  Thread
+  208:  	Loop  00000006
+  214:  		Call  RandInt   ( 00000014 *Var0 )
+  228:  		Add   *Var0  0000001E
+  238:  		Wait  *Var0
+  244:  		Call  $Function_802401A0 ( )
+  250:  	EndLoop
+  258:  EndThread
+  260:  Call  MakeLerp  ( 000000DC 00000258 0000005A .Easing:QuadraticIn )
+  27C:  Loop
+  288:  	Call  UpdateLerp ( )
+  294:  	SetF  *Var2  *Var0
+  2A4:  	DivF  *Var2  0000000A
+  2B4:  	Call  SetCamPerspective ( .Cam:Default 00000003 *Var2  16`  4096` )
+  2D4:  	Wait  1`
+  2E0:  	If  *Var1  ==  00000000
+  2F0:  		BreakLoop
+  2F8:  	EndIf
+  300:  EndLoop
+  308:  Call  MakeLerp  ( 00000258 000004B0 000000FA .Easing:CubicOut )
+  324:  Loop
+  330:  	Call  UpdateLerp ( )
+  33C:  	SetF  *Var2  *Var0
+  34C:  	DivF  *Var2  0000000A
+  35C:  	Call  SetCamPerspective ( .Cam:Default 00000003 *Var2  1`  4096` )
+  37C:  	Wait  1`
+  388:  	If  *Var1  ==  00000000
+  398:  		BreakLoop
+  3A0:  	EndIf
+  3A8:  EndLoop
+  3B0:  Kill  *Var9
+  3BC:  Wait  50`
+		Call  PlaySound     ( 000000A4 )
+  3D8:  Call  PlayEffect    ( ~FX:LightRays:SharpA 00000000 0` 00000780 0000000F *Var9 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  41C:  Wait  30`
+  428:  Thread
+  430:  	Call  $Function_80240290    ( 0000001E *Fixed[2.0] )
+  444:  	Call  MakeLerp  ( 000000C8 00000064 0000000F .Easing:Linear )
+  460:  	Loop
+  46C:  		Call  UpdateLerp ( )
+  478:  		DivF  *Var0  00000064
+  488:  		Call  $Function_80240290    ( 00000004 *Var0 )
+  49C:  		If  *Var1  ==  00000000
+  4AC:  			BreakLoop
+  4B4:  		EndIf
+  4BC:  	EndLoop
+  4C4:  EndThread
+		Call  $Function_DisposePartner ( )
+		Call  StopSound     ( 000000A4 )
+  4CC:  Call  GotoMapSpecial    ( "kmr_20" 00000002 00000007 )
+  4E4:  Wait  100`
+  4F0:  Return
+  4F8:  End
+}
+
+#new:Function $Function_DisposePartner
+{
+    0:  SAB       R0, 8010F2A2
+    8:  JR        RA
+    C:  LI        V0, 2
 }

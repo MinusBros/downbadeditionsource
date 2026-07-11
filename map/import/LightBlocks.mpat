@@ -1,0 +1,85 @@
+%This is used for making special blocks that appear/disappear when you use watt
+%Put the setup script in the main script of your map
+
+%copy this and change the values
+%create multiple scripts if you have both hidden and un-hidden blocks
+/%
+#new:Script $Script_SetupLightBlocks
+{
+	Set *Var[A] 00000000 %model ID (group)
+	Set *Var[B] 00000000 %collider ID
+	Set *Var[C] .True	 %true = hidden model, false = un-hidden model (use watt to make it disappear)
+	Exec $Script_LightBlocks
+	Return
+	End
+}
+%/
+
+%setup with multiple sets of blocks
+/%
+#new:Script $Script_SetupLightBlocks
+{
+	Set *Var[A] ~Model:lightactive 			%model ID (group)
+	Set *Var[B] ~Collider:lightplatforms	%collider ID
+	Set *Var[C] .True	 					%true = hidden model, false = un-hidden model (use watt to make it disappear)
+	Exec $Script_LightBlocks
+	Set *Var[A] ~Model:darkactive 			%model ID (group)
+	Set *Var[B] ~Collider:darkplatforms 	%collider ID
+	Set *Var[C] .False	 					%true = hidden model, false = un-hidden model (use watt to make it disappear)
+	Exec $Script_LightBlocks				%hopefully having the same script twice works correctly
+	Return
+	End
+}
+%/
+
+
+%what we need to check:
+%partner ID (8010F290 + 12 = 8010F2A2) = 6
+%using partner (byte at 8010EBB0 != 0?)
+
+%easier method: check byte at 8010EBB3 (which is equal to partner being used, 0 when not)
+
+%this method is used in kgr_02 (though it uses XORI to check if it equals 6)
+
+#new:Function $CheckWatt
+{
+	PUSH 	RA
+	LAB		A2, 8010EBB3
+	ORI		A1, R0, 6
+	BEQ		A2, A1 .no
+	ORI		A2, R0, 1
+	ORI		A2, R0, 0
+	.no
+	LW		V0, C (A0)
+	JAL		~Func:set_variable
+	LW		A1, 0 (V0)
+	POP		RA
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+#new:Script $Script_LightBlocks
+{
+	Label 0 %block is visible
+	Call	$CheckWatt ( *Var[0] )
+	If *Var[0] != *Var[C]
+		%become invisible
+		Call     EnableGroup 	( *Var[A] .False )
+		Call     ModifyColliderFlags 	( 00000000 *Var[B] 7FFFFE00 )
+		Goto 1
+	EndIf
+	Wait 1
+	Goto 0
+	Label 1 %block is invisible
+	Call	$CheckWatt ( *Var[0] )
+	If *Var[0] == *Var[C]
+		%become visible
+		Call     EnableGroup 	( *Var[A] .True )
+		Call     ModifyColliderFlags 	( 00000001 *Var[B] 7FFFFE00 )
+		Goto 0
+	EndIf
+	Wait 1
+	Goto 1
+	Return
+	End
+}

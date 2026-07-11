@@ -11,7 +11,7 @@
 {
 % stats
 [Index]        3Db  %Reslotted ID
-[Level]        52`b 
+[Level]        48`b 
 [MaxHP]        9`b 
 [Coins]        4`b 
 [Flags]       00000000 
@@ -63,11 +63,15 @@
 
 #new:DefenseTable $DefenseTable_8021CA84_darkBones
 {
-.Element:Normal 00000006
-.Element:Fire   00000063
-.Element:Blast  00000063
-.Element:Cosmic 00000005
-.Element:Magic  00000009
+.Element:Normal 6`
+.Element:Jump   3`
+.Element:Fire   99`
+.Element:Water  5`
+.Element:Ice    5`
+.Element:Blast  99`
+.Element:Cosmic 5`
+.Element:Magic  9`
+.Element:Throw  2`
 .Element:End
 }
 
@@ -137,6 +141,8 @@
 00120001 02000000 000000FF $IdleAnimations_8021CA78_darkBones $DefenseTable_8021CA84_darkBones 00000000 00000000 00000000 00000000 
 }
 
+#define  .StarPointsFlag  1`
+
 #new:Script $Script_Init_8021CC84_darkBones
 {
     0:  Call     BindTakeTurn 	( .Actor:Self $Script_TakeTurn_8021DB48_darkBones )
@@ -145,6 +151,7 @@
    3C:  Call     BindNextTurn 	( .Actor:Self $Script_NextTurn_8021CCFC_darkBones )
 		Call  	 SetPartEventBits  ( .Actor:Self 00000001 00040000 .True )  %Immune to piercing, debuffs and statuses
    50:  Call     SetActorVar 	( .Actor:Self 00000008 00000000 )
+		Call  SetActorVar   ( .Actor:Self .StarPointsFlag 00000000 )
    68:  Return
    70:  End
 }
@@ -228,6 +235,11 @@
     0:  Call     PlaySoundAtActor 	( .Actor:Self 000002D2 )
    14:  Call     SetAnimation 	( .Actor:Self 00000001 00530508 )
    2C:  Wait     00000010 
+		Call  GetActorVar   ( .Actor:Self .StarPointsFlag *Var4 )
+		If   *Var4 == 0`
+			Call  DropStarPoints    ( .Actor:Self )
+			Call  SetActorVar       ( .Actor:Self .StarPointsFlag 1 )
+		EndIf
    38:  Call     SetActorVar 	( .Actor:Self 00000008 00000001 )
    50:  Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_8021CA6C_darkBones )
    68:  Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_8021CAA0_darkBones )

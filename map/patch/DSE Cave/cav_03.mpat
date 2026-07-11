@@ -1,0 +1,117 @@
+%Pit entrance map
+
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000002
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]Is that... [PAUSE:0A]light?[BR]
+[WAIT][NEXT]It must've taken a lot of work[BR]
+to get it all the way down here.[BR]
+[WAIT][NEXT]There's also a lot of Buzzy[BR]
+Beetle statues for some reason.[BR]
+[WAIT][NEXT]Whoever built this room really[BR]
+wanted this room to stand out.[BR]
+[WAIT][END]
+}
+
+#import EnterViaPipe.mpat
+#import ExitViaPipe.mpat
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+Thread
+	Wait 30`
+	Call  802D5FA4  ( 00000001 ) %Unmutes channel 1 and 3
+EndThread
+Return
+End
+}
+
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec     $Script_SetMusic 
+Call     MakeEntity  	( .Entity:SavePoint ~Vec4d:saveblock 80000000 )
+Call 	 MakeEntity ( .Entity:HealingBlock ~Vec4d:heartblock 80000000 )
+%entry 0 = loading zone
+%entry 1 = pipe
+Call	GetLoadType 	( *Var[1] )
+If		*Var[1] ==  00000001 
+	Exec	EnterSavePoint 
+	Exec	$Script_MakeExits
+Else
+	Call     GetEntryID  	( *Var[0] )
+	If (*Var[0] == 1) 
+		Set		*Var[A] $Script_MakeExits 
+		Exec $Script_EnterVerticalPipe %the script executes the script in *Var[A]
+	Else
+		Set		*Var[0] $Script_MakeExits 
+		Exec EnterWalk
+	EndIf
+EndIf
+Return
+End
+}
+
+
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:LZ 00000001 00000000
+	Return
+    End
+}
+      
+#new:Script $Script_Entry0
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_02" 00000001 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}

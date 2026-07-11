@@ -22,7 +22,7 @@
 % stats
 [Index]        F8b 
 [Level]       105`b 
-[MaxHP]       155`b 
+[MaxHP]       157`b 
 [Coins]         0`b 
 [Flags]       00000200 
 [StatusTable] $StatusTable_TsarBoo 
@@ -133,6 +133,7 @@
 .Element:Magic   6`
 .Element:Cosmic  6`
 .Element:Throw  -1`
+.Element:Quake  -2`
 .Element:End
 }
 
@@ -147,6 +148,7 @@
 .Element:Magic  10`
 .Element:Cosmic 10`
 .Element:Throw   4`
+.Element:Quake   3`
 .Element:End
 }
 
@@ -574,27 +576,25 @@
 
 #new:Script $CheckDeath
 {
-		Call FindItem  ( .Item:LifeShroom *VarE ) 
-		If *VarE == 00000000
-			Set  *VarD  1`
-		Else
-			Set  *VarD  0`
-		EndIf
-		If    *VarD  == 0`
+		Label 1
 				Loop 60`
 				Call  GetActorHP    ( .Actor:Player *VarC )
 				If  *VarC  ==  00000000 
-						ChildThread
-							Call  PushSong      ( .Song:MailCall 00000001 ) %Ending stinger
-							Wait  200`
+						Call  PushSong      ( .Song:MailCall 00000001 ) %Ending stinger
+						Wait  300`
+						Call  GetBattlePhase    ( *VarE )
+						If   *VarE == 8` %Use Life Shroom
+							Wait  50`
 							Call  PopSong ( )
-						EndChildThread
+							Wait  50`
+							Goto  1
+						EndIf
 						Return
 				EndIf
 				Wait  1`
 				EndLoop
-		EndIf
-		Wait 1`
+		Wait  1`
+		Goto  1
 		Return
 		End
 }

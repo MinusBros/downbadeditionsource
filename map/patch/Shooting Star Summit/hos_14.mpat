@@ -489,7 +489,49 @@
 
 #new:Script  $Script_Interact_Bandit
 {
+		If  *GB_StoryProgress  >=  .Story:Ch2_StarSpritDeparted
+			If  *PhantomCompleted == .False
+				Call  FindKeyItem   ( .Item:GoldWhackaBump *Var1 )
+				If    *Var1 != FFFFFFFF
+					Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest5 ) 
+					Set   *Var0  $???_CheckGoldenBump
+					Set   *Var1  00000005
+					ExecWait  $Script_CheckForKeyItem	
+					Switch *Var0
+						Case   == 0`   %If you don't have the key item, resume script
+						Case   == FFFFFFFF  %If you refuse to give the key item, say a funny line
+							Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest6 ) 
+							Return
+						Default			%If you give him the key item
+							Set  *PhantomCompleted .True
+							Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest7 ) 
+							Call	ShowCoinCounter ( .True )
+							Wait    12`
+							Call	AddCoin ( 1000` )
+							Call	ShowCoinCounter ( .False )
+							Wait    28`
+							ExecWait  $ProblemSolved
+							Return
+					EndSwitch
+				EndIf
+				If  *GB_IWA00_Whacka_HitCount == 8`  %This dialogue only plays if you killed Whankha, but didn't grab the bump
+					Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest8 ) 
+					Return
+				EndIf
+				If  *PhantomAskedForDefeatedWhacka == .False
+					Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest1 ) 
+					Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest2 ) 
+					Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest3 ) 
+					Set  *PhantomAskedForDefeatedWhacka .True
+				Else
+					Call  SpeakToPlayer ( .Npc:Self 009C020E 009C0201 00000000 $BanditQuest4 ) 
+				EndIf
+				Return
+			EndIf
+		EndIf
 
+
+		
 		Switch  *GB_StoryProgress
 			Case  <  .Story:Ch2_StarSpritDeparted
 				Set   *Var0  $Bandit1
@@ -507,7 +549,7 @@
 #new:Script  $BanditProblem
 {
 		Loop
-			%Call  ShowEmote ( .Npc:Bandit .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Call  ShowEmote ( .Npc:Bandit .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
 			Wait  60`
 			If  *PhantomCompleted == .True
 				BreakLoop
@@ -517,6 +559,7 @@
 		End
 }
 
+#import KeyItemPopUp.mpat
 
 
 #new:Unknown $???_CheckGoldenBump
@@ -1349,6 +1392,19 @@ that right, [SaveColor][Color:1D]Mustachio[RestoreColor]?[BR]
 Look, [Pause 3]dis ain't much,[Pause 3] but it'll make[BR]
 youse life plenty easy.[BR]
 [Pause 11]Here ye are's.[BR]
+[Wait][End]
+}
+
+#new:String $BanditQuest8
+{
+[Style Left]
+Oi, dat smellie smell that smells.[BR]
+[Pause 10]You've gone an' killed a Whankha[BR]
+didn't ya?[BR]
+[Wait][Next]
+Well if zat's the case, why dun youse[BR]
+got the Golden Bump, aye?[BR]
+C'mon, bucko.[BR]
 [Wait][End]
 }
 

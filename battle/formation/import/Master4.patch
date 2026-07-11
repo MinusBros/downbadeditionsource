@@ -397,7 +397,7 @@
    98:  Call     SetActorVar 	( .Actor:Self 00000004 00000000 ) % rest phase
    98:  Call     SetActorVar 	( .Actor:Self 00000005 00000000 ) % what attack to use
    98:  Call     SetActorVar 	( .Actor:Self 00000006 00000000 ) % what attack to use
-		Call  	 SetPartEventBits  ( .Actor:Self 00000001 00040000 .True )
+		Call  	 SetPartEventBits  ( .Actor:Self 00000001 00040000 .True ) %Unpierceable defence
 		Call     SetActorVar 	( .Actor:Self 00000007 00000000 )  %If set to 1, he will always stance change
 		%					  % set this up immediately
 		Call     SetActorVar 	( .Actor:Self 00000008 00000000 ) % Final combo trigger
@@ -849,7 +849,7 @@ my powers for now...[BR]
   5B4:  		If  *Var[0]  <=  *Var[1] 
   5C4:  			Call     UseBattleCamPreset 	( 00000002 )
   5D4:  			Call     MoveBattleCamOver 	( 0000000A )
-   94:    			Call  RandInt   ( 13` *Var0 )
+   94:    			Call  RandInt   ( 14` *Var0 )
    AC:      Switch  *Var[0]  %He can say a lot of different things, to keep things varied.
 	   B8:  	Case  ==  00000000 
 	   C4:  		Call     ActorSpeak  	( $CutYouDown .Actor:Self 00000001 00A20232 00A2022E ) 
@@ -879,6 +879,10 @@ my powers for now...[BR]
 					Call     ActorSpeak  	( $CutYouDown13 .Actor:Self 00000001 00A20232 00A2022E ) 
 				Case  ==  13`
 					Call     ActorSpeak  	( $CutYouDown14 .Actor:Self 00000001 00A20232 00A2022E ) 
+				Case  ==  14`
+					Call     ActorSpeak  	( $CutYouDown15 .Actor:Self 00000001 00A20232 00A2022E ) 
+				Case  ==  15`
+					Call     ActorSpeak  	( $CutYouDown16 .Actor:Self 00000001 00A20232 00A2022E ) 
 			EndSwitch
   604:  			BreakCase
   60C:  		EndIf
@@ -967,7 +971,10 @@ my powers for now...[BR]
 
 #new:Script $StanceChangeMessage
 {
-	Call  ActorSpeak        ( 001F0066 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	Call     GetPlayerHP 	( *Var[6] )
+	If  *Var6 > 0`
+		Call  ActorSpeak        ( 001F0066 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )
+	EndIf
 	Return
 	End
 }
@@ -1104,6 +1111,33 @@ rule the universe.
 [WAIT][END]
 }
 
+#string $CutYouDown15
+{
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]
+[InputOff][Size 15]Nobody can beat me when I'm Shishó 17![BR]
+[Pause 12][Size 15]Nobody can beat me when I'm Shishó 17![BR]
+[Pause 12][Size 15]Nobody can beat me when I'm Shishó 17![BR]
+[Pause 12][Size 15]Nobody can beat me when I'm Shishó 17![InputOn][BR]
+[WAIT][END]
+}
+
+#string $CutYouDown16
+{
+[STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]
+Impressive, no? I have become an [BR]
+aspect of Mictlantecuhtli, Aztec god[BR]
+of the underworld.[BR]
+[WAIT][END]
+}
+
+
+#string $SUPER17
+{
+[Style Tattle]
+Nobody can beat me with SUPER 17![BR]
+[Pause 40][End]
+}
+
 #string $YouCannotWin
 {
 [STYLE:RIGHT][PrintRising][CustomVoice soundIDs=0x2018,0x2018][Volume percent=50]Look at you, backed into a[BR]
@@ -1149,10 +1183,15 @@ blow![BR]
    40:  Call     GetBattleFlags ( *Var[0] )
    50:  If  *Var[0]  &  00000240 
    60:  	Call     GetLastDamage 	( .Actor:Self *Var[0] )
-   74:  	If  *Var[0]  >  00000000 
-   84:  		Call     SetActorVar 	( .Actor:Self 00000002 00000001 )
-   9C:  		Call     AddActorVar 	( .Actor:Self 00000003 00000001 )
-   B4:  	EndIf
+			Switch *Var0
+				Case  == 17`
+					Call     ActorSpeak  	( $SUPER17 .Actor:Self 00000001 00A20232 00A2022E )
+	   84:  		Call     SetActorVar 	( .Actor:Self 00000002 00000001 )
+	   9C:  		Call     AddActorVar 	( .Actor:Self 00000003 00000001 )	
+	   74:  	Case  !=  00000000 
+	   84:  		Call     SetActorVar 	( .Actor:Self 00000002 00000001 )
+	   9C:  		Call     AddActorVar 	( .Actor:Self 00000003 00000001 )				
+   B4:  	EndSwitch
    BC:  EndIf
    C4:  Call     GetLastEvent 	( .Actor:Self *Var[0] )
    D8:  Switch  *Var[0] 
@@ -1309,7 +1348,7 @@ blow![BR]
   3B4:  Call     PlaySoundAtActor 	( .Actor:Self 000003ED )
   3C8:  Call     PlaySoundAtActor 	( .Actor:Self 000020BB )
   3DC:  Wait     4`
-  3E8:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 14000000 00000000 00000000 000000FF 00000030 )		
+  3E8:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 14080000 00000000 00000000 000000FF 00000030 )		
 		If *VarF == 2
 			Call	SetActorRotation 	( .Actor:Self 00000000 00000000 00000000 )
 		EndIf
@@ -1392,32 +1431,6 @@ blow![BR]
    F4:  Call     PlaySoundAtActor 	( .Actor:Self 000003B9 )
   108:  Call     PlaySoundAtActor 	( .Actor:Self 000020BB )
   11C:  Call     EnemyTestTarget ( .Actor:Self *Var[A] 00000000 00000000 00000000 00000010 )
-		%NO!
-		Set *VarA 0
-  140:  Switch  *Var[A] 
-  14C:  	CaseOR  ==  .HitResult:Miss % 6
-  158:  	CaseOR  ==  .HitResult:Lucky % 5
-  164:  		Call     UseBattleCamPreset 	( 00000002 )
-  174:  		Call     EnableActorBlur 	( .Actor:Self 00000001 )
-  188:  		Call     SetGoalToTarget 	( .Actor:Self )
-  198:  		Call     AddGoalPos 	( .Actor:Self FFFFFFCE 00000000 00000000 )
-  1B4:  		Call     SetAnimation 	( .Actor:Self 00000001 00A20235 )
-  1CC:  		Call     RunToGoal   	( .Actor:Self 00000005 .False )
-  1E4:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-  1FC:  		Call     EnableActorBlur 	( .Actor:Self 00000000 )
-  210:  		Wait     0000000A 
-  21C:  		If  *Var[A]  ==  00000005 
-  22C:  			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
-  250:  		EndIf
-  258:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-  270:  		Call     SetGoalToHome 	( .Actor:Self )
-  280:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[36.0] )
-  294:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20231 )
-  2AC:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
-  2C4:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-  2DC:  		Return
-  2E4:  	EndCaseGroup
-  2EC:  EndSwitch
   2F4:  Call     EnableActorBlur 	( .Actor:Self 00000001 )
   308:  Call     SetGoalToTarget 	( .Actor:Self )
   318:  Call     AddGoalPos 	( .Actor:Self 00000000 00000000 00000000 )
@@ -1591,31 +1604,6 @@ blow![BR]
 	Call     EnableActorBlur 	( .Actor:Self 00000000 )
 	Call     PlaySoundAtActor 	( .Actor:Self 000003ED )
 	Call     PlaySoundAtActor 	( .Actor:Self 000020BB )
-    Call     EnemyTestTarget ( .Actor:Self *Var[A] 00000000 00000000 00000000 00000010 )
-    Switch  *Var[A] 
-    	CaseOR  ==  .HitResult:Miss % 6
-    	CaseOR  ==  .HitResult:Lucky % 5
-    		Call     UseBattleCamPreset 	( 00000002 )
-    		Call     EnableActorBlur 	( .Actor:Self 00000001 )
-    		Call     SetGoalToTarget 	( .Actor:Self )
-    		Call     AddGoalPos 	( .Actor:Self FFFFFFCE 00000000 00000000 )
-    		Call     SetAnimation 	( .Actor:Self 00000001 00A20234 )
-    		Call     RunToGoal   	( .Actor:Self 0000000A .False )
-    		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-    		Call     EnableActorBlur 	( .Actor:Self 00000000 )
-    		Wait     0000000A 
-    		If  *Var[A]  ==  00000005 
-    			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
-    		EndIf
-    		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-    		Call     SetGoalToHome 	( .Actor:Self )
-			Call     SetActorSpeed 	( .Actor:Self *Fixed[30.0] )
-    		Call	 SetAnimation 	( .Actor:Self 00000001 00A20231 )
-			Call     RunToGoal   	( .Actor:Self 00000000 .False )
-			Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-			Return
-		EndCaseGroup
-	EndSwitch	
 	Wait     00000002
 	Call     PlaySoundAtActor 	( .Actor:Self 000020BD )
 	Thread
@@ -1987,7 +1975,7 @@ blow![BR]
   3B4:  Call     PlaySoundAtActor 	( .Actor:Self 000003ED )
   3C8:  Call     PlaySoundAtActor 	( .Actor:Self 000020BB )
   3DC:  Wait     4` 
-  3E8:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 14000000 00000000 00000000 000000FF 00000030 )		
+  3E8:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 14080000 00000000 00000000 000000FF 00000030 )	%Can't be superguarded. Does 0 damage if blocked	
 		
 		If *VarF == 2
 			Call	SetActorRotation 	( .Actor:Self 00000000 00000000 00000000 )
@@ -2534,31 +2522,6 @@ blow![BR]
 	Call     EnableActorBlur 	( .Actor:Self 00000000 )
 	Call     PlaySoundAtActor 	( .Actor:Self 000003ED )
 	Call     PlaySoundAtActor 	( .Actor:Self 000020BB )
-    Call     EnemyTestTarget ( .Actor:Self *Var[A] 00000000 00000000 00000000 00000010 )
-    Switch  *Var[A] 
-    	CaseOR  ==  .HitResult:Miss % 6
-    	CaseOR  ==  .HitResult:Lucky % 5
-    		Call     UseBattleCamPreset 	( 00000002 )
-    		Call     EnableActorBlur 	( .Actor:Self 00000001 )
-    		Call     SetGoalToTarget 	( .Actor:Self )
-    		Call     AddGoalPos 	( .Actor:Self FFFFFFCE 00000000 00000000 )
-    		Call     SetAnimation 	( .Actor:Self 00000001 00A20234 )
-    		Call     RunToGoal   	( .Actor:Self 0000000A .False )
-    		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-    		Call     EnableActorBlur 	( .Actor:Self 00000000 )
-    		Wait     0000000A 
-    		If  *Var[A]  ==  00000005 
-    			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
-    		EndIf
-    		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-    		Call     SetGoalToHome 	( .Actor:Self )
-			Call     SetActorSpeed 	( .Actor:Self *Fixed[30.0] )
-    		Call	 SetAnimation 	( .Actor:Self 00000001 00A20231 )
-			Call     RunToGoal   	( .Actor:Self 00000000 .False )
-			Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-			Return
-		EndCaseGroup
-	EndSwitch	
 	Wait     00000002
 	Call     PlaySoundAtActor 	( .Actor:Self 000020BD )
 	Thread
@@ -2660,33 +2623,6 @@ blow![BR]
    E8:  Wait     00000006 
    F4:  Call     PlaySoundAtActor 	( .Actor:Self 000003B9 )
   108:  Call     PlaySoundAtActor 	( .Actor:Self 000020BB )
-  11C:  Call     EnemyTestTarget ( .Actor:Self *Var[A] 00000000 00000000 00000000 00000010 )
-		%Nope
-		Set *VarA 0
-  140:  Switch  *Var[A] 
-  14C:  	CaseOR  ==  .HitResult:Miss % 6
-  158:  	CaseOR  ==  .HitResult:Lucky % 5
-  164:  		Call     UseBattleCamPreset 	( 00000002 )
-  174:  		Call     EnableActorBlur 	( .Actor:Self 00000001 )
-  188:  		Call     SetGoalToTarget 	( .Actor:Self )
-  198:  		Call     AddGoalPos 	( .Actor:Self FFFFFFCE 00000000 00000000 )
-  1B4:  		Call     SetAnimation 	( .Actor:Self 00000001 00A20235 )
-  1CC:  		Call     RunToGoal   	( .Actor:Self 0000000A .False )
-  1E4:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-  1FC:  		Call     EnableActorBlur 	( .Actor:Self 00000000 )
-  210:  		Wait     0000000A 
-  21C:  		If  *Var[A]  ==  00000005 
-  22C:  			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
-  250:  		EndIf
-  258:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-  270:  		Call     SetGoalToHome 	( .Actor:Self )
-  280:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[30.0] )
-  294:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20231 )
-  2AC:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
-  2C4:  		Call	 SetAnimation 	( .Actor:Self 00000001 00A20224 )
-  2DC:  		Return
-  2E4:  	EndCaseGroup
-  2EC:  EndSwitch
   2F4:  Call     EnableActorBlur 	( .Actor:Self 00000001 )
   308:  Call     SetGoalToTarget 	( .Actor:Self )
   318:  Call     AddGoalPos 	( .Actor:Self 00000000 00000000 00000000 )

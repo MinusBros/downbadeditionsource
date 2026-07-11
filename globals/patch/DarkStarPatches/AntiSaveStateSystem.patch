@@ -1,0 +1,245 @@
+%Anti-savestate timestamp system
+
+%make sure this doesn't corrupt files or anything
+%It probably doesn't
+
+%problem: this generates lag from reading a lot of memory
+
+
+
+%how it works
+%Sometimes, a time value is saved to the current save file 
+%	(*This causes lag so it can't be done every frame, but it needs to be done frequently)
+%Save states will revert the current timestamp but not the saved timestamp
+%Therefore, if the saved timestamp is higher than the current timestamp, savestates must have been used
+
+
+%How to use this system
+%when you want to start checking timestamps, call $Function_PushTimestamp ( ) to update the timestamps
+%	(Otherwise you would be checking for savestates outside of the place you are checking save states in)
+
+%Use $Function_CheckSavestate when you want to check for savestates (but this one does not update the timestamps again)
+%$Function_CheckSavestate_B will both check the timestamps and update them also
+%	(In most cases you should use this one)
+
+%Note that this system can only catch savestates if the timestamp is updated and then you load a state before that, so you want to update the timestamp as much as you can get away with
+
+
+%The checking functions starting with "Function" should be called from scripts with a var argument to return the value
+%The checking functions return 1 if save states are detected (The saved timestamp is higher than the current timestamp)
+
+
+
+
+
+%How the functions work
+%Pushing a timestamp
+%	load a time value into the bytes
+%	save it to file
+
+%Checking timestamps
+%	load timestamp from save file bytes
+%	compare with current timestamp
+%	saved timestamp > current timestamp 	=> savestates (Savestates will decrease current timestamp value but not saved timestamp value)
+%	maybe allow a few frames of forgiveness in case something weird happens with the timestamp values
+
+
+
+%this address contains a value that only counts up and is saved to file (*separately from the gamebytes below)
+%but it does not count up by 1 each frame
+%Don't change this unless you know what you're doing
+#define .TimestampReadAddress 8010F54C
+
+%If the difference between saved timestamp and current timestamp is below this value, assume everything is fine
+%	*note that a current timestamp higher than saved timestamp is always considered valid
+#define .TimestampForgiveness 8 %~4 frames
+
+%Define which game bytes are used to store the save file timestamp
+#define .AntiSSBytesStart 14 %Gamebyte 14,15,16,17
+%Must be divisible by 4 or it causes address errors
+
+
+%also returns timestamp on V0
+#new:Function $transfer_timestamp_to_gamebytes
+{
+	LAW		V0, 8010F54C
+	PUSH 	V1
+	LIO		V1, 800DBD70
+	SW		V0, .AntiSSBytesStart (V1)
+	POP		V1
+	JR		RA
+	NOP
+}
+
+%pushes current timestamp to file
+#export:Function $Function_PushTimestamp
+{
+	PUSH	RA
+	JAL		$store_SS_timestamp
+	NOP
+	POP		RA
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+%load current time stamp and saved timestamp
+%v0 = 2
+%v1 = return value
+#new:Function $CompareTimestamps
+{
+	PUSH 	RA
+	JAL		$load_SS_timestamp
+	NOP
+	LAW		V1, 8010F54C
+	ADDIU	V1, V1, .TimestampForgiveness
+	SLTU	V1, V1, V0						%If current timestamp < saved timestamp, that means a savestate was used!
+	POP		RA
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+%Requires one arg (an output var)
+%0 = no savestate detected
+%1 = savestate detected
+#export:Function $Function_CheckSavestate
+{
+    PUSH    RA, S0, S1, S2
+    LW      S0, C (A0)
+    LW      S1, 0 (S0)
+	COPY	S0, A0
+	JAL		$CompareTimestamps
+	NOP
+	COPY 	A0, S0
+	COPY	A1, S1
+    JAL     ~Func:set_variable
+    COPY    A2, V1
+    LI      V0, 2 % DONE for script API call
+    JPOP    RA, S0, S1, S2
+}
+
+%Requires one arg (an output var)
+%Same as above but updates timestamps after checking
+#export:Function $Function_CheckSavestate_B
+{
+    PUSH    RA, S0, S1, S2
+    LW      S0, C (A0)
+    LW      S1, 0 (S0)
+	COPY	S0, A0
+	JAL		$CompareTimestamps
+	NOP
+	COPY 	A0, S0
+	COPY	A1, S1
+    JAL     ~Func:set_variable
+    COPY    A2, V1
+	JAL		$store_SS_timestamp
+	NOP
+    LI      V0, 2 % DONE for script API call
+    JPOP    RA, S0, S1, S2
+}
+
+
+#reserve 4000 $AntiSSBuffer
+
+%stores current SS timestamp and sets the gamebytes to it
+#new:Function $store_SS_timestamp
+{
+    PUSH    RA, S0, S1, S2
+    #DEF    S0, *Buffer
+    #DEF    S1, *Status
+    #DEF    S2, *SaveSlot
+    
+    LA      V0, 8007419C % game_status
+    LW      *Status, 0 (V0)
+    LBU     *SaveSlot, 166 (*Status)
+    JAL     ~Func:fio_fetch_saved_file_info
+    COPY    A0, *SaveSlot
+    LA      *Buffer, $AntiSSBuffer
+    COPY    A1, *Buffer
+    SLL     A0, *SaveSlot, 3
+    LTW     A0, A0 (8009BA30)
+    JAL     ~Func:fio_read_flash
+    LI      A2, 4000
+    
+    LA      A1, 800745D0 % default filename string
+    JAL     ~Func:strcmp
+    COPY    A0, *Buffer
+    
+    BNE     V0, R0, .Done
+    NOP     % failed
+    
+    % Store new savestate timestamp
+    JAL		$transfer_timestamp_to_gamebytes    
+	NOP
+	ADDIU	V1, *Buffer, .AntiSSBytesStart
+	SW      V0, 10B0 (V1)
+	
+    % increment saveID?
+    LW      V0, 168 (*Status)
+    ADDIU   V0, V0, 1					
+    SW      V0, 3C (*Buffer)
+    SW      V0, 168 (*Status)			%Try this
+    
+    SW      *SaveSlot, 38 (*Buffer) % save slot
+    #UNDEF  S2
+    
+    % recalculate checksums
+    SW      R0, 30 (*Buffer)
+    LI      V0, FFFF
+    SW      V0, 34 (*Buffer)
+    JAL     ~Func:fio_calc_file_checksum
+    COPY    A0, *Buffer
+    SW      V0, 30 (*Buffer)
+    NOR     V0, R0, V0
+    SW      V0, 34 (*Buffer)
+
+    % save updated file
+    LA      S2, 8009BA80
+    LW      A0, 0 (S2)
+    JAL     ~Func:fio_erase_flash
+    NOP
+    LW      A0, 0 (S2)
+    COPY    A1, *Buffer
+    JAL     ~Func:fio_write_flash
+    LI      A2, 4000
+
+    .Done
+    #UNDEF  All
+    LI      V0, 2 % DONE for script API call
+    JPOP    RA, S0, S1, S2
+}
+
+%loads current SS timestamp and returns into V0
+#new:Function $load_SS_timestamp
+{
+    PUSH    RA, S0, S1, S2
+    #DEF    S0, *Buffer
+    #DEF    S1, *Status
+    #DEF    S2, *SaveSlot
+    
+    LA      V0, 8007419C % game_status
+    LW      *Status, 0 (V0)
+    LBU     *SaveSlot, 166 (*Status)
+    JAL     ~Func:fio_fetch_saved_file_info
+    COPY    A0, *SaveSlot
+    LA      *Buffer, $AntiSSBuffer
+    COPY    A1, *Buffer
+    SLL     A0, *SaveSlot, 3
+    LTW     A0, A0 (8009BA30)
+    JAL     ~Func:fio_read_flash
+    LI      A2, 4000
+    
+    LA      A1, 800745D0 % default filename string
+    JAL     ~Func:strcmp
+    COPY    A0, *Buffer
+    
+    BNE     V0, R0, .Done
+    NOP     % failed
+    
+    % load new savestate timestamp
+	ADDIU	V1, *Buffer, .AntiSSBytesStart
+	LWU     V0, 10B0 (V1) % game bytes start at offset 10B0				LWU whats this? (load word unsigned) (probably unneccessary)
+
+    .Done
+    #UNDEF  All
+    JPOP    RA, S0, S1, S2
+}

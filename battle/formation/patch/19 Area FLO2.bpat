@@ -190,7 +190,7 @@
 		Call  YieldTurn ( )
   474:  Call  FlyPartTo ( .Actor:Self 00000003 *Var0 *Var1 *Var2  0`  20` .Easing:Linear )
   4A0:  Wait  2`
-  4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000020 )
+  4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000007 00000020 )
    30:  Else
    94:  Wait  1`
    9C:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:MoleDig )
@@ -244,7 +244,7 @@
 		Call  YieldTurn ( )
   474:  Call  FlyPartTo ( .Actor:Self 00000003 *Var0 *Var1 *Var2  0`  20` .Easing:Linear )
   4A0:  Wait  2`
-  4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000008 00000020 )
+  4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
    44:  EndIf
   4D4:  Switch  *Var0
   4E0:  	CaseOR  ==  .HitResult:Hit % 0
@@ -272,7 +272,7 @@
 @	$Spike
 {
 	[Level]        90`b
-	[MaxHP]       101`b
+	[MaxHP]       108`b
 	[PowerBounce]   3`b
 }
 
@@ -424,7 +424,7 @@
 		Call  GetActorVar   ( .Actor:Self 00000003 *Var0 )
 		If  *Var0  ==  00000000 
 		Call  GetActorHP    ( .Actor:Self *Var0 )
-			If  *Var0  <=  00000048 
+			If  *Var0  <=  99` 
 			ExecWait  $Script_Buff
 			Wait	2`
 		EndIf
@@ -518,47 +518,13 @@
   588:  Wait  1`
   594:  Call  PlaySoundAtPart   ( .Actor:Self 00000002 000002C6 )
   5AC:  Call  SetPartSounds     ( .Actor:Self 00000002 .ActorSound:Jump 00000000 00000000 )
-  5CC:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
-  5F0:  Switch  *Var0
-  5FC:  	CaseOR  ==  .HitResult:Miss % 6
-  608:  	CaseOR  ==  .HitResult:Lucky % 5
-  614:  		Set   *VarA  *Var0
-  624:  		Call  SetAnimation      ( .Actor:Self 00000002 00100015 )
-  63C:  		Call  SetPartJumpGravity    ( .Actor:Self 00000002 *Fixed[0.05] )
-  654:  		Call  SetGoalToTarget   ( .Actor:Self )
-  664:  		Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
-  680:  		Call  RandInt   ( 00000064 *Var3 )
-  694:  		Sub   *Var3  00000032
-  6A4:  		Add   *Var0  *Var3
-  6B4:  		Call  JumpPartTo        ( .Actor:Self 00000002 *Var0  0` *Var2  20` .True )
-  6DC:  		Call  ResetAllActorSounds   ( .Actor:Self )
-  6EC:  		Thread
-  6F4:  			Add   *Var0  FFFFFFCE
-  704:  			Call  JumpPartTo        ( .Actor:Self 00000002 *Var0  0` *Var2  15` .True )
-  72C:  			Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
-  748:  		EndThread
-  750:  		If  *VarA  ==  .HitResult:Lucky % 5
-  760:  			Call  EnemyTestTarget   ( .Actor:Self *VarA ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
-  784:  		EndIf
-  78C:  		Wait  15`
-  798:  		Call  YieldTurn ( )
-  7A4:  		Call  UseBattleCamPreset    ( 00000002 )
-  7B4:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-  7D0:  		Call  SetActorYaw   ( .Actor:Self  180` )
-  7E4:  		ExecWait  $Script_802319EC
-  7F0:  		Call  SetActorYaw   ( .Actor:Self  0` )
-  804:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
-  81C:  		Call  EnableIdleScript      ( .Actor:Self 00000001 )
-  830:  		Call  UseIdleAnimation      ( .Actor:Self .True )
-  844:  		Return
-  84C:  	EndCaseGroup
-  854:  EndSwitch
+		%Jonathan says screw your evasion
   85C:  Call  SetAnimation      ( .Actor:Self 00000002 00100015 )
   874:  Call  SetPartJumpGravity    ( .Actor:Self 00000002 *Fixed[0.05] )
   88C:  Call  SetGoalToTarget   ( .Actor:Self )
   89C:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
 		Call  GetActorVar   ( .Actor:Self 00000006 *Var5 )
-		If   *Var5  > 5`
+		If   *Var5  > 5`	%Jonathan's speed stat
 			Sub   *Var5  1`
 		EndIf
 		Call  SetActorVar  ( .Actor:Self 00000006 *Var5 )
@@ -630,11 +596,20 @@
 	Wait	12` 
 		Call	PlaySoundAtActor 	( .Actor:Self 0000201D )
 		Call	8026BF48	( 00000001 )
-		Call  RandInt   ( 00000002 *Var0 )
-		If  *Var0  ==  00000000
-			Call	BoostDefense 	( .Actor:Self 00000001 )  
+		Call  RandInt   ( 100` *Var0 )
+		If  *Var0  > 60`
+			Call  GetActorDefenseBoost  ( .Actor:Self *Var4 )
+			If  *Var4 < 5`
+				Call	BoostDefense 	( .Actor:Self 00000001 )
+			Else	
+				Call	BoostAttack 	( .Actor:Self 00000002 )
+			EndIf
 		Else
-			Call	BoostAttack 	( .Actor:Self 00000001 )
+			If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+				Call	BoostAttack 	( .Actor:Self 00000002 )
+			Else
+				Call	BoostAttack 	( .Actor:Self 00000001 )
+			EndIf
 		EndIf
 	Call	SetAnimation  ( .Actor:Self 00000001 00100006 )
 	Call	8026BF48	( 00000000 )
@@ -702,12 +677,16 @@
 @	$DefenseTable_80219A34
 {
 	.Element:Normal 00000000
-	.Element:Shock  00000063
+	.Element:Shock  99`
+	.Element:Water   2`
+	.Element:Ice     2`
+	.Element:Fire    1`
 	.Element:Mystery 00000000
 	.Element:Jump   00000000
 	.Element:Hammer 00000000
-	.Element:Throw FFFFFFFF
-	.Element:Cosmic FFFFFFFE
+	.Element:Throw  -1`
+	.Element:Cosmic -2`
+	.Element:Quake  -2`
 	.Element:End
 }
 
@@ -794,6 +773,7 @@
   228:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
   240:  Call  SetActorVar   ( .Actor:Self 00000003 00000064 )
   258:  Call  SetActorVar   ( .Actor:Self 00000004 00000064 )
+		Call     SetActorVar 	( .Actor:Self 00000007 00000000 ) % savestate detection flag
   270:  Return
   278:  End
 }
@@ -855,7 +835,7 @@
    48:  	EndCaseGroup
    50:  	Default
    58:  		Call  GetActorHP    ( .Actor:Self *Var0 )
-   6C:  		If  *Var0  <=  0000000F
+   6C:  		If  *Var0  <=  20`	%Used to be 10 in older DBE versions, but he's gonna do it earlier now
    7C:  			Call  SetActorVar   ( .Actor:Self 00000001 0000000C )
    94:  		EndIf
    9C:  EndSwitch
@@ -968,6 +948,7 @@
    [A8]  Wait  20`
  [4740]  		Wait  90`
  [5038]  Set   *VarA  0000000F
+ [5220]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Quake|Unsuperguardable 00000000 00000000 *VarA 00000020 )
 }
 
 %Huff N. Puff will increase his defense by 1 twice every 12 turns.
@@ -1346,7 +1327,7 @@
   [2A4]  	Wait  12`
   [3E0]  Wait  3`
   [518]  Wait  4`
-  [658]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 0000000E 00000020 )
+  [658]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Quake 00000000 00000000 0000000F 00000020 )
   [710]  		Wait  4`
 }
 
@@ -1360,7 +1341,7 @@
   [A24]  		Wait  10`
   [E04]  Wait  1`
   [E10]  Wait  1`
-  [E40]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Electric 00000000 00000000 00000010 00000020 )
+  [E40]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|NoContact|Electric 00000000 00000000 00000012 00000020 )
   [E9C]  		Wait  8`
 }
 
@@ -1608,4 +1589,35 @@
 	$ASCII_80235DA8 $Stage_80235578
 	0 $Stage_Pit
 	00000000 00000000
+}
+
+
+
+
+
+%uses var F
+#new:Script $Script_SaveStateCheck
+{
+	Set *VarF 0
+	If *VarF != 0
+		Call	SetActorVar ( .Actor:Self 00000007 00000001 )
+	EndIf
+	Return
+	End
+}
+
+%if mario hp < 0, check save state so that you can't reload a state
+%but also don't check if you're alive so that you don't have to deal with the lag
+#new:Script $Script_SaveStateCheckIfDead
+{
+	Call     GetPlayerHP 	( *VarF )
+	If       *Var[F] >  00000000 
+		Return 
+	EndIf
+	Set *VarF 0
+	If *VarF != 0
+		Call	SetActorVar ( .Actor:Self 00000007 00000001 )
+	EndIf
+	Return
+	End
 }

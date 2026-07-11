@@ -1,0 +1,299 @@
+
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000003
+[Background] 80200000
+[MapTattle]   $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This place has a ton of branching[BR]
+paths. We better be careful so[BR]
+that we don't keep going in circles.[BR]
+[WAIT][END]
+}
+
+#new:NpcGroupList $NpcGroupList_Cave
+{
+00000001 $NpcGroup_Cleft1 32060000 
+00000001 $NpcGroup_Cleft2 32090000 
+00000001 $NpcGroup_Rocks 00000000
+00000001 $NpcGroup_Boo1 320B0000
+00000001 $NpcGroup_Boo2 320C0000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Cleft1
+{
+00000000 $NpcSettings_Cleft ~Vec3f:cleft1
+00002400 00000000 00000000 00000000 00000000 
+~Items:0:DriedShroom:A
+~HP:20:70:3:50 ~HP:30:60:3:50 ~HP:50:50:3:40 ~HP:80:40:3:40 ~HP:100:30:3:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:3
+~Movement:cleft1
+00300202 00300206 00300207 00300207 00300202 00300202 00300208 00300208 
+00300214 00300217 00300213 00300215 00300210 00300211 00300216 00300200 % .Sprite:Cleft
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroup $NpcGroup_Cleft2
+{
+00000001 $NpcSettings_Cleft ~Vec3f:cleft2
+00002400 00000000 00000000 00000000 00000000 
+~Items:0:DriedShroom:A
+~HP:20:70:3:50 ~HP:30:60:3:50 ~HP:50:50:3:40 ~HP:80:40:3:40 ~HP:100:30:3:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:3
+~Movement:cleft2
+00300202 00300206 00300207 00300207 00300202 00300202 00300208 00300208 
+00300214 00300217 00300213 00300215 00300210 00300211 00300216 00300200 % .Sprite:Cleft
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcGroup $NpcGroup_Rocks
+{
+00000002 $RockData ~Vec3f:rock
+00400D0D 00000000 00000000 00000000 0000005A
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00300214 00300214 00300214 00300214 00300214 00300214 00300214 00300214
+00300214 00300214 00300214 00300214 00300214 00300214 00300214 00300214
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+
+#new:NpcSettings $RockData
+{
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:NpcGroup $NpcGroup_Boo1
+{
+00000003 $NpcSettings_BooEnemy ~Vec3f:boo1
+00000D00 00000000 00000000 00000000 0000005A 
+~Items:8:SuperShroom:F:RepelGel:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:boo1
+00F00001 00F00002 00F00003 00F00003 00F00001 00F00001 00F00006 00F00006 
+00F00012 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00000002 00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Boo2
+{
+00000004 $NpcSettings_BooEnemy ~Vec3f:boo2
+00000D00 00000000 00000000 00000000 0000005A 
+~Items:8:SuperShroom:F:RepelGel:1
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:boo2
+00F00001 00F00002 00F00003 00F00003 00F00001 00F00001 00F00006 00F00006 
+00F00012 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 00F00001 
+00000002 00000000 00000000 00000000 
+}
+
+@ $NpcSettings_BooEnemy
+{
+00000000 00140016 00000000 00000000 $Script_NpcAI_BooEnemy 80077F70 $Script_Boo_Aux 8007809C 
+00000000 00000000 00200000 
+}
+
+#import NPC_Cleft.mpat
+#import NPC_Boo.mpat
+
+@ $NpcSettings_Cleft
+{
+00000000 001A0018 00000000 00000000 $Script_NpcAI_Cleft 80077F70 00000000 8007809C 
+00000000 00000000 00200000 	%no first attack for you
+}
+
+@ $Script_NpcAI_Cleft
+{
+	0:  Call     $Function_DoAI_Cleft ( $AISettings_Cleft 00000005 ) 
+   14:  Return
+   1C:  End
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+Thread
+	Wait 30`
+	Call  802D5FA4  ( 00000005 ) %Unmutes channel 5
+EndThread
+Return
+End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeItemEntity ( .Item:RakundaGem ~Vec3d:lifeshroom 00000011 *CAV04_Item )
+	Call     MakeEntity  	( .Entity:ScriptSpring ~Vec4d:spring 80000000 ) %~Vec4d:spring
+	Call     AssignScript 	( $Script_Spring )   
+	Return
+	End
+}
+
+%spring script copied from iwa_04
+#new:Script $Script_Spring
+{
+	0:  Call     DisablePlayerInput 	( .True )
+   10:  Call     DisablePlayerPhysics 	( .True )
+   20:  Call     802D10D8 ( 00000006 )
+   30:  Wait     00000001 
+   3C:  Exec     $Script_80241420 *Var[A] 
+   4C:  If  *MapVar[9]  ==  00000000 
+   5C:  	Call     SetPlayerJumpscale 	( *Fixed[1.4003906] )
+   6C:  	Call     PlayerJump  	( -343` 101` 59` 00000014 )
+   88:  Else
+   90:  	Call     SetPlayerJumpscale 	( *Fixed[0.7001953] )
+   A0:  	Call     PlayerJump  	( -343` 101` 59` 00000020 )
+   BC:  EndIf
+   C4:  Kill     *Var[A] 
+   D0:  Call     802D10D8 ( 00000000 )
+   E0:  Call     DisablePlayerPhysics 	( .False )
+   F0:  Call     DisablePlayerInput 	( .False )
+  100:  Return
+  108:  End
+}
+
+#new:Script $Script_80241420
+{
+	0:  Loop     
+    C:  	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+   24:  	Call     802CAF2C ( 00000000 *Var[0] *Var[1] *Var[2] )
+   40:  	Wait     00000001 
+   4C:  EndLoop
+   54:  Return
+   5C:  End
+}
+
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec    $Script_SetMusic 
+ExecWait $Script_MakeEntities
+If *GB_StoryProgress > 0000005A	%Anti-grinding measures: the chapter 9 enemies only spawn when you are in chapter 8
+	Call     MakeNpcs    	( 00000001 $NpcGroupList_Cave )
+EndIf
+Thread
+	Call     ResetFromLava 	( $LavaResetList )
+EndThread
+%entry 0 = left loading zoone
+%entry 1 = back loading zone
+%entry 2 = right loading zone
+Call     GetEntryID  	( *Var[0] )
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+#new:LavaResetList $LavaResetList
+{
+~Collider:platforms			 400.0	87.0	15.0
+~Collider:centerrightplatform 	 906.0 	77.0 	69.0
+~Collider:rightplatform 		1275.0	100.0	 0.0
+FFFFFFFF 00000000 00000000 00000000 % idk
+00000000
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftLZ 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:frontLZ 00000001 00000000
+	Bind     $Script_Entry2 .Trigger:FloorAbove ~Collider:rightLZ 00000001 00000000
+	Return
+    End
+}
+	   
+%somethings wrong with these exit headings
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_02" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000002 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_05" 00000001 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Entry2
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_11" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}   

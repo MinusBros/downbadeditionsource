@@ -1,0 +1,203 @@
+%Cure statuses off target with some effects
+
+#export:Function:Battle $CureTarget
+{
+	%copied the top of VanishActor
+	PUSH		S0, S1, S2, S3, RA
+	COPY      S2, A0
+	LW        S1, C (S2)
+	/%		??? what did this stuff do?
+    BNEL      A1, R0, .o24
+	SW        R0, 70 (S2)
+    .o24
+    LW        V0, 70 (S2)
+	BNE       V0, R0, .oE0
+	NOP
+	%/
+	LW        A1, 0 (S1)
+	ADDIU     S1, S1, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S2
+	COPY      S0, V0
+	LI        V0, FF81
+	BNE       S0, V0, .o54
+	NOP
+	LW        S0, 148 (S2)
+	.o54
+	/%
+	LW        A1, 0 (S1)
+	JAL       ~Func:get_variable
+	COPY      A0, S2
+	COPY      S1, V0
+	%/
+	JAL       ~Func:get_actor
+	COPY      A0, S0
+	COPY      S0, V0
+	%now...	S0 = target actor (pointer)
+	%		S1 = turn duration
+	%		S2 = script context
+	%cure stuff
+	%Not that simple, have to get rid of the big X
+	%Funnily enough, it doesn't prevent the enemy from moving (unlike for mario)
+	/%
+	LH        A0, 436 (S0)
+	SB		  R0, 19B (S0)
+	SB		  R0, 210 (S0)
+	JAL       80047898
+	SB		  R0, 211 (S0)
+	%/
+	%Maybe copying from the hustle drink's status negating stuff will work >:(
+	LB			V0, 210 (S0)
+	BEQ			V0, R0, .o30
+	NOP
+	LH			A0, 436 (S0)
+	SB			R0, 211 (S0)
+	JAL			80047898					%play some status negation animation stuff?
+	SB			R0, 210 (S0)
+	.o30									%this part clears the anim stuff and status 0D - was missing before
+	LB			V0, 216 (S0)
+	BEQ			V0, R0, .o0DClear
+	NOP
+	LW			V0, 440 (S0)
+	SB			R0, 217 (S0)
+	SB			R0, 216 (S0)
+	LW			V0, C (V0)
+	SW			R0, 3C (V0)
+	.o0DClear
+	LB			V0, 212 (S0)
+	BEQ			V0, R0, .o4C
+	NOP
+	LH			A0, 436 (S0)
+	SB			R0, 213 (S0)
+	JAL			800479A0
+	SB			R0, 212 (S0)
+	.o4C
+	LB			V0, 214 (S0)
+	BEQ			V0, R0, .o60
+	NOP
+	SB			R0, 215 (S0)
+	SB			R0, 214 (S0)
+	.o60
+	LB			V0, 218 (S0)
+	BEQ			V0, R0, .o74
+	NOP
+	SB			R0, 219 (S0)
+	SB			R0, 218 (S0)
+	.o74
+	%Cool effects
+	/%
+	MFC1      A1, F26
+	MFC1      A2, F24
+    MFC1      A3, F20	
+	%/
+	LW		  A1, 144 (S0)
+	LW		  A2, 148 (S0)
+	LW		  A3, 14C (S0)
+	LI        A0, 3			%subtype 3 = vanish?
+	LI        V0, 1E		%duration? (30 -> 15)
+	LIF		  F22, 1.4				%scale?
+	SWC1      F22, 10 (SP)
+	JAL       80070BB0
+	SW        V0, 14 (SP)
+	LW        V1, C (V0)
+	ADDIU     A0, R0, FF                %R
+	SB        A0, 68 (V1)
+	LW        V1, C (V0)
+    ADDIU     A0, R0, C0                %G
+	SB        A0, 69 (V1)
+	LW        V1, C (V0)
+	ADDIU     A1, R0, 00                %B
+	SB        A1, 6A (V1)
+	LW        A0, C (V0)
+	ADDIU     V1, R0, FF                %R 2
+	SB        V1, 6B (A0)
+	LW        A0, C (V0)
+	ADDIU     V1, R0, EF                %G 2
+	SB        V1, 6C (A0)
+	LW        V1, C (V0)
+    ADDIU     A1, R0, D0                %B 2
+	SB        A1, 6D (V1)   	
+	%Done with stuff
+	LI		  V0, 2
+	JPOP		S0, S1, S2, S3, RA
+}
+
+#export:Function:Battle $CureTargetNoEffects
+{
+	%copied the top of VanishActor
+	PUSH		S0, S1, S2, S3, RA
+	COPY      S2, A0
+	LW        S1, C (S2)
+	/%		??? what did this stuff do?
+    BNEL      A1, R0, .o24
+	SW        R0, 70 (S2)
+    .o24
+    LW        V0, 70 (S2)
+	BNE       V0, R0, .oE0
+	NOP
+	%/
+	LW        A1, 0 (S1)
+	ADDIU     S1, S1, 4
+	JAL       ~Func:get_variable
+	COPY      A0, S2
+	COPY      S0, V0
+	LI        V0, FF81
+	BNE       S0, V0, .o54
+	NOP
+	LW        S0, 148 (S2)
+	.o54
+	/%
+	LW        A1, 0 (S1)
+	JAL       ~Func:get_variable
+	COPY      A0, S2
+	COPY      S1, V0
+	%/
+	JAL       ~Func:get_actor
+	COPY      A0, S0
+	COPY      S0, V0
+	%now...	S0 = target actor (pointer)
+	%		S1 = turn duration
+	%		S2 = script context
+	%Increment the hustle drink timer
+	%Maybe copying from the hustle drink's status negating stuff will work >:(
+	LB			V0, 210 (S0)
+	BEQ			V0, R0, .o30
+	NOP
+	LH			A0, 436 (S0)
+	SB			R0, 211 (S0)
+	JAL			80047898					%play some status negation animation stuff?
+	SB			R0, 210 (S0)
+	.o30									%this part clears the anim stuff and status 0D - was missing before
+	LB			V0, 216 (S0)
+	BEQ			V0, R0, .o0DClear
+	NOP
+	LW			V0, 440 (S0)
+	SB			R0, 217 (S0)
+	SB			R0, 216 (S0)
+	LW			V0, C (V0)
+	SW			R0, 3C (V0)
+	.o0DClear
+	LB			V0, 212 (S0)
+	BEQ			V0, R0, .o4C
+	NOP
+	LH			A0, 436 (S0)
+	SB			R0, 213 (S0)
+	JAL			800479A0
+	SB			R0, 212 (S0)
+	.o4C
+	LB			V0, 214 (S0)
+	BEQ			V0, R0, .o60
+	NOP
+	SB			R0, 215 (S0)
+	SB			R0, 214 (S0)
+	.o60
+	LB			V0, 218 (S0)
+	BEQ			V0, R0, .o74
+	NOP
+	SB			R0, 219 (S0)
+	SB			R0, 218 (S0)
+	.o74
+	%Done with stuff
+	LI		  V0, 2
+	JPOP		S0, S1, S2, S3, RA
+}

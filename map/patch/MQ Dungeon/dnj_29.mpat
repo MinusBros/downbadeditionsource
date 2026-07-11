@@ -1,4 +1,5 @@
 
+
 #new:Header $Header
 {
 00000000 00000000 00000000 00000000 
@@ -87,12 +88,20 @@ get laid.[BR]
 		Exec	EnterSavePoint 
 		Exec	$Script_MakeExits
 	Else
+			If  *CheckPriest == .True
+				Exec	EnterSavePoint 
+				Exec	$Script_MakeExits	
+				Return
+			EndIf
+			If  *CheckXinSui == .True
+				Exec	EnterSavePoint 
+				Exec	$Script_MakeExits		
+				Return
+			EndIf
+			Exec    $AutoSaveCheck
 			Set		*Var[0] $Script_MakeExits 
 			Exec	EnterWalk
-			If  *CheckXinSui == .False
-				Exec    $AutoSaveCheck
-			EndIf
-	Set		*Var[0] $Script_MakeExits 
+
 	EndIf
 	Return
 	End
@@ -148,6 +157,10 @@ get laid.[BR]
 			EndIf
 			Wait  1`
 		EndLoop
+		If  *CheckXinSui == .True
+			ExecWait  $SpawnXinSui
+			Return
+		EndIf
 		Call  $SetFlagCarryOverworldMusicToBattle()
 		Call  DisablePlayerInput    ( .True )
 		Wait  5`
@@ -158,8 +171,10 @@ get laid.[BR]
 		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
 		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
 		Call  SetMusicTrack ( 00000000 .Song:Infiltration 00000000 00000008 )  %Priest theme
-		Call     ShowMessageAtScreenPos     	( $PriestMatte 000000A0 00000028 )
-		Wait  10`
+		If    *CheckPriest == .False
+			Call     ShowMessageAtScreenPos     	( $PriestMatte 000000A0 00000028 )
+			Wait  10`
+		EndIf
 		Call  SetNpcPos ( .Npc:Priest  257`  110`  -470` )
 		Call  SetNpcAnimation   ( .Npc:Priest 00870406 )	
 				Call  SetCamType    ( .Cam:Default 00000001 .False )
@@ -205,6 +220,7 @@ get laid.[BR]
 			Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
 			Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
 		EndThread
+		If    *CheckPriest == .False
 		Wait  5`
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 $PriestSpeech4 ) %This is actually his first line	
 		Wait  3`
@@ -244,6 +260,9 @@ get laid.[BR]
 	   EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
 	  100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 $PriestSpeech3 )
+		EndIf
+		Set   *CheckPriest .True
+		Call   $Function_SaveItems ( )
 		Call  SetNpcAnimation   ( .Npc:Priest 00870411 )
 		Wait  10`
 		Call  SetNpcVar ( .Npc:Priest 00000000 00000001 )
@@ -288,14 +307,14 @@ get laid.[BR]
 
 #new:Script  $DeathCutscene
 {
-				Set   *CheckXinSui .True
+				Set   *CheckPriest .False
 				Call  SetNpcPos ( .Npc:Partner  -30` 140` -643` )
 				Call  NpcMoveTo ( .Npc:Partner -29`  -643`  1` )
 				Call	SetEncounterStatusFlags 			( 00000001 00000001 )
 				Call  DisablePartnerAI  ( 00000000 )
 				Call  FadeOutMusic      ( 00000000 000005DC )
 				Call  DisablePlayerInput    ( .True )
-				Call  $ClearFlagCarryOverworldMusicToBattle()
+				Call  $ClearFlagCarryOverworldMusicToBattle()	
 				Thread
 					Call  ResetCam  ( .Cam:Default  1` )
 					Call  SetCamDistance    ( .Cam:Default  300` )
@@ -361,6 +380,14 @@ get laid.[BR]
 				Call  SpeakToPlayer    ( .Npc:Priest 00870415 00870415 00000000 $PriestSpeech2 )
 				Call  SetCamPitch       ( .Cam:Default *Fixed[17.0] *Fixed[-8.0] )
 				Call  SetCamDistance    ( .Cam:Default  440` )
+				ExecWait  $SpawnXinSui
+				Return
+				End
+}
+
+#new:Script  $SpawnXinSui
+{
+				Call  DisablePlayerInput    ( .True )
 				Call  StopSound ( 00000187 )
 				Call  PlaySound ( 0000018A )
 				Call  PlaySound ( 00000224 )
@@ -368,24 +395,28 @@ get laid.[BR]
 				Call  SetNpcAnimation   ( 0000000A 007E0207 )  %Xin Sui's ID is A cuz I'm too lazy to define it
 				Call  SetNpcPos ( 0000000A  0`  195`  -750` )  %Set Disastar's location
 				Call  PlayEffect    ( ~FX:BigSmokePuff 0`  215`  -750` 00000002 00000002 00000002 00000002 00000000 00000000 00000000 00000000 00000000 00000000 )
-				Wait  60`
-				Call  SetNpcAnimation   ( 0000000A 007E0201 )
-				Call  SpeakToPlayer    ( .Npc:Priest 00870415 00870415 00000000 $PriestSpeech5 )
-				Call  SpeakToNpc    ( 0000000A 007E0209 007E0202 00000200 .Npc:Priest $XinSuiDialogue )
-				Wait  5`
-				Call  SetNpcAnimation   ( 0000000A 007E0207 )
-				Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
-				Call  PlaySound ( 00002127 )
-				Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )	
-				Exec  $RotatePriesT
-				Wait  60`
+				Wait  30`
+				If  *CheckXinSui == .False
+					Wait  30`
+					Call  SetNpcAnimation   ( 0000000A 007E0201 )
+					Call  SpeakToPlayer    ( .Npc:Priest 00870415 00870415 00000000 $PriestSpeech5 )
+					Call  SpeakToNpc    ( 0000000A 007E0209 007E0202 00000200 .Npc:Priest $XinSuiDialogue )
+					Wait  5`
+					Call  SetNpcAnimation   ( 0000000A 007E0207 )
+					Call  GetNpcPos ( .Npc:Priest *Var0 *Var1 *Var2 )
+					Call  PlaySound ( 00002127 )
+					Call  PlayEffect        ( ~FX:Lightning:YellowMagic2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )	
+					Exec  $RotatePriesT
+					Wait  60`
+				EndIf
+				Call   $Function_SaveItems ( )
+				Set   *CheckXinSui .True
 				Call  SetNpcAnimation   ( 0000000A 007E020E )
 				Set  *MapFlag[0] .True
 				Wait  1`
 				Return
 				End
 }
-
 
 
 #new:Script  $RotatePriesT
@@ -494,6 +525,7 @@ get laid.[BR]
 	
 	#new:Script $Script_Exit0
 {
+	Exec  $NukeBossChecks
 	SetGroup 0000001B 
 	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
 	Exec     ExitWalk 

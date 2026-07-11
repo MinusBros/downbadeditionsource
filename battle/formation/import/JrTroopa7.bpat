@@ -51,8 +51,14 @@
 %he'll notice if you have her out.
 
 #new:DefenseTable $DefenseTable_JrTroopa7 {
-.Element:Normal 00000063
-.Element:Blast  00000003
+.Element:Normal 99`
+.Element:Fire   3`
+.Element:Water  3`
+.Element:Ice    3`
+.Element:Shock  3`
+.Element:Magic  3`
+.Element:Cosmic 3`
+.Element:Blast  3`
 .Element:End
 }
 
@@ -105,6 +111,12 @@
 					ExecWait  $Script_NoGoombarius
 					Call  SetBattleFlagBits2    ( 00000002 .True )
 				EndIf
+		Thread
+			Loop 4`
+				Wait 8`
+				Call  SetBattleFlagBits2    ( 00000002 .True )
+			EndLoop
+		EndThread
   418:  Return
   420:  End
 }
@@ -219,7 +231,11 @@
   174:  			Call  UseIdleAnimation  ( .Actor:Partner .False )
   188:  			Call  SetAnimation      ( .Actor:Partner 00000001 000D0004 )
   1A0:  			Call  ActorSpeak        ( 001300C8 .Actor:Partner 00000001 0009000F 000D0001 ) % I have a gun
+					Call $Function_GetPlayerMaxHP       ( *Var8 )
+					Div  *Var8 6` 
+					Sub  *Var8 1`
 					Call  UseIdleAnimation  ( .Actor:Partner .True )
+					Call  SetBattleFlagBits2    ( 00000002 .True )
 		Return
 		End
 }
@@ -243,10 +259,45 @@
 		Wait  6`
 		Call  PlaySoundAtActor  ( .Actor:Self 00002010 )
 		Call  SetGoalToTarget   ( .Actor:Self )
-  488:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:Blast|NoContact|Unblockable 00000000 00000000 0000000F 00000070 )
+  488:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:Blast|NoContact|Unblockable 00000000 00000000 *VarE 00000070 )
   850:  Wait  20`
   A54:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   A68:  Call  UseIdleAnimation  ( .Actor:Self .True )
+		Call  SetBattleFlagBits2    ( 00000002 .True )
   A7C:  Return
   A84:  End
+}
+
+
+
+#new:Function $Function_GetPlayerMaxHP {
+    0:  ADDIU     SP, SP, FFE8
+    4:  LA        V1, 8010F290
+    C:  SW        RA, 10 (SP)
+   10:  LB        V0, 2 (V1)
+   14:  SLL       A2, V0, 1
+   18:  ADDU      A2, A2, V0
+   1C:  SLL       A2, A2, 3
+   20:  ADDU      A2, A2, V0
+   24:  LB        V0, 3 (V1)
+   28:  SLL       A2, A2, 2
+   2C:  BNE       V0, R0, .o38
+   30:  DIV       A2, V0
+   34:  BREAK     1C00
+        .o38
+   38:  LI        AT, FFFF
+   3C:  BNE       V0, AT, .o50
+   40:  LUI       AT, 8000
+   44:  BNE       A2, AT, .o50
+   48:  NOP
+   4C:  BREAK     1800
+        .o50
+   50:  MFLO      A2
+   54:  LW        V0, C (A0)
+   58:  JAL       ~Func:set_variable
+   5C:  LW        A1, 0 (V0)
+   60:  LW        RA, 10 (SP)
+   64:  LI        V0, 2
+   68:  JR        RA
+   6C:  ADDIU     SP, SP, 18
 }

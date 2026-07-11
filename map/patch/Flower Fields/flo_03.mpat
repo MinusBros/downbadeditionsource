@@ -6,6 +6,8 @@
 #define .NpcID:MontyMole_04         04
 #define .NpcID:MontyMole_05         05
 
+#define .Npc:Fuzzy             6`
+
 @	$Script_802406A0
 {
     0:  Call  GetEntryID    ( *Var0 )
@@ -35,6 +37,38 @@
 }
 
 
+@	$Script_Init_80241DA4
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802412BC )
+   14:  If  *GF_FLO03_DefeatedAll_MontyMoles  ==  .False
+   24:  	Call  SetNpcAnimation   ( .NpcID:Petunia_00 00C70009 )
+   38:  Else
+   40:  	Call  SetNpcAnimation   ( .NpcID:Petunia_00 00C70001 )
+   54:  EndIf
+		If  *GF_FLO08_GaveYellowBerry == .True	%This checks that you at least have the ability to fight the Sapphire Dayzee
+			If  *PetuniaCompleted == .False
+				Exec  $PetuniaProblem
+			EndIf
+		EndIf
+   5C:  Return
+   64:  End
+}
+
+
+
+#new:Script  $PetuniaProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Petunia_00 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *PetuniaCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
 
 @	$Script_Interact_802412BC
 {
@@ -45,9 +79,11 @@
    34:  		Set   *Var4  *Fixed[3.5]
    44:  		ExecWait  $Script_8024122C
    50:  		Call  SpeakToPlayer ( .Npc:Self 00C70007 00C70006 00000000 00110050 ) % Do you have a second? Then listen to my sad tale!  ...
-   70:  		Call  SetNpcAnimation   ( .Npc:Self 00C70006 )
+				Call  EndSpeech     ( .Npc:Self 00C7000A 00C70009 00000000 )
+   70:  		Call  SetNpcAnimation   ( .Npc:Self 00C70009 )
    84:  		Call  SetPlayerAnimation    ( .PlayerAnim:NodYes )
    94:  		Wait  10`
+				Call  SetNpcAnimation   ( .Npc:Self 00C70006 )
    A0:  		Call  SpeakToPlayer ( .Npc:Self 00C70007 00C70006 00000000 00110051 ) % In case you're wondering, the Monty Moles I'm talk ...
    C0:  		Call  SetNpcAnimation   ( .NpcID:MontyMole_02 002F0112 )
    D4:  		Call  SetNpcYaw     ( .NpcID:MontyMole_02  270` )
@@ -158,7 +194,7 @@
   8B8:  			Set   *Var4  *Fixed[3.5]
   8C8:  			ExecWait  $Script_8024122C
   8D4:  			Call  SpeakToPlayer ( .Npc:Self 00C70008 00C70003 00000000 00110059 ) % Oh, yiipppeee!! Hooray! Hurrah! Yahoo! Whee! You g ...
-  8F4:  			Call  EndSpeech     ( .Npc:Self 00C70002 00C70001 00000000 )
+  8F4:  			Call  EndSpeech     ( .Npc:Self 00C70005 00C70005 00000000 )
   910:  			Call  SetNpcAnimation   ( .Npc:Self 00C70004 )
   924:  			Wait  16`
   930:  			Call  SetNpcAnimation   ( .Npc:Self 00C70001 )
@@ -183,6 +219,32 @@
   A88:  			Call  SpeakToPlayer ( .Npc:Self 00C70002 00C70001 00000000 0011005E ) % It feels so good to grow in the warm sunlight! Eve ...
   AA8:  		EndIf
   AB0:  EndSwitch
+  
+  
+		%Petunia sidequest
+		If  *GF_FLO08_GaveYellowBerry == .True	%This checks that you at least have the ability to fight the Sapphire Dayzee
+			If  *PetuniaCompleted == .False
+				If  *GF_FLO08_AmazyDayzee == .True
+					Set  *PetuniaCompleted .True
+					Call  SpeakToPlayer ( .Npc:Self 00C70002 00C70001 00000000 00110110 )
+					Call	ShowCoinCounter ( .True )
+					Wait    12`
+					Call	AddCoin ( 1000` )
+					Call	ShowCoinCounter ( .False )
+					Wait    28`		
+					ExecWait  $ProblemSolved
+				Else
+					If *PetuniaAsked == .False
+						Call  SpeakToPlayer ( .Npc:Self 00C70002 00C70001 00000000 0011010E )
+						Set  *PetuniaAsked .True
+					Else
+						Call  SpeakToPlayer ( .Npc:Self 00C70002 00C70001 00000000 0011010F )
+					EndIf
+				EndIf
+			EndIf
+		EndIf
+		
+		
   AB8:  Call  ResetCam  ( .Cam:Default *Fixed[8.0] )
   ACC:  ExecWait  $Script_80240814
   AD8:  Return
@@ -197,7 +259,7 @@
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
    20:  Exec  ExitWalk
    2C:  Call  GotoMap   ( $ASCII_80244F30 00000001 ) % flo_09
-   40:  Wait  60`
+   40:  Wait  90`
    4C:  Return
    54:  End
 }
@@ -209,7 +271,36 @@
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
    20:  Exec  ExitWalk
    2C:  Call  GotoMap   ( $ASCII_80244F38 00000000 ) % flo_22
-   40:  Wait  60`
+   40:  Wait  90`
    4C:  Return
    54:  End
 }
+
+
+%Oh yes, we're adding Fuzzies
+
+#import  FuzzyTree.mpat
+
+
+@	$ShakeTreeEvent_Tree1
+{
+	$TreeModelList_Tree1_Leaves
+	$TreeModelList_Tree1_Trunk
+	$TreeDropList_Tree1
+	00000000
+	$TreeCallback
+}
+
+@	$NpcGroupList_8024442C
+{
+	00000001 $NpcGroup_8024388C 00000000
+	00000001 $NpcGroup_80243A7C 180F0002
+	00000001 $NpcGroup_80243C6C 19020002
+	00000001 $NpcGroup_80243E5C 19010002
+	00000001 $NpcGroup_8024404C 19030002
+	00000001 $NpcGroup_8024423C 19040002
+	1` $NpcGroup_Fuzzy 182D0002
+	00000000 00000000 00000000
+}
+
+

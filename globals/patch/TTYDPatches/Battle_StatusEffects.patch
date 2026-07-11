@@ -1,0 +1,54 @@
+% Player - Recover from debuff statuses, don't set turn as used (like in TTYD)
+%
+% From ~Func:btl_state_update_begin_player_turn
+@Hook:Battle 171364 % 80242A84
+{
+    PUSH    RA, A0, A1, A2, A3, V1
+    % Check if Mario just got recover from a status
+    LIO     T0, 800DC148
+    LW      T0, 0 (T0) % load player battle data
+    LBU     T0, 210 (T0) % load debuffID
+    BNE     T0, R0, .SkipTurn
+    NOP
+    % Check Mario pos
+    LABU    A0, $MarioPos
+    BEQ     A0, R0, .End % Mario is on the left
+    NOP
+    JAL     ~Func:btl_set_state
+    ORI     A0, R0, 7 % .BattleState:BeginPlayerTurn
+    BEQ     R0, R0, .End
+    NOP
+    .SkipTurn
+    ORI	    V0, V0, 0002 % skip player turn
+    SW	    V0, 0004 (V1)
+    .End
+    POP     RA, A0, A1, A2, A3, V1
+    J       80242A8C
+    NOP
+}
+
+
+
+
+% Make possible for enemies to dispatch the "Actor can't move" message (Stop Watch, etc.)
+%
+% ~Func:btl_state_update_enemy_move
+@Hook:Battle 802478F0
+{
+    % V0=status about to be inflincted
+    ORI     V1, R0, 8 % .Status:Stop
+    BEQL    V0, V1, .End
+    ORI     V0, R0, 5
+    .End
+    % restore code
+    ADDIU   V0, V0, FFFC
+    J       802478F8
+    SLL	    V0, V0, 24`
+}
+
+
+#new:Data $MarioPos
+{ 00 }
+
+#export $MarioPos
+

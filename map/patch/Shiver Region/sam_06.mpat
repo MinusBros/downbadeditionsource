@@ -86,6 +86,7 @@
   1EC:  If  *Var1  ==  00000001
   1FC:  	Goto  46
   208:  EndIf
+		Call PushSong ( .Song:StarbornValley 00000001 )
   210:  Set   *AreaFlag[001]  .False
   220:  Call  SetGroupEnabled   ( ~Model:k_naiso 00000001 )
   234:  Thread
@@ -207,6 +208,7 @@
 				Call  DisablePlayerPhysics  ( .False )
   5EC:  		Call  EnablePartnerAI ( )
   600:  EndIf		
+		Call  PopSong ( )
   9E0:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   9F8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
   A14:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -323,6 +325,34 @@
   638:  Return
   640:  End
 }
+
+%Donle script after the cutscene
+
+@	$Script_Interact_802475A0
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch7_UnlockedShiverMountain % 4A
+   18:  		Call  SpeakToPlayer ( .NpcID:Merle_00 00D20004 00D20001 00000000 001200F4 ) % Mayor Penguin of Shiver City should have the other ...
+   38:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+   44:  		Call  SpeakToPlayer ( .NpcID:Merle_00 00D20004 00D20001 00000000 001200F5 ) % My dream told me that a Star Spirit waits in Cryst ...
+   64:  	Case  >=  .Story:Ch7_StarSpritDeparted % 59
+   70:  		If  *GF_SAM06_Merle_HeardLongerMessage  ==  .False
+   80:  			Call  SpeakToPlayer ( .NpcID:Merle_00 00D20004 00D20001 00000000 001200F6 ) % Mario! You have saved the last imprisoned Star Spi ...
+							Call	ShowCoinCounter ( .True )
+							Wait    12`
+							Call	AddCoin ( 500` )
+							Call	ShowCoinCounter ( .False )
+							Wait    28`					
+   A0:  			Set   *GF_SAM06_Merle_HeardLongerMessage  .True
+   B0:  		Else
+   B8:  			Call  SpeakToPlayer ( .NpcID:Merle_00 00D20004 00D20001 00000000 001200F7 ) % Mario... I have a wish... My wish is for you to re ...
+   D8:  		EndIf
+   E0:  EndSwitch
+   E8:  Return
+   F0:  End
+}
+
+
 
 %All of these used B3. Were they meant to be the Star NPCs in Star Haven at one point?
 @	 $Script_Interact_802496BC

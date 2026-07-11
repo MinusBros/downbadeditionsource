@@ -29,13 +29,14 @@
 
 
 #new:DefenseTable $DefenseTable_80220E60_16 {
-.Element:Normal 00000000
-.Element:Fire   00000063
-.Element:Water  -2`
-.Element:Ice    -2`
-.Element:Mystery -2`
+.Element:Normal 2`
+.Element:Fire   99`
+.Element:Blast  99`
+.Element:Water  -1`
+.Element:Ice    -1`
+.Element:Mystery -1`
 .Element:Shock  4`
-.Element:Magic  6`
+.Element:Magic  99`
 .Element:Cosmic 6`
 .Element:End
 }
@@ -53,15 +54,15 @@
 .Status:Shrink      0`
 .Status:Stop       40`
 .Status:DefaultTurnMod    0`
-.Status:SleepTurnMod     -3`
+.Status:SleepTurnMod     -2`
 .Status:PoisonTurnMod     0`
 .Status:FrozenTurnMod     0`
-.Status:DizzyTurnMod     -3`
+.Status:DizzyTurnMod     -2`
 .Status:FearTurnMod       0`
 .Status:StaticTurnMod     0`
-.Status:ParalyzeTurnMod  -3`
-.Status:ShrinkTurnMod    -2`
-.Status:StopTurnMod      -3`
+.Status:ParalyzeTurnMod  -2`
+.Status:ShrinkTurnMod    -1`
+.Status:StopTurnMod      -2`
 .Status:End
 }
 
@@ -334,7 +335,7 @@
 			Call	SetActorRotationOffset	( .Actor:Self 00000000 00000000 00000000 )
 		EndThread
 		Wait  13`
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000009 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 0000000A 00000020 )
 		Wait  2`
   4D0:  Switch  *Var0 
   4DC:  	CaseOR  ==  .HitResult:Hit % 0
@@ -402,8 +403,46 @@
 		Call  SetActorVar   ( .Actor:Self 00000002 00000000 )  %Is his brother dead? If yes, attack an extra time
 		Call  SetActorVar   ( .Actor:Self 00000003 00000000 )  %I'm gonna buff dialogue
 		Call  SetActorVar   ( .Actor:Self 00000004 00000000 )  %You killed my brother dialogue
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $RedCody 69` )
+		EndIf
+		Exec  $MonitorPos
    94:  Return
    9C:  End
+}
+
+
+
+
+%If idle long enough, change to thinking variation
+#new:Script  $MonitorPos
+{
+	Loop
+	If  *GlobalTurnCount > 0`
+		Call  GetBattleState    ( *Var7 )
+		Switch  *Var7
+			CaseOR == .BattleState:PlayerMenu
+			CaseOR == .BattleState:PartnerMenu
+			CaseOR == .BattleState:BeginPlayerTurn
+			CaseOR == .BattleState:BeginPartnerTurn
+				Wait  45`
+				Call  $Function_SongVariationOn ( )
+			EndCaseGroup
+			CaseOR == .BattleState:PlayerMove
+			CaseOR == .BattleState:PartnerMove
+			CaseOR == .BattleState:EnemyMove
+			CaseOR == .BattleState:SelectTarget
+			CaseOR == .BattleState:EndPlayerTurn
+			CaseOR == .BattleState:EndPartnerTurn
+			CaseOR == .BattleState:PrepareMenu
+				Call  $Function_SongVariationOff ( )
+			EndCaseGroup
+		EndSwitch
+	EndIf
+	Wait  4`
+	EndLoop
+	Return
+	End
 }
 
 #new:Script $Script_TakeTurn_802233E0_16 {
@@ -662,4 +701,31 @@
    B8:  LI        V0, 2
    BC:  JR        RA
    C0:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_SongVariationOn
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_SongVariationOff
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

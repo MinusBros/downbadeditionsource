@@ -1,0 +1,145 @@
+% Script File: kkj_23.mscr
+% Decoded from: 0 to 3CF0 (kkj_23)
+
+
+#new:Function_Init $Function_Init
+{
+    0:  LAW       V1, 8007419C
+    8:  LI        V0, 2
+    C:  SB        V0, 84 (V1)
+   10:  JR        RA
+   14:  CLEAR     V0
+}
+
+
+
+
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0 %  735.0    0.0  -60.0  270.0
+	~Vec4f:Entry1 %   10.0    0.0  -60.0   90.0
+}
+
+#new:Header $Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  00000002
+	[Background]  80200000
+	[MapTattle]   00190018
+}
+
+#new:Script $Script_SetUpMusic
+{
+		Call  PlayAmbientSounds ( .AmbientSounds:Wind )
+		Call  SetMusicTrack ( 00000000 .Song:Sorrow 00000001 00000000 )  
+   34:  Return
+   3C:  End
+}
+
+
+#new:Script $Script_ExitDoubleDoor_80240A80
+{
+   50:  SetGroup  0000001B
+   5C:  Call  DisablePlayerInput    ( .True )
+   6C:  Set   *Var0  ~Entry:Entry0
+   7C:  Set   *Var1  ~Collider:tte
+   8C:  Set   *Var2  ~Model:o5
+   9C:  Set   *Var3  ~Model:o4
+   AC:  Exec  ExitDoubleDoor
+   B8:  Wait  5`
+   C4:  Call  GotoMap   ( "kkj_30" 00000001 ) % Light staircase climb
+   D8:  Wait  100`
+   E4:  Return
+   EC:  End
+}
+
+#new:Script $Script_ExitDoubleDoor_80240B74
+{
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Set   *Var0  ~Entry:Entry1
+   2C:  Set   *Var1  ~Collider:ttw
+   3C:  Set   *Var2  ~Model:o9
+   4C:  Set   *Var3  ~Model:o10
+   5C:  Exec  ExitDoubleDoor
+   68:  Wait  5`
+   74:  Call  GotoMap   ( "kkj_32" 00000000 ) % light spiral staircase
+   88:  Wait  100`
+   94:  Return
+   9C:  End
+}
+
+#new:Script $Script_EnterDoubleDoor_80240C18
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Set   *Var2  ~Model:o5
+   38:  		Set   *Var3  ~Model:o4
+   48:  		ExecWait  EnterDoubleDoor
+   8C:  	Case  ==  ~Entry:Entry1
+   98:  		Set   *Var2  ~Model:o9
+   A8:  		Set   *Var3  ~Model:o10
+   B8:  		ExecWait  EnterDoubleDoor
+   C4:  EndSwitch
+   CC:  Return
+   D4:  End
+}
+
+#new:Script_Main $Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   C8:  Exec  $Script_SetUpMusic
+   D4:  Call  UseDoorSounds ( .DoorSounds:Large )
+   E4:  Bind  $Script_ExitDoubleDoor_80240B74 .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+  100:  Bind  $Script_ExitDoubleDoor_80240A80 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+  11C:  Exec  $Script_EnterDoubleDoor_80240C18
+  128:  Return
+  130:  End
+}
+
+
+
+
+#new:Script $Script_80242D68
+{
+    0:  Call  PlaySoundAtCollider   ( ~Collider:ttw .Sound:LargeDoorOpen 00000000 )
+   18:  Call  MakeLerp  ( 00000000 00000050 0000000E .Easing:QuadraticOut )
+   34:  Loop
+   40:  	Call  UpdateLerp ( )
+   4C:  	Call  RotateModel   ( ~Model:o9 *Var0 00000000 FFFFFFFF 00000000 )
+   6C:  	Call  RotateModel   ( ~Model:o10 *Var0 00000000 00000001 00000000 )
+   8C:  	Wait  1`
+   98:  	If  *Var1  ==  00000000
+   A8:  		BreakLoop
+   B0:  	EndIf
+   B8:  EndLoop
+   C0:  Wait  20`
+   CC:  Call  MakeLerp  ( 00000050 00000000 0000000E .Easing:QuadraticOut )
+   E8:  Loop
+   F4:  	Call  UpdateLerp ( )
+  100:  	Call  RotateModel   ( ~Model:o9 *Var0 00000000 FFFFFFFF 00000000 )
+  120:  	Call  RotateModel   ( ~Model:o10 *Var0 00000000 00000001 00000000 )
+  140:  	Wait  1`
+  14C:  	If  *Var1  ==  00000000
+  15C:  		BreakLoop
+  164:  	EndIf
+  16C:  EndLoop
+  174:  Call  PlaySoundAtCollider   ( ~Collider:ttw .Sound:LargeDoorClose 00000000 )
+  18C:  Return
+  194:  End
+}
+
+
+#new:Script $Script_80243010
+{
+  C90:  Return
+  C98:  End
+}
+

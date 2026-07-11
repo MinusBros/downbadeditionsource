@@ -16,7 +16,7 @@
 
 @	$Script_MakeEntities
 {
-    0:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242FE0 .Item:EggMissile 80000000 )
+    0:  Call  MakeEntity    ( .Entity:YellowBlock ~Vec4d:Entity80242FE0 .Item:RuinPowder 80000000 )
    28:  Call  AssignBlockFlag   ( *GF_OMO02_ItemBlock_SleepySheep )
    38:  Call  MakeEntity    ( .Entity:HiddenYellowBlock ~Vec4d:Entity80243018 .Item:StarPoint 80000000 )
    60:  Call  AssignBlockFlag   ( *GF_OMO02_HiddenItem_Coin )
@@ -24,13 +24,9 @@
    94:  Call  MakeItemEntity    ( .Item:ShootingStar ~Vec3d:Item80243074 .ItemSpawnMode:Fall_NeverVanish *GF_OMO02_Item_ShootingStar )
    B8:  Call  MakeEntity    ( .Entity:StarBoxLaucher ~Vec4d:Entity80243098 80000000 )
    DC:  Call  AssignScript  ( $Script_80242E98 )
-		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry2 $Script_UseBluePipe ~Index:*GF_Chapter4_BluePipeA 80000000 )
-		If  *GF_Chapter4_BluePipeA == .False
-			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
-			Call     AssignAreaFlag ( 00000003 )
-			Set      *MapVar[1] *Var[0] 
-			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
-		EndIf
+		Call  MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry2 $Script_UseBluePipe ~Index:*GF_Chapter4_BluePipeA 80000000 )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fall_NeverVanish *OMO02_StarPiece )
+		Call  MakeItemEntity    ( .Item:EggMissile ~Vec3d:NewItem .ItemSpawnMode:Fall_NeverVanish *OMO02_NewItem )
    EC:  Return
    F4:  End
 }
@@ -65,7 +61,6 @@
 
 #new:Script $Script_SwitchPressed
 {
-    0:  Wait  8`
     C:  Call  PlaySound ( 0000208E )
    1C:  Set   *GF_Chapter4_BluePipeA  .True
    2C:  Unbind
@@ -109,16 +104,16 @@
     0:  If  *GF_OMO02_ShyGuyFledBehindWall  ==  .False
    10:  	Call  DisablePlayerInput    ( .True )
    20:  	Wait  20`
-   2C:  	Call  SetNpcJumpscale   ( .Npc:Self *Fixed[1.0] )
+   2C:  	Call  SetNpcJumpscale   ( .Npc:Self *Fixed[2.0] )
    40:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
    5C:  	Call  NpcJump0      ( .Npc:Self *Var0 *Var1 *Var2  15` )
    7C:  	Call  UseSettingsFrom   ( .Cam:Default  -570`  0`  0` )
    98:  	Call  SetPanTarget  ( .Cam:Default  -570`  0`  0` )
-   B4:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+   B4:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
    C8:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
    E0:  	Exec  $Script_80244E44 *VarA
    F0:  	Call  SetNpcAnimation   ( .Npc:Self 003B0003 )
-  104:  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[9.0] )
+  104:  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[10.0] )
   118:  	Call  NpcMoveTo     ( .Npc:Self  -575`  0`  0` )
   134:  	Kill  *VarA
   140:  	Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
@@ -127,6 +122,7 @@
   190:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   1A4:  	Exec  $Script_80244D64 *MapVar[A]
   1B4:  	Set   *GF_OMO02_ShyGuyFledBehindWall  .True
+			Exec  $Script_SwitchPressed
   1C4:  	Call  DisablePlayerInput    ( .False )
   1D4:  Else
   1DC:  	Exec  $Script_80244D64 *MapVar[A]
@@ -392,16 +388,6 @@
 }
 
 
-
-@	$Script_ExitWalk_80242C40
-{
-   [40]  Wait  60`
-}
-
-@ $Script_ExitWalk_80242C9C
-{
-   [40]  Wait  60`
-}
 
 @	$AISettings_802449E8
 {

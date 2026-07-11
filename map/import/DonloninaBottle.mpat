@@ -54,6 +54,33 @@
 			EndSwitch
 				Call    SetMessageString ( *Var0 0 )
 				If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
+					If  *Byte_Settings_Difficulty == 1` %Normal
+						If  *SuperguardlessTrigger == .True
+								Call    ShowChoice ( $String_Choice_Settings_DifficultySuperguardless )
+								Switch *Var0 
+									Case == 0`
+										Set     *Byte_Settings_Difficulty *Var0
+									Case == 1`
+										Call  CloseChoice ( )
+										Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 00030100 ) %Are you sure you want to activate Superguardless mode?
+										Call    ShowChoice ( 001E000E )
+										If   *Var0 == 0`
+											Set     *Byte_Settings_Difficulty 1`
+											Set     *SuperguardlessMode .True
+											Goto  FortuneSelected
+										Else
+											Call  CloseMessage
+											Goto 69
+										EndIf
+									Case == 2`
+										Set     *Byte_Settings_Difficulty *Var0
+									EndCaseGroup
+									Case   == 3` %Cancel
+										Call  CloseMessage
+										Goto 69
+								EndSwitch						
+						EndIf
+					EndIf
 					If  *Byte_Settings_Difficulty == 2` %Gamer
 						Call    ShowChoice ( $String_Choice_Settings_DifficultyExtreme )
 						Switch *Var0 
@@ -61,10 +88,11 @@
 							CaseOR == 1`
 							CaseOR == 2`
 								Set     *Byte_Settings_Difficulty *Var0
+								Goto  FortuneSelected
 							EndCaseGroup
 							Case   == 3`  %I Wanna Be The Guy
 								Call  CloseChoice ( )
-								Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 000300F9 )
+								Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 000300F9 )	%Are you sure you want to activate I Wanna Be The Guy mode?
 								Call    ShowChoice ( 001E000E )
 								If   *Var0 == 0`
 									Set     *Byte_Settings_Difficulty 2`
@@ -80,15 +108,21 @@
 						EndSwitch
 					EndIf
 				EndIf
-				
 				Call    ShowChoice ( $String_Choice_Settings_Difficulty )
-				If *Var0 != 3 % Cancel
+				Switch  *Var0
+				Case == 0`	%Casual
 					Set     *Byte_Settings_Difficulty *Var0
-					%Return
-				Else 
+				Case == 1`
+					If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin	
+						Set  *SuperguardlessTrigger .True
+					EndIf
+					Set     *Byte_Settings_Difficulty *Var0
+				Case == 2`
+					Set     *Byte_Settings_Difficulty *Var0
+				Case == 3` %Cancel
 					Call  CloseMessage
 					Goto 69
-				EndIf
+				EndSwitch
 		EndSwitch
 		Label FortuneSelected
 		Call  SetNpcAnimation   ( .Npc:Self 00A50108 )
@@ -99,7 +133,7 @@
 			Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 00030037 ) % Excellent. Now relax while I read what your future ...
   17C:  	Call  SpeakToPlayer     ( .Npc:Self 00A50108 00A50108 00000000 00030038 ) % Ooooo---------! Crystal eye! Open wide! Aiiii----- ...
 		EndIf
-  19C:  Exec  $Script_80246824
+  19C:  Exec  $Script_PlaySong
   1A8:  Wait  10`
   1B4:  If  *MapVar[C]  ==  00000000
   1C4:  	NewArray  00000014 *MapVar[C]
@@ -123,10 +157,10 @@
 						Call  SpeakToPlayer ( .Npc:Self 00A50104 00A50101 00000000 00210002 )
 		EndSwitch
 		If   *IWannaBeTheGuy == .True
-  288:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
-  2A4:  	Call  PlaySoundAtNpc    ( .Npc:Self .Sound:SmokeBurst 00000000 )
-  2BC:  	Call  PlayEffect    ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
-  300:  	Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+			ExecWait  $DisposeDonlon
+		EndIf
+		If  *SuperguardlessMode == .True
+			ExecWait  $DisposeDonlon
 		EndIf
 		Label 69
 		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
@@ -135,8 +169,17 @@
   BA0:  End
 }
 
+#new:Script  $DisposeDonlon
+{
+  288:  	Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+  2A4:  	Call  PlaySoundAtNpc    ( .Npc:Self .Sound:SmokeBurst 00000000 )
+  2BC:  	Call  PlayEffect    ( ~FX:BigSmokePuff *Var0 *Var1 *Var2 00000001 00000001 00000001 00000001 00000000 00000000 00000000 00000000 00000000 00000000 )
+  300:  	Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+			Return
+			End
+}
 
-#new:Script $Script_80246824
+#new:Script $Script_PlaySong
 {
 		If   *IWannaBeTheGuy == .False
 			Call  PushSong      ( .Song:MerleeSpell 00000001 )
@@ -253,6 +296,16 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
 [Option 1][SaveColor][Color:21]Normal[RestoreColor][BR]
 [Option 2][SaveColor][Color:20]Gamer[RestoreColor][BR]
 [Option 3][SaveColor][Color:40]IWBTG[RestoreColor][BR]
+[EndChoice cancel=4][End]
+}
+
+#string $String_Choice_Settings_DifficultySuperguardless
+{
+[Style Choice pos=95,90 size=138,60]
+[StartChoice]
+[Option 0][SaveColor][Color:01]Casual[RestoreColor][BR]
+[Option 1][SaveColor][Color:21]Superguardless[RestoreColor][BR]
+[Option 2][SaveColor][Color:20]Gamer[RestoreColor][BR]
 [EndChoice cancel=3][End]
 }
 

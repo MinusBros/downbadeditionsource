@@ -5,14 +5,66 @@
   [184]  Call  StartBossBattle   ( .Song:BlooperTheme )
 }
 
-@	$Script_ExitWalk_8024194C
+@	$Script_Defeat_80242D2C
 {
-   [40]  Wait  80`
+    0:  Wait  5`
+    C:  Thread
+   14:  	Call  SetNpcAnimation   ( .Npc:Self 00500004 )
+   28:  	Call  MakeLerp  ( 00000000 00000870 00000028 .Easing:Linear )
+   44:  	Loop
+   50:  		Call  UpdateLerp ( )
+   5C:  		Call  SetNpcRotation    ( .Npc:Self 00000000 *Var0 00000000 )
+   78:  		Wait  1`
+   84:  		If  *Var1  ==  00000000
+   94:  			BreakLoop
+   9C:  		EndIf
+   A4:  	EndLoop
+   AC:  EndThread
+   B4:  Call  PlaySoundAtNpc    ( .Npc:Self 000003DD 00000000 )
+   CC:  Call  PlaySoundAtNpc    ( .Npc:Self 000003E7 00000000 )
+   E4:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  100:  Call  NpcFlyTo  ( .Npc:Self *Var0  150`  0`  14`  0` .Easing:QuadraticIn )
+  128:  Wait  4`
+  134:  Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  150:  Wait  10`
+		Call  MakeItemEntity        ( .Item:InkySauce 150` 250` 16` .ItemSpawnMode:Fall_NeverVanish *TIK01_InkySauce )
+		%ExecWait  $Script_80242750
+  168:  If  *GF_TIK_DefeatedOneBlooper  ==  .False
+  178:  	Set   *GF_TIK_DefeatedOneBlooper  .True
+  188:  Else
+  190:  	Set   *GF_TIK_DefeatedTwoBloopers  .True
+  1A0:  EndIf
+  1A8:  Set   *GF_TIK01_Defeated_Blooper  .True
+  1B8:  Exec  $Script_80240B20	%Resume song
+		Exec  $Script_8024293C	%Activate pipes automatically
+  1C4:  Call  DisablePlayerInput    ( .False )
+  1D4:  Call  RemoveNpc ( .Npc:Self )
+  1E4:  Return
+  1EC:  End
 }
 
-@   $Script_ExitWalk_802419A8
+
+@	$Script_MakeEntities
 {
-   [40]  Wait  80`
+    0:  If  *GF_TIK01_Hammer2Block  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Hammer2Block ~Vec4d:Entity80242990 80000000 )
+   34:  	Call  AssignScript  ( $Script_80242874 )
+   44:  Else
+   4C:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o64 7FFFFE00 )
+   64:  EndIf
+   6C:  Call  ModifyColliderFlags   ( 00000000 ~Collider:o63 7FFFFE00 )
+   84:  If  *GF_TIK01_WarpPipes  ==  .False
+   F4:  	If  *GF_TIK01_Defeated_Blooper  ==  .True
+  104:  		Call  $Function_80240960    ( *MapVar[1] 0000007D FFFFFFF6 00000019 )
+  120:  	EndIf
+		Else
+			Call  MakeItemEntity        ( .Item:InkySauce ~Vec3d:InkySauce .ItemSpawnMode:Fall_NeverVanish *TIK01_InkySauce )	%Drops Inky Sauce instead of a switch
+  128:  EndIf
+  130:  Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:Entity80242AB0 ~Entry:Entry2 $Script_802428AC ~Index:*GF_TIK01_WarpPipes 80000000 )
+  160:  Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:Entity80242AE0 ~Entry:Entry3 $Script_802428DC ~Index:*GF_TIK01_WarpPipes 80000000 )
+  190:  Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:Entity80242B10 ~Entry:Entry4 $Script_8024290C ~Index:*GF_TIK01_WarpPipes 80000000 )
+  1C0:  Return
+  1C8:  End
 }
 
 @	$Script_802428AC

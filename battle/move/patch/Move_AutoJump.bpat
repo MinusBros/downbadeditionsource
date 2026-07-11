@@ -1,0 +1,170 @@
+% Script File: Move_AutoJump.bscr
+% Decoded from: 765C20 to 767C90 (Move_AutoJump)
+
+%This Badge is now called Gravity Boots.
+%It does heavy Quake damage, meant for aerial enemies.
+
+%Skip squat anim
+@	$Script_802A1130
+{
+   6C:  Return
+   74:  End
+}
+
+@ $Script_802A11AC
+{
+   [D8]  Call  SetActorSpeed ( .Actor:Player *Fixed[9.0] )
+}
+
+
+@ $Script_802A15D8
+{
+   [98]  Call  SetActorJumpGravity   ( .Actor:Player *Fixed[3.3] )
+  [15C]  Wait  0`
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[16.0] )
+}
+
+% Origin: HEURISTIC
+@ $Script_802A17C4		
+{
+   [B4]  Call  SetActorJumpGravity   ( .Actor:Player *Fixed[3.8] )
+  [15C]  Wait  0`
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[16.0] )
+}
+
+@ $Script_802A19B0		
+{
+   [B4]  Call  SetActorJumpGravity   ( .Actor:Player *Fixed[3.0] )
+  [15C]  Wait  0`
+  [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[16.0] )
+}
+
+
+
+
+@ $Script_UseMove0
+{
+    0:  Call  EnablePlayerBlur  ( 00000001 )
+   10:  Call  802694A4  ( 00000001 )
+   38:  Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+   50:  Switch  *Var1
+   5C:  	Case  ==  .Item:Nothing % 0
+   68:  		ExecWait  $Script_802A26BC   %Select Normal Jump
+   74:  	Case  ==  .Item:Jump % 1
+   80:  		ExecWait  $Script_802A2A30     %Select Super Jump
+   8C:  	Case  ==  .Item:SpinJump % 2
+   98:  		ExecWait  $Script_802A2D5C       %Select Ultra Jump
+   A4:  EndSwitch
+   AC:  Return
+   B4:  End
+}
+
+@ $Script_802A26BC   %Select Normal Jump
+{
+    0:  ExecWait  $Script_802A2184     %Script exists
+    C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000001 00000000 )
+   30:  If  *Var0  ==  .HitResult:Miss % 6
+   40:  	ExecWait  $Script_802A1FEC    %Script exists   %Miss Normal Jump
+   4C:  	Return
+   54:  EndIf
+   5C:  ExecWait  $Script_802A26B4
+   68:  Wait  1`
+   74:  Call  DidActionSucceed  ( *Var0 )
+   84:  Switch  *Var0
+   90:  	Case  >  .False
+   9C:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
+   B8:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000006 00000070 )
+   DC:  	Default
+   E4:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
+  100:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000005 00000030 )
+  124:  EndSwitch
+  12C:  Switch  *Var0
+  138:  	Case  >  .HitResult:Hit % 0
+  144:  		ExecWait  $Script_802A15D8
+  150:  	Default
+  158:  		ExecWait  $Script_802A17C4
+  164:  EndSwitch
+  364:  Return
+  36C:  End
+}
+
+
+
+@ $Script_802A2A30     %Select Super Jump
+{
+   0:  ExecWait  $Script_802A2184     %Script exists
+    C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000001 00000000 )
+   30:  If  *Var0  ==  .HitResult:Miss % 6
+   40:  	ExecWait  $Script_802A1FEC    %Script exists
+   4C:  	Return
+   54:  EndIf
+   5C:  ExecWait  $Script_802A26B4
+   68:  Wait  1`
+   74:  Call  DidActionSucceed  ( *Var0 )
+   84:  Switch  *Var0
+   90:  	Case  >  .False
+   9C:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+   B8:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000008 00000070 )
+   DC:  	Default
+   E4:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
+  100:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000006 00000030 )
+  124:  EndSwitch
+  12C:  Switch  *Var0
+  138:  	Case  >  .HitResult:Hit % 0
+  144:  		ExecWait  $Script_802A15D8
+  150:  	Default
+  158:  		ExecWait  $Script_802A17C4
+  164:  EndSwitch
+  31C:  Return
+  324:  End
+}
+
+@ $Script_802A2D5C       %Select Ultra Jump
+{
+    0:  ExecWait  $Script_802A2184     %Script exists
+    C:  Call  PlayerTestEnemy   ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000001 00000000 )
+   30:  If  *Var0  ==  .HitResult:Miss % 6
+   40:  	ExecWait  $Script_802A1FEC    %Script exists
+   4C:  	Return
+   54:  EndIf
+   5C:  ExecWait  $Script_802A26B4
+   68:  Wait  1`
+   74:  Call  DidActionSucceed  ( *Var0 )
+   84:  Switch  *Var0
+   90:  	Case  >  .False
+   9C:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+   B8:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 0000000A 00000070 )
+   DC:  	Default
+   E4:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
+  100:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Quake|Magic 00000000 00000000 00000007 00000030 )
+  124:  EndSwitch
+  12C:  Switch  *Var0
+  138:  	Case  >  .HitResult:Hit % 0
+  144:  		ExecWait  $Script_802A15D8
+  150:  	Default
+  158:  		ExecWait  $Script_802A17C4
+  164:  EndSwitch
+  2FC:  Return
+  304:  End
+}
+
+#new:Script $Script_802A26B4
+{
+    0:  Call  StartRumble   ( 0000000D )
+   10:  Thread
+   18:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[1.0] )
+   34:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[3.0] )
+   50:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[6.0] )
+   6C:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[5.0] )
+   88:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[4.0] )
+   A4:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[3.0] )
+   C0:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[2.0] )
+   DC:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[1.0] )
+   F8:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.5] )
+  114:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.2] )
+  130:  EndThread
+  138:  Return
+  140:  End
+}
+
+

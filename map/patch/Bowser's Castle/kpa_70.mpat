@@ -14,23 +14,68 @@
     1`
 }
 
-
-@	$Script_80240B50
+@	$Script_Main_EnterWalk
 {
-		Call $SetFlagCarryOverworldMusicToBattle()
-   1C:  Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
-   2C:  Call  UseDoorSounds     ( .DoorSounds:Metal )
-		Thread
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+		Else
+			Call  MakeNpcs  ( .True $NpcGroupList_802417AC )
+		EndIf
+   84:  Call  InitAnimatedModels ( )
+   90:  Exec  $Script_80240C6C
+   9C:  Thread
+   A4:  	Call  PlaySoundAt   ( 80000051 00000000 00000320 00000064 FFFFFF38 )
+   C4:  	Wait  28`
+   D0:  	Loop
+   DC:  		Call  PlaySoundAt   ( 00000222 00000000 00000320 00000064 FFFFFF38 )
+   FC:  		Wait  90`
+  108:  	EndLoop
+  110:  EndThread
+  118:  Exec  $Script_80241044
+  124:  Exec  $Script_80240E0C
+  130:  Bind  $Script_ExitDoubleDoor_80240CD4 .Trigger:WallPressA ~Collider:deilittw 00000001 00000000
   14C:  Call  GetEntryID    ( *Var0 )
   15C:  Switch  *Var0
   168:  	Case  ==  ~Entry:Entry0
-				Call  FadeInMusic       ( 00000000 .Song:BowsersCastle 00000000 000007D0 00000000 0000007F )
+  174:  		Thread
+  17C:  			Set   *Var2  ~Model:o1431
+  18C:  			Set   *Var3  ~Model:o1432
+  19C:  			ExecWait  EnterDoubleDoor
+  1A8:  			ExecWait  $Script_80240DE0
+  1B4:  		EndThread
   1BC:  	Case  ==  ~Entry:Entry1
-				Call  SetMusicTrack     ( 00000000 .Song:BowsersCastle 00000000 00000008 )
-  1E4:  EndSwitch	
-   44:  	Wait  30`
-   50:  	Call  802D5FA4  ( 00000005 )
-   60:  EndThread
+  1C8:  		Set   *Var0  $Script_80240DE0
+  1D8:  		Exec  EnterWalk
+  1E4:  EndSwitch
+  1EC:  Exec  $Script_80240B50
+  1F8:  Return
+  200:  End
+}
+
+
+@	$Script_80240B50
+{
+		Call  UseDoorSounds     ( .DoorSounds:Metal )
+		If  *EscapeSequence == .False
+			Call $SetFlagCarryOverworldMusicToBattle()
+	   1C:  Call  PlayAmbientSounds ( .AmbientSounds:UnderSea1 )
+			Thread
+	  14C:  Call  GetEntryID    ( *Var0 )
+	  15C:  Switch  *Var0
+	  168:  	Case  ==  ~Entry:Entry0
+					Call  FadeInMusic       ( 00000000 .Song:BowsersCastle 00000000 000007D0 00000000 0000007F )
+	  1BC:  	Case  ==  ~Entry:Entry1
+					Call  SetMusicTrack     ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+	  1E4:  EndSwitch	
+	   44:  	Wait  30`
+	   50:  	Call  802D5FA4  ( 00000005 )
+	   60:  EndThread
+		EndIf
    68:  Return
    70:  End
 }

@@ -29,12 +29,6 @@
    B4:  	Call  DropItemEntityB   ( .Item:StarStone FFFFFF8B 000000B3 FFFFFFC9 .ItemSpawnMode:Decoration 00000000 )
    D8:  	Call  $Function_802402BC ( )
    E4:  EndIf
-     	If  *GF_Chapter7_BluePipeA == .False
-			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
-			Call     AssignAreaFlag ( 00000003 )
-			Set      *MapVar[1] *Var[0] 
-			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
-		EndIf
    EC:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80241198 80000000 )
   110:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity802411BC 80000000 )
 		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry4 $Script_UseBluePipe ~Index:*GF_Chapter7_BluePipeA 80000000 )
@@ -87,7 +81,6 @@
 
 #new:Script $Script_SwitchPressed
 {
-    0:  Wait  8`
     C:  Call  PlaySound ( 0000208E )
    1C:  Set   *GF_Chapter7_BluePipeA  .True
    2C:  Unbind
@@ -111,7 +104,24 @@
    90:  ExecWait  $Script_80240D20
    9C:  ExecWait  $Script_80242264
    A8:  Exec  $Script_EnterWalk_80240EC8
+		If  *GF_Chapter7_BluePipeA == .False
+			Exec  $CheckBluePipe
+		EndIf
    B4:  Wait  1`
    C0:  Return
    C8:  End
+}
+
+
+#new:Script  $CheckBluePipe
+{
+	 Label 0
+	 Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	 If  *Var1 < 809`
+		Wait  1`
+		Goto 0
+	 EndIf
+	 Exec  $Script_SwitchPressed
+	 Return
+	 End
 }

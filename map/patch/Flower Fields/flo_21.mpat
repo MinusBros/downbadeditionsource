@@ -32,8 +32,8 @@
 
 @	$Script_80241B98
 {
-		Set *Var0 .True
-		Set     *Byte_Settings_BGM *Var0
+		Set   *Byte_Settings_BGM  0`	%Activate Superkids music
+		Set   *Byte_Settings_BGM2 1`
     0:  If  *GB_StoryProgress  >=  .Story:Ch6_DefeatedHuffNPuff % 38
    10:  	Return
    18:  EndIf
@@ -158,7 +158,7 @@
 
 @	$Script_80243010
 {
-
+		Call  DisablePlayerInput    ( .True )
 		Call  $ClearFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffTheme 00000000 00000008 )
 		ExecWait  $NukeBossChecks
@@ -207,7 +207,9 @@
   3D8:  Exec  $Script_8024263C
   3E4:  ExecWait  $Script_80242918
   3F0:  ExecWait  $Script_80242D34
-  3FC:  Wait  7`
+		Exec  $AutoSave  %Do this just in case the weird softlock happens
+  3FC:  Wait  10`
+		Call  DisablePlayerInput    ( .False )
   408:  Return
   410:  End
 }
@@ -244,6 +246,11 @@
 			Exec  $Script_80241350
 			Return
 		EndIf
+		If *CheckLordofThunder == .True
+			Exec  EnterSavePoint
+			Exec  $Script_80241350
+			Return
+		EndIf
 		Exec  EnterWalk
   170:  Return
   178:  End
@@ -276,7 +283,7 @@
 	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
 	If *Var0  > 410`
 		If  *Var1  == 104`
-		Exec  $AutoSave
+		Exec  $AutoSaveNoMessage
 		BreakLoop
 		EndIf
 	EndIf

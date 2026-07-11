@@ -33,6 +33,8 @@
 #define .NpcID:ArtistToad_37        25
 #define .NpcID:ArtistToad_38        26
 
+#import AutoSave.mpat
+
 %Make this Ninji red and give him a unique name.
 
 @	$NpcGroup_8025441C
@@ -176,6 +178,44 @@
    40:  End
 }
 
+#import CountItems.mpat
+
+
+
+@	$Script_Init_80259A3C
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   1C:  		Set   *GF_MAC01_ShyGuysTramplingGarden  .True
+   2C:  		Call  SetSelfEnemyFlagBits  ( 00400000 00000001 )
+   40:  		Call  BindNpcIdle   ( .Npc:Self $Script_Idle_802597F4 )
+   54:  EndSwitch
+   5C:  Call  SetNpcAnimation   ( .Npc:Self 00A80001 )
+   70:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802591CC )
+		If   *GB_StoryProgress >= .Story:Ch6_FlowerGateOpen
+			If  *LipCompleted == .False
+				Exec  $LipProblem
+			EndIf
+		EndIf
+   84:  Return
+   8C:  End
+}
+
+
+#new:Script  $LipProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:MinhT_18 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *LipCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
+%Lip interact script 
 
 @	$Script_Interact_802591CC
 {
@@ -184,6 +224,24 @@
    18:  If  *VarC  !=  00000000
    28:  	Return
    30:  EndIf
+		If   *GB_StoryProgress >= .Story:Ch6_FlowerGateOpen
+			If  *LipCompleted == .False
+				If  *BzzoltKillCount < 10`
+					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FB )	%There's still more hornets
+					ExecWait  $CheckLipHerb	
+				Else
+					Set   *LipCompleted .True
+					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80006 00A80006 00000000 000300FE )	%Thank you, Mario-sama
+					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FF )	%Take this please
+			   10:  Set   *Var0  .Item:HappyFlowerB		%Happy Flower has been moved to here
+			   20:  Set   *Var1  00000002
+			   30:  Call  ShowGotItem   ( *Var0 .True 00000000 )
+			   3C:  Call  AddBadge  ( .Item:HappyFlowerB *Var0 )					
+					ExecWait  $ProblemSolved
+				EndIf
+				Return
+			EndIf
+		EndIf
    38:  Set   *Var2  00000000
    48:  Switch  *GB_StoryProgress
    54:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
@@ -265,6 +323,15 @@
   440:  	Set   *Var0  *Var1
   450:  	Set   *AreaFlag[014]  .False
   460:  EndIf
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch2_StarSpritDeparted to .Story:Ch5_StarSpritDeparted
+				If   *LipTaughtAboutGrass == .False
+					Set  *LipTaughtAboutGrass .True
+					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300F5 ) 	%Teach Mario about Insecticide Grass (but only until after Chapter 5)
+					ExecWait  $CheckLipHerb
+					Return
+				EndIf
+		EndSwitch
   468:  Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 *Var0 ) % variable string ID
   488:  If  *Var2  ==  00000001
   498:  	Set   *Var0  $???_80258A54
@@ -295,10 +362,53 @@
   5EC:  			ExecWait  $Script_80258A68
   5F8:  	EndSwitch
   600:  EndIf
+		If  *GB_StoryProgress  >= .Story:Ch2_StarSpritDeparted
+			ExecWait  $CheckLipHerb
+		EndIf
   608:  Return
   610:  End
 }
 
+#new:Script  $CheckLipHerb
+{
+						If  *GB_StoryProgress  >= .Story:Epilogue
+							Return
+						EndIf
+						Call  ShowChoice    ( 001E0051 )
+						Call  CloseMessage ( )
+						If   *Var0 == 0`
+							Call	DisablePlayerInput ( .True )
+							Call	ShowCoinCounter ( .True )	
+							Call	AddCoin ( 0 )
+							Set  *Var2  10`
+							If *Var0 < *Var2	%Not enough money, but she's nice she gives one anyway
+								Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FC )
+								Goto  GiveItem
+								Return
+							EndIf
+							Call  $Function_CountItems
+							If *Var0 == .False %(Max inventory)
+								Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FD )
+								Call	ShowCoinCounter ( .False )
+								Call	DisablePlayerInput ( .False )
+								Return
+							EndIf
+							If  *GB_StoryProgress  >=  .Story:Ch6_FlowerGateOpen
+								Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300ED )
+							Else
+								Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300EE )
+							EndIf
+							Call	AddCoin ( -10` )
+							Label  GiveItem
+							Call	ShowCoinCounter ( .False )
+							Call  SetNpcAnimation   ( 00000000 00890005 )
+							Call	ShowGotItem ( .Item:InsecticideHerb .True 00000000 )
+							Call  AddItem   ( .Item:InsecticideHerb 0 )
+							Call	DisablePlayerInput ( .False )
+						EndIf
+						Return
+						End
+}
 
 @	$Script_80258A68
 {
@@ -373,6 +483,8 @@
   528:  	Call  InterpNpcYaw  ( .NpcID:MinhT_18  90`  0` )
   540:  	ExecWait  $Script_80258684
   54C:  	Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80006 00A80001 00000000 00030070 ) % Kyaaaaaaaah!! At first it just looked like the flo ...
+			Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80006 00A80001 00000000 000300EC )	% Btw can you kill 10 Bzzolts? 
+			Exec  $LipProblem
   56C:  	Set   *GB_StoryProgress  .Story:Ch6_FlowerGateOpen
   57C:  EndIf
   584:  Return
@@ -806,6 +918,31 @@
 }
 
 
+@	$Script_80246A88
+{
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Call  UseDoorSounds ( .DoorSounds:Large )
+   2C:  Set   *Var0  00000002
+   3C:  Set   *Var1  00000005
+   4C:  Set   *Var2  $???_80246A70
+   5C:  Set   *Var3  $???_80246A7C
+   6C:  Exec  BaseExitDoor
+   78:  Wait  17`
+   84:  Switch  *GB_StoryProgress
+   90:  	Case  .Story:Ch0_WakeUp  to  .Story:Ch8_ReachedPeachsCastle
+   A0:  		Call  GotoMap   ( $ASCII_802626D0 00000000 ) % osr_01
+			Case == .Story:PostGame
+				Call  GotoMap   ( "osr_00" 00000000 ) % osr_00
+   B4:  	Default
+   BC:  		Call  GotoMap   ( "osr_00" 00000000 ) % osr_00
+   D0:  EndSwitch
+   D8:  Wait  100`
+   E4:  Return
+   EC:  End
+}
+
+
 
 %Speedy Spin and Happy Heart have swapped places.
 %A Speedy Spin can now be obtained as soon as you
@@ -824,7 +961,7 @@
 
 % When the number of badges in the table is changed,
 % be sure to update this number! Maximum is 40 (64`).
-#define .NumRowfBadges 21`
+#define .NumRowfBadges 22`
 
 %FFFFFF80 == After Chapter 1
 %FFFFFFCB == After Chapter 2
@@ -837,25 +974,26 @@
 {
  FFFFFF80	.Item:HappyHeartA     50`    00240079 % Replaces Speedy Spin.
  FFFFFF80	.Item:FirstAttack     50`    00240087 % 
- FFFFFF80	.Item:Multibounce     75`    0024005E % 
+ FFFFFF80	.Item:Multibounce    100`    0024005E % 
  FFFFFF80	.Item:DDownPound      75`    00240069 % Now renamed Piercing Blow.
- FFFFFFCB	.Item:SleepStomp      75`    0024005C % 
- FFFFFFCB	.Item:DoubleDip      150`    0024006D % 
- FFFFFFCB	.Item:DodgeMaster    100`    00240080 % Now renamed Tatsujin.
- FFFFFFF3	.Item:JumpCharge     100`    0024005A % 
- FFFFFFF3	.Item:MedicineMan    150`    0023011C % Medicine Man added.
- FFFFFFF3	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp.
- FFFFFFF3	.Item:Hanatatsu      150`    00230155 % New Hanatatsu Badge.
- 00000007   .Item:TornadoJump_1  200`    00230115 % Tornado Jump added.
- 00000007	.Item:DamageDodgeA   150`    00240075 % 
- 00000007	.Item:SSmashChg      150`    00240065 % 
- 00000007	.Item:PityFlower     150`    0023011B % Pity Flower added.
- 00000029	.Item:MegaQuake      350`    0024006C %
- 00000029   .Item:SuperSmash     300`	 00230067 % Multi-Smash added.
- 00000029   .Item:MegaHPDrain    200`	 00230114 % Mega HP Drain added.
- 0000003B	.Item:AllorNothing   275`    00240093 % 
- 0000003B	.Item:FPPlusC        225`    00240072 % 
- 0000003B	.Item:ShrinkSmash    400`    0023011D % Recoil Throw added.
+ FFFFFF80	.Item:SleepStomp     100`    0024005C % 
+ FFFFFFCB	.Item:DoubleDip      200`    0024006D % 
+ FFFFFFCB	.Item:DodgeMaster    300`    00240080 % Now renamed Tatsujin.
+ FFFFFFCB	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp.
+ FFFFFFF3	.Item:JumpCharge     150`    0024005A % 
+ FFFFFFF3	.Item:MedicineMan    175`    0023011C % Medicine Man added.
+ FFFFFFF3	.Item:DamageDodgeA   200`    00240075 % 
+ 00000007	.Item:Hanatatsu      450`    00230155 % New Hanatatsu Badge.
+ 00000007   .Item:TornadoJump_1  300`    00230115 % Tornado Jump added.
+ 00000007	.Item:SSmashChg      275`    00240065 % 
+ 00000007	.Item:PityFlower     200`    0023011B % Pity Flower added.
+ 00000029	.Item:MegaQuake      450`    0024006C %
+ 00000029   .Item:SuperSmash     400`	 00230067 % Multi-Smash added.
+ 00000029   .Item:MegaHPDrain    250`	 00230114 % Mega HP Drain added.
+ 0000003B	.Item:AllorNothing   450`    00240093 % 
+ 0000003B	.Item:FPPlusC        250`    00240072 % 
+ 0000003B	.Item:ShrinkSmash    500`    0023011D % Recoil Throw added.
+ 0000003B	.Item:AutoJump       500`    0023015F % Space Jump added.
 }
 
 
@@ -935,7 +1073,7 @@
 }
 
 
-%Stop music
+%Stop music and auto save when leaving
 
 @	$Script_80255B30
 {
@@ -945,6 +1083,7 @@
 				Call  PopSong ( )
 			EndIf
 		EndIf
+		Exec  $AutoSave
     0:  Set   *MapFlag[0B]  .False
    10:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
    20:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b3 7FFFFE00 )
@@ -955,7 +1094,7 @@
    70:  If  *GF_MAC01_RowfBadgeAvailableC  ==  .False
    80:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:b1 7FFFFE00 )
    98:  EndIf
-   A0:  Call  NpcJump0  ( 00000001  -220`  -54`  261`  16` )
+   A0:  Call  NpcJump0  ( 00000001  -220`  -54`  261`  15` )
    C0:  Thread
    C8:  	Call  PlaySoundAtCollider   ( ~Collider:o295 000000AC 00000000 )
    E0:  	Call  MakeLerp      ( 00000000 00000258 00000032 .Easing:Linear )
@@ -1018,10 +1157,15 @@
 
 @	$Script_Main
 {
+		Set   *Byte_Settings_BGM  1`
+		Set   *Byte_Settings_BGM2 1`
 		Call $ClearFlagCarryOverworldMusicToBattle()
 		Call  SetSpriteShading  ( .Shading:None )
 		Set   *MerlonState  0`
 		Set   *LipState  0`
+  12C:  If  *GB_StoryProgress  ==  .Story:Ch6_StarSpritDeparted % Set this just in case you don't use the door to warp out
+  13C:  	Set   *GB_StoryProgress  .Story:Ch6_ReturnedToToadTown
+  14C:  EndIf
     0:  Set   *GB_WorldLocation  .Location:ToadTown
    10:  Call  SetSpriteShading  ( .Shading:None )
    20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  90`  4096` )
@@ -1104,6 +1248,106 @@
   458:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
   46C:  Return
   474:  End
+}
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+   10:  	Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802473D8 80000000 )
+   34:  EndIf
+   3C:  Bind  $Script_80247380 .Trigger:WallPressA ~Collider:o406 00000001 00000000
+		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
+			Call  MakeItemEntity    ( .Item:HopeFragment ~Vec3d:HopeFragment .ItemSpawnMode:Fixed_NeverVanish *MAC01_HopeFragment )
+		EndIf
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *MAC01_NewStarPiece )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece2 .ItemSpawnMode:Fixed_NeverVanish *MAC01_NewStarPiece2 )		
+   58:  Return
+   60:  End
+}
+
+
+
+@	$Script_Interact_8024D59C
+{
+    0:  Call  $Function_802439C0    ( 00000000 00000000 00000000 )
+   18:  ExecWait  $Script_8025BAE0
+   24:  If  *Var0  ==  00000000
+   34:  	Return
+   3C:  EndIf
+   44:  Set   *Var9  *Var1
+   54:  Set   *VarA  *Var2
+   64:  Set   *VarB  *Var3
+   74:  Call  $Function_8024396C ( )
+   80:  If  *Var1  ==  00000000
+   90:  	Set   *Var8  *Var0
+   A0:  EndIf
+   A8:  Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 *Var8 ) % variable string ID
+   C8:  Call  ShowChoice    ( 001E0006 ) % Take a nap Not now
+   D8:  Wait  3`
+   E4:  If  *Var0  ==  00000001
+   F4:  	Call  ContinueSpeech    ( .Npc:Self 00830004 00830001 00000000 *Var9 ) % variable string ID
+  114:  	Return
+  11C:  EndIf
+		Call     RandInt     	( 1` *VarE )	%My friends thought this would be funny
+		If   *VarE == 0`
+			Loop 2`
+				Wait  5`
+				Call  ContinueSpeech    ( .Npc:Self 00830004 00830001 00000000 00030101 ) % variable string ID
+				Call  ShowChoice    ( 001E0006 ) % Take a nap Not now
+				If  *Var0  ==  00000001
+					Call  ContinueSpeech    ( .Npc:Self 00830004 00830001 00000000 *Var9 ) % variable string ID
+					Return
+				EndIf
+			EndLoop
+			Wait  3`
+			Call  ContinueSpeech    ( .Npc:Self 00830004 00830001 00000000 00030101 ) % Are you sure?
+			Call  ShowChoice    ( 001E0052 ) % Take a nap Not now
+		EndIf
+		Call  ContinueSpeech        ( .Npc:Self 00830004 00830001 00000000 *VarA ) % variable string ID
+  144:  Call  SetPlayerJumpscale    (  1` )
+  154:  Call  DisablePlayerPhysics  ( .True )
+  164:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .True )
+  17C:  Call  $Function_802437AC ( )
+  188:  If  *Var4  !=  00000000
+  198:  	Exec  $Script_8024D444
+  1A4:  EndIf
+  1AC:  Call  $Function_80243A3C    ( *VarA )
+  1BC:  Wait  20`
+  1C8:  ExecWait  $Script_8025BB80
+  1D4:  Thread
+  1DC:  	Call  MakeLerp  ( 00000000 000000FF 0000003C .Easing:Linear )
+  1F8:  	Label  0
+  204:  	Call  UpdateLerp ( )
+  210:  	Call  $Function_802437F4    ( 00000003 *Var0 )
+  224:  	Wait  1`
+  230:  	If  *Var1  ==  00000001
+  240:  		Goto  0
+  24C:  	EndIf
+  254:  	Call  FullyRestoreHPandFP ( )
+  260:  	Call  FullyRestoreSP ( )
+  26C:  	If  *Var4  !=  00000000
+  27C:  		Exec  $Script_8024D3CC
+  288:  	EndIf
+  290:  	Call  $Function_80243A70    ( *VarA )
+  2A0:  	Wait  45`
+  2AC:  	Call  MakeLerp  ( 000000FF 00000000 0000001E .Easing:Linear )
+  2C8:  	Label  1
+  2D4:  	Call  UpdateLerp ( )
+  2E0:  	Call  $Function_802437F4    ( 00000000 *Var0 )
+  2F4:  	Wait  1`
+  300:  	If  *Var1  ==  00000001
+  310:  		Goto  1
+  31C:  	EndIf
+  324:  EndThread
+  32C:  Wait  105`
+  338:  ExecWait  $Script_8025BDDC
+  344:  Call  DisablePlayerPhysics  ( .False )
+  354:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .False )
+  36C:  Call  SpeakToPlayer ( .Npc:Self 00830004 00830001 00000000 *VarB ) % variable string ID
+  38C:  Call  $Function_802437CC ( )
+  398:  Return
+  3A0:  End
 }
 
 
@@ -1384,6 +1628,7 @@
 								Set   *Var0  00000102
 								ExecWait $Script_80248C34
 								Call  AddBadge  ( .Item:RightOn *Var0 )
+								Set  *GF_MAC01_FilthyCasual .True
 							EndIf
 						EndIf
 					Case == 1
@@ -1760,9 +2005,8 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
   368:  Call  SetPlayerAnimation    ( 0001002A )
   378:  Call  AdjustCam     ( .Cam:Default *Fixed[3.0]  -40`  -200`  15`  -15` )
   39C:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DE ) % But enough celebration for now. I come bearing imp ...
-  3BC:  Wait  3`
 		Set   *GB_StoryProgress  .Story:Ch1_ReturnedToToadTown
-		Call  DisablePlayerInput    ( .False )
+		Thread
   3C8:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
   3E0:  Call  InterpNpcYaw  ( .NpcID:Twink_28  270`  0` )
   3F8:  Call  GetNpcPos     ( .NpcID:Twink_28 *Var4 *Var5 *Var6 )
@@ -1779,6 +2023,11 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
   4B8:  	EndIf
   4C0:  EndLoop
   4C8:  Call  SetNpcPos ( .NpcID:Twink_28  0`  -1000`  0` )
+		EndThread
+		Call  PlaySound ( 0000000C )
+		Call  ShowMessageAtScreenPos    ( 001F00DA  160`  40` )   %Sidequests are available
+		Set   *ReturnPipeLock .False		%Turn off lock here instead of after Mr. Trooper
+		Call  DisablePlayerInput    ( .False )
   4E4:  Exec  $Script_80246770
   500:  Call  SetPlayerAnimation    ( 00010002 )
   520:  Return

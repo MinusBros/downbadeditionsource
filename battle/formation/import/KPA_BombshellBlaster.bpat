@@ -4,7 +4,7 @@
 % stats
 [Index]        49b 
 [Level]        55`b 
-[MaxHP]        36`b 
+[MaxHP]        40`b 
 [Coins]         5`b 
 [Flags]       00000000 
 [StatusTable] $StatusTable_8021865C_25 
@@ -38,7 +38,7 @@
 }
 
 #new:DefenseTable $DefenseTable_80218650_25 {
-.Element:Normal 5`
+.Element:Normal 6`
 .Element:Hammer 4`  %Diamond isn't unbreakable
 .Element:Blast  4`
 .Element:Throw  3`  
@@ -88,7 +88,7 @@
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_802187EC_25 )
    3C:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $KPA_BombshellBlaster 58` )
+			Call	$Function_SetLevel	( $KPA_BombshellBlaster 60` )
 		EndIf
    54:  Return
    5C:  End
@@ -128,8 +128,8 @@
   108:  		SetConst  *Var2  FFFFFFFF 
   118:  		ExecWait  DoBurnHit 
   124:  		SetConst  *Var0  00000001 
-  134:  		SetConst  *Var1  002E0103 
-  144:  		ExecWait  DoDeath 
+  134:  		SetConst  *Var1  002E0104 
+  144:  		ExecWait  $BombshellBlasterDie
   150:  		Return
   158:  	CaseOR  ==  00000017 % 17
   164:  	CaseOR  ==  .Event:Immune % 19
@@ -144,8 +144,8 @@
   1DC:  		ExecWait  DoNormalHit 
   1E8:  		Wait  10`
   1F4:  		SetConst  *Var0  00000001 
-  204:  		SetConst  *Var1  002E0103 
-  214:  		ExecWait  DoDeath 
+  204:  		SetConst  *Var1  002E0104 
+  214:  		ExecWait  $BombshellBlasterDie
   220:  		Return
   228:  	Case  ==  .Event:RecoverStatus % 31
   234:  		SetConst  *Var0  00000001 
@@ -166,6 +166,30 @@
   2FC:  Call  UseIdleAnimation  ( .Actor:Self .True )
   310:  Return
   318:  End
+}
+
+
+#new:Script  $BombshellBlasterDie
+{
+			Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_BlasterDead )
+			Call  SetAnimation  ( .Actor:Self 00000001 002E0104  )
+			Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+			Call  PlaySoundAtActor  ( .Actor:Self 00002068 )
+			Wait  14`
+			Call  PlaySoundAtActor  ( .Actor:Self 00002018 )
+  374:  	Call  PlayEffect    ( ~FX:Steam:FloatingRings *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  PlayEffect    ( ~FX:Explosion2 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			Call  DropStarPoints    ( .Actor:Self )
+			Wait  5`
+			Call  SetPartFlagBits   ( .Actor:Self 00000001 00020000 .True ) %Skip turn, no target, no health bar
+			Call  SetActorFlagBits  ( .Actor:Self 00660000 .True ) 
+			Return
+			End
+}
+
+#new:IdleAnimations $IdleAnimations_BlasterDead {
+.Status:Normal    002E0104
+.Status:End
 }
 
 #new:Script $Script_TakeTurn_80218B0C_25 {

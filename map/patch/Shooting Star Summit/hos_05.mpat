@@ -10,6 +10,53 @@
 #define .NpcID:WorldKammy_09        09
 #define .NpcID:StarRod_10           0A
 
+#import AutoSave.mpat
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:StarHaven
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  GetEntryID        ( *Var0 )
+   94:  If  *Var0  ==  ~Entry:Entry3
+   A4:  	Call  MakeNpcs  ( .False $NpcGroupList_802494C0 )
+   B8:  Else
+   C0:  	Call  MakeNpcs  ( .False $NpcGroupList_802494E4 )
+   D4:  EndIf
+   DC:  Exec  $Script_80245E0C
+   E8:  ExecWait  $Script_802459B0
+   F4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  10C:  Call  GetEntryID    ( *Var0 )
+  11C:  Switch  *Var0
+  128:  	Case  ==  ~Entry:Entry0
+  134:  		Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )
+  148:  		Set   *Var0  $Script_80245AEC
+  158:  		Exec  EnterWalk
+  164:  	Case  ==  ~Entry:Entry1
+  170:  		Thread
+  178:  			ExecWait  $Script_8024ED24
+  184:  			Exec  $Script_80245AEC
+  190:  		EndThread
+  198:  	Case  ==  ~Entry:Entry3
+  1A4:  		ExecWait  $Script_8024ACC0
+  1B0:  EndSwitch
+  1B8:  Exec  $Script_8024DBDC
+  1C4:  Call  EnableGroup   ( ~Model:g277 .False )
+  1D8:  Call  EnableGroup   ( ~Model:g279 .False )
+  1EC:  Call  GetEntryID    ( *Var0 )
+  1FC:  Switch  *Var0
+  208:  	Case  ~Entry:Entry0  to  ~Entry:Entry1
+  218:  		Exec  $Script_8024E00C
+  224:  EndSwitch
+  22C:  Return
+  234:  End
+}
+
+
 @	$Script_8024ACC0
 {
     0:  UseArray  $End[E0]
@@ -120,8 +167,10 @@
 		 10D0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
 		 10E4:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
 		 10FC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.5] )		
-				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000A0085 )
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000A0085 )		
 				Call  EnablePartnerAI ( )
+				Call  DisablePlayerInput    ( .False )
+				Exec  $AutoSave
 				Return
 		EndIf
 		Call  DisablePartnerAI  ( 00000000 )

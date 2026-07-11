@@ -48,9 +48,31 @@
    40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
    5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    70:  Call  SetCamEnabled     ( .Cam:Default .True )
-   84:  ExecWait  $Script_MakeEntities
    90:  Exec  $Script_EnterDoubleDoor_802407A4
-		Call  MakeNpcs  ( .True $NpcGroupList_Koopatrols )
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+			Call  EnableModel       ( ~Model:o1293 .False )
+			Call  EnableModel       ( ~Model:o1294 .False )
+			Call  EnableModel       ( ~Model:o1295 .False )
+			Call  EnableModel       ( ~Model:o1289 .False )
+			Call  EnableModel       ( ~Model:o1288 .False )
+			Call  EnableModel       ( ~Model:o1287 .False )
+			Thread
+				If  *GoombariusCommentsOnGoombates == .False
+					Wait  30`
+					Set  *GoombariusCommentsOnGoombates .True
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 0` 0013010C ) 
+				EndIf
+			EndThread
+		Else
+			ExecWait  $Script_MakeEntities
+			Call  MakeNpcs  ( .True $NpcGroupList_Koopatrols )
+			Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+	   2C:  Thread
+	   34:  	Wait  30`
+	   40:  	Call  802D5FA4  ( 00000005 )		
+	   50:  EndThread
+		EndIf
    9C:  Wait  1`
 		Call  GetEntryID    ( *Var0 )
 		If    *Var0  != ~Entry:Entry4
@@ -150,15 +172,22 @@
 
 @	$Script_80240390
 {
-    0:  Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
    1C:  Call  UseDoorSounds ( .DoorSounds:Metal )
-   2C:  Thread
-   34:  	Wait  30`
-
-   40:  	Call  802D5FA4  ( 00000005 )		
-   50:  EndThread
    58:  Return
    60:  End
+}
+
+
+@	$Script_80240724
+{
+		If  *EscapeSequence == .False
+			Bind  $Script_ExitWalk_80240580 .Trigger:FloorAbove ~Collider:deili3 00000001 00000000
+			Bind  $Script_ExitDoubleDoor_80240680 .Trigger:WallPressA ~Collider:tt4 00000001 00000000
+		EndIf
+		Bind  $Script_ExitDoubleDoor_802404DC .Trigger:WallPressA ~Collider:ttw 00000001 00000000
+   38:  Bind  $Script_ExitDoubleDoor_802405DC .Trigger:WallPressA ~Collider:tte 00000001 00000000
+   70:  Return
+   78:  End
 }
 
 

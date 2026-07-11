@@ -12,6 +12,8 @@
 }
 
 
+
+
 @	$Script_Main
 {
     0:  Set   *GB_WorldLocation  .Location:MtLavalava
@@ -74,6 +76,86 @@
 }
 
 
+@	$Script_Idle_80240E44
+{
+    0:  If  *GB_StoryProgress  <  .Story:Ch5_KoloradoRanAhead % 21
+   10:  	Label  0
+   1C:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   34:  	If  *Var0  <  FFFFFF83
+   44:  		Wait  1`
+   50:  		Goto  0
+   5C:  	EndIf
+   64:  	Set   *GB_StoryProgress  .Story:Ch5_KoloradoRanAhead
+   74:  	Call  SetNpcPos ( .Npc:Self  -280`  250`  -360` )
+   90:  	Call  SetNpcAnimation   ( .Npc:Self 00B60007 )
+   A4:  	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+   BC:  	If  *Var2  <  FFFFFEAC
+   CC:  		Set   *Var2  FFFFFEC0
+   DC:  	Else
+   E4:  		Set   *Var2  FFFFFE98
+   F4:  	EndIf
+   FC:  	Call  SetNpcSpeed   ( .Npc:Self *Fixed[10.0] )
+  110:  	Call  NpcMoveTo     ( .Npc:Self  185` *Var2  0` )
+  12C:  	Call  NpcFacePlayer ( .Npc:Self 00000004 )
+  140:  	Call  SetNpcAnimation   ( .Npc:Self 00B60001 )
+  154:  Else
+  15C:  	Call  SetNpcPos ( .Npc:Self  185`  250`  -340` )
+  178:  	Call  SetNpcYaw ( .Npc:Self  270` )
+  18C:  EndIf
+  194:  Loop
+  1A0:  	Wait  1`
+  1AC:  	Call  $Function_80240388    ( *Var0 )
+  1BC:  	If  *Var0  ==  00000020
+  1CC:  		BreakLoop
+  1D4:  	EndIf
+  1DC:  	If  *Var0  ==  0000002A
+  1EC:  		BreakLoop
+  1F4:  	EndIf
+  1FC:  EndLoop
+  204:  Call  DisablePlayerInput    ( .True )
+  214:  Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+  22C:  Call  UseSettingsFrom       ( .Cam:Default *Var3 *Var4 *Var5 )
+  248:  Call  SetPanTarget  ( .Cam:Default *Var3 *Var4 *Var5 )
+  264:  Call  SetCamDistance        ( .Cam:Default *Fixed[400.0] )
+  278:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-7.0] )
+  290:  Call  SetCamSpeed   ( .Cam:Default *Fixed[6.0] )
+  2A4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2BC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  2D0:  Call  SpeakToPlayer ( .Npc:Self 00B60009 00B60002 00000000 001000FD ) % Close! So very close!! My treasure-hunting senses  ...
+  2F0:  Wait  10`
+  2FC:  Set   *MapVar[A]  00000000
+  30C:  Thread
+  314:  	Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+  330:  	Call  SetNpcJumpscale   ( .Npc:Self *Fixed[2.0] )
+  344:  	Call  PlaySoundAtNpc    ( .Npc:Self 0000032C 00000000 )
+  35C:  	Call  NpcJump0  ( .Npc:Self *Var0 *Var1 *Var2  10` )
+  37C:  	Call  SetNpcYaw ( .Npc:Self  90` )
+  390:  	Set   *MapVar[A]  00000001
+  3A0:  EndThread
+  3A8:  Call  ContinueSpeech    ( .Npc:Self 00B60008 00B60001 00000000 001000FE ) % It's over here!!
+  3C8:  Loop
+  3D4:  	Wait  1`
+  3E0:  	If  *MapVar[A]  ==  00000001
+  3F0:  		BreakLoop
+  3F8:  	EndIf
+  400:  EndLoop
+  408:  Call  UseSettingsFrom       ( .Cam:Default *Var3 *Var4 *Var5 )
+  424:  Call  SetPanTarget  ( .Cam:Default  420`  250`  -350` )
+  440:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  454:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  46C:  Call  SetNpcAnimation       ( .Npc:Self 00B60006 )
+  480:  Call  SetNpcSpeed   ( .Npc:Self *Fixed[5.0] )
+  494:  Call  NpcMoveTo     ( .Npc:Self  530`  -360`  0` )
+  4B0:  Call  SetNpcPos     ( .Npc:Self  0`  -1000`  0` )
+  4D8:  Call  ResetCam      ( .Cam:Default *Fixed[3.0] )
+  4EC:  Set   *GB_StoryProgress  .Story:Ch5_KoloradoInTreasureRoom
+		Exec  $Script_SwitchPressed
+  4FC:  Call  DisablePlayerInput    ( .False )
+  50C:  Return
+  514:  End
+}
+
+
 #import EnterViaPipe.mpat
 
 @	$Script_MakeEntities
@@ -82,12 +164,6 @@
    28:  Call  AssignPanelFlag   ( *GF_KZN18_HiddenPanel )
    38:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80241AA8 80000000 )
    5C:  Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80241ACC 80000000 )
-		If  *GF_KZN18_BluePipe == .False
-			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
-			Call     AssignAreaFlag ( 00000003 )
-			Set      *MapVar[1] *Var[0] 
-			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
-		EndIf
 		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_ToYoshiVillage ~Index:*GF_KZN18_BluePipe 80000000 )
    80:  Return
    88:  End
@@ -123,10 +199,16 @@
    78:  End
 }
 
+
+@	$Script_ExitWalk_80240704
+{
+   [2C]  Call  GotoMap   ( "kzn_16" 00000001 )
+}
+
 #new:Script $Script_ToYoshiVillage
 {
-		Set *Var0 .True
-		Set     *Byte_Settings_BGM *Var0
+		Set   *Byte_Settings_BGM  1`	
+		Set   *Byte_Settings_BGM2 0`	%Activate Dragon Quest music
     0:  Call  GotoMap   ( $ASCII_BluePipe 00000004 ) % jan_03
    14:  Wait  100`
    20:  Return
@@ -141,7 +223,6 @@
 
 #new:Script $Script_SwitchPressed
 {
-    0:  Wait  8`
     C:  Call  PlaySound ( 0000208E )
    1C:  Set   *GF_KZN18_BluePipe  .True
    2C:  Unbind

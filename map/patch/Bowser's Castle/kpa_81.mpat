@@ -1,3 +1,77 @@
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_80241FE0 )
+   98:  If  *GB_KPA81_BowserDoorState  !=  00000000
+   A8:  	Call  GetEntryID    ( *Var0 )
+   B8:  	Switch  *Var0
+   C4:  		Case  ==  ~Entry:Entry0
+   D0:  			Bind  $Script_8024088C .Trigger:WallPressA 0000000B 00000001 00000000
+   EC:  		Case  ==  ~Entry:Entry2
+   F8:  			Bind  $Script_8024088C .Trigger:WallPressA 0000000B 00000001 00000000
+  114:  		Case  ==  ~Entry:Entry3
+  120:  	EndSwitch
+  128:  EndIf
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+			Set  *GB_KPA04_StatuePosition 0`
+		Else
+			Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+	   2C:  Thread
+	   34:  	Wait  30`
+	   40:  	Call  802D5FA4  ( 00000005 )
+	   50:  EndThread
+		EndIf
+  130:  Call  ParentColliderToModel ( 0000000B 00000027 )
+  144:  Switch  *GB_KPA04_StatuePosition
+  150:  	Case  ==  00000001
+  15C:  		Call  TranslateModel    ( 00000027 FFFFFFCE 00000000 00000000 )
+  178:  		Call  TranslateModel    ( 00000028 FFFFFFCE 00000000 00000000 )
+  194:  	Case  ==  00000002
+  1A0:  		Call  TranslateModel    ( 00000027 00000032 00000000 00000000 )
+  1BC:  		Call  TranslateModel    ( 00000028 00000032 00000000 00000000 )
+  1D8:  EndSwitch
+  1E0:  Call  UpdateColliderTransform   ( 0000000B )
+  1F0:  Call  EnableModel   ( 0000000C .False )
+  204:  Call  EnableModel   ( 00000052 .False )
+  218:  Call  EnableModel   ( 00000054 .False )
+  22C:  Call  EnableModel   ( 0000005A .False )
+  240:  Call  EnableModel   ( 0000005B .False )
+  254:  Call  EnableModel   ( 0000005C .False )
+  268:  Call  EnableModel   ( 0000005D .False )
+  27C:  Call  EnableModel   ( 0000005E .False )
+  290:  Call  EnableModel   ( 0000005F .False )
+  2A4:  Call  EnableModel   ( 00000060 .False )
+  2B8:  Call  EnableModel   ( 00000057 .False )
+  2CC:  Call  EnableModel   ( 00000055 .False )
+  2E0:  Call  EnableModel   ( 00000061 .False )
+  2F4:  Call  EnableModel   ( 00000062 .False )
+  308:  Call  EnableModel   ( 00000063 .False )
+  31C:  Call  EnableModel   ( 00000064 .False )
+  330:  Call  EnableModel   ( 00000065 .False )
+  344:  Call  EnableModel   ( 00000066 .False )
+  358:  Call  EnableModel   ( 00000067 .False )
+  36C:  Exec  $Script_EnterWalk_80240788
+  378:  Wait  1`
+  384:  Exec  $Script_802404C0
+  390:  Return
+  398:  End
+}
+
+
+@	$Script_802404C0
+{
+   1C:  Call  UseDoorSounds ( .DoorSounds:Metal )
+   58:  Return
+   60:  End
+}
+
+
 
 %Cutscene is shortened by a few seconds.
 %Music also doesn't stop to make it a
@@ -29,7 +103,8 @@
   184:  		Wait  120`
   1BC:  	EndThread
   1C4:  	Call  SpeakToPlayer ( .Npc:Self 00830001 00830001 00000000 00130008 ) % Blooooaa-huh?! You came back!? You escaped from th ...
-  1E4:  	Exec  $Script_802404C0
+			Set  *ReturnPipeLock  .False
+			Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
   1F0:  	Call  ResetCam      ( .Cam:Default *Fixed[90.0] )
   204:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
   21C:  	Call  DisablePlayerInput    ( .False )
@@ -169,6 +244,7 @@
   BA0:  		Wait  1`
   BAC:  	EndLoop
   BB4:  EndThread
+		Set  *ReturnPipeLock  .True
 		Call  SpeakToPlayer ( .Npc:Self 00830001 00830001 00000000 00130007 ) % Door taunt moved to here to make it funnier.
   BBC:  Wait  50`
   BC8:  Call  DisablePlayerInput    ( .False )
@@ -177,3 +253,5 @@
   BFC:  Return
   C04:  End
 }
+
+

@@ -1,6 +1,37 @@
 #define .NpcID:WorldKoopatrol_03    03
 #define .NpcID:WorldKoopatrol_04    04
 
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Switch  *GB_StoryProgress
+   7C:  	CaseOR  ==  .Story:Ch2_BeganPeachMission % FFFFFFCA
+   88:  	CaseOR  ==  .Story:Ch4_BeganPeachMission % 6
+   94:  	CaseOR  ==  .Story:Ch5_BeganPeachMission % 26
+   A0:  		Call  MakeNpcs  ( .False $NpcGroupList_802426D8 )
+   B4:  	EndCaseGroup
+   BC:  	Case  ==  .Story:Ch6_BeganPeachMission % 3A
+   C8:  		Call  $Function_80240028    ( 00000002 )
+   D8:  		Call  MakeNpcs  ( .False $NpcGroupList_802435A0 )
+   EC:  EndSwitch
+   F4:  ExecWait  $Script_8024476C
+  100:  If  *GB_StoryProgress  <  .Story:Ch8_ReachedPeachsCastle % 5F
+  110:  	Call  SetMusicTrack ( 00000000 .Song:PeachSneaking 00000000 00000008 )
+  12C:  EndIf
+  134:  Call  UseDoorSounds ( .DoorSounds:Basic )
+  144:  Bind  $Script_ExitSingleDoor2 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+  160:  Exec  $Script_EnterSingleDoor_802411C4
+  16C:  Wait  1`
+  178:  Return
+  180:  End
+}
+
+
 @	$Script_Idle_80241630
 {
     0:  Call  SetNpcAnimation   ( .Npc:Self 00580004 )
@@ -94,4 +125,37 @@
 {
   [1B4]  Wait  10`
   [1D8]  Wait  80`
+}
+
+
+@	$Script_ExitSingleDoor_802410D0
+{
+    0:  Set   *Var0  *GB_KKJ_LastPartner
+   10:  Call  $Function_80240000 ( )
+   1C:  Call  PlaySound ( 000000DC )
+   2C:  Call  GotoMapSpecial    ( $ASCII_80244800 00000005 0000000C ) % sbk_02
+   44:  Wait  100`
+   E4:  Return
+   EC:  End
+}
+
+
+#new:Script $Script_ExitSingleDoor2
+{
+   50:  SetGroup  0000001B
+   5C:  Call  DisablePlayerInput    ( .True )
+   6C:  Set   *Var0  ~Entry:Entry0
+   7C:  Set   *Var1  ~Collider:tte
+   8C:  Set   *Var2  ~Model:o43
+   9C:  Set   *Var3  .DoorSwing:Out % FFFFFFFF
+   AC:  Exec  ExitSingleDoor
+   B8:  Wait  17`
+		If  *GB_StoryProgress  ==  .Story:PostGame
+			Call  GotoMap   ( "kkj_01" 00000002 )
+		Else
+			Call  GotoMap   ( $ASCII_80244808 00000002 ) % kkj_11
+		EndIf
+   D8:  Wait  100`
+   E4:  Return
+   EC:  End
 }

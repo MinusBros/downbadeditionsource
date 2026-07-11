@@ -507,6 +507,10 @@
             ExecWait    $UseItem_StatusItem_SingleTarget
             Set *Var7 .True
         EndCaseGroup
+        CaseOR == .Item:RuinPowder % 1A2
+            ExecWait    $UseItem_StatusItem_MultiTarget
+            Set *Var7 .True
+        EndCaseGroup
         CaseOR == .Item:EarthQuake % 190
             ExecWait    $UseItem_OffensiveItem_MultiTarget
             Set *Var7 .True
@@ -672,16 +676,30 @@
                 Call    $WriteAddress ( 8010F290 0 *Var1 5 .False ) % new FP
             Wait    15`
             Call    UseBattleCamPreset    ( 00000002 )
-	  CaseOR == .Item:HealthySalad
-           % this is actually just Super Soda's code but pasted here
+        CaseOR == .Item:FreshJuice 
+        CaseOR == .Item:HealthySalad
+        CaseOR == .Item:SpaceFood
+            % this is actually just Super Soda's code but pasted here
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Call  GetItemPower ( *Var9 *Var5 *Var6 )
             Add   *Var0  00000000
             Add   *Var1  00000023
-                   Call  FXRecoverFP    ( *Var0 *Var1 *Var2 *Var6 )
-                Call  $RecoverFP    ( *Var6 )
-				Call  FXRecoverHP    ( *Var0 *Var1 *Var2 *Var6 )
-				Call    $Heal_PlayerTeam ( *Var4 *Var5 )
+            Switch *Var9
+                CaseOR == .Item:FreshJuice % 1AB
+                CaseOR == .Item:HealthySalad % 1AD
+                    Call  FXRecoverFP    ( *Var0 *Var1 *Var2 *Var6 )
+                    If *Var4 < .Actor:Enemy0 % Player team
+                        Call  $RecoverFP    ( *Var6 )
+                    EndIf
+                EndCaseGroup
+                Case == .Item:SpaceFood % 1BE
+                    Call  FXRecoverHP    ( *Var0 *Var1 *Var2 *Var6 )
+                    If *Var4 >= .Actor:Enemy0
+                        Call    $HealActor ( *Var4 *Var5 )
+                    Else
+                        Call    $Heal_PlayerTeam ( *Var4 *Var5 )
+                    EndIf
+            EndSwitch
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Add   *Var1  00000019
             Call  802D7520      ( *Var0 *Var1 *Var2 *Var6 )
@@ -699,13 +717,17 @@
                         Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:ThumbsUp )
                         Wait  30`
                         Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+                    Default
+                        Wait  30`
                 EndSwitch
             EndIf
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Call  802D75D8      ( *Var0 *Var1 *Var2 *Var6 )
-  1D4:  	Call  InitTargetIterator ( )
-  1E0:  	Call  GetOwnerTarget        ( *Var0 *Var1 )
-            Call  $Function_ClearDebuffs    ( 00000000 )
+            Call  GetOwnerID ( *Var0 )
+            If *Var0 < .Actor:Enemy0 % Only player team
+                Call  InitTargetIterator
+            EndIf
+            Call  $Function_ClearDebuffs    ( *Var4 )
             Wait  20`
 			EndCaseGroup
 	EndSwitch
@@ -713,6 +735,64 @@
     Return
     End
 }
+
+
+
+
+#new:Script:Battle $UseItem_StatusItem_MultiTarget
+{
+    Call  GetOwnerID ( *Var0 )
+    If *Var0 < .Actor:Enemy0 % only player team
+        Call  InitTargetIterator
+    EndIf
+    Switch *Var9
+        Case == .Item:RuinPowder % 1A2
+            Call  UseBattleCamPreset    ( 00000002 ) % reset camera
+            Call  MoveBattleCamOver ( 15` )
+            Wait  3`
+            % Hit targets
+            Label RP0
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  ItemCheckHit      ( *Var0 ~Flags:DamageType:NoContact 00000000 *Var0 00000000 )
+            If  *Var0  ==  .HitResult:Miss % 6
+                Goto  RP1
+            EndIf
+            Call  SetGoalToTarget   ( .Actor:Self )
+            Call  GetItemPower      ( .Item:RuinPowder *Var0 *Var1 )
+            Call  MakeStatusField   ( *Var0 00040000 00000064 *Var0 )
+            Call  80252B3C  ( *Var0 50000000 *Var0 00000000 00000020 ) % ItemAfflictEnemy
+            % inflict status
+            Call  RandInt ( 100` *Var0 )
+            If *Var0 <= 50`
+                Call  GetOwnerTarget ( *Var0 .False )
+                Call  $Function_TryToInflictStatus ( *Var0 .Status:Dizzy 3 )
+            EndIf
+            Label  RP1
+            Call  GetOwnerID ( *Var2 )
+            If *Var2 >= .Actor:Enemy0 % Enemies
+            Else % Player team
+                Call  ChooseNextTarget  ( .Iter:Next *Var0 )
+                If  *Var0  !=  FFFFFFFF
+                    Goto  RP0
+                EndIf
+            EndIf
+            Call  GetOwnerTarget        ( *Var7 .False )
+            Call  GetOwnerID ( *Var4 ) % The actor didn't used the item on himself?
+            If *Var7 != *Var4
+                Call  UseIdleAnimation  ( *Var7 .False )
+            EndIf
+            Switch *Var7
+                Case == .Actor:Player
+                    Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+                Default
+            EndSwitch
+            Wait  30`
+    EndSwitch
+    ExecWait $ReturnToHomeMario
+    Return
+    End
+}
+
 
 
 % ExecWait  802852B8 ( )  %Defend Command?
@@ -4154,6 +4234,10 @@ ADDIU	V0, R0, 2
   1B4:  JR        RA
   1B8:  ADDIU     SP, SP, 40
 }
+
+
+
+
 
 
 #new:IntTable $IntTable_80228748_10 {

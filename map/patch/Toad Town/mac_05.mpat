@@ -25,6 +25,8 @@
 
 @	$Script_Main
 {
+		Set   *Byte_Settings_BGM  1`	
+		Set   *Byte_Settings_BGM2 1`	%Activate Superstar Saga music
     0:  Switch  *GB_StoryProgress
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Exec  $DarknessFollow
@@ -90,6 +92,26 @@
   338:  Return
   340:  End
 }
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity        ( .Entity:SavePoint ~Vec4d:Entity80244400 80000000 )
+   24:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity80244424 ~Model:o106 80000000 )
+   4C:  Call  AssignPanelFlag   ( *GF_MAC05_HiddenPanel )
+   5C:  Call  MakeEntity        ( .Entity:MultiCoinBrick ~Vec4d:Entity8024445C 80000000 )
+   80:  Call  AssignBlockFlag   ( *GF_MAC05_MultiCoinBrick )
+   90:  Bind  $Script_80244370 .Trigger:WallPressA ~Collider:sign 00000001 00000000
+   AC:  Bind  $Script_802443B8 .Trigger:WallPressA ~Collider:o154 00000001 00000000
+		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
+			Call  MakeItemEntity    ( .Item:HopeFragment ~Vec3d:HopeFragment .ItemSpawnMode:Fixed_NeverVanish *MAC05_HopeFragment )
+		EndIf
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *MAC05_NewStarPiece )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece2 .ItemSpawnMode:Fixed_NeverVanish *MAC05_NewStarPiece2 )
+   C8:  Return
+   D0:  End
+}
+
 
 %Toad by the sea (Toad_13)
 @	$Script_Interact_8024CD18
@@ -300,6 +322,7 @@
 %Make Kolorado more expressive
 @	$Script_Interact_8024BA44
 {
+		Call  PushSong      ( .Song:TheEnd 1` )
     0:  Switch  *GB_StoryProgress
     C:  	Case  <  .Story:Ch5_WhaleMouthOpen % 8
    18:  		If  *AreaFlag[038]  ==  .False
@@ -324,8 +347,10 @@
   14C:  ExecWait  $Script_80248164
   158:  ExecWait  $Script_802481B4
   164:  If  *VarC  !=  00000000
+			Call  PopSong ( )
   174:  	Return
   17C:  EndIf
+		Call  PopSong ( )
   184:  Return
   18C:  End
 }
@@ -347,6 +372,7 @@
    70:  	If  *AreaFlag[03D]  ==  .False
    80:  		Call  SpeakToPlayer ( .Npc:Self 008E0002 008E0001 00000000 00070070 ) % I'm Simon. I'm rhymin'. To folks who know it, I'm  ...
    A0:  		Set   *AreaFlag[03D]  .True
+				Set   *AreaFlag[03E]  .True
    B0:  	Else
    B8:  		Call  SpeakToPlayer ( .Npc:Self 008E0002 008E0001 00000000 00070071 ) % If my Lyrics really rock, our Pop Diva will be cur ...
    D8:  	EndIf

@@ -41,15 +41,211 @@ ORI		V0, R0, 2
   [170]  Wait  16`
 }
 
+%Altered Smack script to account for Power Plus P
 @	$Script_80238F58
 {
-  [394]  Wait  10`
-  [580]  	Wait  15`
-  [5BC]  	Wait  1`
-  [6C4]  Wait  1`
-  [908]  Wait  1`
-  [A6C]  Wait  1`
-  [B30]  Wait  1`
+    0:  Call  LoadActionCommand ( .ActionCommand:Smack )
+   10:  Call  802A9000 ( )
+   1C:  Call  80269344  ( 00000000 )
+   2C:  Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+   44:  Switch  *Var2
+   50:  	Case  ==  000000B3
+   5C:  		Call  SetupMashMeter    ( 00000004 00000028 00000046 00000063 00000064 00000000 )
+   80:  		Set   *VarB  0000003C
+   90:  		Set   *VarC  00000001
+   A0:  	Case  ==  000000B4
+   AC:  		Call  SetupMashMeter    ( 00000005 00000023 0000003C 00000050 00000063 00000064 )
+   D0:  		Set   *VarB  0000003C
+   E0:  		Set   *VarC  00000001
+   F0:  	Case  ==  000000B5
+   FC:  		Call  SetupMashMeter    ( 00000005 00000023 0000003C 00000050 00000063 00000064 )
+  120:  		Set   *VarB  0000003C
+  130:  		Set   *VarC  00000001
+  140:  EndSwitch
+  148:  Wait  9`
+  154:  Thread
+  15C:  	Wait  10`
+  168:  	Set   *Var0  *VarB
+  178:  	Add   *Var0  FFFFFFFD
+  188:  	Call  802A917C  ( 00000000 *Var0 00000003 00000000 )
+  1A4:  	Call  SetBattleFlagBits ( 00004000 .False )
+  1B8:  EndThread
+  1C0:  Call  PlaySoundAtActor  ( .Actor:Partner .Sound:BooVanish )
+  1D4:  Call  SetPartAlpha      ( .Actor:Partner FFFFFFFF 00000037 )
+  1EC:  Call  InitTargetIterator ( )
+  1F8:  Call  SetGoalToTarget   ( .Actor:Partner )
+  208:  Thread
+  210:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0003 )
+  228:  	Call  AddGoalPos    ( .Actor:Partner  -15`  -10`  0` )
+  244:  	Call  FlyToGoal     ( .Actor:Partner  15`  0` .Easing:CosInOut )
+  260:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  278:  EndThread
+		Thread
+	  280:  Call  UseBattleCamPreset    ( 0000000D )
+	  290:  Call  BattleCamTargetActor  ( .Actor:Self )
+	  2A0:  Call  SetBattleCamZoom      (  180` )
+	  2B0:  Call  MoveBattleCamOver     (  30` )
+	  2C0:  Call  SetBattleCamOffsetZ   (  9` )
+		EndThread
+  2D0:  Call  8024EDA4 ( )
+  2DC:  Wait  12`
+  2E8:  Call  PlaySoundAtActor      ( .Actor:Partner .Sound:BooAppear )
+  2FC:  Set   *Var0  00000037
+  30C:  Loop  00000005
+  318:  	Add   *Var0  00000028
+  328:  	Call  SetPartAlpha  ( .Actor:Partner FFFFFFFF *Var0 )
+  340:  	Wait  1`
+  34C:  EndLoop
+  354:  Call  SetPartAlpha  ( .Actor:Partner FFFFFFFF 000000FF )
+  36C:  Call  8024E664      ( 00000013 )
+  37C:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0005 )
+  394:  Wait  9`
+  3A0:  Set   *VarF  00000000
+  3B0:  Set   *VarE  00000000
+  3C0:  Set   *VarD  00000000
+  3D0:  Set   *Flag[00]  .False
+  3E0:  Call  InitTargetIterator ( )
+  3EC:  Call  SetGoalToTarget   ( .Actor:Self )
+  3FC:  Loop  0000000F
+  408:  	Call  SetActorDispOffset    ( .Actor:Partner *Fixed[0.5] 00000000 00000000 )
+  424:  	Wait  1`
+  430:  	Call  SetActorDispOffset    ( .Actor:Partner *Fixed[-0.5] 00000000 00000000 )
+  44C:  	Wait  1`
+  458:  EndLoop
+  460:  Call  GetActionCommandResult    ( *VarB )
+  470:  Call  80269600  ( *VarD )
+  480:  Label  0
+  48C:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000014 00000000  1` 00000010 )
+  4B0:  If  *Var0  ==  .HitResult:Miss % 6
+  4C0:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0007 )
+  4D8:  	Call  CloseActionCommandInfo ( )
+  4E4:  	Set   *Var0  00000000
+  4F4:  	Loop  00000014
+  500:  		Add   *Var0  FFFFFFD3
+  510:  		Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  524:  		Wait  1`
+  530:  	EndLoop
+  538:  	Call  SetActorYaw   ( .Actor:Partner  0` )
+  54C:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D001A )
+  564:  	Call  AddActorDecoration    ( .Actor:Self 00000000 00000000 .Decoration:SeeingStars )
+  580:  	Wait  15`
+  58C:  	Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+  5A4:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  5BC:  	Wait  5`
+  5C8:  	ExecWait  $Script_80238D4C
+  5D4:  	Return
+  5DC:  EndIf
+  5E4:  Add   *VarE  00000001
+  5F4:  If  *VarE  >  *VarD
+  604:  	Goto  2
+  610:  EndIf
+  618:  Call  SetActorScale ( .Actor:Partner *Fixed[1.4] *Fixed[1.4] *Fixed[1.0] )
+  634:  If  *Flag[00]  ==  .False
+  644:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0007 )
+  65C:  	Set   *Flag[00]  .True
+  66C:  	Call  80269EAC      ( 0000000A )
+  67C:  Else
+  684:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0008 )
+  69C:  	Set   *Flag[00]  .False
+  6AC:  	Call  80269EAC      ( 0000000B )
+  6BC:  EndIf
+  6C4:  Wait  1`
+  6D0:  Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  6EC:  Thread
+  6F4:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.5] )
+  710:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[1.5] )
+  72C:  	Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.5] )
+  748:  	Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.2] )
+  764:  EndThread
+  76C:  If  *VarE  ==  00000001
+  77C:  	Call  $Function_80238014 ( )
+  788:  	Call  AddBattleCamZoom  ( *Var0 )
+  798:  	Call  MoveBattleCamOver (  5` )
+  7A8:  Else
+  7B0:  	Call  AddBattleCamZoom  (  25` )
+  7C0:  	Call  MoveBattleCamOver (  5` )
+  7D0:  EndIf
+  7D8:  Call  SetActorSounds    ( .Actor:Partner .ActorSound:Hurt 00002019 00000000 )
+  7F4:  If  *VarE  ==  00000001
+ 				Call  $IsBadgeEquippedScriptVer ( 0000018C *Var9 )	%Power Plus P
+				If  *Var9 == 1`
+					Set   *VarC 1`
+				EndIf
+  804:  	If  *VarB  >  00000063
+  814:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000005 00000000 *VarC 00000050 )
+  838:  	Else
+  840:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000005 00000000 *VarC 00000010 )
+  864:  	EndIf
+  86C:  	Goto  1
+  878:  Else
+ 				Call  $IsBadgeEquippedScriptVer ( 0000018C *Var9 )	%Power Plus P
+				If  *Var9 == 1`
+					Set   *VarC 0`
+				EndIf
+  880:  	If  *VarB  >  00000063
+  890:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000005 00000000 *VarC 00000040 )
+  8B4:  	Else
+  8BC:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000005 00000000 *VarC 00000000 )
+  8E0:  	EndIf
+  8E8:  	Goto  1
+  8F4:  EndIf
+  8FC:  Label  1
+  908:  Wait  1`
+  914:  Add   *VarF  0000000A
+  924:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  93C:  Goto  0
+  948:  Label  2
+  954:  If  *VarE  ==  00000001
+  964:  	Call  $Function_80238014 ( )
+  970:  	Call  AddBattleCamZoom  ( *Var0 )
+  980:  	Call  MoveBattleCamOver (  5` )
+  990:  Else
+  998:  	Call  AddBattleCamZoom  (  25` )
+  9A8:  	Call  MoveBattleCamOver (  5` )
+  9B8:  EndIf
+  9C0:  Call  SetActorScale ( .Actor:Partner *Fixed[1.4] *Fixed[1.4] *Fixed[1.0] )
+  9DC:  If  *Flag[00]  ==  .False
+  9EC:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0007 )
+  A04:  	Set   *Flag[00]  .True
+  A14:  	Call  80269EAC      ( 0000000C )
+  A24:  Else
+  A2C:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0008 )
+  A44:  	Set   *Flag[00]  .False
+  A54:  	Call  80269EAC      ( 0000000D )
+  A64:  EndIf
+  A6C:  Wait  1`
+  A78:  Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  A94:  Call  SetActorSounds    ( .Actor:Partner .ActorSound:Hurt 00002019 00000000 )
+  AB0:  Call  GetActionCommandResult    ( *Var0 )
+  AC0:  Switch  *Var0
+  ACC:  	Case  >  00000063
+ 				Call  $IsBadgeEquippedScriptVer ( 0000018C *Var9 )	%Power Plus P
+				If  *Var9 == 1`
+					Set   *VarC 0`
+				EndIf
+  AD8:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000005 00000000 *VarC 00000060 )
+  AFC:  	Default
+ 				Call  $IsBadgeEquippedScriptVer ( 0000018C *Var9 )	%Power Plus P
+				If  *Var9 == 1`
+					Set   *VarC 0`
+				EndIf
+  B04:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:0 00000005 00000000 *VarC 00000020 )
+  B28:  EndSwitch
+  B30:  Wait  1`
+  B3C:  Switch  *Var0
+  B48:  	CaseOR  ==  .HitResult:Hit % 0
+  B54:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  B60:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  B78:  		ExecWait  $Script_80238D4C
+  B84:  	EndCaseGroup
+  B8C:  	CaseOR  ==  00000001 % 1
+  B98:  	CaseOR  ==  00000003 % 3
+  BA4:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  BBC:  		ExecWait  $Script_80238BB8
+  BC8:  	EndCaseGroup
+  BD0:  EndSwitch
+  BD8:  Return
+  BE0:  End
 }
 
 
@@ -1029,4 +1225,249 @@ ORI		V0, R0, 2
 					EndIf
 					Return
 					End
+}
+
+
+
+
+
+%Fan Smack now does Love damage
+
+@	$Script_8023AF38
+{
+    0:  Call  LoadActionCommand ( .ActionCommand:Smack )
+   10:  Call  802A9000 ( )
+   1C:  Call  80269344  ( 00000000 )
+   2C:  Call  SetupMashMeter    ( 00000003 00000028 0000004B 00000064 00000000 00000000 )
+   50:  Set   *VarB  0000005A
+   60:  Set   *VarC  00000003
+   70:  Wait  9`
+   7C:  Thread
+   84:  	Wait  10`
+   90:  	Set   *Var0  *VarB
+   A0:  	Add   *Var0  FFFFFFFD
+   B0:  	Call  802A917C  ( 00000000 *Var0 00000003 00000001 )
+   CC:  	Call  SetBattleFlagBits ( 00004000 .False )
+   E0:  EndThread
+   E8:  Call  PlaySoundAtActor  ( .Actor:Partner .Sound:BooVanish )
+   FC:  Call  SetPartAlpha      ( .Actor:Partner FFFFFFFF 00000037 )
+  114:  Call  InitTargetIterator ( )
+  120:  Call  SetGoalToTarget   ( .Actor:Partner )
+  130:  Thread
+  138:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0003 )
+  150:  	Call  AddGoalPos    ( .Actor:Partner  -25`  -10`  0` )
+  16C:  	Call  FlyToGoal     ( .Actor:Partner  15`  0` .Easing:CosInOut )
+  188:  EndThread
+  190:  Call  UseBattleCamPreset    ( 0000000D )
+  1A0:  Call  BattleCamTargetActor  ( .Actor:Self )
+  1B0:  Call  SetBattleCamZoom      (  180` )
+  1C0:  Call  MoveBattleCamOver     (  30` )
+  1D0:  Call  SetBattleCamOffsetZ   (  9` )
+  1E0:  Call  8024EDA4 ( )
+		Wait  14`
+  1F8:  Call  PlaySoundAtActor      ( .Actor:Partner .Sound:BooAppear )
+  20C:  Set   *Var0  00000037
+  21C:  Loop  00000005
+  228:  	Add   *Var0  00000028
+  238:  	Call  SetPartAlpha  ( .Actor:Partner FFFFFFFF *Var0 )
+  250:  	Wait  1`
+  25C:  EndLoop
+  264:  Call  SetPartAlpha  ( .Actor:Partner FFFFFFFF 000000FF )
+  27C:  Call  8024E664      ( 00000013 )
+  28C:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0011 )
+  2A4:  Wait  20`
+  2B0:  Set   *VarF  00000000
+  2C0:  Set   *VarE  00000000
+  2D0:  Set   *VarD  00000000
+  2E0:  Set   *Flag[00]  .False
+  2F0:  Call  InitTargetIterator ( )
+  2FC:  Call  SetGoalToTarget   ( .Actor:Self )
+  30C:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0012 )
+  324:  Loop  0000001E
+  330:  	Call  SetActorDispOffset    ( .Actor:Partner *Fixed[0.5] 00000000 00000000 )
+  34C:  	Wait  1`
+  358:  	Call  SetActorDispOffset    ( .Actor:Partner *Fixed[-0.5] 00000000 00000000 )
+  374:  	Wait  1`
+  380:  EndLoop
+  388:  Call  GetActionCommandResult    ( *VarB )
+  398:  Call  80269600  ( *VarD )
+		Sub  *VarD 2`
+  3A8:  Label  0
+  3B4:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:NoContact 00000095 00000000  1` 00000010 )
+  3D8:  If  *Var0  ==  .HitResult:Miss % 6
+  3E8:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D000A )
+  400:  	Call  CloseActionCommandInfo ( )
+  40C:  	Set   *Var0  00000000
+  41C:  	Loop  0000000F
+  428:  		Add   *Var0  FFFFFFD3
+  438:  		Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  44C:  		Wait  1`
+  458:  	EndLoop
+  460:  	Loop  0000000F
+  46C:  		Add   *Var0  FFFFFFA6
+  47C:  		Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  490:  		Wait  1`
+  49C:  	EndLoop
+  4A4:  	Call  SetActorYaw   ( .Actor:Partner  0` )
+  4B8:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D001A )
+  4D0:  	Call  AddActorDecoration    ( .Actor:Self 00000000 00000000 .Decoration:SeeingStars )
+  4EC:  	Wait  40`
+  4F8:  	Call  RemoveActorDecoration ( .Actor:Self 00000000 00000000 )
+  510:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  528:  	Wait  10`
+  534:  	ExecWait  $Script_80238D4C
+  540:  	Return
+  548:  EndIf
+  550:  Add   *VarE  00000001
+  560:  If  *VarE  >  *VarD
+  570:  	Goto  2
+  57C:  EndIf
+  584:  Call  SetActorScale ( .Actor:Partner *Fixed[1.4] *Fixed[1.4] *Fixed[1.0] )
+  5A0:  If  *Flag[00]  ==  .False
+  5B0:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D000A )
+  5C8:  	Set   *Flag[00]  .True
+  5D8:  	Call  80269EAC      ( 0000000E )
+  5E8:  Else
+  5F0:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D000B )
+  608:  	Set   *Flag[00]  .False
+  618:  	Call  80269EAC      ( 0000000F )
+  628:  EndIf
+  630:  Wait  2`
+  63C:  Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  658:  Thread
+  660:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.5] )
+  67C:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[1.5] )
+  698:  	Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.5] )
+  6B4:  	Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.2] )
+  6D0:  EndThread
+  6D8:  If  *VarE  ==  00000001
+  6E8:  	Call  $Function_80238014 ( )
+  6F4:  	Call  AddBattleCamZoom  ( *Var0 )
+  704:  	Call  MoveBattleCamOver (  5` )
+  714:  Else
+  71C:  	Call  AddBattleCamZoom  (  25` )
+  72C:  	Call  MoveBattleCamOver (  5` )
+  73C:  EndIf
+  744:  Call  GetGoalPos        ( .Actor:Partner *Var0 *Var1 *Var2 )
+  760:  Call  PlayEffect        ( ~FX:Confetti:Burst3 *Var0 *Var1 *Var2 *Fixed[1.0] 00000014 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7A4:  Call  SetActorSounds    ( .Actor:Partner .ActorSound:Hurt 0000201A 00000000 )
+  7C0:  If  *VarE  ==  00000001
+  7D0:  	If  *VarB  >  00000063
+  7E0:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Cosmic|Smash 00000095 00000000 *VarC 00000050 )
+  804:  	Else
+  80C:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Cosmic|Smash 00000095 00000000 *VarC 00000010 )
+  830:  	EndIf
+  838:  	Goto  1
+  844:  Else
+  84C:  	If  *VarB  >  00000063
+  85C:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Cosmic|Smash 00000095 00000000 *VarC 00000040 )
+  880:  	Else
+  888:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Cosmic|Smash 00000095 00000000 *VarC 00000000 )
+  8AC:  	EndIf
+  8B4:  	Goto  1
+  8C0:  EndIf
+  8C8:  Label  1
+  8D4:  If  *VarE  ==  00000001
+  8E4:  	Set   *Var0  00000000
+  8F4:  	Loop  00000008
+  900:  		Add   *Var0  00000090
+  910:  		Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  924:  		Wait  1`
+  930:  	EndLoop
+  938:  Else
+  940:  	Set   *Var0  00000000
+  950:  	Loop  00000008
+  95C:  		Sub   *Var0  00000090
+  96C:  		Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  980:  		Wait  1`
+  98C:  	EndLoop
+  994:  EndIf
+  99C:  Call  SetActorYaw   ( .Actor:Partner  0` )
+  9B0:  Add   *VarF  0000000A
+  9C0:  Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  9D8:  Goto  0
+  9E4:  Label  2
+  9F0:  Thread
+  9F8:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[0.5] )
+  A14:  	Call  ShakeCam  ( .Cam:Battle 00000000  2` *Fixed[1.5] )
+  A30:  	Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.5] )
+  A4C:  	Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.2] )
+  A68:  EndThread
+  A70:  If  *VarE  ==  00000001
+  A80:  	Call  $Function_80238014 ( )
+  A8C:  	Call  AddBattleCamZoom  ( *Var0 )
+  A9C:  	Call  MoveBattleCamOver (  5` )
+  AAC:  Else
+  AB4:  	Call  AddBattleCamZoom  (  25` )
+  AC4:  	Call  MoveBattleCamOver (  5` )
+  AD4:  EndIf
+  ADC:  Call  SetActorScale ( .Actor:Partner *Fixed[1.4] *Fixed[1.4] *Fixed[1.0] )
+  AF8:  If  *Flag[00]  ==  .False
+  B08:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D000A )
+  B20:  	Set   *Flag[00]  .True
+  B30:  	Call  80269EAC      ( 00000010 )
+  B40:  Else
+  B48:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D000B )
+  B60:  	Set   *Flag[00]  .False
+  B70:  	Call  80269EAC      ( 00000011 )
+  B80:  EndIf
+  B88:  Wait  2`
+  B94:  Call  SetActorScale ( .Actor:Partner *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+  BB0:  Call  SetActorSounds    ( .Actor:Partner .ActorSound:Hurt 0000201A 00000000 )
+  BCC:  Call  GetActionCommandResult    ( *Var0 )
+  BDC:  Switch  *Var0
+  BE8:  	Case  >  00000063
+  BF4:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Cosmic|Smash 00000095 00000000 *VarC 00000060 )
+  C18:  	Default
+  C20:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Cosmic|Smash 00000095 00000000 *VarC 00000020 )
+  C44:  EndSwitch
+  C4C:  Thread
+  C54:  	If  *VarE  ==  00000001
+  C64:  		Set   *Var0  00000000
+  C74:  		Loop  00000008
+  C80:  			Add   *Var0  00000090
+  C90:  			Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  CA4:  			Wait  1`
+  CB0:  		EndLoop
+  CB8:  	Else
+  CC0:  		Set   *Var0  00000000
+  CD0:  		Loop  00000008
+  CDC:  			Sub   *Var0  00000090
+  CEC:  			Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  D00:  			Wait  1`
+  D0C:  		EndLoop
+  D14:  	EndIf
+  D1C:  	If  *VarE  ==  00000001
+  D2C:  		Set   *Var0  00000000
+  D3C:  		Loop  00000008
+  D48:  			Add   *Var0  00000048
+  D58:  			Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  D6C:  			Wait  1`
+  D78:  		EndLoop
+  D80:  	Else
+  D88:  		Set   *Var0  00000000
+  D98:  		Loop  00000008
+  DA4:  			Sub   *Var0  00000048
+  DB4:  			Call  SetActorYaw   ( .Actor:Partner *Var0 )
+  DC8:  			Wait  1`
+  DD4:  		EndLoop
+  DDC:  	EndIf
+  DE4:  	Call  SetActorYaw   ( .Actor:Partner  0` )
+  DF8:  EndThread
+  E00:  Switch  *Var0
+  E0C:  	CaseOR  ==  00000000
+  E18:  	CaseOR  ==  00000002
+  E24:  		Wait  10`
+  E30:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  E48:  		ExecWait  $Script_80238D4C
+  E54:  	EndCaseGroup
+  E5C:  	CaseOR  ==  00000001
+  E68:  	CaseOR  ==  00000003
+  E74:  		Wait  10`
+  E80:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000D0001 )
+  E98:  		ExecWait  $Script_80238BB8
+  EA4:  	EndCaseGroup
+  EAC:  EndSwitch
+  EB4:  Return
+  EBC:  End
 }

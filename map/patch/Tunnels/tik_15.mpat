@@ -1,19 +1,12 @@
+#define .NpcID:RipCheato_01         01
+
+
 %Rip Cheato can now give you a third Power Plus
 %instead of Bump Attack.
 %He also costs 69 coins instead of 64 lol.
 
 
 #import AutoSave.mpat
-
-@	$Script_Interact_80242824
-{
-  [1C0]  		Call  AddCoin   ( FFFFFFBB )
-  [244]  		Call  AddCoin   ( FFFFFFBB )
-  [280]  		Set   *Var0  000000E2
-  [2AC]  		Call  AddBadge  ( .Item:PowerPlusX *Var0 )
-  [328]  		Call  AddCoin   ( FFFFFFBB )
-}
-
 
 @	$Script_Main_EnterWalk
 {
@@ -26,6 +19,7 @@
    84:  Call  MakeNpcs  ( .True $NpcGroupList_80242E58 )
    98:  Exec  $Script_80240B70
    A4:  Exec  $Script_802426C8
+		ExecWait  $Script_MakeEntities
    B0:  Call  EnableTexPanning  ( ~Model:mizu .True )
    C4:  Thread
    CC:  	Set   *Var0  00000002
@@ -55,6 +49,150 @@
   22C:  EndIf
   234:  Wait  1`
 		Exec  $AutoSave
+		If  *TIK15_StarPiece == .False
+			Exec  $Script_MerchantBlurb
+		EndIf
   240:  Return
   248:  End
+}
+
+
+#new:Script  $Script_MakeEntities
+{
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:StarPiece .ItemSpawnMode:Fixed_NeverVanish *TIK15_StarPiece )
+		Call  MakeEntity        ( .Entity:MultiCoinBrick ~Vec4d:Brick 80000000 )
+		Call  AssignBlockFlag   ( *TIK15_MultiCoinBrick )
+		Return
+		End
+}
+
+
+
+#new:Script  $Script_MerchantBlurb
+{
+				Label 0
+				If  *TIK15_StarPiece  == .False
+					Wait  1`
+					Goto  0
+				Else
+				EndIf
+				Wait  30`
+				Call  CloseMessage ( )
+				Wait  2`
+				Call  DisablePlayerInput    ( .True )
+				Call  SpeakToPlayer ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 0008004D )
+				Call  DisablePlayerInput    ( .False )
+				Return
+				End
+}
+
+
+@	$Script_Interact_80242824
+{
+    0:  If  *AreaFlag[002]  ==  .False
+   10:  	If  *GF_TIK15_Met_RipCheato  ==  .False
+   20:  		Set   *Var2  00080001
+   30:  		Set   *GF_TIK15_Met_RipCheato  .True
+   40:  	Else
+   48:  		Set   *Var2  00080002
+   58:  	EndIf
+   60:  	Set   *AreaFlag[002]  .True
+   70:  Else
+   78:  	Set   *Var2  00080003
+   88:  EndIf
+		Set   *Var6  69`
+		If    *GB_TIK15_RipCheato_PurchaseCount != 0`
+			Mul   *Var6  *GB_TIK15_RipCheato_PurchaseCount
+			Add   *Var6  69`
+		EndIf
+		Call  SetMessageValue   ( *Var6 6` )
+   90:  Call  SpeakToPlayer     ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 *Var2 ) % variable string ID
+   B0:  Label  0
+   BC:  Call  ShowCoinCounter   ( .True )
+   CC:  Call  ShowChoice        ( 001E0053 ) % Buy Don't buy
+		Switch  *Var0
+			Case == 1`	%No
+	   EC:  	Call  ShowCoinCounter   ( .False )
+	   FC:  	Call  ContinueSpeech    ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 00080005 ) % Okay...pinch your pennies. It's a shame, really. T ...
+	  11C:  	Return
+			Case == 2` %Haggle. Doesn't work on him lol
+	   EC:  	Call  ShowCoinCounter   ( .False )
+	   FC:  	Call  ContinueSpeech    ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 0008004E ) % That won't work, stranger
+	  11C:  	Return
+		EndSwitch
+		Call	AddCoin ( 0 )
+  13C:  If  *Var0  <  *Var6
+  14C:  	Call  ShowCoinCounter   ( .False )
+  15C:  	Call  ContinueSpeech    ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 00080006 ) % Oh, this is no good... I'm afraid I can't sell any ...
+  17C:  	Return
+  184:  EndIf
+  18C:  Set   *Var0  *GB_TIK15_RipCheato_PurchaseCount
+  19C:  Call  $Function_80240A78 ( )
+  1A8:  Switch  *VarA
+  1B4:  	Case  ==  00000000
+				Set   *Var7 *Var6
+				Loop  2`
+					Sub   *Var7 *Var6
+				EndLoop 
+				Call  AddCoin   ( *Var7 )
+  1D0:  		Call  ShowCoinCounter   ( .False )
+  1E0:  		Call  EndSpeech     ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 )
+  1FC:  		Set   *Var0  0000015C
+  20C:  		Set   *Var1  00000003
+  21C:  		ExecWait  $Script_8024275C
+  228:  		Call  AddStarPieces ( 00000001 )
+  238:  	Case  ==  00000001
+				Set   *Var7 *Var6
+				Loop  2`
+					Sub   *Var7 *Var6
+				EndLoop 
+				Call  AddCoin   ( *Var7 )
+  254:  		Call  ShowCoinCounter   ( .False )
+  264:  		Call  EndSpeech ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 )
+  280:  		Set   *Var0  000000E2
+  290:  		Set   *Var1  00000002
+  2A0:  		ExecWait  $Script_8024275C
+  2AC:  		Call  AddBadge  ( .Item:PowerPlusX *Var0 )
+  2C0:  	Case  ==  00000002
+  2CC:  		Call  $Function_80240AA4 ( )
+  2D8:  		If  *Var0  <=  00000000
+  2E8:  			Call  ShowCoinCounter   ( .False )
+  2F8:  			Call  ContinueSpeech    ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 00080007 ) % Oh, this is unfortunate... You have too much stuff ...
+  318:  			Return
+  320:  		EndIf
+				Set   *Var7 *Var6
+				Loop  2`
+					Sub   *Var7 *Var6
+				EndLoop 
+				Call  AddCoin   ( *Var7 )
+  338:  		Call  ShowCoinCounter   ( .False )
+  348:  		Call  EndSpeech ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 )
+  364:  		Set   *Var0  *VarB
+  374:  		Set   *Var1  00000000
+  384:  		ExecWait  $Script_8024275C
+  390:  		Call  AddItem   ( *VarB *Var0 )
+  3A4:  EndSwitch
+  3AC:  If  *GB_TIK15_RipCheato_PurchaseCount  <  0000000A
+  3BC:  	Add   *GB_TIK15_RipCheato_PurchaseCount  00000001
+  3CC:  EndIf
+		Set   *Var6  69`
+		If    *GB_TIK15_RipCheato_PurchaseCount != 0`
+			Mul   *Var6  *GB_TIK15_RipCheato_PurchaseCount
+			Add   *Var6  69`
+		EndIf
+		Call  SetMessageValue   ( *Var6 6` )
+  3D4:  Call  SpeakToPlayer ( .NpcID:RipCheato_01 00AE0004 00AE0001 00000000 00080004 ) % Well done, my good man! I thank you deeply. Now, i ...
+  3F4:  Goto  0
+  400:  Return
+  408:  End
+}
+
+%Made the Power Plus the last Badge in the list
+
+@	$???_802427BC
+{
+	00000000 00000000 00000002 .Item:StrangeCake 00000000 00000000 00000002 .Item:TarundaGem
+	00000000 00000000 00000002 .Item:RakundaGem  00000002 .Item:RepelGel 00000002 .Item:LifeShroom
+	00000002 .Item:HustleDrink 00000001 0000013D 00000002 0000008D 00000002 0000008D
+	00000002 0000008D
 }

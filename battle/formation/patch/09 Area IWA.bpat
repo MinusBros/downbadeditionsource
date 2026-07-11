@@ -46,19 +46,34 @@
 
 @	$Cleft
 {
-	[Level]        13`b
+	[Level]        11`b
 	[MaxHP]         4`b
 }
 
 @	$DefenseTable_80218710
 {
 	.Element:Normal 4`
+	.Element:Jump   2`
 	.Element:Water  0`
 	.Element:Ice    1`
-	.Element:Blast  2`
+	.Element:Blast  3`
 	.Element:Fire  99`
 	.Element:Magic  5`
 	.Element:Cosmic 5`
+	.Element:End
+}
+
+%Flipped ver. Added for 1.0.3
+@	$DefenseTable_8021872C
+{
+	.Element:Normal 0`
+	.Element:Water  -2`
+	.Element:Fire   99`
+	.Element:Blast  -1`
+	.Element:Ice    -1`
+	.Element:Magic  1`
+	.Element:Cosmic 1`
+	.Element:Quake  -2`
 	.Element:End
 }
 
@@ -204,7 +219,6 @@
 
 @ $MontyMole
 {
-	[Level]        10`b
 	[MaxHP]         5`b
 }
 
@@ -354,7 +368,7 @@
 
 @	$Buzzar
 {
-	[Level]        57`b
+	[Level]        56`b
 	[MaxHP]        58`b
 }
 
@@ -367,8 +381,37 @@
 	.Element:Shock  -1`
 	.Element:Magic   1`
 	.Element:Cosmic  1`
+	.Element:Quake  -4`
 	.Element:Throw  -1`
 	.Element:End
+}
+
+@	$Script_Init_8021B7E4
+{
+    0:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   18:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   30:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   48:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   60:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021BCD8 )
+   74:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021B930 )
+   88:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021B940 )
+   9C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8021B918 )
+   B0:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+   CC:  Set   *Var1  00000028
+   DC:  Call  SetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+   F8:  Call  ForceHomePos  ( .Actor:Self *Var0 *Var1 *Var2 )
+  114:  Call  HPBarToHome   ( .Actor:Self )
+		If  *GF_IWA04_YoMama == .True
+			Call  $Function_SetTattle_C ( A0 001C00E7 )		%Buzzar's tattles will change if you insult him
+		EndIf
+		If  *GB_StoryProgress  > .Story:Ch2_BeganPeachMission	%Or if you beat Chapter 2
+			Call  $Function_SetTattle_C ( A0 001C00E8 )	
+		EndIf
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Buzzar 62` )
+		EndIf
+  124:  Return
+  12C:  End
 }
 
 

@@ -1,0 +1,92 @@
+%Made by Rain
+%This function is mainly used to remove Mario's party members when entering post-game
+
+%args:
+ %a0: partner index
+ %a1: partner level (pass -1 for no change to partner level)
+#new:Function $GivePartner { %takes a0, partner index, a1 upgrade level to set (-1 if dont set)
+    LI t0, 8010F2A4
+    SLL t1, a0, 3 %multiply by 8, size of partner struct
+    ADDU t0, t0, t1
+    ORI t2, r0, 1
+    BLTZ a1, .dontWrite
+     SB t2, 0000 (t0) %set partner to enabled
+    SB a1, 0001 (t0) %set partner upgrade level
+    .dontWrite
+    JR RA
+    NOP
+}
+
+
+%args:
+ %a0: partner index
+ %a1: partner level (pass -1 for no change to partner level, zero to clear)
+#new:Function $RemovePartner {
+    LI t0, 8010F2A4
+    SLL t1, a0, 3 %multiply by 8, size of partner struct
+    ADDU t0, t0, t1
+    BLTZ a1, .dontWrite
+     SB r0, 0000 (t0) %set partner to disabled
+    SB a1, 0001 (t0) %set partner upgrade level
+    .dontWrite
+    JR RA
+    NOP    
+}
+
+%args:
+ %a0: partner index
+ %a1: partner level (pass -1 for no change to partner level, zero to clear)
+ %Ex: Call $ScriptApi_RemovePartner (1, -1) %remove goombario, leave level untouched
+#new:Function $ScriptApi_RemovePartner {
+    PUSH s0, s1, s2, ra
+
+    ADDU s0, a0, r0
+    LW s1, 000C (a0) %load ptr to script args
+
+    JAL ~Func:get_variable
+    LW a1, 0000 (s1) %load first function arg
+
+    ADDU s2, v0, r0 %partner index
+
+    ADDU a0, s0, r0
+    JAL ~Func:get_variable
+    LW a1, 0004 (s1) %load second function arg
+
+
+    ADDU a0, s2, r0
+    JAL $RemovePartner
+    ADDU a1, v0, r0 %move partner upgrade index to a1
+
+    POP s0, s1, s2, ra
+    JR RA
+    ORI v0, r0, 2 %return api status done
+}
+
+%args:
+ %a0: partner index
+ %a1: partner level (pass -1 for no change to partner level, zero to clear)
+ %Ex: Call $ScriptApi_GivePartner (2, 1) %give kooper, set to super rank
+#new:Function $ScriptApi_GivePartner {
+    PUSH s0, s1, s2, ra
+
+    ADDU s0, a0, r0
+    LW s1, 000C (a0) %load ptr to script args
+
+    JAL ~Func:get_variable
+    LW a1, 0000 (s1) %load first function arg
+
+    ADDU s2, v0, r0 %partner index
+
+    ADDU a0, s0, r0
+    JAL ~Func:get_variable
+    LW a1, 0004 (s1) %load second function arg
+
+
+    ADDU a0, s2, r0
+    JAL $GivePartner
+    ADDU a1, v0, r0 %move partner upgrade index to a1
+
+    POP s0, s1, s2, ra
+    JR RA
+    ORI v0, r0, 2 %return api status done
+}

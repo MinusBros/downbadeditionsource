@@ -22,6 +22,17 @@
 #define .AnimDance    			00F10012
 #define .AnimIdle       		00F10013
 #define .AnimLookLook    		00F10014
+#define .AnimScaredFlying 		00F10015
+#define .AnimProudWalk  		00F10016
+#define .AnimLaugh       		00F10017
+#define .AnimShrug       		00F10018
+#define .AnimSadWalk       		00F10019
+#define .AnimSadIdle       		00F1001A
+#define .AnimLookBegin     		00F1001B
+#define .AnimSmugPoke     		00F1001C
+#define .AnimButtScratch   		00F1001D
+#define .AnimAngryPoke     		00F1001E
+#define .AnimLookAround    		00F1001F
 
 #new:Actor $PacMan {
 % stats
@@ -63,6 +74,45 @@
 .Status:End
 }
 
+#new:IdleAnimations $IdleAnimations_PacMan2 {
+.Status:Normal    .AnimPowerStance
+.Status:Stone     .AnimPowerStance
+.Status:Sleep     .AnimSleeping
+.Status:Poison    .AnimSleeping
+.Status:Stop      .AnimStop
+.Status:Static    .AnimStop
+.Status:Paralyze  .AnimStop
+.Status:Dizzy     .AnimDizzy
+.Status:Fear      .AnimScaredRun
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_PacMan3 {
+.Status:Normal    .AnimBoxer
+.Status:Stone     .AnimBoxer
+.Status:Sleep     .AnimSleeping
+.Status:Poison    .AnimSleeping
+.Status:Stop      .AnimStop
+.Status:Static    .AnimStop
+.Status:Paralyze  .AnimStop
+.Status:Dizzy     .AnimDizzy
+.Status:Fear      .AnimScaredRun
+.Status:End
+}
+
+#new:IdleAnimations $IdleAnimations_PacMan4 {
+.Status:Normal    .AnimDance
+.Status:Stone     .AnimDance
+.Status:Sleep     .AnimSleeping
+.Status:Poison    .AnimSleeping
+.Status:Stop      .AnimStop
+.Status:Static    .AnimStop
+.Status:Paralyze  .AnimStop
+.Status:Dizzy     .AnimDizzy
+.Status:Fear      .AnimScaredRun
+.Status:End
+}
+
 #new:IdleAnimations $IdleAnimations_LookLook {
 .Status:Normal    .AnimLookLook
 .Status:End
@@ -71,16 +121,19 @@
 
 
 #new:PartsTable $PartsTable_PacMan{
-00800000 01000000 011F00FF $IdleAnimations_PacManNormal $DefenseTable_PacMan 00000000 00000000 0F000000 00000000 
+00800000 01000000 FF1F00FF $IdleAnimations_PacManNormal $DefenseTable_PacMan 00000000 00000000 0F000000 00000000 
 00120001 02000000 001800FF $IdleAnimations_LookLook $DefenseTable_PacMan 00000000 00000000 FFF60000 00000000 
 }
 
-#new:Script $Script_Init_PacMan{
+#define .AttackTurns 1`
+
+#new:Script $Script_Init_PacMan {
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_PacMan )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_PacMan )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_PacMan )
 		Call  SetActorScale 	( .Actor:Self *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
 		Call  SetMusicTrack ( 00000000 .Song:Faith 00000000 00000008 )
+		Call  SetActorVar   ( .Actor:Self .AttackTurns 00000000 )	%How many times Pac-Man gets to attack
    3C:  Return
    44:  End
 }
@@ -91,16 +144,89 @@
 }
 
 
+%Here's How Pac-Man will work.
+%Depending on how much HP, he will be given a set number of turns to attack.
+%Each attack decrements
 
-#new:Script $Script_TakeTurn_PacMan {
+#new:Script $Script_TakeTurn_PacMan
+{
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+		Call  GetActorHP    ( .Actor:Self *Var1 )
+		Call  GetEnemyMaxHP ( .Actor:Self *Var2 )
+		Mul   *Var1  100`
+		Div   *Var1  *Var2 
+		Switch  *Var1
+			Case  <  33`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 4` )
+			Case  <  66`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 3` )
+			Case  >= 66`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 2` )
+		EndSwitch
+		ExecWait  $PacManAttack
+		ExecWait  $RandomizeIdleAnim
+		Return
+		End
+}
+
+
+#new:Script $PacManAttack {
+		Label BeginTurn
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
    3C:  Call  UseBattleCamPreset    ( 0000003F )
    4C:  Call  BattleCamTargetActor  ( .Actor:Self )
    5C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
-  120:  Call  SetAnimation      ( .Actor:Self 00000001 .AnimSmugWalk )
-  138:  Call  SetActorSpeed     ( .Actor:Self *Fixed[4.0] )
+		Call     RandInt     	( 3` *Var9 )	%Pick which attack to do at random
+		Switch *Var9
+			Case == 0`
+				ExecWait $WalkandKick
+			Case == 1`
+				Wait  6`
+				ExecWait $WalkandKick
+			Case == 2`
+				ExecWait $ScaredRun
+			Case == 3`
+				ExecWait $RunAndJump
+		EndSwitch
+		ExecWait  $DecrementTurns
+		Call  EnableIdleScript  ( .Actor:Self 00000001 )
+		Call  UseIdleAnimation  ( .Actor:Self .True )
+		Call  GetActorVar   ( .Actor:Self .AttackTurns *Var0 )		%If Pac-Man runs out of turns, return script. If not, go back and deplete turns until he's out.
+		If  *Var0 != 0`
+			Goto  BeginTurn
+		EndIf
+  544:  Return
+  54C:  End
+}
+
+#new:Script  $DecrementTurns
+{
+		Call  GetActorVar   ( .Actor:Self .AttackTurns *Var1 )	%There's probably an easier way to subtract, but I'll do this for now
+		Switch  *Var1
+			Case == 4`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 3` )
+			Case == 3`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 2` )
+			Case == 2`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 1` )
+			Case == 1`
+				Call  SetActorVar   ( .Actor:Self .AttackTurns 0` )
+		EndSwitch
+		Return
+		End
+}
+
+
+#new:Script $WalkandKick
+{
+		Call     RandInt     	( 2` *VarC )
+		If   *VarC == 0`
+			ExecWait	$LookLook
+		EndIf
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+		ExecWait  $RandomizeWalkCycle
   14C:  Call  SetGoalToTarget   ( .Actor:Self )
   15C:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
   170:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
@@ -116,9 +242,14 @@
   23C:  	CaseOR  ==  .HitResult:Miss % 6
   248:  	CaseOR  ==  .HitResult:Lucky % 5
   254:  		Set   *VarA  *Var0 
-  278:  		Call  SetAnimation      ( .Actor:Self 00000001 .AnimDance )
-  290:  		Wait  20`
-  2E4:  		Call  YieldTurn ( )
+				Call     RandInt     	( 1` *VarB )
+				If   *VarB == 0`
+					Call  SetAnimation      ( .Actor:Self 00000001 .AnimDance )
+					Wait  20`
+				Else
+					Call  SetAnimation      ( .Actor:Self 00000001 .AnimShrug )
+					Wait  30`
+				EndIf
   2F0:  		Call  UseBattleCamPreset    ( 00000002 )
   300:  		Call  SetActorYaw   ( .Actor:Self  180` )
   314:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
@@ -132,32 +263,285 @@
   3B0:  		Return
   3B8:  	EndCaseGroup
   3C0:  EndSwitch
-  3C8:  Call  SetAnimation      ( .Actor:Self 00000001 .AnimKick )
-  3E0:  Wait  8`
-  3EC:  Call  PlaySoundAtActor  ( .Actor:Self 000020C5 )
-  424:  Wait  2`
-  430:  Call  SetGoalToTarget   ( .Actor:Self )
-  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 10` 00000020 )
+		Call     RandInt     	( 2` *VarD )
+		Switch  *VarD
+			Case == 0`	%The Pac-Man KICK!
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimKick )	%Two timings
+				Call     RandInt     	( 1` *VarC )
+				If   *VarC == 0`
+					Wait  8`
+				Else
+					Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[0.5] )
+					Wait  16`		
+				EndIf
+				Call  PlaySoundAtActor  ( .Actor:Self 000020C5 )	
+				Wait  2`
+				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
+				Call  SetGoalToTarget   ( .Actor:Self )
+				Call  80269EAC  ( 0`)
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 12` 00000020 )
+			Case == 1		%The Pac-Man pimp slap
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSlap )	%Two timings
+				Call     RandInt     	( 1` *VarC )
+				If   *VarC == 0`
+					Wait  6`
+				Else
+					Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[0.5] )
+					Wait  12`		
+				EndIf
+				Wait  2`
+				Call  80269EAC  ( 13`)
+				Call  PlaySoundAtActor  ( .Actor:Self 000003ED )	
+				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
+				Call  SetGoalToTarget   ( .Actor:Self )
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 10` 00000020 )		
+			Case == 2`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSlap2 )	%Only one timing for this one
+				Wait  14`	
+				Call  PlaySoundAtActor  ( .Actor:Self 000003EE )	
+				Call  PlaySoundAtActor  ( .Actor:Self 000003ED )
+				Call  80269EAC  ( 13`)
+				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
+				Call  SetGoalToTarget   ( .Actor:Self )
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 11` 00000020 )
+		EndSwitch
   468:  Switch  *Var0 
   474:  	CaseOR  ==  .HitResult:Hit % 0
   480:  	CaseOR  ==  .HitResult:QuakeImmune % 2
   4B8:  		Call  UseBattleCamPreset    ( 00000002 )
-  4C8:  		Wait  15`
+  4C8:  		Wait  10`
+				Call     RandInt     	( 1` *VarC )
+				If   *VarC == 0`
+					Call  SetAnimation      ( .Actor:Self 00000001 .AnimLaugh )
+					Call  PlaySoundAtActor  ( .Actor:Self 0000205E )
+					Wait  30`
+				EndIf
   4E0:  		SetConst  *Var0  00000001 
   4F0:  		SetConst  *Var1  .AnimRun 
   500:  		ExecWait  DoReturnHome 
   50C:  	EndCaseGroup
   514:  EndSwitch
-  51C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  530:  Call  UseIdleAnimation  ( .Actor:Self .True )
-  544:  Return
-  54C:  End
+		Return
+		End
 }
 
 
 
+
+#new:Script $ScaredRun
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+  500:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.8] )
+  514:  Call  SetAnimation  ( .Actor:Self 00000001 .AnimDamage )
+  52C:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  548:  Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  564:  Call  JumpToGoal    ( .Actor:Self  10` .False .False .False )
+  584:  Call  SetGoalToTarget   ( .Actor:Self )
+		Call  SetAnimation  ( .Actor:Self 00000001 .AnimScaredRun )
+		Call     RandInt     	( 1` *VarC )
+		If   *VarC == 0`
+			Call  SetActorSpeed     ( .Actor:Self *Fixed[15.0] )
+		Else
+			Call  SetActorSpeed     ( .Actor:Self *Fixed[9.0] )
+		EndIf
+		Call  AddGoalPos    ( .Actor:Self  8`  0`  0` )
+  14C:  Call  SetGoalToTarget   ( .Actor:Self )
+  15C:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
+  1C8:  Call  RunToGoal     ( .Actor:Self  0` .False )
+  20C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
+  230:  Switch  *Var0 
+  23C:  	CaseOR  ==  .HitResult:Miss % 6
+  248:  	CaseOR  ==  .HitResult:Lucky % 5
+  254:  		Set   *VarA  *Var0 
+				Call     RandInt     	( 1` *VarB )
+				If   *VarB == 0`
+					Call  SetAnimation      ( .Actor:Self 00000001 .AnimDance )
+					Wait  20`
+				Else
+					Call  SetAnimation      ( .Actor:Self 00000001 .AnimShrug )
+					Wait  30`
+				EndIf
+  2F0:  		Call  UseBattleCamPreset    ( 00000002 )
+  300:  		Call  SetActorYaw   ( .Actor:Self  180` )
+  314:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+  330:  		SetConst  *Var0  00000001 
+  340:  		SetConst  *Var1  .AnimScaredRun 
+  350:  		ExecWait  DoReturnHome 
+  35C:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
+  374:  		Call  SetActorYaw   ( .Actor:Self  0` )
+  388:  		Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  39C:  		Call  UseIdleAnimation      ( .Actor:Self .True )
+  3B0:  		Return
+  3B8:  	EndCaseGroup
+  3C0:  EndSwitch	
+  424:  Wait  2`
+		Call  80269EAC  ( 0`)
+  430:  Call  SetGoalToTarget   ( .Actor:Self )
+  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 12` 00000020 )
+  468:  Switch  *Var0 
+  474:  	CaseOR  ==  .HitResult:Hit % 0
+  480:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+				Call  SetAnimation  ( .Actor:Self 00000001 .AnimScaredFlying )
+  B44:  		Call  UseBattleCamPreset    ( 00000002 )
+  B54:  		Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  B70:  		Add   *Var0  00000028 
+  B80:  		Set   *Var1  00000000 
+  B90:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[2.8] )
+  BA4:  		Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  BC0:  		Call  JumpToGoal    ( .Actor:Self  18` .False .True .False )
+  BE0:  		Add   *Var0  0000001E 
+  BF0:  		Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  C0C:  		Call  JumpToGoal    ( .Actor:Self  6` .False .True .False )
+  C2C:  		Add   *Var0  00000014 
+  C3C:  		Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  C58:  		Call  JumpToGoal    ( .Actor:Self  4` .False .True .False )
+  C90:  		Wait  8`
+  4E0:  		SetConst  *Var0  00000001 
+  4F0:  		SetConst  *Var1  .AnimRun 
+  500:  		ExecWait  DoReturnHome 
+  50C:  	EndCaseGroup
+  514:  EndSwitch
+		Return
+		End
+}
+
+
+
+
+#new:Script $RunAndJump
+{
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
+  584:  Call  SetGoalToTarget   ( .Actor:Self )
+		Call  SetAnimation  ( .Actor:Self 00000001 .AnimRun )
+		Wait  3`
+		Call     RandInt     	( 1` *VarC )
+		If   *VarC == 0`
+			Call  SetActorSpeed     ( .Actor:Self *Fixed[12.0] )
+		Else
+			Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] )
+		EndIf
+		Call  AddGoalPos    ( .Actor:Self  30`  0`  0` )
+  14C:  Call  SetGoalToTarget   ( .Actor:Self )
+  1C8:  Call  RunToGoal     ( .Actor:Self  0` .False )
+  20C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
+  230:  Switch  *Var0 
+  23C:  	CaseOR  ==  .HitResult:Miss % 6
+  248:  	CaseOR  ==  .HitResult:Lucky % 5
+  254:  		Set   *VarA  *Var0 
+  2F0:  		Call  UseBattleCamPreset    ( 00000002 )
+  300:  		Call  SetActorYaw   ( .Actor:Self  180` )
+  314:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+  330:  		SetConst  *Var0  00000001 
+  340:  		SetConst  *Var1  .AnimScaredRun 
+  350:  		ExecWait  DoReturnHome 
+  35C:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
+  374:  		Call  SetActorYaw   ( .Actor:Self  0` )
+  388:  		Call  EnableIdleScript      ( .Actor:Self 00000001 )
+  39C:  		Call  UseIdleAnimation      ( .Actor:Self .True )
+  3B0:  		Return
+  3B8:  	EndCaseGroup
+  3C0:  EndSwitch	
+		Call  SetGoalToTarget       ( .Actor:Self )
+		Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+		Set   *Var1 0`
+		Call  SetAnimation  ( .Actor:Self 00000001 .AnimJump )
+		Call  PlaySoundAtActor  ( .Actor:Self 000020DA )
+		Call  JumpToGoal    ( .Actor:Self  24` .False .True .False )
+		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.2] )
+  5A0:  Call  GetStatusFlags    ( .Actor:Self *Var5 )
+  5B4:  If  *Var5  !&  ~Flags:StatusFlags:Shrink % 80000
+  5C4:  	Call  80269EAC  ( 24`)
+  5D4:  	Call  PlaySoundAtActor  ( .Actor:Self 000020EA )
+  5E8:  EndIf
+  424:  Wait  2`
+  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 13` 00000020 )
+  468:  Switch  *Var0 
+  474:  	CaseOR  ==  .HitResult:Hit % 0
+  480:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+				Wait  2`
+				Call  SetAnimation  ( .Actor:Self 00000001 .AnimLand )
+  C90:  		Wait  8`
+  4E0:  		SetConst  *Var0  00000001 
+  4F0:  		SetConst  *Var1  .AnimRun 
+  500:  		ExecWait  DoReturnHome 
+  50C:  	EndCaseGroup
+  514:  EndSwitch
+		Wait  5`
+		Return
+		End
+}
+
+
+#new:Script  $LookLook
+{
+	Thread
+		Loop  2`
+			Call  PlaySoundAtActor  ( .Actor:Self 000003DA )  %Look!
+			Wait  15`
+		EndLoop
+	EndThread
+	Thread
+	Call     RandInt     	( 4` *VarB )
+		Switch   *VarB
+			Case == 2`
+				Wait  15`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimPoint )
+			Case == 3`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimLookAround )	
+		EndSwitch
+	EndThread
+	Call  SetAnimation      ( .Actor:Self 00000002 .AnimIdle )
+	Call  SetAnimation      ( .Actor:Self 00000002 .AnimLookLook )
+	Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+	Sub  *Var0 20`
+	Add  *Var1 80`
+	Call  SetPartPos        ( .Actor:Self 00000002 *Var0 *Var1 *Var2 )
+	Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .False )	
+	Wait  40`
+	Return
+	End
+}
+
+#new:Script  $RandomizeWalkCycle
+{
+		Call     RandInt     	( 4` *VarC )
+		Switch   *VarC
+			Case == 0`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSmugWalk )
+				Call  SetActorSpeed     ( .Actor:Self *Fixed[3.0] )
+			Case == 1`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimWalk )
+				Call  SetActorSpeed     ( .Actor:Self *Fixed[4.0] )
+			Case == 2`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimProudWalk )
+				Call  SetActorSpeed     ( .Actor:Self *Fixed[5.0] )
+			Case == 3`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSadWalk )
+				Call  SetActorSpeed     ( .Actor:Self *Fixed[2.0] )				
+			Case == 4`
+				Call  SetAnimation      ( .Actor:Self 00000001 .AnimRun )
+				Call  SetActorSpeed     ( .Actor:Self *Fixed[6.0] )		
+		EndSwitch
+		Return
+		End
+}
+
+
 #new:DefenseTable $DefenseTable_PacMan {
-.Element:Normal 00000002
+.Element:Normal 3
+.Element:Blast  2
+.Element:Ice    2
+.Element:Fire   2
+.Element:Shock  2
+.Element:Water  2
+.Element:Cosmic 3
+.Element:Magic  2
+.Element:Jump   3
+.Element:Hammer 3
+.Element:Quake  2
+.Element:Throw  2
 .Element:End
 }
 
@@ -174,15 +558,15 @@
 .Status:Shrink     55`
 .Status:Stop       50`
 .Status:DefaultTurnMod    0`
-.Status:SleepTurnMod     -2`
+.Status:SleepTurnMod     -1`
 .Status:PoisonTurnMod     0`
 .Status:FrozenTurnMod     0`
 .Status:DizzyTurnMod     -2`
 .Status:FearTurnMod       0`
 .Status:StaticTurnMod     0`
 .Status:ParalyzeTurnMod  -2`
-.Status:ShrinkTurnMod    -2`
-.Status:StopTurnMod      -3`
+.Status:ShrinkTurnMod    -1`
+.Status:StopTurnMod      -2`
 .Status:End
 }
 
@@ -226,14 +610,30 @@
   1F4:  		Return
   1FC:  	Case  ==  .Event:ShockHit % 2F
   208:  		SetConst  *Var0  00000001 
-  218:  		SetConst  *Var1  .AnimDamage
+  218:  		SetConst  *Var1  .AnimScaredFlying
   228:  		ExecWait  DoShockHit 
   234:  		SetConst  *Var0  00000001 
-  244:  		SetConst  *Var1  .AnimDamage
+  244:  		SetConst  *Var1  .AnimScaredFlying
   254:  		ExecWait  DoJumpBack 
-  260:  		SetConst  *Var0  00000001 
-  270:  		SetConst  *Var1  .AnimDamage
+				Call  SetActorYaw   ( .Actor:Self  180` )
+  330:  		SetConst  *Var0  00000001 
+  340:  		SetConst  *Var1  .AnimScaredRun 
   280:  		ExecWait  DoReturnHome 
+				%If Pac-Man hasn't finished taking all his turns yet, execute take turn script again
+				
+				Call  SetActorYaw   ( .Actor:Self  0` )
+				ExecWait  $DecrementTurns
+				Call  GetActorVar   ( .Actor:Self .AttackTurns *Var0 )
+				If  *Var0 != 0`
+					Call  UseIdleAnimation  ( .Actor:Self .False )
+					Call  EnableIdleScript  ( .Actor:Self 00000000 )
+					ExecWait $PacManAttack
+					Return
+				EndIf
+				
+				%If he's taken all his turns, randomize idle animation like normal
+				
+				ExecWait  $RandomizeIdleAnim
   28C:  	Case  ==  .Event:ShockDeath % 26
   298:  		SetConst  *Var0  00000001 
   2A8:  		SetConst  *Var1  .AnimDamage
@@ -283,4 +683,24 @@
   4EC:  Call  UseIdleAnimation  ( .Actor:Self .True )
   500:  Return
   508:  End
+}
+
+
+#new:Script 	$RandomizeIdleAnim
+{
+				Call     RandInt     	( 3` *Var9 )
+				Switch *Var9
+					Case == 0`
+						Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_PacManNormal )
+					Case == 1`
+						Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_PacMan2 )
+					Case == 2`
+						Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_PacMan3 )
+					Case == 3`
+						Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_PacMan4 )
+				EndSwitch
+		  51C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+		  530:  Call  UseIdleAnimation  ( .Actor:Self .True )
+				Return
+				End
 }

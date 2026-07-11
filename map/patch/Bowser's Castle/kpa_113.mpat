@@ -3,8 +3,8 @@
 @	$AISettings_80241880
 {
     1.5 % move speed
-    20` % move time
-    5` % wait time
+    25` % move time
+    1` % wait time
   120.0 % alert radius
     0.0
     3`
@@ -16,18 +16,54 @@
     1`
 }
 
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:BowsersCastle
+   10:  Call  SetSpriteShading  ( .Shading:arn_10 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+		Else
+			Call  MakeNpcs  ( .True $NpcGroupList_80241CB4 )
+			Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
+			ExecWait  $Script_MakeEntities
+		EndIf
+   90:  Exec  $Script_80241658
+   9C:  Exec  $Script_80240B10
+   A8:  Exec  $Script_EnterWalk_80240C80
+   B4:  Wait  1`
+   C0:  Return
+   C8:  End
+}
+
+@	$Script_80241658
+{
+		If  *EscapeSequence == .True
+			Set  *GB_KPA113_StatuePosition 0`
+			Return
+		EndIf
+    0:  Switch  *GB_KPA113_StatuePosition
+    C:  	Case  ==  00000001
+   18:  		Call  TranslateGroup    ( ~Model:g19 FFFFFFCE 00000000 00000000 )
+   34:  	Case  ==  00000002
+   40:  		Call  TranslateGroup    ( ~Model:g19 00000032 00000000 00000000 )
+   5C:  EndSwitch
+   64:  Call  ParentColliderToModel ( ~Collider:kpa_c ~Model:o101 )
+   78:  Call  ParentColliderToModel ( ~Collider:kpa_l ~Model:o101 )
+   8C:  Call  ParentColliderToModel ( ~Collider:kpa_r ~Model:o101 )
+   A0:  Bind  $Script_80241470 .Trigger:WallPush ~Collider:kpa_l 00000001 00000000
+   BC:  Bind  $Script_80241564 .Trigger:WallPush ~Collider:kpa_r 00000001 00000000
+   D8:  Return
+   E0:  End
+}
 
 
 
 @	$Script_80240B10
 {
-    0:  Call  SetMusicTrack ( 00000000 .Song:BowsersCastle 00000000 00000008 )
    1C:  Call  UseDoorSounds ( .DoorSounds:Metal )
    58:  Return
    60:  End
-}
-
-@	$Script_Main
-{
-   [10]  Call  SetSpriteShading  ( .Shading:arn_10 )
 }

@@ -9,9 +9,14 @@
    5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    70:  Call  SetCamEnabled     ( .Cam:Default .True )
    84:  Set   *GF_Map_BowsersCastle  .True
-   94:  ExecWait  $Script_MakeEntities
    A0:  Exec  $Script_EnterWalk_802405B8
-   AC:  Exec  $Script_802401F0
+		If  *EscapeSequence == .True
+			Exec  $EscapeSequenceShake
+		Else
+			Exec  $Script_802401F0
+			ExecWait  $Script_MakeEntities
+		EndIf
+		Call  UseDoorSounds ( .DoorSounds:Metal )
    B8:  Bind  $Script_802409D8 .Trigger:FloorTouch ~Collider:o400 00000001 00000000
    D4:  Exec  $Script_80241250
 		Set *Var0 .True
@@ -26,7 +31,6 @@
    10:  If  *Var0  ==  00000001
    20:  	Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
    68:  	Call  ClearAmbientSounds    ( 000000FA )
-   78:  	Call  UseDoorSounds ( .DoorSounds:Metal )
    88:  	Return
    90:  EndIf
    98:  Call  GetEntryID    ( *Var0 )
@@ -34,7 +38,6 @@
    B8:  	Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
   100:  EndIf
   108:  Call  ClearAmbientSounds    ( 000000FA )
-  118:  Call  UseDoorSounds ( .DoorSounds:Metal )
   128:  Return
   130:  End
 }
@@ -63,20 +66,7 @@
 }
 
 
-@	$Script_802409D8
-{
-  [19C]  Wait  1`
-  [400]  Wait  30`
-  [420]  Wait  80`
-}
 
-
-@	$Script_80240E14
-{
-  [1E0]  Wait  10`
-  [3A0]  Wait  1`
-  [3D4]  Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
-}
 
 @	$Script_80240E14
 {
@@ -138,12 +128,92 @@
   368:  Call  EnableNpcShadow   ( .Npc:Partner .True )
   37C:  Call  EnablePartnerAI ( )
   388:  Call  PanToTarget       ( .Cam:Default 00000000 00000000 )
-  3A0:  Wait  3`
+  3A0:  Wait  1`
   3AC:  If  *GB_StoryProgress  <  .Story:Ch8_ReachedBowsersCastle % 5E
   3BC:  	Set   *GB_StoryProgress  .Story:Ch8_ReachedBowsersCastle
   3CC:  EndIf
   3D4:  Call  SetMusicTrack ( 00000000 .Song:OutsideCastle 00000000 00000008 )
   41C:  Call  DisablePlayerInput    ( .False )
+  42C:  Return
+  434:  End
+}
+
+
+%Starship script
+
+@	$Script_802409D8
+{
+    0:  Call  GetCurrentPartner ( *Var9 )
+   10:  If  *Var9  !=  00000000
+   20:  	Return
+   28:  EndIf
+   30:  Call  DisablePlayerInput    ( .True )
+   40:  Call  HidePlayerShadow  ( .True )
+   50:  Call  GetModelCenter    ( ~Model:o308 )
+   60:  Add   *Var0  FFFFFFFB
+   70:  Call  SetPlayerJumpscale    (  0` )
+   80:  Call  PlayerJump2       ( *Var0 *Var1 *Var2  2` )
+   9C:  Call  SetPlayerActionState  ( .ActionState:Land )
+   AC:  Set   *MapVar[C]  00000001
+   BC:  Call  InterpPlayerYaw   (  225`  0` )
+   D0:  Call  DisablePlayerPhysics  ( .True )
+   E0:  Call  DisablePartnerAI  ( 00000000 )
+   F0:  Add   *Var2  0000000A
+  100:  Call  SetNpcFlagBits    ( .Npc:Partner 00000140 .True )
+  118:  Call  SetNpcJumpscale   ( .Npc:Partner 00000001 )
+  12C:  Call  NpcJump0  ( .Npc:Partner *Var0 *Var1 *Var2  15` )
+  14C:  Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+  160:  Set   *MapVar[D]  00000001
+  170:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+  188:  Call  EnableNpcShadow   ( .Npc:Partner .False )
+  19C:  Wait  10`
+		If  *EscapeSequence == .False
+		
+  1A8:  Call  ShowMessageAtScreenPos    ( 001D0188  160`  40` ) % Are you ready to take off?
+  1C0:  Call  ShowChoice        ( 001E000C ) % Yes No
+  1D0:  Call  CloseMessage ( )
+  1DC:  If  *Var0  ==  00000001
+  1EC:  	Call  DisablePlayerPhysics  ( .False )
+  1FC:  	Call  SetPlayerJumpscale    (  2` )
+  20C:  	Set   *MapVar[C]  00000000
+  21C:  	Call  PlayerJump    ( ~Vec3d:JumpDest_80240BF4  13` )
+  238:  	Call  HidePlayerShadow      ( .False )
+  248:  	Call  SetPlayerActionState  ( .ActionState:Land )
+  258:  	Set   *MapVar[D]  00000000
+  268:  	Call  PartnerIsFlying       ( *Var0 )
+  278:  	If  *Var0  ==  .True
+  288:  		Wait  10`
+  294:  		Call  SetNpcJumpscale   ( .Npc:Partner 00000002 )
+  2A8:  		Call  NpcJump0  ( .Npc:Partner  -65`  0`  225`  13` )
+  2C8:  	EndIf
+  2D0:  	Call  EnableNpcShadow       ( .Npc:Partner .True )
+  2E4:  	Call  SetNpcFlagBits        ( .Npc:Partner 00000040 .False )
+  2FC:  	Call  EnablePartnerAI ( )
+  308:  	Call  DisablePlayerInput    ( .False )
+  318:  	Return
+  320:  EndIf
+  328:  Call  SetMusicTrack ( 00000000 .Song:StarshipTheme 00000001 00000008 )
+  
+		Else
+			Call  FadeOutMusic  ( 00000000 000003DC )
+		EndIf
+  344:  Thread
+  34C:  	Call  PlaySoundAtPlayer ( 0000017E 00000000 )
+  360:  	Set   *Var2  *MapVar[A]
+  370:  	Call  MakeLerp  ( 00000000 FFFFFF92 0000003C .Easing:QuadraticOut )
+  38C:  	Loop
+  398:  		Call  UpdateLerp ( )
+  3A4:  		Add   *Var0  *Var2
+  3B4:  		Set   *MapVar[A]  *Var0
+  3C4:  		Wait  1`
+  3D0:  		If  *Var1  ==  00000000
+  3E0:  			BreakLoop
+  3E8:  		EndIf
+  3F0:  	EndLoop
+  3F8:  EndThread
+  400:  Wait  40`
+  40C:  Call  GotoMap   ( $ASCII_802412B8 00000005 ) % kpa_60
+  420:  Wait  100`
   42C:  Return
   434:  End
 }

@@ -88,7 +88,7 @@
 {
 		Call $ClearFlagCarryOverworldMusicToBattle()
     0:  Set   *GB_WorldLocation  .Location:PeachsCastle
-   10:  If  *GB_StoryProgress  >  .Story:Ch8_ReachedBowsersCastle % 5E
+   10:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
    20:  	Set   *GF_Map_PeachsCastle  .True
    30:  EndIf
    38:  Call  SetSpriteShading  ( .Shading:osr_02 )
@@ -119,10 +119,15 @@
   3AC:  Else
   3B4:  	Call  EnableGroup   ( ~Model:g116 .False )
   3C8:  EndIf
+		If  *GB_StoryProgress == .Story:PostGame
+			If  *GF_KKJ25_Defeated_Bowser  ==  .False		%This will futureproof 1.0.3 onwards
+				Set   *GB_StoryProgress  .Story:Ch8_ReachedPeachsCastle
+			EndIf
+		EndIf
   3D0:  If  *GB_StoryProgress  >=  .Story:Ch8_ReachedBowsersCastle % 5E
-		If  *GF_KKJ25_Defeated_Bowser  ==  .False
-				Call  SetMusicTrack ( 00000000 .Song:Breathing 00000001 00000008 )
-  3F4:  EndIf
+			If  *GF_KKJ25_Defeated_Bowser  ==  .False
+					Call  SetMusicTrack ( 00000000 .Song:Breathing 00000001 00000008 )
+			EndIf
 		EndIf
   3FC:  Exec  $Script_EnterDoubleDoor_80240408
   408:  Wait  1`
@@ -134,6 +139,9 @@
 }
 
 
+
+
+%After Bower cutscene
 
 @	$Script_80241190
 {
@@ -365,20 +373,73 @@
  1248:  Wait  220`
  1254:  Call  SetNpcAnimation   ( 00000000 000A0002 )
  1268:  Call  NpcMoveTo ( 00000000  -10`  30`  40` )
+		Thread
+			Call  NpcMoveTo ( .Npc:Partner  -20`  30`  40` )
+		EndThread
  1284:  Call  SetNpcAnimation   ( 00000000 000A0001 )
  1298:  Call  SetPlayerAnimation    ( 00010002 )
  12A8:  Call  InterpPlayerYaw   (  270`  0` )
  12BC:  Wait  40`
  12C8:  Call  InterpPlayerYaw   (  90`  0` )
  12DC:  Call  SetPlayerAnimation    ( 0001002A )
- 12EC:  Wait  15`
+		
+		%Add new stuff after original cutscene is over
+
+		Call  FadeOutMusic  ( 00000000 000007D0 )
+		Wait  40`
+		Exec  $Script_ShakeCam
+		Call  PlaySound ( 8000006B )
+		Wait  30`
+		Call  ShowMessageAtScreenPos    ( 001D016F  160`  40` ) % Peach's Castle Goomba Village
+ 
  12F8:  Call  GotoMap   ( $ASCII_80244110 00000002 ) % hos_10
- 130C:  Wait  80`
+ 130C:  Wait  95`
  1318:  Return
  1320:  End
 }
 
+%Spin Peach and Goombarius
+#new:Script  $SpinNpcs	
+{
+	Thread
+		Call  InterpNpcYaw      ( .Npc:Partner  270`  8` )
+		Wait  5`
+		Call  InterpNpcYaw      ( .Npc:Partner   90`  8` )
+		Wait  5`
+	EndThread
+	Call  InterpNpcYaw      ( 00000000  270`  8` )
+	Wait  5`
+	Call  InterpNpcYaw      ( 00000000   90`  8` )
+	Wait  5`	
+	Return
+	End
+}
 
+#new:Script $Script_ShakeCam
+{
+		Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[0.1] )
+		Wait  5`
+		Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[0.2] )
+		Wait  5`
+		Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[0.3] )
+		Wait  5`
+    0:  Loop
+    C:  	Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[0.4] )
+   28:  EndLoop
+   30:  Return
+   38:  End
+}
+
+
+
+#new:VectorList $VectorList
+{
+	% ~Path3f:Path_80240E88
+	410.000000 217.000000 78.000000
+	347.000000 154.000000 58.000000
+	210.000000 80.000000  38.000000
+	131.000000 44.000000  18.000000
+}
 
   
 #new:Script $Script_RaisePipe
