@@ -3,20 +3,9 @@
 #define .NpcID:BigLanternGhost_02   02
 #define .NpcID:BigLanternGhost_03   03
 
+#import SwapToGoombarius.mpat
+
 %Speed up this room by a bit.
-
-
-@	$Script_80240608
-{
-   [14]  Wait  10`
-}
-
-
-@	$Script_ExitWalk_80240650
-{
-   [40]  Wait  90`
-}
-
 
 @	$Script_80240BA0
 {
@@ -166,4 +155,240 @@
    BC:  EndIf
    C4:  Return
    CC:  End
+}
+
+
+
+
+
+@	$Script_Hit_8024104C
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  $Function_802402DC ( )
+   1C:  Call  GetNpcPos ( .NpcID:BigLanternGhost_02 *Var0 *Var1 *Var2 )
+   38:  Call  SetCamProperties      ( .Cam:Default *Fixed[2.0] *Var0 *Var1 *Var2 *Fixed[450.0] *Fixed[15.0] *Fixed[-6.0] )
+   64:  Set   *VarA  00000000
+   74:  Call  GetOwnerEncounterTrigger  ( *Var0 )
+   84:  If  *Var0  ==  .EncounterTrigger:Partner % 6
+   94:  	Call  GetCurrentPartnerID   ( *Var0 )
+   A4:  	If  *Var0  ==  .Partner:Bombette % 3
+   B4:  		Call  SetNpcAnimation   ( .NpcID:WorldWatt_01 00060007 )
+   C8:  		Set   *VarA  FFFFFFFF
+   D8:  	EndIf
+   E0:  EndIf
+   E8:  Call  NpcFacePlayer ( .NpcID:WorldWatt_01 00000000 )
+   FC:  If  *VarA  ==  00000000
+  10C:  	Call  GetOwnerEncounterTrigger  ( *Var0 )
+  11C:  	Switch  *Var0
+  128:  		Case  ==  .EncounterTrigger:Hammer % 4
+  134:  		Case  ==  .EncounterTrigger:Partner % 6
+  140:  		Default
+  148:  			Call  GetEncounterTriggerHitTier    ( *Var0 )
+  158:  			If  *Var0  ==  00000000
+  168:  				Wait  25`
+  174:  				Call  DisablePlayerInput    ( .False )
+  184:  				Return
+  18C:  			EndIf
+  194:  	EndSwitch
+  19C:  EndIf
+  1A4:  Call  PlaySound ( 000001F5 )
+  1B4:  Set   *AreaFlag[010]  .False
+  1C4:  Loop  00000008
+  1D0:  	Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_02 00000002 .True )
+  1E8:  	Wait  3`
+  1F4:  	Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_02 00000002 .False )
+  20C:  	Wait  3`
+  218:  EndLoop
+  220:  Call  SetNpcAnimation   ( .NpcID:BigLanternGhost_02 006D0003 )
+  234:  Call  SetNpcAnimation   ( .NpcID:BigLanternGhost_03 006D0004 )
+  248:  Thread
+  250:  	Label  A
+  25C:  	Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_02 00000002 .True )
+  274:  	Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_03 00000002 .True )
+  28C:  	Wait  2`
+  298:  	Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_02 00000002 .False )
+  2B0:  	Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_03 00000002 .False )
+  2C8:  	Wait  2`
+  2D4:  	If  *AreaFlag[010]  ==  .False
+  2E4:  		Goto  A
+  2F0:  	EndIf
+  2F8:  EndThread
+  300:  Call  GetAngleToPlayer  ( .NpcID:BigLanternGhost_02 *Var0 )
+  314:  If  *Var0  <  000000B4
+  324:  	Set   *Var1  0000001B
+  334:  	Set   *Var2  00000032
+  344:  Else
+  34C:  	Set   *Var1  FFFFFFE5
+  35C:  	Set   *Var2  FFFFFFCE
+  36C:  EndIf
+  374:  Call  802D2C14  ( 00000001 )
+  384:  Call  SetNpcFlagBits    ( .Npc:Partner 00000100 .True )
+  39C:  Call  SetPlayerSpeed    ( *Fixed[3.0] )
+  3AC:  Call  PlayerMoveTo      ( *Var1  0`  0` )
+  3C4:  Call  PlayerFaceNpc     ( .NpcID:BigLanternGhost_02 00000003 )
+  3D8:  Thread
+  3E0:  	Call  SetNpcJumpscale   ( .NpcID:BigLanternGhost_02 00000000 )
+  3F4:  	Call  GetNpcPos ( .NpcID:BigLanternGhost_02 *Var0 00000014 *Var2 )
+  410:  	Call  NpcJump0  ( .NpcID:BigLanternGhost_02 *Var0  20` *Var2  20` )
+  430:  EndThread
+  438:  Thread
+  440:  	Wait  6`
+  44C:  	Call  GetNpcPos ( .NpcID:BigLanternGhost_02 *Var0 *Var1 *Var2 )
+  468:  	Call  SetNpcPos ( .NpcID:WorldWatt_01 *Var0  6` *Var2 )
+  484:  	Loop  00000007
+  490:  		Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_02 00000002 .True )
+  4A8:  		Wait  1`
+  4B4:  		Call  SetNpcFlagBits    ( .NpcID:BigLanternGhost_02 00000002 .False )
+  4CC:  		Wait  1`
+  4D8:  	EndLoop
+  4E0:  EndThread
+		Call  SetMusicTrack ( 00000000 .Song:PeachAppears 00000001 00000008 )  %Cardcaptor Sakura theme
+  4E8:  Wait  10`
+  4F4:  Set   *AreaByte[1]  00000002
+  504:  Set   *AreaByte[2]  00000048
+  514:  Wait  40`
+  520:  Set   *AreaFlag[010]  .True
+  530:  Call  SetNpcPos     ( .NpcID:BigLanternGhost_02  0`  -1000`  0` )
+  54C:  Call  SetNpcPos     ( .NpcID:BigLanternGhost_03  0`  -1000`  0` )
+  568:  Wait  25`
+  574:  Call  GetPlayerPos  ( *Var3 *Var1 *Var2 )
+  58C:  Call  GetNpcPos     ( .NpcID:WorldWatt_01 *Var0 *Var1 *Var2 )
+  5A8:  Add   *Var0  *Var3
+  5B8:  Div   *Var0  00000002
+  5C8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  5E4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  600:  Call  SetCamDistance    ( .Cam:Default  300` )
+  614:  Call  SetCamPitch   ( .Cam:Default *Fixed[15.0] *Fixed[-8.0] )
+  62C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[5.0] )
+  640:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  658:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  66C:  If  *VarA  ==  FFFFFFFF
+  67C:  	Call  SpeakToPlayer ( .NpcID:WorldWatt_01 00060005 00060007 00000000 000F0058 ) % Cough cough... You're crazy, mister! Did ya have t ...
+  69C:  	Thread
+  6A4:  		Wait  10`
+  6B0:  		Call  SetPlayerAnimation    ( .PlayerAnim:Pray )
+  6C0:  		Wait  15`
+  6CC:  		Call  SetPlayerAnimation    ( 00010002 )
+  6DC:  	EndThread
+  6E4:  	Call  EndSpeech ( .NpcID:WorldWatt_01 00060005 00060007 00000000 )
+  700:  Else
+  708:  	Call  SpeakToPlayer ( .NpcID:WorldWatt_01 00060006 00060001 00000000 000F0057 ) % Hm hm hee hee... Yay! I got out! Yay for me! Thank ...
+  728:  	Call  SetPlayerAnimation    ( .PlayerAnim:NodYes )
+  738:  EndIf
+  740:  Call  802D2C14  ( 00000000 )
+  750:  Wait  20`
+  75C:  Call  SetNpcAnimation   ( .NpcID:WorldWatt_01 00060001 )
+  770:  Call  PlaySoundAtNpc    ( .NpcID:WorldWatt_01 00000262 00000000 )
+  788:  Call  ShowEmote ( .NpcID:WorldWatt_01 .Emote:Exclamation  0`  30` .True  0`  0`  0`  0` )
+  7B8:  Wait  40`
+  7C4:  Call  SpeakToPlayer     ( .NpcID:WorldWatt_01 00060004 00060001 00000000 000F0059 ) % Hey! Aren't you, um, Mario!? You just saved me lik ...
+  7E4:  Call  SetPlayerAnimation    ( 00080011 )
+  7F4:  Wait  30`
+  800:  Call  SetPlayerAnimation    ( .PlayerAnim:NodYes )
+  810:  Wait  20`
+  81C:  Call  EndSpeech ( .NpcID:WorldWatt_01 00060004 00060001 00000000 )
+  838:  Wait  20`
+		ExecWait  $SwapToGoombarius
+		Wait  5`
+		Call  SpeakToNpc ( .Npc:Partner 00010008 00010001 00000000 .NpcID:WorldWatt_01 000F0091 )  %Goombarius comments on Wattage
+  844:  Call  GetAngleToPlayer  ( .NpcID:WorldWatt_01 *Var0 )
+  858:  If  *Var0  <  000000B4
+  868:  	Set   *Var1  FFFFFFE7
+  878:  Else
+  880:  	Set   *Var1  00000019
+  890:  EndIf
+  898:  Call  GetPlayerPos  ( *Var2 *Var3 *Var4 )
+  8B0:  Thread
+  8B8:  	Call  DisablePartnerAI  ( 00000000 )
+  8C8:  	Add   *Var1  *Var2
+  8D8:  	Call  SetNpcSpeed       ( .Npc:Partner *Fixed[3.0] )
+  8EC:  	Call  SetNpcAnimation   ( .Npc:Partner 00000102 )
+  900:  	Call  NpcMoveTo ( .Npc:Partner *Var1 *Var4  0` )
+  91C:  	Call  NpcFacePlayer     ( .Npc:Partner 00000003 )
+  930:  	Call  EnablePartnerAI ( )
+  93C:  EndThread
+  944:  Call  SetNpcFlagBits    ( .NpcID:WorldWatt_01 00000100 .True )
+  95C:  Call  GetNpcPos ( .NpcID:WorldWatt_01 *Var7 *Var8 *Var9 )
+  978:  Call  GetAngleToPlayer  ( .NpcID:WorldWatt_01 *Var0 )
+  98C:  If  *Var0  <  000000B4
+  99C:  	Call  LoadPath  ( 0000000F $VectorList_80240FF4 00000003 .Easing:Linear )
+  9B8:  	Set   *Var4  0000000C
+  9C8:  Else
+  9D0:  	Call  LoadPath  ( 0000000F $VectorList_80241018 00000003 .Easing:Linear )
+  9EC:  	Set   *Var4  FFFFFFF4
+  9FC:  EndIf
+  A04:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  A1C:  Add   *Var0  *Var4
+  A2C:  Call  SetPanTarget  ( .Cam:Default *Var0  0`  0` )
+  A48:  Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+  A5C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  A74:  Label  1E
+  A80:  Call  GetNextPathPos ( )
+  A8C:  Add   *Var1  *Var7
+  A9C:  Add   *Var2  *Var8
+  AAC:  Add   *Var3  *Var9
+  ABC:  Call  SetNpcPos     ( .NpcID:WorldWatt_01 *Var1 *Var2 *Var3 )
+  AD8:  Call  PlayerFaceNpc ( .NpcID:WorldWatt_01 .False )
+  AEC:  Wait  1`
+  AF8:  If  *Var0  ==  00000001
+  B08:  	Goto  1E
+  B14:  EndIf
+  B1C:  Call  NpcFacePlayer ( .NpcID:WorldWatt_01 00000003 )
+  B30:  Wait  20`
+  B3C:  Call  SpeakToPlayer ( .NpcID:WorldWatt_01 00060004 00060001 00000000 000F005A ) % I gotta make it up to you! I'll go with you, Mario ...
+  B5C:  Call  SetPlayerAnimation    ( 00010002 )
+  B6C:  Wait  5`
+  B78:  Call  SetPlayerAnimation    ( .PlayerAnim:NodYes )
+  B88:  Wait  20`
+  B94:  Call  EndSpeech ( .NpcID:WorldWatt_01 00060004 00060001 00000000 )
+  BB0:  Set   *AreaByte[1]  00000006
+  BC0:  Wait  1`
+  BCC:  Call  $Function_80240000    ( 00000001 00000006 )
+  BE0:  Call  $Function_80240420 ( )
+  BEC:  Exec  $Script_802405E4
+  BF8:  Wait  15`
+  C04:  Call  ShowMessageAtScreenPos    ( 001D018E  160`  40` ) % Watt joined your party!! Press to have her illumin ...
+  C1C:  Exec  $Script_80240608
+  C28:  Wait  10`
+  C34:  Thread
+  C3C:  	Call  GetNpcPos ( .Npc:Partner *Var2 *Var3 *Var4 )
+  C58:  	Call  MakeLerp  ( 000000C8 000000FF 0000002D .Easing:Linear )
+  C74:  	Loop
+  C80:  		Call  UpdateLerp ( )
+  C8C:  		Call  $Function_80240314    ( *Var2 *Var3 *Var4 *Var0 )
+  CA8:  		Wait  1`
+  CB4:  		If  *Var1  ==  00000000
+  CC4:  			BreakLoop
+  CCC:  		EndIf
+  CD4:  	EndLoop
+  CDC:  	Call  GetPlayerPos  ( *Var2 *Var3 *Var4 )
+  CF4:  	Add   *Var3  00000008
+  D04:  	Call  $Function_80240314    ( *Var2 *Var3 *Var4 *Var0 )
+  D20:  EndThread
+  D28:  Wait  30`
+  D34:  Call  CloseMessage ( )
+  D40:  Wait  10`
+  D4C:  ExecWait  $Script_802408A8
+  D58:  Wait  20`
+  D64:  Call  SpeakToPlayer ( .Npc:Partner 00060004 00060001 00000000 000F005B ) % Ooh, it's pretty dark, huh? I kinda like the dark. ...
+  D84:  Call  EnablePartnerAI ( )
+  D90:  Exec  $Script_80240F38
+  D9C:  Call  $Function_802402F8 ( )
+  DA8:  Call  ResetCam      ( .Cam:Default *Fixed[5.0] )
+  DBC:  Set   *GB_StoryProgress  .Story:Ch4_WattJoinedParty
+  DCC:  Call  DisablePlayerInput    ( .False )
+  DDC:  Call  RemoveNpc     ( .NpcID:BigLanternGhost_02 )
+  DEC:  Call  RemoveNpc     ( .NpcID:BigLanternGhost_03 )
+  DFC:  Unbind
+  E04:  Return
+  E0C:  End
+}
+
+
+@	$Script_80240608
+{
+   14:  Wait  15`
+   20:  Call  PopSong ( )
+   2C:  Return
+   34:  End
 }

@@ -35,6 +35,110 @@
 
 #import AutoSave.mpat
 
+
+
+
+@	$Script_Main
+{
+		Set   *Byte_Settings_BGM  1`
+		Set   *Byte_Settings_BGM2 1`
+		Call $ClearFlagCarryOverworldMusicToBattle()
+		Call  SetSpriteShading  ( .Shading:None )
+		Set   *MerlonState  0`
+		Set   *LipState  0`
+		If  *GB_StoryProgress > .Story:Ch1_ReturnedToToadTown 
+			Call  FindKeyItem   ( .Item:LuckyStar *VarC )	%For people updating
+			Call  RemoveKeyItemAt       ( *VarC )
+		EndIf
+  12C:  If  *GB_StoryProgress  ==  .Story:Ch6_StarSpritDeparted % Set this just in case you don't use the door to warp out
+  13C:  	Set   *GB_StoryProgress  .Story:Ch6_ReturnedToToadTown
+  14C:  EndIf
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  90`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Exec  $DarknessFollow
+   88:  	Default
+				Exec  $CheckLip
+				Call  EnableGroup   ( ~Model:darkness .False )
+   9C:  EndSwitch
+   84:  Set   *AreaFlag[00E]  .False
+   94:  Set   *AreaFlag[00F]  .False
+   A4:  Set   *AreaFlag[010]  .False
+   B4:  Set   *AreaFlag[011]  .False
+   C4:  Set   *AreaFlag[012]  .False
+   D4:  Set   *AreaFlag[013]  .False
+   E4:  Set   *AreaFlag[014]  .False
+   F4:  Set   *AreaFlag[015]  .False
+  104:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+  114:  	Exec  $Script_80248070
+  120:  Else
+  128:  	Call  EnableGroup   ( ~Model:jutan1 .False )
+  13C:  EndIf
+  144:  Switch  *GB_StoryProgress
+  150:  	Case  ==  .Story:Intro % FFFFFF80
+  15C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025FA2C )
+  170:  	Case  >=  .Story:Epilogue % 60
+  17C:  		Call  MakeNpcs  ( .False $NpcGroupList_80261830 )
+  190:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+  19C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFF0 )
+  1B0:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+  1BC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F044 )
+  1D0:  	Case  ==  .Story:Ch1_DefeatedJrTroopa % FFFFFFB6
+  1DC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F080 )
+  1F0:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+  200:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0BC )
+  214:  	Case  ==  .Story:Ch6_ReturnedToToadTown % 3C
+  220:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0F8 )
+			Case  ==  .Story:PostGame
+				Call  MakeNpcs  ( .False $NpcGroupList_8025F044 )  %Restore Parakarius's appearance
+  234:  	Default
+  23C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFA8 )
+  250:  EndSwitch
+  258:  If  *GB_StoryProgress  >=  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+  268:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt 7FFFFE00 )
+  280:  EndIf
+  288:  Exec  $Script_8025A2F0
+  294:  Exec  $Script_MakeEntities
+  2A0:  Exec  $Script_80247D18
+  2AC:  Exec  $Script_80248818
+  2B8:  Exec  $Script_80248428
+  2C4:  Exec  $Script_80246770
+  2D0:  Call  UseDoorSounds ( .DoorSounds:Large )
+  2E0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+  2F0:  Exec  $Script_EnterWalk_80246C94
+  2FC:  Wait  1`
+  308:  Call  EnableTexPanning      ( ~Model:hikari .True )
+  31C:  Thread
+  324:  	SetGroup  00000000
+  330:  	Set   *Var0  00000000
+  340:  	Set   *Var1  00000000
+  350:  	Label  0
+  35C:  	Add   *Var0  FFFFFF9C
+  36C:  	Add   *Var1  FFFFFF38
+  37C:  	If  *Var0  <  00000000
+  38C:  		Add   *Var0  00010000
+  39C:  	EndIf
+  3A4:  	If  *Var1  <  00000000
+  3B4:  		Add   *Var0  00010000
+  3C4:  	EndIf
+  3CC:  	Call  SetTexPanOffset   ( 00000003 00000000 *Var0 00000000 )
+  3E8:  	Call  SetTexPanOffset   ( 00000003 00000001 *Var1 *Var1 )
+  404:  	Wait  1`
+  410:  	Goto  0
+  41C:  EndThread
+  424:  Bind  $Script_8024F27C .Trigger:WallPressA ~Collider:o335 00000001 00000000
+  440:  Exec  $Script_8025023C
+  44C:  Exec  $Script_80262604
+  458:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  46C:  Return
+  474:  End
+}
+
 %Make this Ninji red and give him a unique name.
 
 @	$NpcGroup_8025441C
@@ -130,24 +234,345 @@
 }
 
 
+@	$Script_Idle_8025A49C
+{
+    0:  Call  WaitForPlayerInputEnabled ( )
+		Set   *GB_StoryProgress  .Story:Ch0_ReturnedToToadTown
+   1C:  Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+   38:  Call  NpcJump0  ( .Npc:Self *Var0 *Var1 *Var2  10` )
+		Thread
+			Call  SpeakToPlayer ( .NpcID:Toad_10 00830008 00830008 00000000 0003007D ) % Oh... Mario! Merlon was looking for you. He lives  ...
+			Call  BindNpcInteract   ( .NpcID:Toad_10 $Script_Interact_8025A544 )
+		EndThread
+   98:  Return
+   A0:  End
+}
+
+@	$Script_Init_8025A7A0
+{
+    0:  If  *GB_StoryProgress  ==  .Story:Ch0_TwinkGaveLuckyStar % FFFFFF98
+   10:  	Call  SetNpcPos     ( .Npc:Self  -25`  0`  -500` )
+   2C:  	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_8025A49C )
+		Else
+			Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8025A544 )
+   40:  EndIf
+   5C:  Return
+   64:  End
+}
+
+
+@	$Script_Interact_8025A544
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  0003007C
+   28:  	Case  <  .Story:Ch1_SpokeWithMerlin % FFFFFF9A
+   34:  		Set   *Var0  00030110
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  0003007E
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  0003007F
+   8C:  		Else
+   94:  			Set   *Var0  00030080
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  00030081
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC01_MailbagStolen  ==  .False
+   E4:  			Set   *Var0  00030082
+   F4:  		Else
+   FC:  			If  *GF_MAC01_MailbagReturned  ==  .False
+  10C:  				Set   *Var0  00030083
+  11C:  			Else
+  124:  				Set   *Var0  00030084
+  134:  			EndIf
+  13C:  		EndIf
+  144:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  150:  		Set   *Var0  00030085
+  160:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  16C:  		Set   *Var0  00030086
+  17C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  188:  		Set   *Var0  00030087
+  198:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1A4:  		Set   *Var0  00030088
+  1B4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1C0:  		Set   *Var0  00030089
+  1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1DC:  		Set   *Var0  0003008A
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  0003008B
+  208:  	Case  >=  .Story:Epilogue % 60
+  214:  		Set   *Var0  00010046
+  224:  EndSwitch
+  22C:  Call  SpeakToPlayer ( .NpcID:Toad_10 00830004 00830001 00000000 *Var0 ) % variable string ID
+  24C:  Return
+  254:  End
+}
+
+
+%Toad_11 (Blue one in the middle of town)
 @	$Script_Interact_8025A80C
 {
-  [22C]  Call  SpeakToPlayer ( .NpcID:Toad_11 00830804 00830801 00000000 *Var0 ) % variable string ID
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  0003008C
+   28:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   34:  		Set   *Var0  0003008D
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  0003008E
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  0003008F
+   8C:  		Else
+   94:  			Set   *Var0  00030090
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  00030091
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC01_MailbagStolen  ==  .False
+   E4:  			Set   *Var0  00030092
+   F4:  		Else
+   FC:  			If  *GF_MAC01_MailbagReturned  ==  .False
+  10C:  				Set   *Var0  00030093
+  11C:  			Else
+  124:  				Set   *Var0  00030094
+  134:  			EndIf
+  13C:  		EndIf
+  144:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  150:  		Set   *Var0  00030095
+  160:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  16C:  		Set   *Var0  00030096
+  17C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  188:  		Set   *Var0  00030097
+  198:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1A4:  		Set   *Var0  00030098
+  1B4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1C0:  		Set   *Var0  00030099
+  1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1DC:  		Set   *Var0  0003009A
+			Case  <  .Story:PostGame
+				Set   *Var0  0003009B	
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  0003010A
+  208:  	Case  >=  .Story:Epilogue % 60
+  214:  		Set   *Var0  00010047
+  224:  EndSwitch
+  22C:  Call  SpeakToPlayer ( .NpcID:Toad_11 00830804 00830801 00000000 *Var0 ) % variable string ID
+  24C:  Return
+  254:  End
 }
 
+%Toad_12, (Crimson one near Post Office)
 @	$Script_Interact_8025ABB8
 {
-  [22C]  Call  SpeakToPlayer ( .NpcID:Toad_12 00830A04 00830A01 00000000 *Var0 ) % variable string ID
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  0003009C
+   28:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   34:  		Set   *Var0  0003009D
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  0003009E
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  0003009F
+   8C:  		Else
+   94:  			Set   *Var0  000300A0
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  000300A1
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC01_MailbagStolen  ==  .False
+   E4:  			Set   *Var0  000300A2
+   F4:  		Else
+   FC:  			If  *GF_MAC01_MailbagReturned  ==  .False
+  10C:  				Set   *Var0  000300A3
+  11C:  			Else
+  124:  				Set   *Var0  000300A4
+  134:  			EndIf
+  13C:  		EndIf
+  144:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  150:  		Set   *Var0  000300A5
+  160:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  16C:  		Set   *Var0  000300A6
+  17C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  188:  		Set   *Var0  000300A7
+  198:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1A4:  		Set   *Var0  000300A8
+  1B4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1C0:  		Set   *Var0  000300A9
+  1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1DC:  		Set   *Var0  000300AA
+			Case  <  .Story:PostGame
+				Set   *Var0  000300AB
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  0003010C
+  208:  	Case  >=  .Story:Epilogue % 60
+  214:  		Set   *Var0  00010049
+  224:  EndSwitch
+  22C:  Call  SpeakToPlayer ( .NpcID:Toad_12 00830A04 00830A01 00000000 *Var0 ) % variable string ID
+  24C:  Return
+  254:  End
 }
 
+
+%Toad_13 (Yellow one that walks in a straight line)
 @	$Script_Interact_8025AEA4
 {
-  [22C]  Call  SpeakToPlayer ( .NpcID:Toad_13 00830304 00830301 00000000 *Var0 ) % variable string ID
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  000300AC
+   28:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   34:  		Set   *Var0  000300AD
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  000300AE
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  000300AF
+   8C:  		Else
+   94:  			Set   *Var0  000300B0
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  000300B1
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC01_MailbagStolen  ==  .False
+   E4:  			Set   *Var0  000300B2
+   F4:  		Else
+   FC:  			If  *GF_MAC01_MailbagReturned  ==  .False
+  10C:  				Set   *Var0  000300B3
+  11C:  			Else
+  124:  				Set   *Var0  000300B4
+  134:  			EndIf
+  13C:  		EndIf
+  144:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  150:  		Set   *Var0  000300B5
+  160:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  16C:  		Set   *Var0  000300B6
+  17C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  188:  		Set   *Var0  000300B7
+  198:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1A4:  		Set   *Var0  000300B8
+  1B4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1C0:  		Set   *Var0  000300B9
+  1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1DC:  		Set   *Var0  000300BA
+			Case  <  .Story:PostGame
+				Set   *Var0  000300BB	
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  0003010D
+  208:  	Case  >=  .Story:Epilogue % 60
+  214:  		Set   *Var0  0001004A
+  224:  EndSwitch
+  22C:  Call  SpeakToPlayer ( .NpcID:Toad_13 00830304 00830301 00000000 *Var0 ) % variable string ID
+  24C:  Return
+  254:  End
 }
 
+
+%Toad_14 (Lime, Lip's simp/supporter)
 @	$Script_Interact_8025B250
 {
-  [23C]  Call  SpeakToPlayer ( .NpcID:Toad_14 00830904 00830901 00000000 *Var0 ) % variable string ID
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  000300BC
+   28:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   34:  		Set   *Var0  000300BD
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  000300BE
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  000300BF
+   8C:  		Else
+   94:  			Set   *Var0  000300C0
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  000300C1
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC01_ShyGuysTramplingGarden  ==  .False
+   E4:  		Else
+   EC:  			Set   *Var0  *GF_MAC01_ChasedShyGuysFromGardenA
+   FC:  			Add   *Var0  *GF_MAC01_ChasedShyGuysFromGardenB
+  10C:  			If  *Var0  <  00000002
+  11C:  				Set   *Var0  000300C2
+  12C:  			Else
+  134:  				Set   *Var0  000300C3
+  144:  			EndIf
+  14C:  		EndIf
+  154:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  160:  		Set   *Var0  000300C4
+  170:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  17C:  		Set   *Var0  000300C5
+  18C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  198:  		Set   *Var0  000300C6
+  1A8:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1B4:  		Set   *Var0  000300C7
+  1C4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1D0:  		Set   *Var0  000300C8
+  1E0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1EC:  		Set   *Var0  000300C9
+			Case  <  .Story:PostGame
+				Set   *Var0  000300CA
+  1FC:  	Case  <  .Story:Epilogue % 60
+  208:  		Set   *Var0  000300CA
+  218:  	Case  >=  .Story:Epilogue % 60
+  224:  		Set   *Var0  0001004C
+  234:  EndSwitch
+  23C:  Call  SpeakToPlayer ( .NpcID:Toad_14 00830904 00830901 00000000 *Var0 ) % variable string ID
+  25C:  Return
+  264:  End
+}
+
+
+
+@	$Script_Interact_8025B4E0
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  000300CB
+   28:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   34:  		Set   *Var0  000300CC
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  000300CD
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  000300CE
+   8C:  		Else
+   94:  			Set   *Var0  000300CF
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  000300D0
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC00_DictionaryStolen  ==  .False
+   E4:  			Set   *Var0  000300D1
+   F4:  		Else
+   FC:  			If  *GF_MAC00_DictionaryReturned  ==  .False
+  10C:  				Set   *Var0  000300D2
+  11C:  			Else
+  124:  				Set   *Var0  000300D3
+  134:  			EndIf
+  13C:  		EndIf
+  144:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  150:  		Set   *Var0  000300D4
+  160:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  16C:  		Set   *Var0  000300D5
+  17C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  188:  		Set   *Var0  000300D6
+  198:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1A4:  		Set   *Var0  000300D7
+  1B4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1C0:  		Set   *Var0  000300D8
+  1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1DC:  		Set   *Var0  000300D9
+			Case  <  .Story:PostGame
+				Set   *Var0  000300DA
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  00030109
+  208:  	Case  >=  .Story:Epilogue % 60
+  214:  		Set   *Var0  0001004D
+  224:  EndSwitch
+  22C:  Call  SpeakToPlayer ( .NpcID:Toad_15 00830104 00830101 00000000 *Var0 ) % variable string ID
+  24C:  Return
+  254:  End
 }
 
 
@@ -204,18 +629,20 @@
 
 #new:Script  $LipProblem
 {
-		Loop
-			Call  ShowEmote ( .NpcID:MinhT_18 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
-			Wait  60`
-			If  *LipCompleted == .True
-				BreakLoop
-			EndIf
-		EndLoop
+		If  *GB_StoryProgress != .Story:Epilogue
+			Loop
+				Call  ShowEmote ( .NpcID:MinhT_18 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+				Wait  60`
+				If  *LipCompleted == .True
+					BreakLoop
+				EndIf
+			EndLoop
+		EndIf
 		Return
 		End
 }
 
-%Lip interact script 
+%Lip interact script. Added checking for her sidequest and if Mario wants Insecticide Herbs
 
 @	$Script_Interact_802591CC
 {
@@ -225,21 +652,23 @@
    28:  	Return
    30:  EndIf
 		If   *GB_StoryProgress >= .Story:Ch6_FlowerGateOpen
-			If  *LipCompleted == .False
-				If  *BzzoltKillCount < 10`
-					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FB )	%There's still more hornets
-					ExecWait  $CheckLipHerb	
-				Else
-					Set   *LipCompleted .True
-					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80006 00A80006 00000000 000300FE )	%Thank you, Mario-sama
-					Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FF )	%Take this please
-			   10:  Set   *Var0  .Item:HappyFlowerB		%Happy Flower has been moved to here
-			   20:  Set   *Var1  00000002
-			   30:  Call  ShowGotItem   ( *Var0 .True 00000000 )
-			   3C:  Call  AddBadge  ( .Item:HappyFlowerB *Var0 )					
-					ExecWait  $ProblemSolved
+			If  *GB_StoryProgress != .Story:Epilogue
+				If  *LipCompleted == .False
+					If  *BzzoltKillCount < 10`
+						Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FB )	%There's still more hornets
+						ExecWait  $CheckLipHerb	
+					Else
+						Set   *LipCompleted .True
+						Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80006 00A80006 00000000 000300FE )	%Thank you, Mario-sama
+						Call  SpeakToPlayer ( .NpcID:MinhT_18 00A80004 00A80001 00000000 000300FF )	%Take this please
+				   10:  Set   *Var0  .Item:HappyFlowerB		%Happy Flower has been moved to here
+				   20:  Set   *Var1  00000002
+				   30:  Call  ShowGotItem   ( *Var0 .True 00000000 )
+				   3C:  Call  AddBadge  ( .Item:HappyFlowerB *Var0 )					
+						ExecWait  $ProblemSolved
+					EndIf
+					Return
 				EndIf
-				Return
 			EndIf
 		EndIf
    38:  Set   *Var2  00000000
@@ -272,9 +701,12 @@
   198:  			Set   *Var0  00030073
   1A8:  			Set   *Var1  00030073
 				EndIf
-  18C:  	Case  <  .Story:Epilogue % 60
+  18C:  	Case  <  .Story:PostGame % 60
   198:  			Set   *Var0  000300F6
   1A8:  			Set   *Var1  000300F6
+			Case  <  .Story:Epilogue
+					Set   *Var0  0003010B
+					Set   *Var1  0003010B
   1B8:  	Case  >=  .Story:Epilogue % 60
   1C4:  		Set   *Var0  00010042
   1D4:  		Set   *Var1  00010042
@@ -362,6 +794,9 @@
   5EC:  			ExecWait  $Script_80258A68
   5F8:  	EndSwitch
   600:  EndIf
+		If  *GB_StoryProgress == .Story:Epilogue
+			Return
+		EndIf
 		If  *GB_StoryProgress  >= .Story:Ch2_StarSpritDeparted
 			ExecWait  $CheckLipHerb
 		EndIf
@@ -371,9 +806,6 @@
 
 #new:Script  $CheckLipHerb
 {
-						If  *GB_StoryProgress  >= .Story:Epilogue
-							Return
-						EndIf
 						Call  ShowChoice    ( 001E0051 )
 						Call  CloseMessage ( )
 						If   *Var0 == 0`
@@ -699,15 +1131,17 @@
     0:  Switch  *Var0
     C:  	Case  ==  00000000
    18:  		Call  SetGroupEnabled   ( ~Model:yubin_in 00000001 )
-				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-					If *ShopState == 00000000
-						Thread
-							Wait  40`
-							Set *ShopState 00000001
-							Call  PushSong      ( .Song:CandyCanes 00000001 )  %Launch Base theme for Post Office
-						EndThread
-					EndIf	
-				EndIf
+				Switch  *GB_StoryProgress
+					Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+					Default
+						If *ShopState == 00000000
+							Thread
+								Wait  40`
+								Set *ShopState 00000001
+								Call  PushSong      ( .Song:CandyCanes 00000001 )  %Launch Base theme for Post Office
+							EndThread
+						EndIf	
+				EndSwitch
    2C:  		ExecWait  $Script_80257844
    38:  	Case  ==  00000003
 				If *ShopState == 00000001
@@ -943,14 +1377,257 @@
 }
 
 
+%Rowf init script
+%Added the new Badge fragment system
+
+@	$Script_Init_802560B4
+{
+		If  *GB_StoryProgress >= .Story:Ch2_StarSpritDeparted
+			If    *RowfBadgeFragmentHint == .False
+				Exec $RowfProblem
+				Call  SetNpcCollisionSize   ( .Npc:Self  58`  32` ) %It's height and then width. I need to remember that
+			EndIf
+		EndIf
+    0:  Set   *MapVar[D]  00000000
+   10:  Set   *MapVar[E]  00000000
+   20:  Set   *AreaFlag[040]  .False
+   30:  Switch  *GB_StoryProgress
+   3C:  	Case  <  .Story:Ch1_DefeatedJrTroopa % FFFFFFB6
+   48:  		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8025460C )
+   5C:  		Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80254BB4 )
+   70:  	Case  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+   7C:  		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802546EC )
+   90:  		Set   *AreaFlag[040]  .True
+   A0:  	Default
+   A8:  		If  *GF_MAC01_CalculatorReturned  ==  .True
+   B8:  			Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802546EC )
+   CC:  			Set   *AreaFlag[040]  .True
+   DC:  		Else
+   E4:  			Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80254860 )
+   F8:  			Call  SetNpcPos ( 00000001  -250`  0`  295` )
+  114:  		EndIf
+  11C:  EndSwitch
+  124:  Set   *AreaFlag[041]  .False
+  134:  Call  SetModelFlags ( ~Model:ju_2 00000200 .False )
+  14C:  Call  EnableGroup   ( ~Model:jutan1 .False )
+  160:  Call  ModifyColliderFlags   ( 00000000 ~Collider:b1 7FFFFE00 )
+  178:  Call  ModifyColliderFlags   ( 00000000 ~Collider:b2 7FFFFE00 )
+  190:  Call  ModifyColliderFlags   ( 00000000 ~Collider:b3 7FFFFE00 )
+  1A8:  Call  RotateGroup   ( ~Model:jutan1 0000003C 00000000 00000001 00000000 )
+  1C8:  Call  RotateGroup   ( ~Model:jutan2 00000000 00000000 00000001 00000000 )
+  1E8:  Call  ScaleGroup    ( ~Model:jutan2 *Fixed[1.3] 00000001 *Fixed[1.3] )
+  204:  Set   *MapVar[1]  0000003C
+  214:  Call  MakeLocalVertexCopy   ( 00000000 ~Model:ju_1 .True )
+  22C:  Call  SetCustomGfxBuilders  ( 00000000 $Function_80244B98 00000000 )
+  244:  Call  SetModelCustomGfx     ( ~Model:ju_1 00000000 FFFFFFFF )
+  25C:  If  *AreaFlag[040]  ==  .True
+  26C:  	Bind  $Script_80255F60 .Trigger:FloorTouch ~Collider:roten 00000001 00000000
+  288:  	Bind  $Script_80255FEC .Trigger:FloorTouch ~Collider:o444 00000001 00000000
+  2A4:  	Call  SetNpcJumpscale   ( 00000001 00000001 )
+  2B8:  EndIf
+  2C0:  Thread
+  2C8:  	Wait  5`
+  2D4:  	Call  SetModelFlags ( ~Model:b1 00000004 .False )
+  2EC:  	Call  SetModelFlags ( ~Model:b2 00000004 .False )
+  304:  	Call  SetModelFlags ( ~Model:b3 00000004 .False )
+  31C:  	Call  $Function_80244D68 ( )
+  328:  	Label  0
+  334:  	If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
+  344:  		Call  GetModelCenter        ( ~Model:b3 )
+  354:  		Call  $Function_80244E10    ( 00000000 )
+  364:  	EndIf
+  36C:  	If  *GF_MAC01_RowfBadgeAvailableB  ==  .False
+  37C:  		Call  GetModelCenter        ( ~Model:b2 )
+  38C:  		Call  $Function_80244E10    ( 00000001 )
+  39C:  	EndIf
+  3A4:  	If  *GF_MAC01_RowfBadgeAvailableC  ==  .False
+  3B4:  		Call  GetModelCenter        ( ~Model:b1 )
+  3C4:  		Call  $Function_80244E10    ( 00000002 )
+  3D4:  	EndIf
+  3DC:  	Wait  1`
+  3E8:  	Goto  0
+  3F4:  EndThread
+  3FC:  Return
+  404:  End
+}
+
+
+
+#new:Script  $RowfProblem
+{
+		If  *GB_StoryProgress != .Story:Epilogue
+			Loop
+				Call  ShowEmote ( 00000001 .Emote:Frustration  1`  60` .True  0`  60`  0`  0` )
+				Wait  60`
+				If  *RowfBadgeFragmentHint == .True
+					BreakLoop
+				EndIf
+			EndLoop
+		EndIf
+		Return
+		End
+}
+
+
+#new:Script  $CheckForBadgeFragments
+{
+
+%First we check if the player has four pieces of heart
+		Wait  5`
+		If  *GotHPPlusFromRowf == .True
+			Goto CheckSourceOfPower
+		EndIf
+		
+		%You need to have gotten a piece of heart first to trigger this
+		If   *HavePieceofHeart == .True
+			If   *PiecesofHeart >= 4`	%You need four pieces of heart to make a HP Plus
+				If  *PieceofHeartTutorial == .False
+					Set  *PieceofHeartTutorial .True
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030114 )
+				EndIf
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030116 )
+				Sub   *PiecesofHeart 4`	
+				If   *PiecesofHeart < 1`		%This will only happen if you have exactly 0 after making one
+					Call  RemoveBadge   ( .Item:PieceOfHeart )
+					Set  *HavePieceofHeart .False
+					Set  *PiecesofHeart 0`		%Idk if it can underflow, but we're setting it to 0 anyway
+				EndIf
+				ExecWait  $RowfFadeOut
+				Set   *Var0  .Item:HPPlusC		%HPPlusC is gotten here now
+				Set   *Var1  00000002
+				Call  ShowGotItem   ( *Var0 .True 00000000 )
+				Call  AddBadge  ( .Item:HPPlusC *Var0 )	
+				Set  *GotHPPlusFromRowf .True
+			Else
+				If  *PieceofHeartTutorial == .False
+					Set  *PieceofHeartTutorial .True
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030114 )
+				EndIf
+			EndIf
+		EndIf
+		
+%Check if the player has four sources of power
+		Label CheckSourceOfPower
+		If   *GotPowerPlusFromRowf == .True
+			Goto CheckSingleDip
+		EndIf
+		
+		%You need to have gotten a source of power to trigger this
+		If   *HaveSourceofPower == .True
+			If   *SourcesofPower >= 4`	%You need four sources of power to make a Power Plus
+				If  *SourceofPowerTutorial == .False
+					Set  *SourceofPowerTutorial .True
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030115 )
+				EndIf
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030117 )
+				Sub   *SourcesofPower 4`	
+				If   *SourcesofPower < 1`		%This will only happen if you have exactly 0 after making one
+					Call  RemoveBadge   ( .Item:SourceOfPower )
+					Set  *HaveSourceofPower .False
+					Set  *SourcesofPower 0`		%Idk if it can underflow, but we're setting it to 0 anyway
+				EndIf
+				ExecWait  $RowfFadeOut
+				Set   *Var0  .Item:PowerPlusB		%PowerPlusB is gotten here now
+				Set   *Var1  00000002
+				Call  ShowGotItem   ( *Var0 .True 00000000 )
+				Call  AddBadge  ( .Item:PowerPlusB *Var0 )	
+				Set  *GotPowerPlusFromRowf .True
+			Else
+				If  *SourceofPowerTutorial == .False
+					Set  *SourceofPowerTutorial .True
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030115 )
+				EndIf
+			EndIf
+		EndIf
+		
+%Now we see if the player has Single Dip
+		Label CheckSingleDip
+		If  *AntiGuyChestNew == .False
+			Goto EndRowfChecks
+		EndIf
+		If  *GotDoubleDipFromRowf == .True
+			Goto EndRowfChecks
+		EndIf
+			Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030118 )	%You have Single Dip.
+			ExecWait  $RowfFadeOut
+			Set   *Var0  .Item:DoubleDip		%Double Dip is gotten here now
+			Set   *Var1  00000002
+			Call  ShowGotItem   ( *Var0 .True 00000000 )
+			Call  RemoveBadge   ( .Item:DoubleDip )  %Just so players don't get two Double Dips
+			Call  AddBadge  ( .Item:DoubleDip *Var0 )	
+			Set  *GotDoubleDipFromRowf .True
+		Label EndRowfChecks
+		Return
+		End
+}
+
+#new:Script  $RowfFadeOut
+{
+    SetF	*Var0 *Fixed[25.0] % speed
+    SetF	*Var1 *Fixed[255.0]  % dark
+    ExecWait $Script_FadeScreenOut
+	Wait    5`
+	Loop  2`
+	Call  PlaySound ( 2A ) %Building
+	Wait  15`
+	Call  PlaySound ( 29 ) 
+	Wait  15`
+	EndLoop
+	Call  PlaySound ( 208D ) 
+	Wait  20`
+    SetF	*Var0 *Fixed[25.0] % speed
+    SetF	*Var1 *Fixed[5.0]  % fully bright
+    ExecWait    $Script_FadeScreenIn
+	Return
+	End
+}
+
+%Rowf interact script
+@	$Script_Interact_802546EC
+{
+		If  *GB_StoryProgress >= .Story:Ch2_StarSpritDeparted
+			If    *RowfBadgeFragmentHint == .False
+				Set  *RowfBadgeFragmentHint .True
+				Wait  20`
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030112 )  %I can do more than just sell Badges
+				Return
+			EndIf
+		EndIf
+    0:  Set   *Var0  *GF_MAC01_RowfBadgeAvailableA
+   10:  Add   *Var0  *GF_MAC01_RowfBadgeAvailableB
+   20:  Add   *Var0  *GF_MAC01_RowfBadgeAvailableC
+   30:  If  *Var0  ==  00000003
+   40:  	If  *GB_StoryProgress  <  .Story:Ch5_ReturnedToToadTown % 29
+   50:  		Set   *Var1  00030005
+   60:  	Else
+   68:  		Call  $Function_80244984 ( )
+   74:  		If  *Var0  ==  00000000
+   84:  			Set   *Var1  00030006
+   94:  		Else
+   9C:  			Set   *Var1  00030005
+   AC:  		EndIf
+   B4:  	EndIf
+   BC:  	Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 *Var1 ) % variable string ID
+			ExecWait  $CheckForBadgeFragments
+   DC:  	Return
+   E4:  EndIf
+   EC:  If  *GF_MAC01_Met_Rowf_Late  ==  .False
+   FC:  	Set   *GF_MAC01_Met_Rowf_Late  .True
+  10C:  	Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030003 ) % Hey! Welcome, buddy! Well, we got it open! What do ...
+  12C:  Else
+  134:  	Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030004 ) % Hey, bud! How ya been? Take a look around. I wanna ...
+  154:  EndIf
+		ExecWait  $CheckForBadgeFragments
+  15C:  Return
+  164:  End
+}
+
+
 
 %Speedy Spin and Happy Heart have swapped places.
 %A Speedy Spin can now be obtained as soon as you
 %reach Shooting Star Summit or in Prologue.
 %Happy Heart A is obtainable after Chapter 1.
-
-
-
 
 
 % ====================================================
@@ -969,44 +1646,48 @@
 %00000007 == After Chapter 4
 %00000029 == After Chapter 5
 %0000003B == After Chapter 6
+%00000059 == After Chapter 7
 
 @	$RowfBadgeInventory
 {
  FFFFFF80	.Item:HappyHeartA     50`    00240079 % Replaces Speedy Spin.
  FFFFFF80	.Item:FirstAttack     50`    00240087 % 
- FFFFFF80	.Item:Multibounce    100`    0024005E % 
  FFFFFF80	.Item:DDownPound      75`    00240069 % Now renamed Piercing Blow.
  FFFFFF80	.Item:SleepStomp     100`    0024005C % 
- FFFFFFCB	.Item:DoubleDip      200`    0024006D % 
- FFFFFFCB	.Item:DodgeMaster    300`    00240080 % Now renamed Tatsujin.
+ FFFFFFCB	.Item:Multibounce    100`    0024005E % 
  FFFFFFCB	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp.
- FFFFFFF3	.Item:JumpCharge     150`    0024005A % 
- FFFFFFF3	.Item:MedicineMan    175`    0023011C % Medicine Man added.
- FFFFFFF3	.Item:DamageDodgeA   200`    00240075 % 
- 00000007	.Item:Hanatatsu      450`    00230155 % New Hanatatsu Badge.
- 00000007   .Item:TornadoJump_1  300`    00230115 % Tornado Jump added.
- 00000007	.Item:SSmashChg      275`    00240065 % 
+ FFFFFFCB	.Item:MedicineMan    200`    0023011C % Medicine Man added.
+ FFFFFFF3	.Item:DamageDodgeA   175`    00240075 % Damage Dodge gotten way earlier
+ FFFFFFF3	.Item:JumpCharge     150`    0024005A %
+ FFFFFFF3	.Item:ShellCrack     250`    00230163 % Stop Smash added (now called Clock-Out Clash)
+ 00000007	.Item:DDownJump      300`    00230060 % D-Down Jump is here now (replacing Tatsujin)
  00000007	.Item:PityFlower     200`    0023011B % Pity Flower added.
- 00000029	.Item:MegaQuake      450`    0024006C %
+ 00000007	.Item:SSmashChg      275`    00240065 % 
+ 00000029   .Item:TornadoJump_1  300`    00230115 % Tornado Jump added.
  00000029   .Item:SuperSmash     400`	 00230067 % Multi-Smash added.
  00000029   .Item:MegaHPDrain    250`	 00230114 % Mega HP Drain added.
- 0000003B	.Item:AllorNothing   450`    00240093 % 
+ 0000003B	.Item:MegaQuake      450`    0024006C %
+ 0000003B	.Item:Hanatatsu      450`    00230155 % New Hanatatsu Badge.
  0000003B	.Item:FPPlusC        250`    00240072 % 
- 0000003B	.Item:ShrinkSmash    500`    0023011D % Recoil Throw added.
- 0000003B	.Item:AutoJump       500`    0023015F % Space Jump added.
+ 00000059	.Item:AllorNothing   450`    00240093 % 
+ 00000059	.Item:ShrinkSmash    500`    0023011D % Recoil Throw added.
+ 00000059	.Item:AutoJump       500`    0023015F % Space Jump added.
 }
+
 
 
 %Start shop music
 
 @	 $Script_8025573C
 {
-		If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-			If *ShopState == 00000000
-				Set *ShopState 00000001
-				Call  PushSong      ( 000000A1 00000001 )
-			EndIf		
-		EndIf
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+			Default
+				If *ShopState == 00000000
+					Set *ShopState 00000001
+					Call  PushSong      ( 000000A1 00000001 )
+				EndIf		
+		EndSwitch
     0:  Set   *MapFlag[0B]  .True
    10:  Call  SetNpcYaw ( 00000001  270` )
    24:  Thread
@@ -1077,12 +1758,14 @@
 
 @	$Script_80255B30
 {
-		If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-			If *ShopState == 00000001
-				Set *ShopState 00000000
-				Call  PopSong ( )
-			EndIf
-		EndIf
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+			Default
+				If *ShopState == 00000001
+					Set *ShopState 00000000
+					Call  PopSong ( )
+				EndIf		
+		EndSwitch
 		Exec  $AutoSave
     0:  Set   *MapFlag[0B]  .False
    10:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
@@ -1155,100 +1838,6 @@
 }
 
 
-@	$Script_Main
-{
-		Set   *Byte_Settings_BGM  1`
-		Set   *Byte_Settings_BGM2 1`
-		Call $ClearFlagCarryOverworldMusicToBattle()
-		Call  SetSpriteShading  ( .Shading:None )
-		Set   *MerlonState  0`
-		Set   *LipState  0`
-  12C:  If  *GB_StoryProgress  ==  .Story:Ch6_StarSpritDeparted % Set this just in case you don't use the door to warp out
-  13C:  	Set   *GB_StoryProgress  .Story:Ch6_ReturnedToToadTown
-  14C:  EndIf
-    0:  Set   *GB_WorldLocation  .Location:ToadTown
-   10:  Call  SetSpriteShading  ( .Shading:None )
-   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  90`  4096` )
-   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
-   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
-   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-    0:  Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-				Exec  $DarknessFollow
-   88:  	Default
-				Exec  $CheckLip
-				Call  EnableGroup   ( ~Model:darkness .False )
-   9C:  EndSwitch
-   84:  Set   *AreaFlag[00E]  .False
-   94:  Set   *AreaFlag[00F]  .False
-   A4:  Set   *AreaFlag[010]  .False
-   B4:  Set   *AreaFlag[011]  .False
-   C4:  Set   *AreaFlag[012]  .False
-   D4:  Set   *AreaFlag[013]  .False
-   E4:  Set   *AreaFlag[014]  .False
-   F4:  Set   *AreaFlag[015]  .False
-  104:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
-  114:  	Exec  $Script_80248070
-  120:  Else
-  128:  	Call  EnableGroup   ( ~Model:jutan1 .False )
-  13C:  EndIf
-  144:  Switch  *GB_StoryProgress
-  150:  	Case  ==  .Story:Intro % FFFFFF80
-  15C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025FA2C )
-  170:  	Case  >=  .Story:Epilogue % 60
-  17C:  		Call  MakeNpcs  ( .False $NpcGroupList_80261830 )
-  190:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
-  19C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFF0 )
-  1B0:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
-  1BC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F044 )
-  1D0:  	Case  ==  .Story:Ch1_DefeatedJrTroopa % FFFFFFB6
-  1DC:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F080 )
-  1F0:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
-  200:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0BC )
-  214:  	Case  ==  .Story:Ch6_ReturnedToToadTown % 3C
-  220:  		Call  MakeNpcs  ( .False $NpcGroupList_8025F0F8 )
-  234:  	Default
-  23C:  		Call  MakeNpcs  ( .False $NpcGroupList_8025EFA8 )
-  250:  EndSwitch
-  258:  If  *GB_StoryProgress  >=  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
-  268:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:tt 7FFFFE00 )
-  280:  EndIf
-  288:  Exec  $Script_8025A2F0
-  294:  Exec  $Script_MakeEntities
-  2A0:  Exec  $Script_80247D18
-  2AC:  Exec  $Script_80248818
-  2B8:  Exec  $Script_80248428
-  2C4:  Exec  $Script_80246770
-  2D0:  Call  UseDoorSounds ( .DoorSounds:Large )
-  2E0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
-  2F0:  Exec  $Script_EnterWalk_80246C94
-  2FC:  Wait  1`
-  308:  Call  EnableTexPanning      ( ~Model:hikari .True )
-  31C:  Thread
-  324:  	SetGroup  00000000
-  330:  	Set   *Var0  00000000
-  340:  	Set   *Var1  00000000
-  350:  	Label  0
-  35C:  	Add   *Var0  FFFFFF9C
-  36C:  	Add   *Var1  FFFFFF38
-  37C:  	If  *Var0  <  00000000
-  38C:  		Add   *Var0  00010000
-  39C:  	EndIf
-  3A4:  	If  *Var1  <  00000000
-  3B4:  		Add   *Var0  00010000
-  3C4:  	EndIf
-  3CC:  	Call  SetTexPanOffset   ( 00000003 00000000 *Var0 00000000 )
-  3E8:  	Call  SetTexPanOffset   ( 00000003 00000001 *Var1 *Var1 )
-  404:  	Wait  1`
-  410:  	Goto  0
-  41C:  EndThread
-  424:  Bind  $Script_8024F27C .Trigger:WallPressA ~Collider:o335 00000001 00000000
-  440:  Exec  $Script_8025023C
-  44C:  Exec  $Script_80262604
-  458:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
-  46C:  Return
-  474:  End
-}
 
 
 @	$Script_MakeEntities
@@ -1379,7 +1968,9 @@
   124:  				Return
   12C:  		EndSwitch
 				Thread
-				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
+				Switch  *GB_StoryProgress
+					Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+					Default
 					If *ShopState == 00000000
 						Set *ShopState 00000001
 						Wait  24`
@@ -1392,24 +1983,25 @@
 						Else
 							Call  SetMusicTrack ( 00000000 .Song:Donlon 00000000 00000008 )
 						EndIf
-						
 					EndIf
-				EndIf
+				EndSwitch
 				EndThread
   134:  		Call  SetGroupEnabled   ( ~Model:dr_in 00000001 )
   148:  		Set   *MapFlag[0A]  .True
   158:  	Case  ==  00000001
   164:  	Case  ==  00000002
   170:  	Case  ==  00000003
-				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-						If *MerlonState == 00000001
-							Set *MerlonState 00000000
+				Switch  *GB_StoryProgress
+					Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+					Default
+						If *ShopState == 00000001
+							Set *ShopState 00000000
+								If *MerlonState == 00000001
+									Set *MerlonState 00000000
+								EndIf
+								Exec $Script_80246850
 						EndIf
-						Exec $Script_80246850
-				EndIf
-				EndIf
+				EndSwitch
   17C:  		Call  SetGroupEnabled   ( ~Model:dr_in 00000000 )
   190:  		Set   *MapFlag[0A]  .False
   1A0:  EndSwitch
@@ -1489,10 +2081,12 @@
   448:  Call  SetPlayerActionState  ( .ActionState:Jump )
   458:  Call  SetPlayerJumpscale    ( *Fixed[1.0] )
   468:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
-  480:  Call  PlayerJump        ( *Var0 *Var1 *Var2  15` )
-  49C:  Call  SetPlayerActionState  ( .ActionState:Land )
-  4AC:  Wait  10`
-  4B8:  Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030022 ) % Oh! Maybe... No... Yes! It must be! You're Mario!  ...
+		Thread
+			Call  PlayerJump        ( *Var0 *Var1 *Var2  15` )
+			Call  SetPlayerActionState  ( .ActionState:Land )
+		EndThread
+		Wait  3`
+		Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030022 ) % Oh! Maybe... No... Yes! It must be! You're Mario!  ...
   4D8:  Thread
   4E0:  	Call  SetNpcAnimation   ( 00000000 00A50002 )
   4F4:  	Call  NpcMoveTo ( 00000000  -275`  -305`  30` )
@@ -1530,19 +2124,18 @@
   708:  Thread
   710:  	Call  $Function_80244848 ( )
   71C:  EndThread
-  724:  Wait  10`
+  724:  Wait  9`
   730:  Call  ContinueSpeech        ( 00000000 00A50004 00A50001 00000000 00030024 ) % ........................... ................. .... ...
   750:  Call  SetPlayerAnimation    ( 0008001E )
-  760:  Wait  10`
+  760:  Wait  9`
   76C:  Call  SetPlayerAnimation    ( 0008001C )
-  77C:  Wait  50`
+  77C:  Wait  48`
   788:  Call  GetNpcPos     ( 00000000 *Var0 *Var1 *Var2 )
   7A4:  Call  SetCamType    ( .Cam:Default 00000000 .False )
   7BC:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
   7D8:  Call  SetCamDistance        ( .Cam:Default  200` )
   7EC:  Call  SetCamPitch   ( .Cam:Default  15`  -10` )
   804:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
-  818:  Wait  10`
   824:  Call  SpeakToPlayer ( 00000000 00A50004 00A50001 00000000 00030025 ) % Oh...all right. ...So, anyway, that is why I am ab ...
   844:  Set   *GB_StoryProgress  .Story:Ch1_SpokeWithMerlin
   854:  Call  ResetCam      ( .Cam:Default *Fixed[5.0] )
@@ -1562,9 +2155,11 @@
 
 @	$Script_80246824
 {
-		If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-    0:  Call  PushSong      ( .Song:MerleeSpell 00000000 )
-		EndIf
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+			Default
+				Call  PushSong      ( .Song:MerleeSpell 00000000 )
+		EndSwitch
    1C:  Return
    24:  End
 }
@@ -1614,10 +2209,12 @@
   1DC:  UseArray  *MapVar[C]
   1E8:  ExecWait  $Script_8024EC64
   1F4:  Wait  21`
-		If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-  200:		Call  PopSong ( )	
-			Set *MerlonState 00000001
-		EndIf
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+			Default
+				Call  PopSong ( )	
+				Set *MerlonState 00000001
+		EndSwitch
 		Switch *Byte_Settings_Difficulty
 					Case == 0
 						Add  *GB_FilthyCasual 1`
@@ -1658,11 +2255,13 @@
    A8:  					Wait  1`
    B4:  				EndLoop
    BC:  			EndChildThread
+					
    C4:  			Call  SetNpcFlagBits    ( 00000000 00000100 .True )
    DC:  			Call  SetNpcAnimation   ( 00000000 00A50002 )
    F0:  			Call  SetNpcSpeed       ( 00000000 *Fixed[4.0] )
   104:  			Call  NpcMoveTo ( 00000000  -350`  -280`  0` )
   120:  			Call  NpcMoveTo ( 00000000  -230`  -270`  0` )
+					Thread
   13C:  			Call  SetNpcAnimation   ( 00000000 00A50001 )
   150:  			Call  SetNpcFlagBits    ( 00000000 00000100 .False )
   168:  			Call  PlaySoundAtCollider   ( ~Collider:deilitud .Sound:BasicDoorOpen 00000000 )
@@ -1692,6 +2291,7 @@
   308:  			Call  SetNpcPos ( .Npc:Self  -150`  10`  -160` )
   324:  			Call  SetNpcYaw ( 00000000  90` )
   338:  			Exec  $Script_80250D14
+					EndThread
   344:  		EndIf
   34C:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
   358:  		Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 00030028 ) % Are these the strange Toads you were talking about ...
@@ -1945,7 +2545,110 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
 }
 
 
+@	$Script_80256C60
+{
+    0:  Call  FindKeyItem   ( .Item:Mailbag *Var0 )
+   14:  If  *Var0  ==  FFFFFFFF
+   24:  	Call  SpeakToPlayer ( 00000003 008A0002 008A0001 00000000 00030060 ) % A Shy Guy just stole a bag full of undelivered let ...
+   44:  Else
+   4C:  	Call  SpeakToPlayer ( 00000003 008A0002 008A0001 00000000 00030061 ) % Shy Guys stole a full bag of mail from us. We've f ...
+   6C:  	Set   *Var0  $???_80256C58
+   7C:  	Set   *Var1  00000003
+   8C:  	ExecWait  $Script_8024DA90
+   98:  	Switch  *Var0
+   A4:  		Case  ==  FFFFFFFF
+   B0:  			Call  SpeakToPlayer ( 00000003 008A0002 008A0001 00000000 00030063 ) % Was that the stolen mailbag? Oh, I guess I'm mista ...
+   D0:  		Default
+   D8:  			Call  SpeakToPlayer ( 00000003 008A0002 008A0001 00000000 00030062 ) % Oh, that's it, that's it! The bag! Thank you, Mari ...
+   F8:  			Set   *GF_MAC01_MailbagReturned  .True
+  108:  			Wait  1`
+  114:  			Set   *Var0  0000015C
+  124:  			Set   *Var1  00000003
+  134:  			ExecWait  $Script_80248C34
+  140:  			Call  AddStarPieces ( 00000001 )
+  150:  			Wait  1`
+					If  *GB_StoryProgress  <  .Story:Ch4_StarSpritDeparted	%The Shy Guy puts a pipebomb in the mailbag if its returned before beating Chapter 4
+						Wait  8`
+						Call  FadeOutMusic      ( 00000000 000005DC )
+						Call  SpeakToPlayer ( 00000003 008A0002 008A0001 00000000 00030106 )
+						Call  SetPlayerAnimation    ( 00010023 )
+						Call  ShowMessageAtScreenPos    ( 00030107  160`  40` )
+						Thread
+							Wait  10`
+							Call  SpeakToPlayer ( 00000003 008A0002 008A0001 00000000 00030108 )
+						EndThread
+			   38:  	Loop  16`
+			   44:  		Call  PlaySoundWithVolume   ( B000001C 100` )
+							Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
+							Sub   *Var2  10`
+							Add   *Var3  30`
+							Call  RandInt   ( 150` *Var8 )
+							Call  RandInt   ( 70`  *Var9 )
+							Call  RandInt   ( 1 *VarA )
+							If   *VarA == 0`
+								Add  *Var1  *Var8
+							Else
+								Sub  *Var1  *Var8
+							EndIf
+							Add   *Var2  *Var9
+			   6C:  		Call  PlayEffect    ( ~FX:RingBlast:Red *Var1 *Var2 *Var3 *Fixed[4.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+			   B0:  		Wait  5`
+			   BC:  	EndLoop
+						Wait  3`
+						Call  GotoMap   ( "gv_01" 00000000 )
+						Wait  100`
+						Return
+					EndIf
+  15C:  	EndSwitch
+  164:  EndIf
+  16C:  Return
+  174:  End
+}
 
+%Make Parakarius show up again in the post-game, but have him despawn if you obtained him already
+@	$Script_Init_802575A8
+{
+		If   *GB_StoryProgress == .Story:PostGame
+			If   *PostGameParakariusEvent == .True
+				Call  SetNpcPos ( .Npc:Self 0` -1000` 0` )
+			EndIf
+		Call  SetTattleString   ( .NpcID:WorldParakarry_04 001A0154 )  %Different tattle for post-game
+		EndIf
+    0:  Call  SetNpcCollisionSize   ( .Npc:Self  37`  26` )
+   18:  Call  BindNpcInteract       ( .Npc:Self $Script_Interact_80257568 )
+   2C:  Call  SetNpcAnimation       ( .Npc:Self 00040001 )
+   40:  Return
+   48:  End
+}
+
+%Parakarius interact script
+@	$Script_Interact_80257568
+{
+		If   *GB_StoryProgress  !=  .Story:PostGame
+			Call  SpeakToPlayer ( .Npc:Self 00040006 00040001 00000000 00030064 ) % Greetings. The name's Parakarry. I deliver letters ...
+		Else
+		    Wait  3`
+			Call  BringPartnerOut   ( .Partner:Goombario )
+			Wait  10`
+			Call  SpeakToPlayer ( .Npc:Self 00040006 00040001 00000000 00030102 )
+			Wait  10`
+			Call  DisablePartnerAI  ( 00000000 )
+			Wait  3`
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 00030103 )
+			Call  SpeakToPlayer ( .Npc:Self 00040006 00040001 00000000 00030104 )
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 00030105 )
+			Call  PutPartnerAway ( )
+			Wait  3`
+			Call  $ScriptApi_GivePartner ( .Partner:Parakarry -1` )  %Give Parakarius
+			Call  $TurnNpcIntoPartner ( .NpcID:WorldParakarry_04 .Partner:Parakarry ) 
+			Set   *PostGameParakariusEvent .True		
+			Wait  5`
+			Call  EnablePartnerAI ( )	
+			Wait  5`
+		EndIf
+   20:  Return
+   28:  End
+}
 
 
 
@@ -1960,18 +2663,20 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
    50:  EndLoop
    58:  Call  SetMusicTrack     ( 00000000 .Song:TwinkTheme 00000000 00000008 )
    74:  Call  DisablePlayerInput        ( .True )
-   84:  Call  SetPlayerSpeed    ( *Fixed[5.0] )
+   84:  Call  SetPlayerSpeed    ( *Fixed[6.0] )
    94:  Call  PlayerMoveTo      (  500`  -20`  0` )
    AC:  Call  WaitForPlayerMoveToComplete ( )
    B8:  Call  InterpPlayerYaw   (  270`  0` )
    CC:  Call  ShowMessageAtScreenPos    ( 000300DB  160`  40` ) % Mario!!
-   E4:  Loop  00000002
-   F0:  	Call  InterpPlayerYaw   (  90`  7` )
-  104:  	Wait  8`
-  110:  	Call  InterpPlayerYaw   (  270`  7` )
-  124:  	Wait  8`
-  130:  EndLoop
-  138:  Wait  25`
+		Thread
+	   E4:  Loop  00000002
+	   F0:  	Call  InterpPlayerYaw   (  90`  6` )
+	  104:  	Wait  7`
+	  110:  	Call  InterpPlayerYaw   (  270`  6` )
+	  124:  	Wait  7`
+	  130:  EndLoop
+		EndThread
+  138:  Wait  2`
   144:  Call  GetPlayerPos  ( *Var4 *Var5 *Var6 )
   15C:  SubF  *Var4  *Fixed[50.0]
   16C:  AddF  *Var5  *Fixed[40.0]
@@ -1990,14 +2695,14 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
   238:  Call  SetPlayerAnimation    ( 0001002A )
   248:  Call  AdjustCam     ( .Cam:Default *Fixed[3.0]  -10`  -300`  15`  -9` )
   26C:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DC ) % Mario! Mario! It's me, Twink. Remember me?
-  28C:  Wait  3`
+  28C:  Wait  2`
   298:  Call  SetPlayerAnimation    ( 00080007 )
-  2A8:  Wait  25`
+  2A8:  Wait  30`
   2B4:  Call  SetPlayerAnimation    ( 0001002A )
   2C4:  Wait  10`
   2D0:  Call  SetNpcJumpscale       ( .NpcID:Twink_28 *Fixed[1.0] )
   2E4:  Call  GetNpcPos     ( .NpcID:Twink_28 *Var0 *Var1 *Var2 )
-  300:  Call  NpcJump0      ( .NpcID:Twink_28 *Var0 *Var1 *Var2  8` )
+  300:  Call  NpcJump0      ( .NpcID:Twink_28 *Var0 *Var1 *Var2  7` )
   320:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DD ) % I heard you saved the honorable Star Spirit who wa ...
   340:  Wait  3`
   34C:  Call  SetPlayerAnimation    ( 0001002D )
@@ -2005,6 +2710,17 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
   368:  Call  SetPlayerAnimation    ( 0001002A )
   378:  Call  AdjustCam     ( .Cam:Default *Fixed[3.0]  -40`  -200`  15`  -15` )
   39C:  Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 000300DE ) % But enough celebration for now. I come bearing imp ...
+		Call  FindKeyItem   ( .Item:LuckyStar *VarC )
+		Call  RemoveKeyItemAt       ( *VarC )
+		Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+		Sub  *Var3  8`
+		Add  *Var4  24`
+		Call  MakeItemEntity        ( .Item:LuckyStar *Var3 *Var4 *Var5 .ItemSpawnMode:Decoration 00000000 )
+   CC:  		Call  SetPlayerAnimation    ( 00060005 )
+   DC:  		Wait  30`
+   E8:  		Call  SetPlayerAnimation    ( 00010002 )
+   F8:  		Call  RemoveItemEntity      ( *Var0 )
+		Call  SpeakToPlayer ( .NpcID:Twink_28 00200009 00200001 00000000 00030113 )
 		Set   *GB_StoryProgress  .Story:Ch1_ReturnedToToadTown
 		Thread
   3C8:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
@@ -2972,3 +3688,112 @@ FFFFFFF2 00000012 % < chapter 4 start
 	00000000 00000000 00000000 001A0022 % This Paratroopa looks extremely serious. And stubb ...
 }
 
+
+
+
+#new:Function $TurnNpcIntoPartner
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  SW        S1, 14 (SP)
+   10:  COPY      S1, A1
+   14:  SW        RA, 24 (SP)
+   18:  SW        S4, 20 (SP)
+   1C:  SW        S3, 1C (SP)
+   20:  SW        S0, 10 (SP)
+   24:  LW        S0, C (S2)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S2
+   38:  LW        A1, 0 (S0)
+   3C:  JAL       ~Func:get_variable
+   40:  COPY      S0, V0
+   44:  COPY      A0, S0
+   48:  JAL       ~Func:get_npc_safe
+   4C:  COPY      S4, V0
+   50:  LA        S3, 8010F290
+   58:  BEQ       S1, R0, .o74
+   5C:  COPY      S0, V0
+   60:  LB        V0, 12 (S3)
+   64:  BNEL      V0, R0, .o74
+   68:  SW        R0, 70 (S2)
+   6C:  LI        V0, 2
+   70:  SW        V0, 70 (S2)
+        .o74
+   74:  LW        V1, 70 (S2)
+   78:  LI        S1, 1
+   7C:  BEQ       V1, S1, .oCC
+   80:  SLTI      V0, V1, 2
+   84:  BEQ       V0, R0, .o9C
+   88:  LI        V0, 2
+   8C:  BEQ       V1, R0, .oB4
+   90:  CLEAR     V0
+   94:  BEQ       R0, R0, .o164
+   98:  NOP
+        .o9C
+   9C:  BEQ       V1, V0, .oEC
+   A0:  LI        V0, 3
+   A4:  BEQ       V1, V0, .o120
+   A8:  CLEAR     V0
+   AC:  BEQ       R0, R0, .o164
+   B0:  NOP
+        .oB4
+   B4:  JAL       ~Func:switch_to_partner
+   B8:  CLEAR     A0
+   BC:  LI        V0, 1E
+   C0:  SW        V0, 74 (S2)
+   C4:  BEQ       R0, R0, .o160
+   C8:  SW        S1, 70 (S2)
+        .oCC
+   CC:  LW        V0, 74 (S2)
+   D0:  LI        V1, FFFF
+   D4:  ADDIU     V0, V0, FFFF
+   D8:  BNE       V0, V1, .o160
+   DC:  SW        V0, 74 (S2)
+   E0:  LI        V0, 2
+   E4:  BEQ       R0, R0, .o160
+   E8:  SW        V0, 70 (S2)
+        .oEC
+   EC:  COPY      A0, S0
+   F0:  SLL       V0, S4, 18
+   F4:  SRA       V0, V0, 15
+   F8:  ADDU      V0, S3, V0
+   FC:  SB        S4, 12 (S3)
+  100:  JAL       ~Func:partner_clear_player_tracking
+  104:  SB        S1, 14 (V0)
+  108:  LB        A0, 12 (S3)
+  10C:  JAL       800EB2A4
+  110:  NOP
+  114:  LI        V0, 3
+  118:  BEQ       R0, R0, .o160
+  11C:  SW        V0, 70 (S2)
+        .o120
+  120:  JAL       ~Func:get_npc_safe
+  124:  LI        A0, FFFC
+  128:  LW        A1, C (S0)
+  12C:  JAL       ~Func:set_npc_yaw
+  130:  COPY      A0, V0
+  134:  COPY      A0, S0
+  138:  LW        V0, 0 (S0)
+  13C:  LI        V1, FFFB
+  140:  AND       V0, V0, V1
+  144:  JAL       ~Func:disable_npc_shadow
+  148:  SW        V0, 0 (S0)
+  14C:  LIF       F0, -1000.0
+  154:  LI        V0, 2
+  158:  BEQ       R0, R0, .o164
+  15C:  SWC1      F0, 3C (S0)
+        .o160
+  160:  CLEAR     V0
+        .o164
+  164:  LW        RA, 24 (SP)
+  168:  LW        S4, 20 (SP)
+  16C:  LW        S3, 1C (SP)
+  170:  LW        S2, 18 (SP)
+  174:  LW        S1, 14 (SP)
+  178:  LW        S0, 10 (SP)
+  17C:  JR        RA
+  180:  ADDIU     SP, SP, 28
+}

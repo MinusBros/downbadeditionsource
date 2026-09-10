@@ -476,11 +476,12 @@ FFFFFFFF 000000E0
 		BNE			V0, R0, .returnNoBlock 	%.o5A0 		%if it's equipped, we skip block entirely (V0 = 1 indicates block)
 % we also want the original berserker code in here because we just overwrote it with our Hook
   574:  COPY		A0, S3
-  578:  JAL			802672AC
-  57C:  ADDIU		A1, R0, 15						%check for berserker
-  		BNE			V0, R0, .returnNoBlock			%NEW: If berserker equipped, return - we don't block tho
+		JAL			802672AC
+		ADDIU		A1, R0, 15						%check for berserker
+  		BNE			V0, R0, .returnBlock			%NEW: Changed this to .returnBlock to allow Berserker to guard normally
   		CLEAR 		V0								%NEW: V0 set to 0 to indicate no block
   		%the two lines with 'NEW' replace the below. Then we fall through to the epilogue.
+		
  /%  580:  BEQ			V0, R0, .returnBlock	%.o598		%if not equipped, segue into normal block stuff
   584:  NOP
  588:  JAL			~Func:rand_int
@@ -488,6 +489,7 @@ FFFFFFFF 000000E0
   590:  BEQ			R0, R0, .returnNoBlock 	%.o5A0		%if random call works, skip block entirely!!!! (V0 still has result of Berserker call)
   594:  NOP
   %/
+  
   %why this epilogue? well, branches have a distance limit. So we branch to long-range jumps instead.
   %as a bonus, if the berserker random blocking fails, we fall through to .returnBlock, which goes to check_block_input
   %the above line is no longer true but if berserker isn't equipped we do fall through to .returnBlock which is nice

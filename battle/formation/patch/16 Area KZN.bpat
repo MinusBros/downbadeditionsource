@@ -1,7 +1,7 @@
 #import Chompy.bpat
 #import LazyBones.bpat
-#import GraniteChomp.patch
-#import BowersBrother.patch
+#import GraniteChomp.bpat
+#import BowersBrother.bpat
 
 
 %Lazy Bones needs more attack.
@@ -33,12 +33,40 @@
 @	$LavaBubble
 {
 	% stats
-	[Index]        2Bb
+	[Level]        19`b
 	[MaxHP]        18`b
 	[Coins]         2`b
 	[Hurricane]    25`b % Bow's "Spook" as well
 }
 
+@	$Script_Init_8021901C
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021AEA4 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_802191E4 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80219500 )
+   3C:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   54:  Switch  *Var0
+   60:  	Case  ==  00000000
+   6C:  		Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+   84:  	Case  ==  00000001
+   90:  		Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   A8:  EndSwitch
+   B0:  Call  SetPartScale  ( .Actor:Self 00000002 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+   D0:  Call  SetPartScale  ( .Actor:Self 00000003 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+   F0:  Call  SetPartScale  ( .Actor:Self 00000004 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+  110:  Call  SetPartScale  ( .Actor:Self 00000005 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+  130:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+  148:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+  160:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  17C:  Add   *Var1  00000005
+  18C:  Call  ForceHomePos  ( .Actor:Self *Var0 *Var1 *Var2 )
+  1A8:  Call  HPBarToHome   ( .Actor:Self )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $LavaBubble 22` )
+		EndIf
+  1B8:  Return
+  1C0:  End
+}
 
 @	$DefenseTable_80218E10
 {
@@ -60,25 +88,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      25`
-	.Status:Poison     50`
+	.Status:Sleep       0`
+	.Status:Poison      0`
 	.Status:Frozen      0`
 	.Status:Dizzy      50`
 	.Status:Fear       40`
-	.Status:Static     25`
-	.Status:Paralyze   25`
-	.Status:Shrink     50`
-	.Status:Stop       75`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink     80`
+	.Status:Stop        0`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod     -1`
-	.Status:PoisonTurnMod     0`
+	.Status:SleepTurnMod     -4`
+	.Status:PoisonTurnMod    -4`
 	.Status:FrozenTurnMod     0`
 	.Status:DizzyTurnMod     -2`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod  -2`
-	.Status:ShrinkTurnMod    -1`
-	.Status:StopTurnMod      -2`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod     0`
+	.Status:StopTurnMod      -4`
 	.Status:End
 }
 
@@ -246,11 +274,11 @@
   490:  Add   *Var5  00000002
   4A0:  ExecWait  $Script_8021A218
   4AC:  Wait  1`
-  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000005 00000020 )
+  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire|MultiBounce 00000000 00000000 00000005 00000020 )
   4E0:  Wait  12`
-  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000005 00000020 )
+  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire|MultiBounce 00000000 00000000 00000005 00000020 )
   4E0:  Wait  12`
-  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000005 00000020 )
+  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire|MultiBounce 00000000 00000000 00000005 00000020 )
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
 			Call  YieldTurn ( )
 		EndIf
@@ -271,11 +299,22 @@
 
 @	$PutridPiranha
 {
-	[Level]        29`b
+	[Level]        20`b
 	[MaxHP]        21`b
 	[Coins]         3`b
 }
 
+@	$Script_Init_8021B1F8
+{
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021B8A8 )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021B244 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021B3D0 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $PutridPiranha 24` )
+		EndIf
+   3C:  Return
+   44:  End
+}
 
 @	$DefenseTable_8021B0EC
 {
@@ -289,6 +328,33 @@
 	.Element:Magic  3`
 	.Element:Throw  1`
 	.Element:End
+}
+
+
+@	$StatusTable_8021B100
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep      85`
+	.Status:Poison      0`
+	.Status:Frozen      0`
+	.Status:Dizzy       0`
+	.Status:Fear        0`
+	.Status:Static      0`
+	.Status:Paralyze   50`
+	.Status:Shrink      0`
+	.Status:Stop       50`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -1`
+	.Status:PoisonTurnMod     0`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod     -2`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod  -2`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -2`
+	.Status:End
 }
 
 
@@ -771,10 +837,42 @@
 
 @	$SpikeTop
 {
+	[Level]        19`b
 	[MaxHP]        12`b
 	[Coins]         2`b
 	[Escape]       40`b
 	[Hurricane]    25`b % Bow's "Spook" as well
+}
+
+
+@	$Script_Init_8021CAAC
+{
+    0:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021CC7C )
+   14:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   2C:  If  *Var0  ==  00000001
+   3C:  	Call  SetActorVar       ( .Actor:Self 00000008 00000000 )
+   54:  	Call  $Function_80218380    ( FFFFFFF6 00000000 0000000A 00000000 )
+   70:  	Call  BindTakeTurn      ( .Actor:Self $Script_SpikeTop_TakeTurn_Ceiling )
+   84:  	Call  BindHandleEvent   ( .Actor:Self $Script_SpikeTop_HandleEvent_Ceiling )
+   98:  	Call  SetPartEventBits  ( .Actor:Self 00000001 00001000 .False )
+   B4:  Else
+   BC:  	Call  SetActorVar       ( .Actor:Self 00000008 00000001 )
+   D4:  	Call  SetTargetOffset   ( .Actor:Self 00000001  0`  24` )
+   F0:  	Call  8027D4C8  ( FFFFFF81 00000001 FFFFFFFF FFFFFFF7 )
+  10C:  	Call  BindTakeTurn      ( .Actor:Self $Script_SpikeTop_TakeTurn_Floor )
+  120:  	Call  BindHandleEvent   ( .Actor:Self $Script_SpikeTop_HandleEvent_Floor )
+  134:  	Call  SetIdleAnimations ( .Actor:Self 00000001 $IdleAnimations_8021C9D0 )
+  14C:  	Call  SetActorFlagBits  ( .Actor:Self 00000800 .False )
+  164:  	Call  SetPartEventBits  ( .Actor:Self 00000001 00001000 .True )
+  180:  EndIf
+  188:  Call  HPBarToHome       ( .Actor:Self )
+  198:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  1AC:  Call  UseIdleAnimation  ( .Actor:Self .True )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $SpikeTop 22` )
+		EndIf
+  1C0:  Return
+  1C8:  End
 }
 
 @	$DefenseTable_8021C8B0
@@ -810,25 +908,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      30`
-	.Status:Poison     50`
+	.Status:Sleep      50`
+	.Status:Poison      0`
 	.Status:Frozen      0`
 	.Status:Dizzy      25`
 	.Status:Fear        0`
-	.Status:Static     25`
-	.Status:Paralyze   25`
-	.Status:Shrink     25`
-	.Status:Stop       30`
+	.Status:Static      0`
+	.Status:Paralyze   50`
+	.Status:Shrink      0`
+	.Status:Stop        0`
 	.Status:DefaultTurnMod    0`
 	.Status:SleepTurnMod     -2`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -1`
+	.Status:DizzyTurnMod     -2`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
 	.Status:ParalyzeTurnMod  -1`
-	.Status:ShrinkTurnMod    -1`
-	.Status:StopTurnMod      -1`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -4`
 	.Status:End
 }
 
@@ -953,7 +1051,7 @@
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
 			Call  YieldTurn ( )
 		EndIf
-  7D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 0000FFFF 00000000 00000006 00000020 )
+  7D8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense|MultiBounce 0000FFFF 00000000 11` 00000020 )
   800:  Switch  *Var0
   80C:  	CaseOR  ==  .HitResult:Hit % 0
   818:  	CaseOR  ==  .HitResult:QuakeImmune % 2

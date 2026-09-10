@@ -1,14 +1,49 @@
 #define .NpcID:TubbasHeart_00       00
 #define .NpcID:Yakkey_01            01
 
-%Yakkey will now say all his dialogue at once
+%Yakkey will now say all his dialogue at once. Also make it part of a quest
 @	$Script_Interact_802412E8
 {
-   18:  		Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BA ) % Hi! You again! Once Tubba Blubba's secret got out, ...
-   44:  		Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BB ) % Chilly out, isn't it? Cold...and empty... Brrr!
-   70:  		Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BC ) % You know what I need? A new secret to guard. Excep ...
-   9C:  		Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BD ) % You know what I need? A new secret to guard. Excep ...
-   C8:  		Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BE ) % You know what I need? A new secret to guard. Excep ...
+		If  *YakkeyCompleted == .False
+	   18:  Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BA ) % Hi! You again! Once Tubba Blubba's secret got out, ...
+	   44:  Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BB ) % Chilly out, isn't it? Cold...and empty... Brrr!
+	   70:  Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BC ) % You know what I need? A new secret to guard. Excep ...
+	   9C:  Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BD ) % You know what I need? A new secret to guard. Excep ...
+	   C8:  Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E00BE ) % You know what I need? A new secret to guard. Excep ...
+			Set   *YakkeyCompleted .True
+			Wait  30`
+			Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E0127 ) % I'ma nap now
+			Thread
+		  A98:  Call  MakeLerp  ( 00000000 -95` 20` .Easing:QuadraticIn )
+		  AB4:  Loop
+		  AC0:  	Call  UpdateLerp ( )
+		  ACC:  	Call  SetNpcRotation    ( .Npc:Self 00000000 00000000 *Var0 )
+		  AE8:  	Wait  1`
+		  AF4:  	If  *Var1  ==  00000000
+		  B04:  		BreakLoop
+		  B0C:  	EndIf
+		  B14:  EndLoop
+			EndThread
+			Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+			Thread
+				Loop 8`
+					Wait  1`
+					Add  *Var1 1`
+					Call  SetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+				EndLoop
+			EndThread
+			Call  SetNpcCollisionSize   ( .Npc:Self  25`  60` )
+			Set   *AreaFlag[010]  .True
+			Call	ShowCoinCounter ( .True )
+			Wait    12`
+			Call	AddCoin ( 50` )
+			Call	ShowCoinCounter ( .False )
+			Wait    28`		
+			ExecWait  $ProblemSolved
+			Unbind
+		Else
+			Call  SpeakToPlayer ( .Npc:Self 00C00002 00C00001 00000000 000E0126 ) % Thanks
+		EndIf
    F0:  Return
    F8:  End
 }
@@ -19,8 +54,33 @@
     0:  If  *GB_StoryProgress  <  .Story:Ch3_StarSpritDeparted % FFFFFFF4
    10:  	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
    2C:  Else
-   34:  	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802412E8 )
+			If  *YakkeyCompleted == .False
+				Exec $YakkeyProblem
+			EndIf
+			If   *AreaFlag[010] == .False
+				Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802412E8 )
+			Else
+				Call  GetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+				Add   *Var1  8`
+				Call  SetNpcPos ( .Npc:Self *Var0 *Var1 *Var2 )
+				Call  SetNpcCollisionSize   ( .Npc:Self  25`  60` )
+				Call  SetNpcRotation    ( .Npc:Self 00000000 00000000 -95` )
+			EndIf
    48:  EndIf
    50:  Return
    58:  End
+}
+
+
+#new:Script  $YakkeyProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Yakkey_01 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *YakkeyCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
 }

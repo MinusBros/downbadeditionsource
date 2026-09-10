@@ -1,0 +1,504 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000003
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	PUSH	  RA
+	LI		  A1, *GF_KKJ23_BowserFledToTower  %I'ma just put a random flag here
+	JAL		  ~Func:get_variable
+	NOP
+	BEQ		  V0, R0 .no
+	NOP
+	LIO       V0, $MapTattle
+	BEQ		  R0, R0, .end
+	NOP
+	.no
+	LIO       V0, $MapTattleUncleared
+	.end
+	JPOP	  RA	
+}
+
+#string $MapTattleUncleared
+{
+[Style Tattle][EnableCDownNext]It looks like we can't[BR]
+get past until these rocks[BR]
+are gone.[BR]
+[WAIT][NEXT]
+Maybe we could get Bombette to[BR]
+blow them up.[BR]
+[WAIT][NEXT]
+...Actually, that might just make[BR]
+the cave in even worse.[BR]
+[WAIT][NEXT]
+I guess we should just wait[BR]
+for someone else to clear them[BR]
+out.[BR]
+[WAIT][END]
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]Huh? Water?[BR]
+Where is it coming from?[BR]
+[WAIT][NEXT]
+We've gone far enough in[BR]
+the cave that I'm not sure[BR]
+we're below Toad Town anymore.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+	Thread
+		Wait 30`
+		Call  802D5FA4  ( 00000007 ) %Unmutes all channels
+	EndThread
+Return
+End
+}
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels	%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:tik_01 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Bind     $Script_LoreText  .Trigger:WallPressA ~Collider:LoreText  00000001 00000000 
+Exec    $Script_SetMusic 
+ExecWait $Script_SetupWall
+Call     MakeEntity  	( .Entity:RedBlock ~Vec4d:redblock .Item:ShrinkSmash 80000000 )
+Call     AssignBlockFlag 	( *GF_CAV11_RecoilThrow )
+Call  MakeEntity        ( .Entity:SuperBlock ~Vec4d:superblock 80000000 )
+Set   *MapVar[1]  *Var0															
+Call  AssignBlockFlag   ( *GF_CAV_SuperBlock )								
+Call  AssignScript      ( $Script_HitSuperBlock )
+%entry 0 = left loading zone
+%entry 1 = right loading zone
+%entry 2 = sparky town loading zone
+Call     GetEntryID  	( *Var[0] )
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+
+#new:Script $Script_LoreText
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     ShowMessageAtScreenPos     	( $LoreText 000000A0 00000028 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+
+#new:String $LoreText
+{
+	[Style Inspect]WITH HIS WISHES DEFERRED[BR]
+	TO THE DARK POWER HE TURNED[BR]
+	HIS WORDS WERE HEARD[BR]
+	AN ALLIANCE WAS EARNED[WAIT][END]
+}
+
+@ $Script_HitSuperBlock %in sam_08 = $Script_80241CA8
+{
+    0:  If  *GF_CAV_SuperBlock  ==  .True
+   10:  	Return
+   18:  EndIf
+   20:  Call  IsStartingConversation    ( *Var0 )
+   30:  If  *Var0  ==  .True
+   40:  	Return
+   48:  EndIf
+   50:  Call  $Function_80240D08 ( )
+   5C:  If  *Var0  ==  .True
+   6C:  	Return
+   74:  EndIf
+   7C:  Call  ModifyGlobalOverrideFlags ( 00000001 00200000 )
+   90:  Call  $Function_Enable_40_At_8009A650 ( )
+   9C:  Call  DisablePlayerInput    ( .True )
+   AC:  Call  DisablePartnerAI      ( 00000000 )
+   BC:  Call  SetNpcFlagBits        ( .Npc:Partner 00000100 .True )
+   D4:  Call  $Function_80240480    ( *MapVar[1] *Var9 )
+   E8:  Call  FindKeyItem   ( .Item:UltraStone *VarC )
+   FC:  Call  $Function_80240120 ( )
+  108:  If  *Var0  ==  FFFFFFFF
+  118:  	Call  ShowMessageAtScreenPos    ( 001D00DC 000000A0 00000028 ) % You have no member you can upgrade now.
+  130:  	Wait  10`
+  13C:  	Call  $Function_80240510        ( *Var9 )
+  14C:  	Call  DisablePlayerInput        ( .False )
+  15C:  	Call  EnablePartnerAI ( )
+  168:  	Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  17C:  	Call  $Function_Disable_40_At_8009A650 ( )
+  188:  	Return
+  190:  EndIf
+  198:  If  *GF_Tutorial_SuperBlock  ==  .False
+  1A8:  	Set   *GF_Tutorial_SuperBlock  .True
+  1B8:  	Call  ShowMessageAtScreenPos    ( 001D00DA 000000A0 00000028 ) % This is a Super Block. With this, you can upgrade  ...
+  1D0:  Else
+  1D8:  	Call  ShowMessageAtScreenPos    ( 001D00DB 000000A0 00000028 ) % With this, you can upgrade one of your party membe ...
+  1F0:  EndIf
+  1F8:  Call  $Function_BuildUpgradePopupMenu ( )
+  204:  If  *Var0  ==  FFFFFFFF
+  214:  	Call  $Function_80240510        ( *Var9 )
+  224:  	Call  DisablePlayerInput        ( .False )
+  234:  	Call  EnablePartnerAI ( )
+  240:  	Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  254:  	Call  $Function_Disable_40_At_8009A650 ( )
+  260:  	Return
+  268:  EndIf
+  270:  Set   *VarA  *Var0
+  280:  Set   *VarB  *Var1
+  290:  Call  EnablePartnerAI ( )
+  29C:  Call  GetCurrentPartnerID   ( *Var0 )
+  2AC:  If  *Var0  !=  *VarB
+  2BC:  	Call  $Function_SwitchPartner    ( *VarB )
+  2CC:  Else
+  2D4:  	Call  802CF56C  ( 00000002 )
+  2E4:  EndIf
+  2EC:  Wait  10`
+  2F8:  Call  ShowMessageAtScreenPos    ( 001D00DF 000000A0 00000028 ) % Do you want to upgrade this member?
+  310:  Call  ShowChoice    ( 001E000D ) % Yes No
+  320:  Call  CloseMessage ( )
+  32C:  If  *Var0  !=  00000000
+  33C:  	Call  $Function_80240510        ( *Var9 )
+  34C:  	Call  DisablePlayerInput        ( .False )
+  35C:  	Call  EnablePartnerAI ( )
+  368:  	Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  37C:  	Call  $Function_Disable_40_At_8009A650 ( )
+  388:  	Return
+  390:  EndIf
+  398:  ExecWait  $Script_UpgradeSoundsAndEffects
+  3A4:  Call  $Function_80240068    ( *VarB *VarD )
+  3B8:  Set   *GF_CAV_SuperBlock  .True
+  3C8:  Call  $Function_80240510    ( *Var9 )
+  3D8:  Call  $Function_GetPartnerNameString ( )
+  3E4:  If  *VarD  ==  00000001
+  3F4:  	Call  ShowMessageAtScreenPos    ( 001D00DD 000000A0 00000028 ) % is upgraded to Super-rank!
+  40C:  Else
+  414:  	Call  ShowMessageAtScreenPos    ( 001D00DE 000000A0 00000028 ) % is upgraded to Ultra-rank!
+  42C:  EndIf
+  434:  Call  DisablePlayerInput        ( .False )
+  444:  Call  EnablePartnerAI ( )
+  450:  Call  ModifyGlobalOverrideFlags ( 00000000 00200000 )
+  464:  Call  $Function_Disable_40_At_8009A650 ( )
+  470:  Return
+  478:  End
+}
+
+#import SuperBlock.mpat
+
+#new:NpcGroupList $NpcGroupList_PreDefeat
+{
+00000001 $NpcGroup_Toadinator 35000000
+00000001 $NpcGroup_Shopkeeper 00000000
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Shopkeeper
+{
+00000000 $ShopkeeperSettings ~Vec3f:NPC_shopkeeper %???
+00000D0D $Script_Init_Shopkeeper 00000000 00000000 00000080 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:NPC_shopkeeper
+~AnimationTable:NPC_shopkeeper
+00000000 00000000 00000000 $ShopkeeperTattle
+}
+
+#new:String $ShopkeeperTattle
+{
+	[Style Tattle][EnableCDownNext]This guy is a shopkeeper, but[BR]
+	it doesn't seem like he can[BR]
+	sell things to us right now.[BR]
+	[WAIT][NEXT]
+	He's waiting for the rocks[BR]
+	to be cleared.[BR]
+	[WAIT][NEXT]
+	I'm not sure why he would have[BR]
+	a shop down here though.[BR]
+	[WAIT][NEXT]
+	Maybe we should come back[BR]
+	later to see what he's doing[BR]
+	down here.[BR]
+	[WAIT][END]
+}
+
+#new:NpcSettings $ShopkeeperSettings
+{
+00000000 00300018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Init_Shopkeeper
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact )
+	Return
+	End
+}
+
+#new:Script $Script_IdleAI
+{
+	%Hopefully this will work
+	Call	 GetNpcVar    ( .Npc:Self 00000001 *VarE )
+	If 		 *VarE == 00000000
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call     PlayEffect  	( 00000073 00000001 *Var[0] *Var[1] *Var[2] *Fixed[1.0] 00000005 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call	 SetNpcVar    ( .Npc:Self 00000001 *VarF )	
+		%Double check
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call	 $Function_SetThunderboltPos ( *VarF *Var0 *Var1 *Var2 )		
+	EndIf
+	Return
+	End
+}
+	
+%Repurposed a different 4 arg function so it looks a little weird
+#new:Function $Function_SetThunderboltPos 
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 30 (SP)
+   1C:  SDC1      F22, 28 (SP)
+   20:  SDC1      F20, 20 (SP)
+   24:  LW        S0, C (S1)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  COPY      A0, S1
+   44:  COPY      S2, V0
+		LW		  S2, C (S2)
+   40:  JAL       ~Func:get_variable
+		NOP
+   48:  LW        A1, 0 (S0)
+   4C:  ADDIU     S0, S0, 4
+   50:  MTC1      V0, F24
+   54:  NOP
+   58:  CVT.S.W   F24, F24
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      A0, S1
+   64:  LW        A1, 0 (S0)
+		%Offset Y pos by 12
+		ADDI	  V0, V0, C
+   68:  MTC1      V0, F22
+   6C:  NOP
+   70:  CVT.S.W   F22, F22
+   74:  JAL       ~Func:get_variable
+   78:  COPY      A0, S1
+   7C:  MTC1      V0, F20
+   80:  NOP
+   84:  CVT.S.W   F20, F20
+		%Do stuff
+		%S2 = id
+		%F24, F22, F20 = x,y,z (floats)
+		SWC1	  F24, 4 (S2)
+		SWC1	  F22, 8 (S2)
+		SWC1	  F20, C (S2)		
+   A0:  LW        RA, 1C (SP)
+   A4:  LW        S2, 18 (SP)
+   A8:  LW        S1, 14 (SP)
+   AC:  LW        S0, 10 (SP)
+   B0:  LDC1      F24, 30 (SP)
+   B4:  LDC1      F22, 28 (SP)
+   B8:  LDC1      F20, 20 (SP)
+   BC:  LI        V0, 2
+   C0:  JR        RA
+   C4:  ADDIU     SP, SP, 38
+}
+
+
+	
+#new:Script $Script_Interact
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     SpeakToPlayer 	( 00000000 00FA000C 00FA0006 00000000 $RockDialogue )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}	
+
+%there IS another path, but it is only accessible once you pass through here past the rocks
+#new:String $RockDialogue
+{
+	[Style:Right]That earthquake from earlier[BR]
+	caused this part of the cave[BR]
+	to collapse.[BR]
+	[WAIT][NEXT]
+	I could try going the long[BR]
+	way around but I'm probably[BR]
+	just going to wait for the[BR]
+	rocks to be cleared.[BR]
+	[WAIT][END]
+}
+
+#new:NpcGroupList $NpcGroupList_Toadinator
+{
+00000001 $NpcGroup_Toadinator 35000001
+00000000 00000000 00000000 
+}
+
+#new:NpcGroup $NpcGroup_Toadinator
+{
+00000001 $NpcSettings_802405C0 ~Vec3f:toadinator % somewhere
+00040801 $Script_Init_802410E8 00000000 00000000 0000010E 
+~Items:64:RepelGel:A %idk, don't question it
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:3:40 ~FP:30:40:3:40 ~FP:50:40:3:40 ~FP:80:40:3:40 ~FP:100:30:3:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:2
+~Movement:toadinator
+%now the animation table
+00870001 00870002 00870003 00870003 00870003 00870003 00870008 00870008
+00870001 00870001 00870001 00870001 00870001 00870001 00870001 00870001 % toad guard
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_802405C0
+{
+00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+
+#new:Script $Script_Init_802410E8
+{
+	0:  If  *GF_CAV11_Toadinator == 00000000
+   10:  	Call     BindNpcIdle 	( .Npc:Self $Script_Idle )
+			Call 	 BindNpcHit ( .Npc:Self $Script_HandleOutcome )
+   38:  Else
+   78:  	Call     SetNpcPos   	( .Npc:Self 0` -1000` 0` )
+   94:  EndIf
+   9C:  Return
+   A4:  End
+}
+
+#new:Script $Script_Idle
+{
+	Call     AwaitPlayerApproach 	( 824` -373` 100` ) %you might be able to clip around it but probably not
+	Call     DisablePlayerInput 	( .True )
+	Wait     0000000F 
+	Call     SpeakToPlayer  	( .Npc:Self 00870004 00870001 00000000 $RobotoadFight ) % time to fight
+	Call     DisablePlayerInput 	( .False )
+	Call     StartBossBattle 	( .Song:SpecialBattle )
+	Return
+	End
+}
+		
+#new:Script $Script_HandleOutcome
+{
+    Call     GetBattleOutcome 	( *Var[0] )
+	Set  *GF_CAV11_Toadinator 00000001 
+	Return
+	End
+}
+		
+#string $RobotoadFight
+{
+[STYLE:RIGHT]Several unauthorized entities[BR]
+detected.[BR]
+Battle sequence initiated.[BR]
+[WAIT][END]
+}
+
+#new:Script $Script_SetupWall
+{
+	If *GF_KKJ23_BowserFledToTower == .True
+		%get rid of the rocks, do not spawn shopkeeper
+		Call     EnableGroup 	( ~Model:blockingrocks .False ) %Model:water1
+		Call     ModifyColliderFlags 	( 00000000 ~Collider:rockcollider 7FFFFE00 ) %Collider:watergroup
+		Call     MakeNpcs    	( 00000000 $NpcGroupList_Toadinator )
+	Else
+		Call     MakeNpcs    	( 00000000 $NpcGroupList_PreDefeat )
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftLZ 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:rightLZ 00000001 00000000
+	Bind     $Script_Entry2 .Trigger:FloorAbove ~Collider:frontLZ 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_04" 00000001 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_10" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Entry2
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000002 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_12" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}

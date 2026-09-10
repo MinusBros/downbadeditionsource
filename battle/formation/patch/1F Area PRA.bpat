@@ -144,6 +144,7 @@
 {
 	% stats
 	[Index]        3Ab
+	[Level]        26`b
 	[MaxHP]        17`b
 	[Coins]         4`b
 	[Escape]       30`b
@@ -151,6 +152,19 @@
 	[AirLift]      25`b
 	[Hurricane]    25`b % Bow's "Spook" as well
 	[PowerBounce]  80`b
+}
+
+@	$Script_Init_802196CC
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021C484 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_80219730 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021A0E4 )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Swoopula 30` )
+		EndIf
+   54:  Return
+   5C:  End
 }
 
 @	$DefenseTable_80219530
@@ -275,7 +289,7 @@
 
 @	$AlbinoDino
 {
-	[Level]        46`b
+	[Level]        29`b
 	[MaxHP]        24`b
 	[Coins]         5`b
 	[PowerBounce]  50`b
@@ -288,6 +302,9 @@
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021E070 )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021D9B4 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021DA40 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $AlbinoDino 34` )
+		EndIf
    3C:  Return
    44:  End
 }
@@ -494,12 +511,25 @@
 	
 @	$WhiteClubba
 {
+	[Level]        27`b
 	[MaxHP]        22`b
 	[Coins]         5`b
 	[AirLift]      30`b
 	[Hurricane]    30`b % Bow's "Spook" as well
 	[UpAndAway]    95`b
 	[PowerBounce]  35`b
+}
+
+@	$Script_Init_8021E750
+{
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021ECBC )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021E79C )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021E7AC )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $WhiteClubba 31` )
+		EndIf
+   3C:  Return
+   44:  End
 }
 
 
@@ -853,3 +883,36 @@
 	00000000 00000000
 }
 
+
+@	$Script_BeforeBattle_8022EA10
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetCamBGColor     ( .Cam:Battle  0`  0`  0` )
+		Thread
+			Wait  60`
+			Call  WaitForState      ( .BattleState:Victory )
+			Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000001 00000008 )
+			Wait  15`
+			Call  SetBattleState    ( .BattleState:Celebration )
+			Return
+		EndThread
+   2C:  Return
+   34:  End
+}
+
+@	$Script_BeforeBattle_8022EA90
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Call  SetCamBGColor     ( .Cam:Battle  0`  0`  0` )
+   2C:  Call  SetGroupEnabled   ( ~Model:pra_bt03:g115 00000000 )
+		Thread
+			Wait  60`
+			Call  WaitForState      ( .BattleState:Victory )
+			Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000001 00000008 )
+			Wait  15`
+			Call  SetBattleState    ( .BattleState:Celebration )
+			Return
+		EndThread
+   40:  Return
+   48:  End
+}

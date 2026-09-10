@@ -1,4 +1,22 @@
+@	$EntryList
+{
+	~Vec4f:Entry0 % -475.0    0.0    0.0   90.0
+	~Vec4f:Entry1 %  475.0    0.0    0.0  270.0
+	~Vec4f:Entry2 %    0.0    0.0 -475.0  180.0
+	~Vec4f:Entry3 %    0.0    0.0  475.0    0.0
+	~Vec4f:Entry4 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry5 %    0.0    0.0    0.0    0.0
+	~Vec4f:Entry6
+}
 
+@ $Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  00000007
+	[Background]  80200000
+	[MapTattle]   $Function_GetTattle
+}
 
 #import AutoSave.mpat
 
@@ -24,8 +42,8 @@
   12C:  	Call  SetZoneEnabled    ( ~Zone:o25 .False )
   140:  EndIf
   148:  Exec  $Script_802418B0
-  154:  Exec  $Script_EnterWalk_80241B20
   160:  Exec  $Script_802447DC
+		Exec  $Script_EnterWalk_80241B20
   16C:  Call  GetEntryID    ( *Var0 )
   17C:  Switch  *Var0
   188:  	CaseOR  ==  ~Entry:Entry4
@@ -51,6 +69,31 @@
 }
 
 
+@	$Script_EnterWalk_80241B20
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		If  *GF_SBK30_Visited  ==  .False
+   38:  			Set   *GF_SBK30_Visited  .True
+   48:  			Set   *GB_StoryProgress  .Story:Ch2_ArrivedAtDryDryDesert
+   58:  		EndIf
+   60:  	Case  ==  ~Entry:Entry1
+   6C:  	Case  ==  ~Entry:Entry2
+   78:  	Case  ==  ~Entry:Entry3
+   84:  	Case  ==  ~Entry:Entry4
+   90:  		Return
+			Case  ==  ~Entry:Entry6
+				Exec	EnterSavePoint 
+				Exec    $Script_80241AA0
+				Return
+   98:  EndSwitch
+   A0:  Set   *Var0  $Script_80241AA0
+   B0:  Exec  EnterWalk
+   BC:  Return
+   C4:  End
+}
+
 
 
 %The way the Kolorado's text updates is stupid, so give him all like 7 of his lines at once.
@@ -65,6 +108,21 @@
    5C:  	Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0037 ) % Well, hello there, old boy! How goes the travels,  ...
    7C:  	Call  ResetCam      ( .Cam:Default  4` )
    90:  	Set   *GF_SBK30_Met_Kolorado  .True
+				Call  PopSong ( )
+				Wait  2`
+				Call  SetMusicTrack ( 00000000 .Song:NewPartner 00000000 00000008 )
+				Call  ShowMessageAtScreenPos    ( 000D0145  160`  40` ) % Goombario joined your party!! Press to have him te ...
+				Wait  5`
+				Call  FadeOutMusic  ( 00000000 000001F4 )
+				Call  SpeakToNpc    ( .Npc:Self 00B60008 00B60001 00000000 .Npc:Partner 000D0147 )
+				Call  SetMusicTrack ( 00000000 .Song:BattleEnd 00000002 00000008 )
+				Call  ShowMessageAtScreenPos    ( 000D0146  160`  40` ) % Goombario joined your party!! Press to have him te ...
+				Wait  5`
+				Call  FadeOutMusic  ( 00000000 000001F4 )
+				Call  SpeakToNpc    ( .Npc:Self 00B60008 00B60001 00000000 .Npc:Partner 000D0148 )
+				Wait  10`
+				Call  SetMusicTrack ( 00000000 .Song:DryDryDesert 00000000 00000008 )
+				Wait  30`
    A0:  	Goto  32
    AC:  EndIf
    B4:  If  *GF_SBK_GaveArtifactToKolorado  ==  .True
@@ -73,6 +131,7 @@
    F0:  EndIf
    F8:  Call  HasKeyItem    ( .Item:Artifact *Var0 )
   10C:  If  *Var0  ==  00000001
+			Call  PushSong      ( .Song:TheEnd 1` )	%He has his own theme
   11C:  	If  *GF_SBK_KeptArtifactFromKolorado  ==  .True
   12C:  		Call  SpeakToPlayer ( .Npc:Self 00B60008 00B60001 00000000 000D0043 ) % Mario, if you could see to it to have a change of  ...
   14C:  	Else
@@ -141,7 +200,7 @@
 					Call  EnablePartnerAI ( )
   30C:  			Goto  32
   318:  		Else
-  320:  			Call  SpeakToPlayer ( .Npc:Self 00B6000F 00B60010 00000000 000D003A ) % You know, old bean, gossip can be one of the most  ...
+  320:  			Call  SpeakToPlayer ( .Npc:Self 00B60010 00B6000F 00000000 000D003A ) % You know, old bean, gossip can be one of the most  ...
 					Set   *AreaFlag[005]  .True
   340:  			Goto  32
   3FC:  		EndIf
@@ -150,6 +209,7 @@
   530:  Call  GetCurrentPartnerID   ( *Var0 )
   540:  If  *Var0  ==  .Partner:Kooper % 2
   550:  	If  *GF_SBK30_KooperMetKolorado  ==  .False
+				Call  PushSong      ( .Song:TheEnd 1` )	%He has his own theme
   560:  		Set   *GF_SBK30_KooperMetKolorado  .True
   570:  		Call  DisablePartnerAI  ( 00000000 )
   580:  		Call  SpeakToNpc    ( .Npc:Partner 00020011 00020003 00000000 .Npc:Self 000D0047 ) % What!? Whoa! You're Professor Kolorado!! It's Koop ...
@@ -231,26 +291,28 @@
 			Call  NpcMoveTo ( .Npc:MrTrooper -372` 0` 0` )
 			Call  SetNpcFlagBits    ( .Npc:MrTrooper 00000100 .False )
 			Thread
-			Call  NpcMoveTo ( .Npc:Partner -277 0 0` )
+				Call  NpcMoveTo ( .Npc:Partner -277` 0 0` )
 			EndThread
 			Call $ClearFlagCarryOverworldMusicToBattle()
 			Call  SetPlayerAnimation    ( 00010002 )
-			Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
-			Call  DisablePlayerPhysics  ( .False )
-			Call  SetNpcAnimation   ( .Npc:MrTrooper 00210006 )
-	  59C:  Call  GetNpcPos     ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
-	  5B8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
-	  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
-	  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
-			Call  SetCamSpeed   ( .Cam:Default *Fixed[10.0] )
-	  604:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
-	  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
-	  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0102 ) %
-			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0103 ) %
-			ExecWait $SwapToGoombarius
-			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D0104 ) % 
-			Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0105 ) %
+			If  *CheckMrTrooper3 == .False
+				Call  SetMusicTrack ( 00000000 .Song:JrTroopaTheme 00000000 00000008 )
+				Call  DisablePlayerPhysics  ( .False )
+				Call  SetNpcAnimation   ( .Npc:MrTrooper 00210006 )
+		  59C:  Call  GetNpcPos     ( .Npc:MrTrooper *Var0 *Var1 *Var2 )
+		  5B8:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+		  5D4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+		  5F0:  Call  SetCamDistance    ( .Cam:Default *Fixed[300.0] )
+				Call  SetCamSpeed   ( .Cam:Default *Fixed[10.0] )
+		  604:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-5.5] )
+		  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+		  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+				Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0102 ) %
+				Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0103 ) %
+				ExecWait $SwapToGoombarius
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000D0104 ) % 
+				Call  SpeakToPlayer ( .Npc:MrTrooper 0021001A 0021001B 00000000 000D0105 ) %
+			EndIf
 			Call  SetNpcVar ( .Npc:MrTrooper 00000000 00000001 )
 			Return
 			End
@@ -306,6 +368,7 @@
 		Call  DisablePlayerInput    ( .False )
 		Call  SetMusicTrack ( 00000000 .Song:DryDryDesert 00000000 00000008 )
 		Set   *GF_SBK30_MrTrooper .True
+		ExecWait  $NukeBossChecks
 		If    *GF_IWA04_Defeated_Buzzar == .True
 			Set   *ReturnPipeLock .False
 		EndIf
@@ -369,7 +432,46 @@
    EC:  Call  SetCamSpeed       ( .Cam:Default *Fixed[4.0] )
   100:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
   118:  Call  DisablePlayerInput    ( .False )
+		Set  *CheckMrTrooper3 .True
 		Call  StartBossBattle   ( .Song:JrTroopaBattle )	
 		Return
 		End
+}
+
+
+@	$Script_ExitWalk_8024198C
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+		Set  *CheckMrTrooper3 .False
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80244878 00000000 ) % sbk_31
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+@	$Script_ExitWalk_802419E8
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
+		Set  *CheckMrTrooper3 .False
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80244880 00000003 ) % sbk_20
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+
+@	$Script_ExitWalk_80241A44
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry3 )
+		Set  *CheckMrTrooper3 .False
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80244888 00000002 ) % sbk_40
+   40:  Wait  100`
+   4C:  Return
+   54:  End
 }

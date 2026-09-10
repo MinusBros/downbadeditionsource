@@ -11,6 +11,107 @@
 #define .NpcID:ShyGuy_11            0B
 
 #import AutoSave.mpat
+#import CountItems.mpat
+
+
+@	$Script_Main_EnterWalk
+{
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Exec  $DarknessFollow
+   88:  	Default
+				Call  EnableGroup   ( ~Model:darkness .False )
+   9C:  EndSwitch
+    0:  If  *GB_StoryProgress  ==  .Story:Ch5_TradedVaseForSeed % 28
+   10:  	Set   *GB_StoryProgress  .Story:Ch5_ReturnedToToadTown
+   20:  EndIf
+   28:  Set   *GB_WorldLocation  .Location:ToadTown
+   38:  Call  SetSpriteShading  ( .Shading:None )
+   48:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   68:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   84:  Call  SetCamEnabled     ( .Cam:Default .True )
+   98:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   AC:  Set   *AreaFlag[016]  .False
+   BC:  Set   *AreaFlag[017]  .False
+   CC:  Set   *AreaFlag[018]  .False
+   DC:  Set   *AreaFlag[019]  .False
+   EC:  Set   *AreaFlag[01A]  .False
+   FC:  Set   *AreaFlag[01B]  .False
+  10C:  Set   *AreaFlag[01C]  .False
+  11C:  Set   *AreaFlag[01D]  .False
+  12C:  Set   *AreaFlag[01E]  .False
+  13C:  Switch  *GB_StoryProgress
+  148:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+  154:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0B8 )
+  168:  	Case  <  .Story:Ch3_SawBooEnterForest % FFFFFFCD
+  174:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0D0 )
+  188:  	Case  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+  194:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0B8 )
+  1A8:  	Case  <  .Story:Ch4_ReturnedToyTrain % FFFFFFFB
+  1B4:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0F4 )
+  1C8:  	Default
+  1D0:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0B8 )
+  1E4:  EndSwitch
+  1EC:  ExecWait  $Script_MakeEntities
+  1F8:  Switch  *GB_StoryProgress
+  204:  	Case  <  .Story:Ch0_TwinkGaveLuckyStar % FFFFFF98
+  210:  		Call  EnableGroup   ( ~Model:st2 .False )
+  224:  		Call  EnableGroup   ( ~Model:st3 .False )
+  238:  	Case  <  .Story:Ch1_BeganPeachMission % FFFFFFB4
+  244:  		Call  EnableGroup   ( ~Model:st1 .False )
+  258:  		Call  EnableGroup   ( ~Model:st3 .False )
+  26C:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:st1 7FFFFE00 )
+  284:  	Default
+  28C:  		Call  EnableGroup   ( ~Model:st1 .False )
+  2A0:  		Call  EnableGroup   ( ~Model:st2 .False )
+  2B4:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:g47 7FFFFE00 )
+  2CC:  EndSwitch
+  2D4:  Call  EnableTexPanning  ( ~Model:hori .True )
+  2E8:  Thread
+  2F0:  	Set   *Var0  00000001
+  300:  	Set   *Var1  00000064
+  310:  	Set   *Var2  00000028
+  320:  	Set   *Var3  000000C8
+  330:  	Set   *Var4  FFFFFFD8
+  340:  	Set   *Var5  00000001
+  350:  	Set   *Var6  00000001
+  360:  	Set   *Var7  00000001
+  370:  	Set   *Var8  00000001
+  380:  	Set   *Var9  00000000
+  390:  	Set   *VarA  00000000
+  3A0:  	Set   *VarB  00000000
+  3B0:  	Set   *VarC  00000000
+  3C0:  	Exec  $Script_UpdateTexturePan_80244360
+  3CC:  EndThread
+  3D4:  Exec  $Script_80244EC8
+  3E0:  Exec  $Script_80245B14
+  3EC:  Exec  $Script_802435C0
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80244624
+   38:  	Return
+   40:  EndIf
+  3F8:  Call  GetEntryID    ( *Var0 )
+  408:  If  *Var0  <=  ~Entry:Entry3
+  418:  	Set   *Var0  $Script_80244624
+  428:  	Exec  EnterWalk
+  434:  Else
+  43C:  	Set   *VarA  $Script_80244624
+  44C:  	Exec  $Script_80243630
+  458:  EndIf
+		If  *GB_StoryProgress == .Story:Ch7_StarSpritDeparted
+			Call  GetEntryID        ( *Var0 )
+			If  *Var0  ==  ~Entry:Entry5
+				If  *GreenToadNotice == .False
+					Exec  $GreenToadCutscene
+					Return
+				EndIf
+			EndIf
+		EndIf
+  460:  Return
+  468:  End
+}
 
 @	$Script_802435C0
 {
@@ -45,8 +146,9 @@
 	If  *GF_MAC02_Item_OddKey == .True
 		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
 		If  *Var0  >  -400`
+			Call  WaitForPlayerInputEnabled ( )		%This is a better method
 			Call  DisablePlayerInput        ( .True )
-			Wait  64`
+			Wait  8`
 			Call  PlaySoundAtNpc    ( .NpcID:Toad_05 00000262 00000000 )
 			Call  ShowEmote ( .NpcID:Toad_05 .Emote:Exclamation  -30`  20` .True  0`  0`  0`  0` )
 			Wait  25`
@@ -96,6 +198,18 @@
   [210]  Call  SpeakToPlayer ( .NpcID:Toad_03 00830A04 00830A01 00000000 *Var0 ) % variable string ID
 }
 
+
+
+
+@	$Script_Init_8024C090
+{
+		If  *GB_StoryProgress  ==  .Story:PostGame
+			Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )		%Mai T. is in Doki Doki Castle now, so remove her from the map
+		EndIf
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024BE98 )
+   14:  Return
+   1C:  End
+}
 
 %Mai T.
 
@@ -149,6 +263,9 @@
   1E8:  Return
   1F0:  End
 }
+
+
+
 
 @	$Script_Interact_8024C3F8
 {
@@ -277,6 +394,8 @@
   144:  		Set   *Var0  00040082
   154:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
   160:  		Set   *Var0  00040083
+			Case  <  .Story:PostGame
+				Set   *Var0  00040084
   170:  	Case  <  .Story:Epilogue % 60
   17C:  		Set   *Var0  00040084
   18C:  EndSwitch
@@ -301,146 +420,6 @@
 }
 
 
-@	$Script_Main_EnterWalk
-{
-    0:  Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-				Exec  $DarknessFollow
-   88:  	Default
-				Call  EnableGroup   ( ~Model:darkness .False )
-   9C:  EndSwitch
-    0:  If  *GB_StoryProgress  ==  .Story:Ch5_TradedVaseForSeed % 28
-   10:  	Set   *GB_StoryProgress  .Story:Ch5_ReturnedToToadTown
-   20:  EndIf
-   28:  Set   *GB_WorldLocation  .Location:ToadTown
-   38:  Call  SetSpriteShading  ( .Shading:None )
-   48:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
-   68:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
-   84:  Call  SetCamEnabled     ( .Cam:Default .True )
-   98:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-   AC:  Set   *AreaFlag[016]  .False
-   BC:  Set   *AreaFlag[017]  .False
-   CC:  Set   *AreaFlag[018]  .False
-   DC:  Set   *AreaFlag[019]  .False
-   EC:  Set   *AreaFlag[01A]  .False
-   FC:  Set   *AreaFlag[01B]  .False
-  10C:  Set   *AreaFlag[01C]  .False
-  11C:  Set   *AreaFlag[01D]  .False
-  12C:  Set   *AreaFlag[01E]  .False
-  13C:  Switch  *GB_StoryProgress
-  148:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
-  154:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0B8 )
-  168:  	Case  <  .Story:Ch3_SawBooEnterForest % FFFFFFCD
-  174:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0D0 )
-  188:  	Case  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
-  194:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0B8 )
-  1A8:  	Case  <  .Story:Ch4_ReturnedToyTrain % FFFFFFFB
-  1B4:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0F4 )
-  1C8:  	Default
-  1D0:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E0B8 )
-  1E4:  EndSwitch
-  1EC:  ExecWait  $Script_MakeEntities
-  1F8:  Switch  *GB_StoryProgress
-  204:  	Case  <  .Story:Ch0_TwinkGaveLuckyStar % FFFFFF98
-  210:  		Call  EnableGroup   ( ~Model:st2 .False )
-  224:  		Call  EnableGroup   ( ~Model:st3 .False )
-  238:  	Case  <  .Story:Ch1_BeganPeachMission % FFFFFFB4
-  244:  		Call  EnableGroup   ( ~Model:st1 .False )
-  258:  		Call  EnableGroup   ( ~Model:st3 .False )
-  26C:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:st1 7FFFFE00 )
-  284:  	Default
-  28C:  		Call  EnableGroup   ( ~Model:st1 .False )
-  2A0:  		Call  EnableGroup   ( ~Model:st2 .False )
-  2B4:  		Call  ModifyColliderFlags   ( 00000000 ~Collider:g47 7FFFFE00 )
-  2CC:  EndSwitch
-  2D4:  Call  EnableTexPanning  ( ~Model:hori .True )
-  2E8:  Thread
-  2F0:  	Set   *Var0  00000001
-  300:  	Set   *Var1  00000064
-  310:  	Set   *Var2  00000028
-  320:  	Set   *Var3  000000C8
-  330:  	Set   *Var4  FFFFFFD8
-  340:  	Set   *Var5  00000001
-  350:  	Set   *Var6  00000001
-  360:  	Set   *Var7  00000001
-  370:  	Set   *Var8  00000001
-  380:  	Set   *Var9  00000000
-  390:  	Set   *VarA  00000000
-  3A0:  	Set   *VarB  00000000
-  3B0:  	Set   *VarC  00000000
-  3C0:  	Exec  $Script_UpdateTexturePan_80244360
-  3CC:  EndThread
-  3D4:  Exec  $Script_80244EC8
-  3E0:  Exec  $Script_80245B14
-  3EC:  Exec  $Script_802435C0
-    0:  Call  GetLoadType   ( *Var1 )
-   10:  If  *Var1  ==  00000001
-   20:  	Exec  EnterSavePoint
-   2C:  	Exec  $Script_80244624
-   38:  	Return
-   40:  EndIf
-  3F8:  Call  GetEntryID    ( *Var0 )
-  408:  If  *Var0  <=  ~Entry:Entry3
-  418:  	Set   *Var0  $Script_80244624
-  428:  	Exec  EnterWalk
-  434:  Else
-  43C:  	Set   *VarA  $Script_80244624
-  44C:  	Exec  $Script_80243630
-  458:  EndIf
-		If  *GB_StoryProgress == .Story:Ch7_StarSpritDeparted
-			Call  GetEntryID        ( *Var0 )
-			If  *Var0  ==  ~Entry:Entry5
-				If  *GreenToadNotice == .False
-					Exec  $GreenToadCutscene
-					Return
-				EndIf
-			EndIf
-		EndIf
-  460:  Return
-  468:  End
-}
-
-
-%Scrapped this cuz it kept killing the sound effects permanently
-#new:Script  $PipeMusicCheck
-{
-		Wait  24`
-		Label  A
-		Wait  1`
-		Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
-		If  *Var1  <  -217`
-			If  *Var3  >  157`
-				Call  FadeInMusic   ( 00000001 .Song:ShyGuyInvasion 1` 4000` 0` 108` )
-				Wait  1`
-				Goto  14
-			EndIf
-		EndIf
-		Goto  A
-		Label  14
-		Wait  1`
-		Call  GetPlayerPos  ( *Var1 *Var2 *Var3 )
-		If  *Var1  >= -217`
-			Call  FadeOutMusic  ( 00000001 00000708 )
-			Wait  1`
-			Goto  A
-		EndIf
-		If  *Var3  <= 157`
-			Call  FadeOutMusic  ( 00000001 00000708 )
-			Wait  1`
-			Goto  A
-		EndIf
-		Goto  14	
-		Return
-		End
-}
-
-@	$Script_8024456C
-{
-    0:  Call  GotoMap   ( $ASCII_8024E1F0 00000003 ) % tik_06
-   14:  Wait  100`
-   20:  Return
-   28:  End
-}
 
 %After returning from Chapter 7, this Toad will comment on the apocalypse in Kinoko Town
 
@@ -468,52 +447,7 @@
 					End
 }
 
-#new:Script  $DarknessFollow
-{
-				Call  EnableGroup   ( ~Model:darkness .True )
-		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 3 )
-		  2E8:  Thread
-					Set  *Var[0] 3
-					Set  *Var[1] 738
-					Set  *Var[2] 440
-					Set  *Var[3] 380
-					Set  *Var[4] 220
-					Set  *Var[5] 1
-					Set  *Var[6] 1
-					Set  *Var[7] 1
-					Set  *Var[8] 1
-					Set  *Var[9] 0
-					Set  *Var[A] 0
-					Set  *Var[B] 0
-					Set  *Var[C] 0
-					Exec  $Script_UpdateTexturePan_80244360
-				EndThread
-		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 4 )
-		  2E8:  Thread
-		  2F0:  	Set   *Var0  4
-		  300:  	Set   *Var1  1438`
-		  310:  	Set   *Var2  808`
-		  320:  	Set   *Var3  710`
-		  330:  	Set   *Var4  420`
-		  340:  	Set   *Var5  00000001
-		  350:  	Set   *Var6  00000001
-		  360:  	Set   *Var7  00000001
-		  370:  	Set   *Var8  00000001
-		  380:  	Set   *Var9  00000000
-		  390:  	Set   *VarA  00000000
-		  3A0:  	Set   *VarB  00000000
-		  3B0:  	Set   *VarC  00000000
-		  3C0:  	Exec  $Script_UpdateTexturePan_80244360
-		  3CC:  EndThread
-	Loop
-		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
-		Add   *Var2   -78`
-		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
-		Wait 1`
-	EndLoop
-	Return
-	End
-}
+
 
 
 
@@ -556,6 +490,9 @@
    F8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
   104:  		Set   *Var0  00040032
   114:  		Set   *Var1  00040033
+  124:  	Case  <  .Story:PostGame % 60
+  130:  		Set   *Var0  00040034
+  140:  		Set   *Var1  00040035
   124:  	Case  <  .Story:Epilogue % 60
   130:  		Set   *Var0  00040034
   140:  		Set   *Var1  00040035
@@ -690,11 +627,16 @@
   1E8:  			Set   *Var0  0004008C
   1F8:  		Case  <  .Story:Ch7_StarSpritDeparted % 59
   204:  			Set   *Var0  0004008D
+  214:  		Case  <  .Story:PostGame % 60
+  220:  			Set   *Var0  0004008E
   214:  		Case  <  .Story:Epilogue % 60
   220:  			Set   *Var0  0004008E
   248:  	EndSwitch
   250:  	Call  SpeakToPlayer ( .NpcID:Bubulb_02 00990003 00990002 00000000 *Var0 ) % variable string ID
   270:  EndIf
+		If  *BubUlbCompleted == .True
+			ExecWait $CheckDriedBouquet
+		EndIf
   278:  Return
   280:  End
 }
@@ -709,6 +651,39 @@
 }
 
 
+#new:Script  $CheckDriedBouquet
+{
+						Call  ShowChoice    ( 001E0051 )
+						Call  CloseMessage ( )
+						If   *Var0 == 0`
+							Call	DisablePlayerInput ( .True )
+							Call	ShowCoinCounter ( .True )	
+							Call	AddCoin ( 0 )
+							Set  *Var2  10`
+							If *Var0 < *Var2	%Not enough money, but he's nice he gives one anyway
+								Call  SpeakToPlayer ( .NpcID:Bubulb_02 00990003 00990002 00000000 000400B6 )
+								Goto  GiveItem
+								Return
+							EndIf
+							Call  $Function_CountItems
+							If *Var0 == .False %(Max inventory)
+								Call  SpeakToPlayer ( .NpcID:Bubulb_02 00990003 00990002 00000000 000400B7 )	
+								Call	ShowCoinCounter ( .False )
+								Call	DisablePlayerInput ( .False )
+								Return
+							EndIf
+							Call  SpeakToPlayer ( .NpcID:Bubulb_02 00990003 00990002 00000000 000400A0 )	%I wrote this a while back, but it can get used now yay
+							Call	AddCoin ( -10` )
+							Label  GiveItem
+							Call	ShowCoinCounter ( .False )
+							Call  SetNpcAnimation   ( 00000000 00890005 )
+							Call	ShowGotItem ( .Item:DriedBouquet .True 00000000 )
+							Call  AddItem   ( .Item:DriedBouquet 0 )
+							Call	DisablePlayerInput ( .False )
+						EndIf
+						Return
+						End
+}
 
 
 @	 $Script_8024B6E8
@@ -719,12 +694,7 @@
   [340]  Wait  5`
 }
 
-@	$Script_802490F8
-{
-   [78]  Wait  2`
-   [A4]  Wait  8`
-   [C4]  Wait  5`
-}
+
 
 @	$Script_802490F8
 {
@@ -733,11 +703,11 @@
    2C:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  10` )
    48:  Call  NpcMoveTo ( .NpcID:TayceT_00  -220`  -425`  10` )
    64:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0007 )
-   78:  Wait  8`
+   78:  Wait  5`
    84:  Call  SpeakToPlayer     ( .NpcID:TayceT_00 00AA0007 00AA0007 00000005 0004000E ) % Tra-la-la-la-la!
-   A4:  Wait  10`
+   A4:  Wait  8`
    B0:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0008 )
-   C4:  Wait  15`
+   C4:  Wait  5`
    D0:  Call  SetNpcYaw ( .NpcID:TayceT_00  90` )
    E4:  Call  SetNpcAnimation   ( .NpcID:TayceT_00 00AA0002 )
    F8:  Call  NpcMoveTo ( .NpcID:TayceT_00  -186`  -381`  10` )
@@ -921,6 +891,10 @@
   9A8:  End
 }
 
+
+
+
+
 @	$Script_ToggleVis_80244CC0
 {
     0:  Switch  *Var0
@@ -929,21 +903,25 @@
    18:  		Call  SetGroupEnabled   ( ~Model:cook_in 00000001 )
    2C:  		Set   *MapFlag[0A]  .True
 				Thread
-				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-					If *ShopState == 00000000
-						Set *ShopState 00000001
-						Wait  20`
-						Call  PushSong      ( 000000A4 00000000 )	%Mountain Railroad / Cooking Song
-					EndIf
-				EndIf
+					Switch  *GB_StoryProgress
+						Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+						Default
+							If *ShopState == 00000000
+								Set *ShopState 00000001
+								Wait  21`
+								Call  PushSong      ( .Song:Dojo 00000001 )	%Mountain Railroad / Cooking Song
+							EndIf
+					EndSwitch
 				EndThread
    3C:  	Case  ==  00000003
-				If  *GB_StoryProgress  <  .Story:Ch7_StarSpritDeparted
-					If *ShopState == 00000001
-						Set *ShopState 00000000
-						Call  PopSong ( )
-					EndIf
-				EndIf
+				Switch  *GB_StoryProgress
+					Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+					Default
+						If *ShopState == 00000001
+							Set *ShopState 00000000
+							Call  PopSong ( )
+						EndIf
+				EndSwitch
    48:  		Call  SetGroupEnabled   ( ~Model:cook_in 00000000 )
    5C:  		Set   *MapFlag[0A]  .False
    6C:  EndSwitch
@@ -951,31 +929,54 @@
    7C:  End
 }
 
-%Current recipes: 70
 
-@	$RecipesDiscovedIDs  %51 original recipes
+#new:Script  $DarknessFollow
 {
-	.Item:FriedShroom .Item:HotShroom .Item:SpicySoup .Item:NuttyCake
-	.Item:SuperSoda   .Item:KoopaTea  .Item:Cake      .Item:FriedEgg
-	.Item:Spaghetti   .Item:TastyTonic .Item:HoneyShroom .Item:MapleShroom
-	.Item:HoneySuper  .Item:MapleSuper .Item:ApplePie  .Item:BigCookie
-	.Item:EggMissile  .Item:FirePop    .Item:ElectroPop  .Item:HoneyCandy
-	.Item:LemonCandy  .Item:LimeCandy  .Item:KookyCookie .Item:Koopasta
-	.Item:ShroomCake  .Item:ThunderRage .Item:VoltShroom .Item:BlandMeal
-	.Item:YummyMeal   .Item:BoiledEgg   .Item:CocoPop    .Item:DizzyDial
-    .Item:DeluxeFeast .Item:FireFlower  .Item:SpecialShake .Item:HealthyJuice
-	.Item:SweetShroom .Item:StrangeCake .Item:YoshiCookie  .Item:SleepySheep
-	.Item:SnowmanDoll .Item:PotatoSalad .Item:FrozenFries .Item:ShroomSteak 
-	.Item:JellyShroom1 .Item:JellySuper   .Item:HoneyUltra .Item:MapleUltra  
-	.Item:JellyUltra  .Item:JellyPop    .Item:Mistake
-	% NEW %
-	.Item:StarCake .Item:SuperShroomCake .Item:UltraShroomCake .Item:HealthySalad 
-	.Item:CathTea  .Item:DayzeeSyrup     .Item:CoconutBomb     .Item:ChocoCake
-	.Item:HottestDog .Item:OmeletteMeal  .Item:RoastHorsetail  .Item:RoastBump
-	.Item:VolcanoShroom  .Item:InkySauce  .Item:InkPasta     .Item:SpicyPasta      
-	.Item:PeachSyrup     .Item:FruitParfait .Item:FreshJuice
-	00000000
+				Call  EnableGroup   ( ~Model:darkness .True )
+		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 3 )
+		  2E8:  Thread
+					Set  *Var[0] 3
+					Set  *Var[1] 738
+					Set  *Var[2] 440
+					Set  *Var[3] 380
+					Set  *Var[4] 220
+					Set  *Var[5] 1
+					Set  *Var[6] 1
+					Set  *Var[7] 1
+					Set  *Var[8] 1
+					Set  *Var[9] 0
+					Set  *Var[A] 0
+					Set  *Var[B] 0
+					Set  *Var[C] 0
+					Exec  $Script_UpdateTexturePan_80244360
+				EndThread
+		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 4 )
+		  2E8:  Thread
+		  2F0:  	Set   *Var0  4
+		  300:  	Set   *Var1  1438`
+		  310:  	Set   *Var2  808`
+		  320:  	Set   *Var3  710`
+		  330:  	Set   *Var4  420`
+		  340:  	Set   *Var5  00000001
+		  350:  	Set   *Var6  00000001
+		  360:  	Set   *Var7  00000001
+		  370:  	Set   *Var8  00000001
+		  380:  	Set   *Var9  00000000
+		  390:  	Set   *VarA  00000000
+		  3A0:  	Set   *VarB  00000000
+		  3B0:  	Set   *VarC  00000000
+		  3C0:  	Exec  $Script_UpdateTexturePan_80244360
+		  3CC:  EndThread
+	Loop
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var2   -78`
+		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
+		Wait 1`
+	EndLoop
+	Return
+	End
 }
+
 
 @ $RecipesDiscovedFlags
 {
@@ -991,13 +992,41 @@
 	*GF_MAC02_DiscoveredRecipe_25 *GF_MAC02_DiscoveredRecipe_26 *GF_MAC02_DiscoveredRecipe_27 *GF_MAC02_DiscoveredRecipe_28
 	*GF_MAC02_DiscoveredRecipe_29 *GF_MAC02_DiscoveredRecipe_2A *GF_MAC02_DiscoveredRecipe_2B *GF_MAC02_DiscoveredRecipe_2C
 	*GF_MAC02_DiscoveredRecipe_2D *GF_MAC02_DiscoveredRecipe_2E *GF_MAC02_DiscoveredRecipe_2F *GF_MAC02_DiscoveredRecipe_30
-	*GF_MAC02_DiscoveredRecipe_31 *GF_MAC02_DiscoveredRecipe_32 *GF_MAC02_DiscoveredRecipe_33 *GF_MAC02_DiscoveredRecipe_34   %52 recipes right here
+	*GF_MAC02_DiscoveredRecipe_31 *GF_MAC02_DiscoveredRecipe_32 *GF_MAC02_DiscoveredRecipe_33   %51 recipes right here
 	% NEW %
-    *GF_MAC02_DiscoveredRecipe_35 *GF_MAC02_DiscoveredRecipe_36 *GF_MAC02_DiscoveredRecipe_37 *GF_MAC02_DiscoveredRecipe_38 
-	*GF_MAC02_DiscoveredRecipe_39 *GF_MAC02_DiscoveredRecipe_3A *GF_MAC02_DiscoveredRecipe_3B *GF_MAC02_DiscoveredRecipe_3C 
-	*GF_MAC02_DiscoveredRecipe_3D *GF_MAC02_DiscoveredRecipe_3E *GF_MAC02_DiscoveredRecipe_3F *GF_MAC02_DiscoveredRecipe_40
-	*GF_MAC02_DiscoveredRecipe_41 *GF_MAC02_DiscoveredRecipe_42 *GF_MAC02_DiscoveredRecipe_43 *GF_MAC02_DiscoveredRecipe_44
-	*GF_MAC02_DiscoveredRecipe_45 *GF_MAC02_DiscoveredRecipe_46 *GF_MAC02_DiscoveredRecipe_47								  %19 more right here, so 71 recipes	
+    *GF_MAC02_DiscoveredRecipe_34 *GF_MAC02_DiscoveredRecipe_35 *GF_MAC02_DiscoveredRecipe_36 *GF_MAC02_DiscoveredRecipe_37
+	*GF_MAC02_DiscoveredRecipe_38 *GF_MAC02_DiscoveredRecipe_39 *GF_MAC02_DiscoveredRecipe_3A *GF_MAC02_DiscoveredRecipe_3B 
+	*GF_MAC02_DiscoveredRecipe_3C *GF_MAC02_DiscoveredRecipe_3D *GF_MAC02_DiscoveredRecipe_3E *GF_MAC02_DiscoveredRecipe_3F 
+	*GF_MAC02_DiscoveredRecipe_40 *GF_MAC02_DiscoveredRecipe_41 *GF_MAC02_DiscoveredRecipe_42 *GF_MAC02_DiscoveredRecipe_43 
+	*GF_MAC02_DiscoveredRecipe_44 *GF_MAC02_DiscoveredRecipe_45 *GF_MAC02_DiscoveredRecipe_46 *GF_MAC02_DiscoveredRecipe_47		%20 more
+	*GF_MAC02_DiscoveredRecipe_48 *GF_MAC02_DiscoveredRecipe_49 *GF_MAC02_DiscoveredRecipe_4A *GF_MAC02_DiscoveredRecipe_4B     %75 total
+	00000000
+}
+
+%Current recipes: 75
+
+@	$RecipesDiscovedIDs  %51 original recipes
+{
+	.Item:FriedShroom .Item:HotShroom .Item:SpicySoup .Item:NuttyCake
+	.Item:SuperSoda   .Item:KoopaTea  .Item:Cake      .Item:FriedEgg
+	.Item:Spaghetti   .Item:TastyTonic .Item:HoneyShroom .Item:MapleShroom
+	.Item:HoneySuper  .Item:MapleSuper .Item:ApplePie  .Item:BigCookie
+	.Item:EggMissile  .Item:FirePop    .Item:ElectroPop  .Item:HoneyCandy
+	.Item:LemonCandy  .Item:LimeCandy  .Item:KookyCookie .Item:Koopasta
+	.Item:ShroomCake  .Item:ThunderRage .Item:VoltShroom .Item:BlandMeal
+	.Item:YummyMeal   .Item:BoiledEgg   .Item:CocoPop    .Item:DizzyDial
+    .Item:DeluxeFeast .Item:FireFlower  .Item:SpecialShake .Item:HealthyJuice
+	.Item:SweetShroom .Item:StrangeCake .Item:YoshiCookie  .Item:SleepySheep
+	.Item:SnowmanDoll .Item:PotatoSalad .Item:FrozenFries .Item:ShroomSteak 
+	.Item:JellyShroom1 .Item:JellySuper   .Item:HoneyUltra .Item:MapleUltra  
+	.Item:JellyUltra  .Item:JellyPop    .Item:Mistake							%51 recipes
+	% NEW %
+	.Item:StarCake .Item:SuperShroomCake .Item:UltraShroomCake .Item:HealthySalad 	
+	.Item:CathTea  .Item:DayzeeSyrup     .Item:CoconutBomb     .Item:ChocoCake
+	.Item:HottestDog .Item:OmeletteMeal  .Item:RoastHorsetail  .Item:RoastBump
+	.Item:VolcanoShroom  .Item:InkySauce  .Item:InkPasta     .Item:SpicyPasta      
+	.Item:PeachSyrup     .Item:FruitParfait .Item:FreshJuice .Item:KoopaBun			%20 recipes here, so 71
+	.Item:LoveEgg .Item:Hamburger .Item:LoveNoodles .Item:SpaceFood
 	00000000
 }
 
@@ -1088,9 +1117,9 @@
 .Item:DriedShroom .Item:Mushroom .Item:FriedShroom
 .Item:DriedShroom .Item:FireFlower .Item:FriedShroom
 .Item:FireFlower .Item:IcedPotato .Item:FrozenFries
+.Item:SpecialShake .Item:StrangeLeaf .Item:HealthyJuice
 .Item:SpecialShake .Item:StinkyHerb .Item:HealthyJuice
 .Item:SpecialShake .Item:DriedShroom .Item:HealthyJuice
-.Item:SpecialShake .Item:StrangeLeaf .Item:HealthyJuice
 .Item:CakeMix .Item:HoneySyrup .Item:HoneyCandy
 .Item:Mushroom .Item:HoneySyrup .Item:HoneyShroom
 .Item:SuperShroom .Item:HoneySyrup .Item:HoneySuper
@@ -1273,6 +1302,7 @@
 .Item:Apple     .Item:JamminJelly  .Item:FruitParfait
 .Item:Melon     .Item:PeachyPeach  .Item:FruitParfait
 .Item:Melon     .Item:KeelMango    .Item:FruitParfait
+.Item:PowerSteak FFFFFFFF  		.Item:Hamburger    %Hamburger
 .Item:Horsetail .Item:KoopaLeaf .Item:HealthySalad  %Healthy Salad
 .Item:GoldenLeaf .Item:KoopaLeaf .Item:HealthySalad
 .Item:StinkyHerb .Item:KoopaLeaf .Item:HealthySalad
@@ -1293,6 +1323,15 @@
 .Item:InkySauce .Item:DriedPasta     .Item:InkPasta  %Ink Pasta
 .Item:InkySauce .Item:Spaghetti     .Item:InkPasta
 .Item:InkySauce .Item:Koopasta     .Item:InkPasta 
+.Item:KoopaLeaf .Item:KeelMango    .Item:KoopaBun   %Koopa Bun
+.Item:Egg       .Item:RuinPowder    .Item:LoveEgg	%Love Egg
+.Item:Egg       .Item:ShootingStar  .Item:LoveEgg   
+.Item:BoiledEgg .Item:ShootingStar  .Item:LoveEgg
+.Item:Egg       .Item:BigStarPoint  .Item:LoveEgg
+.Item:DriedPasta .Item:RuinPowder   .Item:LoveNoodles  %Love Noodles
+.Item:DriedPasta .Item:ShootingStar .Item:LoveNoodles
+.Item:DriedPasta .Item:BigStarPoint .Item:LoveNoodles 
+.Item:Spaghetti  .Item:RuinPowder   .Item:LoveNoodles
 .Item:Horsetail .Item:Egg  .Item:OmeletteMeal 		%Omelette Meal
 .Item:BoiledEgg .Item:Mushroom  .Item:OmeletteMeal 
 .Item:BoiledEgg .Item:SuperShroom  .Item:OmeletteMeal 
@@ -1300,11 +1339,24 @@
 .Item:BoiledEgg .Item:LifeShroom  .Item:OmeletteMeal 
 .Item:PeachyPeach FFFFFFFF  .Item:PeachSyrup        %Peach Syrup
 .Item:Horsetail FFFFFFFF  .Item:RoastHorsetail 		%Roast Horsetail
+.Item:DriedBouquet .Item:DriedShroom .Item:SpaceFood  %SpaceFood
+.Item:DriedBouquet .Item:Mushroom .Item:SpaceFood
+.Item:DriedBouquet .Item:CakeMix .Item:SpaceFood
+.Item:DriedBouquet .Item:Coconut .Item:SpaceFood
+.Item:DriedBouquet .Item:DriedPasta .Item:SpaceFood
+.Item:DriedBouquet .Item:FruitParfait .Item:SpaceFood
+.Item:DriedBouquet .Item:LifeShroom .Item:SpaceFood
+.Item:DriedBouquet .Item:Egg .Item:SpaceFood
+.Item:DriedBouquet .Item:SuperShroom .Item:SpaceFood
+.Item:DriedBouquet .Item:StrangeLeaf .Item:SpaceFood
+.Item:DriedBouquet .Item:WhackasBump .Item:SpaceFood
+.Item:DriedBouquet .Item:VoltShroom .Item:SpaceFood
 .Item:HotSauce  .Item:DriedPasta  .Item:SpicyPasta  %Spicy Pasta
 .Item:HotSauce  .Item:Spaghetti  .Item:SpicyPasta
 .Item:HotSauce  .Item:Koopasta  .Item:SpicyPasta
 .Item:CakeMix 	.Item:ShootingStar .Item:StarCake	%Star Cake
 .Item:Cake 	.Item:ShootingStar .Item:StarCake
+.Item:CakeMix  .Item:LoveEgg   .Item:StarCake
 .Item:Mushroom 	.Item:HotSauce .Item:VolcanoShroom	%Volcano Shroom
 .Item:VoltShroom .Item:HotSauce .Item:VolcanoShroom
 .Item:SuperShroom .Item:HotSauce .Item:VolcanoShroom
@@ -1332,9 +1384,11 @@
 .Item:HealthySalad .Item:ShroomSteak .Item:DeluxeFeast
 .Item:Spaghetti  .Item:UltraShroom  .Item:DeluxeFeast
 .Item:ShroomSteak .Item:HotShroom  .Item:DeluxeFeast
+.Item:DriedSyrup  FFFFFFFF   .Item:SuperSoda
 .Item:GoldenLeaf .Item:Melon .Item:SpecialShake
 .Item:GoldenLeaf .Item:SpecialShake .Item:HealthyJuice
 .Item:IcedPotato .Item:Pebble      .Item:SnowmanDoll
+.Item:Melon .Item:BigCookie .Item:YoshiCookie
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Point Swap things
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1593,7 +1647,7 @@ FFFFFFFF FFFFFFFF % End of table
     % 1 Item
     Loop
         Get1Int *Var[D] % Item1
-        If *Var[D] == 70707070
+        If *Var[D] == 73737373
             % End of table, no recipe :(
             Set *Var[6] .Item:Mistake
             Set *Var[7] 0
@@ -1628,7 +1682,7 @@ FFFFFFFF FFFFFFFF % End of table
     % 2 Items
     Loop
         Get1Int *Var[D] % Item1
-        If *Var[D] == 70707070
+        If *Var[D] == 73737373
             % End of table, no recipe :(
             Set *Var[6] .Item:Mistake
             Set *Var[7] 0
@@ -1784,7 +1838,7 @@ FFFFFFFF FFFFFFFF % End of table
 
 #new:String $RecipeCountNoHint
 {
-	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/73[BR]
 	Get to 40 recipes in order to[BR]
 	unlock access to recipe hints.[BR]
 	[DelayOn][WAIT][END] 
@@ -1792,14 +1846,14 @@ FFFFFFFF FFFFFFFF % End of table
 
 #new:String $RecipeCountHint
 {
-	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/73[BR]
 	Missing recipe: [Var 1][BR]
 	[DelayOn][WAIT][END] 
 }
 
 #new:String $RecipeCountHintOneIng
 {
-	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/73[BR]
 	Missing recipe: [Var 1][BR]
 	Cook with [Var 2] alone.[BR]
 	[DelayOn][WAIT][END] 
@@ -1807,7 +1861,7 @@ FFFFFFFF FFFFFFFF % End of table
 
 #new:String $RecipeCountHintTwoIng
 {
-	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/71[BR]
+	[DelayOff][Style Sign]Recipes: [Color:23][Var 0][Color:0A]/73[BR]
 	Missing recipe: [Var 1][BR]
 	Cook with [Var 2] and[BR]
 	[Var 3][BR]
@@ -1816,7 +1870,7 @@ FFFFFFFF FFFFFFFF % End of table
 
 #new:String $RecipeCountComplete
 {
-	[DelayOff][Style Sign]Recipes: [Color:1D][Var 0][Color:0A]/71[BR]
+	[DelayOff][Style Sign]Recipes: [Color:1D][Var 0][Color:0A]/73[BR]
 	[DelayOn][WAIT][END] 
 }
 

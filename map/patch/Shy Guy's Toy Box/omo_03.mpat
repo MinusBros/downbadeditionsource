@@ -43,6 +43,27 @@
 }
 
 
+@	$Script_80240940
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Call  SetMusicTrack ( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
+   3C:  Else
+   44:  	Call  GetEntryID    ( *Var0 )
+   54:  	Switch  *Var0
+   60:  		Case  ~Entry:Entry2  to  ~Entry:Entry3
+   70:  			Call  SetMusicTrack ( 00000000 .Song:ToyboxTrain 00000000 00000008 )
+   8C:  		Case  ==  ~Entry:Entry5
+   98:  			Call  FadeInMusic   ( 00000000 .Song:PeachAppears 00000002 00000BB8 00000000 0000007F )  %Cardcaptor Sakura theme
+   BC:  		Default
+   C4:  			Call  SetMusicTrack ( 00000000 .Song:ShyGuyToybox 00000000 00000008 )
+   E0:  	EndSwitch
+   E8:  EndIf
+   F0:  Return
+   F8:  End
+}
+
+
 @	$Script_MakeEntities
 {
     0:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802419C8 80000000 )
@@ -257,6 +278,75 @@
 }
 
 
+@	$NpcGroupList_80242F0C
+{
+	00000002 $NpcGroup_8024217C 00000000
+	1 $WattagePostGame 0
+	00000000 00000000 00000000
+}
+
+
+#new:Script $Script_Init_Wattage
+{
+    0:  If  *GB_StoryProgress  !=  .Story:PostGame % FFFFFFFB
+			Call  RemoveNpc     ( .Npc:Self )
+   24:  EndIf
+		If  *PostGameWattageEvent == .True
+			Call  RemoveNpc     ( .Npc:Self )
+		EndIf
+		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Wattage )
+   40:  Return
+   48:  End
+}
+
+
+#new:Script $Script_Interact_Wattage
+{
+		
+  134:  Call  SetCamDistance    ( .Cam:Default *Fixed[425.0] )
+  148:  Call  SetCamPitch   ( .Cam:Default *Fixed[18.0] *Fixed[-9.0] )
+  160:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  174:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  18C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+   Call  BringPartnerOut   ( .Partner:Goombario )
+   Call  SpeakToPlayer ( .Npc:Self 00060004 00060001 00000000 000F0095 )
+   Call  DisablePartnerAI  ( 00000000 )
+   Wait  5`
+   Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000F0096 )
+   Call  PushSong  ( .Song:SafeHeaven 00000000 )
+   Call  SpeakToPlayer ( .Npc:Self 00060004 00060001 00000000 000F0097 )
+   Call  SetNpcAnimation   ( .Npc:Partner 0001000B )
+   Call  SpeakToPlayer ( .Npc:Partner 0001000C 0001000B 00000005 000F0098 )
+   Call  SpeakToPlayer ( .Npc:Self 00060004 00060002 00000000 000F0099 )
+   Call  SpeakToPlayer ( .Npc:Partner 00010010 00010010 00000005 000F009A )
+   Call  SetNpcAnimation   ( .Npc:Partner 00010001 )
+   Call  SpeakToPlayer ( .Npc:Self 00060004 00060002 00000000 000F009B )
+   Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
+   Call  EndSpeech ( .Npc:Self 0060004 00060002 00000000 )
+   Call  PopSong ( )
+   Call  SetNpcAnimation   ( .Npc:Partner 00010001 )
+   Call  SpeakToPlayer ( .Npc:Partner 0001000F 0001000E 00000005 000F009C )
+   Call  SpeakToPlayer ( .Npc:Self 00060004 00060002 00000000 000F009D )
+    Call  EnablePartnerAI ( )
+	Wait  5`
+   Call  PutPartnerAway ( )
+   Call  $ScriptApi_GivePartner ( .Partner:Watt -1` )  %Give Wattage
+   Call  $TurnNpcIntoPartner ( .NpcID:WorldWatt_03 .Partner:Watt ) 
+   Wait  5`
+   Set  *PostGameWattageEvent .True
+   Thread
+		Call  ResetCam  ( .Cam:Default  3` )
+   EndThread
+   If   *PostGameSushieEvent == .False
+		Call  DisablePartnerAI  ( 00000000 )
+	    Call  SpeakToPlayer ( .Npc:Partner 00060004 00060002 00000000 000F009E )
+		Call  EnablePartnerAI ( )
+   EndIf
+   Return
+   End
+}
+
+
 @	$NpcGroup_8024217C
 {
 	.NpcID:TrainStationToad_00 $NpcSettings_80241AB0 ~Vec3f:NPC_TrainStationToad_00 % 170 50 -115
@@ -265,4 +355,124 @@
 	~Movement:NPC_TrainStationToad_00
 	~AnimationTable:NPC_TrainStationToad_00 % .Sprite:TrainStationToad
 	00000000 00000000 00000000 001A00B8 % He's an employee of the Toy Box station. The emplo ...
+}
+
+#new:NpcGroup  $WattagePostGame
+{
+	% $NpcGroup_8024255C[1F0]
+	.NpcID:WorldWatt_03 $NpcSettings_80241B08 ~Vec3f:NPC_WorldWatt_03 % 50 15 160
+	00000005 $Script_Init_Wattage 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_WorldWatt_03
+	~AnimationTable:NPC_WorldWatt_03 % .Sprite:WorldWatt
+	00000000 00000000 00000000 001A016E % new tattle
+}
+
+
+
+#new:Function $TurnNpcIntoPartner
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  SW        S1, 14 (SP)
+   10:  COPY      S1, A1
+   14:  SW        RA, 24 (SP)
+   18:  SW        S4, 20 (SP)
+   1C:  SW        S3, 1C (SP)
+   20:  SW        S0, 10 (SP)
+   24:  LW        S0, C (S2)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S2
+   38:  LW        A1, 0 (S0)
+   3C:  JAL       ~Func:get_variable
+   40:  COPY      S0, V0
+   44:  COPY      A0, S0
+   48:  JAL       ~Func:get_npc_safe
+   4C:  COPY      S4, V0
+   50:  LA        S3, 8010F290
+   58:  BEQ       S1, R0, .o74
+   5C:  COPY      S0, V0
+   60:  LB        V0, 12 (S3)
+   64:  BNEL      V0, R0, .o74
+   68:  SW        R0, 70 (S2)
+   6C:  LI        V0, 2
+   70:  SW        V0, 70 (S2)
+        .o74
+   74:  LW        V1, 70 (S2)
+   78:  LI        S1, 1
+   7C:  BEQ       V1, S1, .oCC
+   80:  SLTI      V0, V1, 2
+   84:  BEQ       V0, R0, .o9C
+   88:  LI        V0, 2
+   8C:  BEQ       V1, R0, .oB4
+   90:  CLEAR     V0
+   94:  BEQ       R0, R0, .o164
+   98:  NOP
+        .o9C
+   9C:  BEQ       V1, V0, .oEC
+   A0:  LI        V0, 3
+   A4:  BEQ       V1, V0, .o120
+   A8:  CLEAR     V0
+   AC:  BEQ       R0, R0, .o164
+   B0:  NOP
+        .oB4
+   B4:  JAL       ~Func:switch_to_partner
+   B8:  CLEAR     A0
+   BC:  LI        V0, 1E
+   C0:  SW        V0, 74 (S2)
+   C4:  BEQ       R0, R0, .o160
+   C8:  SW        S1, 70 (S2)
+        .oCC
+   CC:  LW        V0, 74 (S2)
+   D0:  LI        V1, FFFF
+   D4:  ADDIU     V0, V0, FFFF
+   D8:  BNE       V0, V1, .o160
+   DC:  SW        V0, 74 (S2)
+   E0:  LI        V0, 2
+   E4:  BEQ       R0, R0, .o160
+   E8:  SW        V0, 70 (S2)
+        .oEC
+   EC:  COPY      A0, S0
+   F0:  SLL       V0, S4, 18
+   F4:  SRA       V0, V0, 15
+   F8:  ADDU      V0, S3, V0
+   FC:  SB        S4, 12 (S3)
+  100:  JAL       ~Func:partner_clear_player_tracking
+  104:  SB        S1, 14 (V0)
+  108:  LB        A0, 12 (S3)
+  10C:  JAL       800EB2A4
+  110:  NOP
+  114:  LI        V0, 3
+  118:  BEQ       R0, R0, .o160
+  11C:  SW        V0, 70 (S2)
+        .o120
+  120:  JAL       ~Func:get_npc_safe
+  124:  LI        A0, FFFC
+  128:  LW        A1, C (S0)
+  12C:  JAL       ~Func:set_npc_yaw
+  130:  COPY      A0, V0
+  134:  COPY      A0, S0
+  138:  LW        V0, 0 (S0)
+  13C:  LI        V1, FFFB
+  140:  AND       V0, V0, V1
+  144:  JAL       ~Func:disable_npc_shadow
+  148:  SW        V0, 0 (S0)
+  14C:  LIF       F0, -1000.0
+  154:  LI        V0, 2
+  158:  BEQ       R0, R0, .o164
+  15C:  SWC1      F0, 3C (S0)
+        .o160
+  160:  CLEAR     V0
+        .o164
+  164:  LW        RA, 24 (SP)
+  168:  LW        S4, 20 (SP)
+  16C:  LW        S3, 1C (SP)
+  170:  LW        S2, 18 (SP)
+  174:  LW        S1, 14 (SP)
+  178:  LW        S0, 10 (SP)
+  17C:  JR        RA
+  180:  ADDIU     SP, SP, 28
 }

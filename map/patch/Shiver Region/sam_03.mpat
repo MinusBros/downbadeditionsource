@@ -1,3 +1,16 @@
+@	$Header
+{
+	[EntryCount]  00000003
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -730.0    0.0    0.0   90.0
+	~Vec4f:Entry1 %  730.0    0.0    0.0  270.0
+	~Vec4f:Entry2
+	~Vec4f:Entry3
+}
+
 @	 $Script_Main_EnterWalk
 {
     0:  Set   *GB_WorldLocation  .Location:ShiverSnowfield
@@ -27,10 +40,31 @@
 			EndIf
 		EndIf
   1A8:  Wait  1`
+		Exec  $Script_CheckPos
+		ExecWait $Script_MakeEntities 
   1B4:  Return
   1BC:  End
 }
 
+@	$Script_80240980
+{
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_DefeatedJrTroopa  to  .Story:Ch7_StarSpiritRescued
+				Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000001 00000008 )	%Frost Man Stage
+			Default
+				Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000000 00000008 )	%Wily Marine Stage
+		EndSwitch
+		Return
+		End
+}
+
+#new:Script  $Script_MakeEntities
+{
+    Call  MakeEntity    ( .Entity:HiddenPanel ~Vec4d:HiddenPanel ~Model:yuki 80000000 )
+    Call  AssignPanelFlag   ( *SAM03_HiddenPanel )
+	Return
+	End
+}
 
 #new:Script  $Script_PartnerBlurb
 {
@@ -76,17 +110,17 @@
 	00000000 00000000 00000000
 }
 
-@	$Header
-{
-	[EntryCount]  00000003
-}
 
-@	$EntryList
+
+@	$Script_ExitWalk_80240A0C
 {
-	~Vec4f:Entry0 % -730.0    0.0    0.0   90.0
-	~Vec4f:Entry1 %  730.0    0.0    0.0  270.0
-	~Vec4f:Entry2
-	~Vec4f:Entry3
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( "sam_19" 00000000 ) % go to the Master Quest map
+   40:  Wait  100`
+   4C:  Return
+   54:  End
 }
 
 
@@ -95,7 +129,7 @@
     0:  SetGroup  0000001B
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry2 )
    20:  Exec  ExitWalk
-   2C:  Call  GotoMap   ( "sam_16" 00000001 )
+   2C:  Call  GotoMap   ( "sam_16" 00000001 )  % Master Quest path to Starfall Hill
    40:  Wait  80`
    4C:  Return
    54:  End
@@ -106,7 +140,7 @@
     0:  SetGroup  0000001B
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry3 )
    20:  Exec  ExitWalk
-   2C:  Call  GotoMap   ( "sam_18" 00000001 )
+   2C:  Call  GotoMap   ( "sam_18" 00000001 )  % Dark Star path to Bengteng Coop Notes
    40:  Wait  80`
    4C:  Return
    54:  End
@@ -120,4 +154,29 @@
 		Bind  $Script_ExitWalk_3 .Trigger:FloorAbove ~Collider:exit4 00000001 00000000
    38:  Return
    40:  End
+}
+
+
+
+#new:Script $Script_CheckPos
+{
+	Wait  2`
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -105`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  FadeOutMusic      ( 00000000 00000074 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  80`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+		Return
+	EndIf
+	Wait  2`
+	Goto  1
+	Return
+	End
 }

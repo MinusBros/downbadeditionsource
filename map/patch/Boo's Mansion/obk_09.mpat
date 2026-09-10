@@ -2,11 +2,12 @@
 #define .Npc:Broozer 03
 
 #import AutoSave.mpat
+#import KeyItemPopUp.mpat
 
 @	$Script_Main
 {
     0:  Set   *GB_WorldLocation  .Location:BoosMansion
-   10:  Call  SetSpriteShading  ( .Shading:mim_12 )
+		%Call  SetSpriteShading  ( .Shading:mim_12 )
    20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
    40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
    5C:  Call  SetCamEnabled     ( .Cam:Default .True )
@@ -20,9 +21,6 @@
    F4:  	Return
    FC:  EndIf
   104:  Call  MakeNpcs  ( .False $NpcGroupList_80242628 )
-		If  *GB_StoryProgress  >=  .Story:Ch3_SawTubbaEatBoo 
-			Call  SetNpcPos ( .Npc:Broozer  225`  0`  65` )
-		EndIf
   118:  Bind  $Script_ExitDoubleDoor_802406A8 .Trigger:WallPressA ~Collider:tt1 00000001 00000000
   134:  Bind  $Script_ExitDoubleDoor_8024075C .Trigger:WallPressA ~Collider:tt2 00000001 00000000
   150:  Exec  $Script_EnterDoubleDoor_80240580
@@ -248,7 +246,7 @@
   D80:  Sub   *Var2  00000004
 		Call  SetNpcAnimation   ( 00000000 0005000D )
 		Wait  12`
-		Call  PlaySoundAtNpc    ( .Npc:Partner .Sound:Slap 00000000 )
+		Call  PlaySoundAtNpc    ( .Npc:Partner 02F3 00000000 )
 		Wait  4`
 		Call  SetNpcAnimation   ( .Npc:Partner 00010007 )
    C4:  		Thread
@@ -329,13 +327,14 @@
 
 #new:Script $TyrantInit
 {
-	Call  SetNpcScale   ( .Npc:Self *Fixed[1.75] *Fixed[1.75] *Fixed[1.75] )
+	Call  SetNpcScale   ( .Npc:Broozer *Fixed[1.75] *Fixed[1.75] *Fixed[1.75] )
 	If    *GB_StoryProgress  >=  .Story:Ch3_SawTubbaEatBoo 
-		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Tyrant )
+		Call  BindNpcInteract   ( .Npc:Broozer $Script_Interact_Tyrant )
+		Call  SetNpcPos ( .Npc:Broozer  225`  0`  65` )
 		Return
 	EndIf
-	Call  BindNpcIdle       ( .Npc:Self $TyrantIdle )
-	Call  BindNpcDefeat     ( .Npc:Self $TyrantDefeat )
+	Call  BindNpcIdle       ( .Npc:Broozer $TyrantIdle )
+	Call  BindNpcDefeat     ( .Npc:Broozer $TyrantDefeat )
 	Return
 	End
 }
@@ -384,6 +383,7 @@
 		End
 }
 
+
 #new:Script $TyrantDefeat
 {
 	0:  Call  GetBattleOutcome  ( *Var0 )
@@ -425,11 +425,190 @@
 }
 
 
+%Bow init and interact scripts
+@	$Script_Init_802418E0
+{
+		If   *GB_StoryProgress == .Story:PostGame
+			If  *PostGameBowEvent == .False
+				Call  SetNpcPos     ( .Npc:Self  -20`  72`  -65` )
+				Call  BindNpcInteract   ( .Npc:Self $Script_Interact_BowPostGame )
+			EndIf
+		EndIf
+		Return
+		End
+}
+
+
+
+#new:Script  $Script_Interact_BowPostGame
+{
+
+	Call  SpeakToPlayer ( 00000000 00050009 00050009 00000000 000E012C )
+	Call  BringPartnerOut   ( .Partner:Goombario )
+	Wait  5`
+	Call  DisablePartnerAI  ( 00000000 )
+	Call  SpeakToPlayer ( .Npc:Partner 0001000F 0001000E 00000005 000E012D )
+	Call  SpeakToPlayer ( 00000000 00050004 00050001 00000000 000E012E )
+	Call  EndSpeech     ( 00000000 0005000B 0005000B 00000000 )
+	Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E012F )
+	Call  SpeakToPlayer ( 00000000 00050004 00050001 00000000 000E0130 )
+	Call  SpeakToPlayer ( .Npc:Partner 0001000C 0001000B 00000005 000E0131 )  
+	Call  SpeakToPlayer ( 00000000 0005000A 0005000E 00000000 000E0132 )
+	Call  PutPartnerAway ( )
+	Call  $ScriptApi_GivePartner ( .Partner:Bow -1` )  %Give Bow
+	Call  $Function_80240000    ( 00000000 00000009 )  %Turn NPC into Partner
+	Wait  15`
+	Call  EnablePartnerAI ( )
+	Set  *PostGameBowEvent .True
+	Return
+	End
+}
+
+
+%Bootler init and interact scripts
+@	$Script_Init_80241A94
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802418F0 )
+   14:  Switch  *GB_StoryProgress
+   20:  	Case  <  .Story:Ch3_BowJoinedParty % FFFFFFDC
+   2C:  	Case  >=  .Story:Ch3_BowJoinedParty % FFFFFFDC
+   38:  		Call  SetNpcPos ( 00000001  30`  70`  -75` )
+   54:  		Call  SetNpcYaw ( 00000001  270` )
+				If  *SebastianCompleted == .False
+					Exec  $SebastianProblem
+				EndIf
+   68:  	Default
+   70:  EndSwitch
+   78:  Return
+   80:  End
+}
+
+#new:Script  $SebastianProblem
+{
+		Wait  18`
+		Loop
+			Call  ShowEmote ( 00000001 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  30`
+			If  *SebastianCompleted == .True
+				BreakLoop
+			EndIf
+			Wait  30`
+		EndLoop
+		Return
+		End
+}
+
+
+@	$Script_Interact_802418F0
+{
+		If  *SebastianCompleted == .False
+			If *SebastianGotEyeDrops == .True
+				Call  FindKeyItem   ( .Item:EyeDrops *Var1 )
+				If    *Var1 != FFFFFFFF
+					Set   *Var0  $???_CheckEyeDrops
+					Set   *Var1  00000005
+					ExecWait $Script_CheckForKeyItem	
+					Switch *Var0
+						Case   == 0`   %If you don't have the key item, resume script
+						Case   == FFFFFFFF  %If you refuse to give the key item, say a funny line
+							Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0139  )
+						Default			%If you give him the key item
+							Set  *SebastianCompleted .True
+							Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0059  )
+							Set   *Var0  1BC
+							Set   *Var1  2
+							Call  ShowGotItem   ( *Var0 .True 00000000 )
+							If  *HavePieceofHeart == .False
+								Set  *HavePieceofHeart .True
+								Call  AddBadge  ( .Item:PieceOfHeart *Var0 )
+							EndIf
+							Add *PiecesofHeart 1`
+							ExecWait  $ProblemSolved
+							Return
+					EndSwitch
+				EndIf
+			EndIf
+		EndIf
+    0:  Call  GetCurrentPartnerID   ( *Var0 )
+   10:  If  *Var0  ==  .Partner:Bow % 9
+   20:  	Call  SpeakToNpc    ( 00000001 00BF0004 00BF0004 00000000 .Npc:Partner 000E0057 ) % Lady Bow, please come back to us as soon as possib ...
+   44:  	Call  DisablePartnerAI  ( 00000000 )
+   54:  	Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000000 00000001 000E0058 ) % Hush up, Bootler! You be quiet and take care of th ...
+   78:  	Call  EnablePartnerAI ( )
+   84:  	Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0059 ) % Sigh...sigh......
+   A4:  Else
+   AC:  	Switch  *GB_StoryProgress
+   B8:  		Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   C4:  			Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0055 ) % Good... Good luck. Please take care of our lady...
+   E4:  		Case  <  .Story:Ch5_StarSpritDeparted % 27
+   F0:  			Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0056 ) % Good sir, please take care of our lady.
+  110:  		Case  >=  .Story:Ch5_StarSpritDeparted % 27
+  11C:  			Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E005A ) % Dear sir... Lady Bow is very, very, very important ...
+  13C:  			Wait  20`
+  148:  			Call  SetPlayerAnimation    ( .PlayerAnim:NodYes )
+  158:  			Wait  20`
+  164:  			Call  SpeakToPlayer ( 00000001 00BF000B 00BF000B 00000000 000E005B ) % If harm befalls our lady, the Boo ancestors will b ...
+  184:  	EndSwitch
+  18C:  EndIf
+		If   *SebastianCompleted == .False
+			Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0  !=  .Partner:Bow % 9
+				Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0128 )
+				Call  EndSpeech     ( 00000001 00BF0006 00BF0005 00000000 )
+				Call  EndSpeech     ( 00000001 00BF0004 00BF0001 00000000 )
+				Call  EndSpeech     ( 00000001 00BF0007 00BF0008 00000000 )
+			Else
+				Call  SpeakToPlayer ( 00000001 00BF0006 00BF0005 00000000 000E0129 )
+				Call  EndSpeech     ( 00000001 00BF0007 00BF0008 00000000 )
+				Call  DisablePartnerAI  ( 00000000 )
+				Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000000 00000001 000E012A ) 
+				Call  EnablePartnerAI ( )
+				Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E012B )
+			EndIf
+		EndIf
+		Call  SetNpcAnimation   ( 00000001 00BF0001 )
+  194:  Return
+  19C:  End
+}
+
+
+#new:Unknown $???_CheckEyeDrops
+{
+	000001B3 00000000
+}
+
 @	$NpcGroupList_80242628
 {
 	00000003 $NpcGroup_80241C78 00000000
 	00000001 $NpcGroup_Tyrant   0D120000
 	00000000 00000000 00000000
+}
+
+
+@	$NpcGroup_80241C78
+{
+	00000000 $NpcSettings_80241830 ~Vec3f:NPC_80241C78 % 0 -1000 0
+	00000801 $Script_Init_802418E0 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_80241C78
+	~AnimationTable:NPC_80241C78 % .Sprite:WorldBow
+	00000000 00000000 00000000 001A0155 % new tattle
+	%
+	% $NpcGroup_80241C78[1F0]
+	00000001 $NpcSettings_80241830 ~Vec3f:NPC_80241E68 % 0 -1000 0
+	00000801 $Script_Init_80241A94 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_80241E68
+	~AnimationTable:NPC_80241E68 % .Sprite:Bootler
+	00000000 00000000 00000000 001A00A4 % He's a Boo called Bootler. He's the manager of the ...
+	%
+	% $NpcGroup_80241C78[3E0]
+	.NpcID:WorldSkolar_02 $NpcSettings_80241830 ~Vec3f:NPC_WorldSkolar_02 % 0 -1000 0
+	00000801 $Script_Init_80241B44 00000000 00000000 00000000
+	~NoDrops
+	~Movement:NPC_WorldSkolar_02
+	~AnimationTable:NPC_WorldSkolar_02 % .Sprite:WorldSkolar
+	00000000 00000000 00000000 00000000 % no tattle string
 }
 
 

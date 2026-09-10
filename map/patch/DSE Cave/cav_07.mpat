@@ -1,0 +1,186 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000002
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This bridge leads to the[BR]
+Temple of Darkness.[BR]
+Once we go in, it'll be a long[BR]
+walk to get back out.[BR]
+[WAIT][NEXT]
+We should make sure we are[BR]
+fully stocked on items.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+	Thread
+		Wait 30`
+		Call  802D5FA4  ( 00000007 ) %Unmutes all channels
+	EndThread
+Return
+End
+}
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Bind     $Script_LoreText  .Trigger:WallPressA ~Collider:LoreText  00000001 00000000 
+Exec    $Script_SetMusic 
+Call  $Function_SetupFog
+ExecWait $Script_MakeEntities
+%entry 0 = back loading zone
+%entry 1 = temple loading zone
+Call	GetLoadType 	( *Var[1] )
+If		*Var[1] ==  00000001 
+	Exec	EnterSavePoint 
+	Exec	$Script_MakeExits
+Else
+	Call     GetEntryID  	( *Var[0] )
+	Set		*Var[0] $Script_MakeExits 
+	Exec EnterWalk
+EndIf
+Return
+End
+}
+
+
+#new:Script $Script_LoreText
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     ShowMessageAtScreenPos     	( $LoreText 000000A0 00000028 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+
+
+
+
+#new:Script $Script_MakeEntities
+{
+	Call  	 MakeEntity    ( .Entity:SavePoint ~Vec4d:blockL 80000000 )
+	Call     MakeEntity  	( .Entity:YellowBlock ~Vec4d:blockR .Item:BigStarPoint 80000000 )
+	Call     AssignBlockFlag 	( *GF_CAV07_Block )	
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:backbridgeLZ 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:centerbridgeLZ 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_06" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "tem_00" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+
+
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3B6
+	JAL       8011BB74
+	ADDIU     A1, R0, 3E8
+	ADDIU     A0, R0, BC
+	ADDIU     A1, R0, BC
+	ADDIU     A2, R0, BC
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
+
+
+%the actual final part of the empire lore (but also bridging (ha) the temple lore and the empire lore)
+
+%basically, the empire was defeated 
+%but all the dark enemies just went back into the temple of darkness
+%and the star spirits couldn't really go after them
+#new:String $LoreText
+{
+	[Style INSPECT]THE EMPEROR WAS DEFEATED[BR]
+	HIS ALLIES WERE DEPLETED[BR]
+	YET VICTORY WAS NOT COMPLETED[BR]
+	THE DARKEST ARMIES HAD RETREATED[WAIT][END]
+}

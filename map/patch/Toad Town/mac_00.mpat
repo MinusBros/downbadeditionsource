@@ -24,6 +24,8 @@
 #define .NpcID:HarryT_29            1D
 #define .NpcID:VannaT_30            1E
 
+#define .Npc:PipeSalesman 00000030
+#define .Npc:HarryDresden 00000031
 
 
 @ $Header
@@ -46,8 +48,105 @@
 
 
 
-#define .Npc:PipeSalesman 00000030
-#define .Npc:HarryDresden 00000031
+%There's a lot of precautionary things to set up on load for this map
+%as it is where you go after Death Warping or using the Return Pipe.
+
+@	$Script_Main
+{
+		Set   *Byte_Settings_BGM  1`
+		Set   *Byte_Settings_BGM2 1`  %Default to Superstar Saga music
+		Set   *Byte_Settings_BGM3 1`
+		Set   *Byte_Settings_BGM4 1`
+		Set *ShopState 00000000  %In case you Return Pipe inside a shop
+		ExecWait  $NukeBossChecks  %This is only for retrying boss fights
+		Set  *DidDojoFight  0`    %Fix Master dialogue and music
+		Call $ClearFlagCarryOverworldMusicToBattle()   %Fix battle music not working
+		Set  *ReturnPipeLock .False
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Exec  $DarknessFollow
+   88:  	Default
+				Call  EnableGroup   ( ~Model:darkness .False )
+   9C:  EndSwitch
+    0:  Set   *GB_WorldLocation  .Location:ToadTown
+		Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  If  *GB_StoryProgress  >=  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
+   94:  	Set   *GF_Map_ToadTown  .True
+   A4:  EndIf
+   AC:  Call  SetRenderMode ( ~Model:minka1_yuka 00000015 )
+   C0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:dummy 7FFFFE00 )
+   D8:  Switch  *GB_StoryProgress
+   E4:  	Case  ==  .Story:Intro % FFFFFF80
+   F0:  		Call  MakeNpcs  ( .False $NpcGroupList_802531FC )
+  104:  	Case  >=  .Story:Epilogue % 60
+  110:  		Call  MakeNpcs  ( .False $NpcGroupList_80255334 )
+  124:  	Default
+  12C:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E1A8 )
+  140:  EndSwitch
+  148:  ExecWait  $Script_MakeEntities
+  154:  Exec  $Script_80245BF8
+  160:  Exec  $Script_8024E3A8
+  16C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:water 00000001 )
+  184:  Exec  $Script_8024EAF0
+  190:  Call  EnableTexPanning      ( ~Model:water .True )
+  1A4:  Thread
+  1AC:  	Set   *Var0  00000001
+  1BC:  	Set   *Var1  00000000
+  1CC:  	Set   *Var2  00000000
+  1DC:  	Set   *Var3  00000000
+  1EC:  	Set   *Var4  00000078
+  1FC:  	Set   *Var5  00000000
+  20C:  	Set   *Var6  00000001
+  21C:  	Set   *Var7  00000000
+  22C:  	Set   *Var8  00000000
+  23C:  	Set   *Var9  00000000
+  24C:  	Set   *VarA  00000000
+  25C:  	Set   *VarB  00000000
+  26C:  	Set   *VarC  00000000
+  27C:  	Exec  $Script_UpdateTexturePan_80244A70
+  288:  EndThread
+  290:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op_1 00000004 )
+  2A8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op2 00000004 )
+  2C0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op3 00000004 )
+  2D8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op_1 00080000 )
+  2F0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op2 00080000 )
+  308:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op3 00080000 )
+  320:  Call  $Function_802405EC    ( 00000061 )
+  330:  Call  $Function_802405EC    ( 00000062 )
+  340:  Call  $Function_802405EC    ( 00000063 )
+  350:  Call  GetDemoState  ( *Var0 )
+  360:  If  *Var0  !=  00000000
+  370:  	Set   *VarA  $Script_80244CD4
+  380:  	Exec  $Script_80243D40
+  38C:  	ExecWait  $Script_8024EAB4
+  398:  	Return
+  3A0:  EndIf
+  3A8:  Exec  $Script_80243C20
+  3B4:  If  *GB_StoryProgress  ==  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
+  3C4:  	Set   *GB_StoryProgress  .Story:Ch0_ArrivedAtToadTown
+  3D4:  	Exec  $Script_8024F64C
+  3E0:  EndIf
+  3E8:  Exec  $Script_EnterWalk_80244D74
+  3F4:  Wait  1`
+  400:  Call  $Function_80240624 ( )
+		If  *GF_MAC00_MetalBlock  ==  .False 
+			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 )
+			Call     AssignScript 	( $Script_SmashBlock )
+		EndIf	
+		If  *GB_StoryProgress  <  .Story:Epilogue % Woah now, we can't be saving in the epilogue
+			Exec  $AutoSaveCheck
+		EndIf
+  40C:  Return
+  414:  End
+}
+
+
+
+
 
 #new:NpcGroup $NpcGroup_Salesman
 {
@@ -367,20 +466,28 @@
    90:  If  *Var1  ==  00000000
    A0:  	Return
    A8:  EndIf
+		
   148:  Call  SetEnemyFlagBits  ( .Npc:HarryDresden 08000000 00000001 )
+		Call  DisablePlayerInput 	( .True )
 		Call  SpeakToNpc ( .Npc:HarryDresden 00A90108 00A90108 00000000 .NpcID:Toad_17 0002016F )
 		Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_802459C0 $Script_MoveWalls_802459F0 00000000 $Script_ToggleVis_80245B10 ~Collider:deilit4 ~Collider:deilit4u ~Model:minka2 $NpcList_80245BE4 )
 		Set   *HarryDresdenTakenCareOf .True
-		Call  SetNpcFlagBits    ( .Npc:HarryDresden 00000100 .True )
-		Call  SetNpcAnimation   ( .Npc:HarryDresden 00A90108 )
-		Call  SetNpcSpeed   ( .Npc:HarryDresden *Fixed[10.0] )
-		Call  NpcMoveTo     ( .Npc:HarryDresden  -299` 257`  0` )
-		Call  NpcMoveTo     ( .Npc:HarryDresden  -324` 177`  0` )
-  1BC:  Call  SetNpcJumpscale   ( .Npc:HarryDresden *Fixed[1.0] )
-  1D0: 	Call  NpcJump1  ( .Npc:HarryDresden -390` 20` 111` 00000014 )
-		Call  NpcMoveTo     ( .Npc:HarryDresden  -495` -315`  0` )
-		Call  NpcJump1  ( .Npc:HarryDresden -583` -150` -458` 00000014 )
-		Call  RemoveNpc ( .Npc:HarryDresden )
+		Thread
+			Call  SetNpcFlagBits    ( .Npc:HarryDresden 00000100 .True )
+			Call  SetNpcAnimation   ( .Npc:HarryDresden 00A90108 )
+			Call  SetNpcSpeed   ( .Npc:HarryDresden *Fixed[10.0] )
+			Call  NpcMoveTo     ( .Npc:HarryDresden  -299` 257`  0` )
+			Call  NpcMoveTo     ( .Npc:HarryDresden  -324` 177`  0` )
+			Call  SetNpcJumpscale   ( .Npc:HarryDresden *Fixed[1.0] )
+			Call  NpcJump1  ( .Npc:HarryDresden -390` 20` 111` 00000014 )
+			Call  NpcMoveTo     ( .Npc:HarryDresden  -495` -315`  0` )
+			Call  NpcJump1  ( .Npc:HarryDresden -583` -150` -458` 00000014 )
+			Call  RemoveNpc ( .Npc:HarryDresden )
+		EndThread
+		Wait  20`
+		Call  SpeakToPlayer ( .NpcID:Toad_17 00830104 00830101 00000000 00020175 )  %Mario, you can come inside
+		Wait  5`
+		Call  DisablePlayerInput 	( .False )
 		Return
 		End
 }
@@ -420,13 +527,13 @@
 
 @	$ShopInventory_8024E26C
 {
-	.Item:FrightJar      10` 0024002A % Makes a scary spirit appear and chase some enemies ...
+	.Item:FrightJar      10` 002400A5 % Makes a scary spirit appear and chase some enemies ...
 	.Item:SleepySheep    10` 00240026 % If it works, makes all enemies sleep for a little  ...
-	.Item:POWBlock       8`  00240027 % Flips shell enemies and inflicts 2 damage points o ...
-	.Item:FireFlower     10` 00240000 % A flower that burns all enemies with fireballs. At ...
-	.Item:TastyTonic     3`  0024000E % NEW
-	.Item:HoneySyrup     10` 00240016 % Sweet honey syrup. Restores 5 FP.
-	.Item:Mushroom       5`  00240009 % A regular Mushroom. Restores 5 HP.
+	.Item:POWBlock       8`  002400A4 % Flips shell enemies and inflicts 2 damage points o ...
+	.Item:FireFlower     10` 002400A3 % A flower that burns all enemies with fireballs. At ...
+	.Item:TastyTonic     3`  002400A2 % NEW
+	.Item:HoneySyrup     10` 002400A1 % Sweet honey syrup. Restores 5 FP.
+	.Item:Mushroom       5`  002400A0 % A regular Mushroom. Restores 5 HP.
 	00000000 00000000 00000000
 }
 
@@ -478,6 +585,40 @@
 
 
 
+@	$Script_Init_80250EE4
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024F944 )
+		If  *GB_StoryProgress  >=  .Story:Ch0_ArrivedAtToadTown  %This won't be triggered otherwise since he will always give Strange Sack in 1.1.0 onwards
+			If  *GotStrangeSack == .False
+				Exec  $ToadAtGateProblem  %This script will only be seen by people updating from below 1.1.0
+			EndIf
+		EndIf
+   14:  If  *GB_StoryProgress  <  .Story:Epilogue % 60
+   24:  	Return
+   2C:  EndIf
+   34:  Call  GetEntryID    ( *Var0 )
+   44:  If  *Var0  !=  ~Entry:Entry7
+   54:  	Exec  $Script_8024FC44
+   60:  EndIf
+   68:  Return
+   70:  End
+}
+
+
+#new:Script  $ToadAtGateProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Toad_07 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *GotStrangeSack == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
+
 %Visiting Kinoko Town for the first time interaction
 @	$Script_8024F64C
 {
@@ -513,9 +654,11 @@
   234:  	Call  SetPlayerAnimation    ( 00080007 )
   244:  EndThread
   24C:  Call  SpeakToPlayer ( .NpcID:Toad_07 00830004 00830001 00000000 0002007E ) % Mario! I'm so glad you're OK! The town is in an up ...
-		Call  DisablePartnerAI  ( 00000000 )
-		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 00020141 )
-		Call  EnablePartnerAI ( )
+		If  *NoGoombariusMode == .False
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 00020141 )
+			Call  EnablePartnerAI ( )
+		EndIf
 		Set  *ReturnPipeLock .False
 		If  *GotStrangeSack == .False
 			ExecWait  $GiveStrangeSack
@@ -572,7 +715,7 @@
 						Set   *Var4  00010012  %Idle anim
   11C:  			Else
   124:  				Set   *Var0  00020087
-						Call  RandInt   ( 1` *Var9 )  %I have an extra line, so I don't want it to go to waste
+						Call  RandInt   ( 1` *Var9 )  %I wrote an extra line by mistake, so I don't want it to go to waste
 						If    *Var9 == 0`
 							Set   *Var2  00020149  %Goombarius dialogue
 							Set   *Var3  0001000F  %Talking anim
@@ -700,7 +843,7 @@
   1EC:  	Case  <  .Story:PostGame
   1F8:  		Set   *Var0  000200AE
   1EC:  	Case  <  .Story:Epilogue % 60
-  1F8:  		Set   *Var0  000200AE
+  1F8:  		Set   *Var0  00020177
   208:  	Case  >=  .Story:Epilogue % 60
   214:  		Set   *Var0  0001002F
   224:  EndSwitch
@@ -764,9 +907,9 @@
 			    Set   *Var3  00010018  %Talking anim
 			    Set   *Var4  00010017  %Idle anim
   2DC:  	Case  <  .Story:Epilogue % 60
-  2E8:  		Set   *Var0  000200CD
-  2F8:  		Set   *Var1  000200CE
-			    Set   *Var2  00020133  %Goombarius dialogue
+  2E8:  		Set   *Var0  00020178
+  2F8:  		Set   *Var1  00020179
+			    Set   *Var2  0002017A  %Goombarius dialogue
 			    Set   *Var3  00010018  %Talking anim
 			    Set   *Var4  00010017  %Idle anim
   308:  	Case  >=  .Story:Epilogue % 60
@@ -862,9 +1005,9 @@
   3D4:  		Set   *Var1  000200FD
   3E4:  		Set   *Var2  000200FE
   3B8:  	Case  <  .Story:Epilogue % 60
-  3C4:  		Set   *Var0  000200FC
-  3D4:  		Set   *Var1  000200FD
-  3E4:  		Set   *Var2  000200FE
+  3C4:  		Set   *Var0  0002017C
+  3D4:  		Set   *Var1  0002017D
+  3E4:  		Set   *Var2  0002017E
   3F4:  	Case  >=  .Story:Epilogue % 60
   400:  		Set   *Var0  00010032
   410:  		Set   *Var1  00010033
@@ -1040,7 +1183,7 @@
   1EC:  	Case  <  .Story:PostGame % 60
   1F8:  		Set   *Var0  0002009E
   1EC:  	Case  <  .Story:Epilogue % 60
-  1F8:  		Set   *Var0  0002009E
+  1F8:  		Set   *Var0  0002017B  %Jeff's been doing well (new dialogue)
   208:  	Case  >=  .Story:Epilogue % 60
   214:  		Set   *Var0  0001002E
   224:  EndSwitch
@@ -1053,68 +1196,6 @@
 
 
 
-@	$Script_Init_80249684
-{
-    0:  If  *GB_StoryProgress  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
-   10:  	Return
-   18:  EndIf
-   20:  If  *GB_StoryProgress  >  .Story:Ch4_GotTayceTsCake % FFFFFFFD
-   30:  	Return
-   38:  EndIf
-   40:  If  *GF_MAC00_DictionaryStolen  !=  .False
-   50:  	Return
-   58:  EndIf
-   60:  Exec  $Script_802492DC
-   6C:  Return
-   74:  End
-}
-
-
-@ $Script_80244CD4
-{
-	0:  Bind  $Script_ExitWalk_80244B68 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
-   1C:  Bind  $Script_80244C7C .Trigger:FloorAbove ~Collider:deilim 00000001 00000000
-   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
-			%spawn indestructible block
-			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 ) %this is a stone block to prevent access to the endgame zone too early. Might change to metal block later
-			Call     AssignScript 	( $Script_SmashBlockInfinite )
-   48:  	Return
-   50:  EndIf
-   58:  Bind  $Script_ExitWalk_80244B0C .Trigger:FloorAbove ~Collider:deilinw 00000001 00000000
-   74:  Bind  $Script_80244C24 .Trigger:FloorTouch ~Collider:deilit 00000001 00000000
-		Bind     $Script_Entry8  .Trigger:FloorAbove ~Collider:loadingzone 00000001 00000000
-   90:  Return
-   98:  End
-}
-
-
-
-
-#new:Script $Script_SmashBlock
-{
-	Set  *GF_MAC00_MetalBlock  .True
-	Return
-	End
-}
-	
-#new:Script $Script_SmashBlockInfinite
-{
-	Call     MakeEntity  	( .Entity:Hammer3Block ~Vec4d:MetalBlock 80000000 ) %stone block evolved into metal block
-	Call     AssignScript 	( $Script_SmashBlockInfinite )	
-	Return
-	End
-}
-
-#new:Script $Script_Entry8
-{
-	SetGroup 0000001B 
-	Call     UseExitHeading ( 0000003C 8 ) % opposite of entry8?
-	Exec     ExitWalk 
-	Call     GotoMap     	( "mac_08" 0 )
-	Wait     00000064 
-	Return
-	End
-}
 
 
 %Change Toad Kid animation
@@ -1171,278 +1252,85 @@
 
 
 
-@	$Script_80243C20
+
+%John T. AKA the husband in the house
+
+@	$Script_Interact_8024B618
 {
-		Thread
-			Wait  50`
-			Call  FadeOutMusic  ( 00000001 00000588 )  %Just as a safety precaution
-		EndThread
-    0:  Switch  *GB_StoryProgress
-   34:  	Case  ==  .Story:Epilogue % 60
-				If  *GF_EnclosureFlag == .False
-   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
-				Else
-					Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
-				EndIf
-			Case  .Story:Intro  to  .Story:Ch2_BeganPeachMission
-				Call  SetMusicTrack ( 00000000 .Song:BulletBillAssault 00000001 00000008 )  %Play the prototype Kinoko Town song
-   5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
-				If  *GF_OMO04_Chest_StoreroomKey == .True
-					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )  %Update to alt version if key has been collected
-				Else
-					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000002 00000008 )
-				EndIf
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
-   88:  	Default
-   90:  		Exec  $Script_8024E420
-   9C:  EndSwitch
-   A4:  Call  GetEntryID    ( *Var0 )
-   B4:  Switch  *Var0
-   C0:  	CaseOR  ==  ~Entry:Entry4
-   CC:  	CaseOR  ==  ~Entry:Entry5
-   D8:  	CaseOR  ==  ~Entry:Entry6
-   E4:  	CaseOR  ==  ~Entry:Entry7
-   F0:  		Call  ClearAmbientSounds    ( 000000FA )
-  100:  	EndCaseGroup
-  108:  EndSwitch
-  110:  Return
-  118:  End
-}
-
-
-
-#new:Script  $DarknessFollow
-{
-				Call  EnableGroup   ( ~Model:darkness .True )
-		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 6 )
-		  2E8:  Thread
-					Set  *Var[0] 6
-					Set  *Var[1] 738
-					Set  *Var[2] 440
-					Set  *Var[3] 380
-					Set  *Var[4] 220
-					Set  *Var[5] 1
-					Set  *Var[6] 1
-					Set  *Var[7] 1
-					Set  *Var[8] 1
-					Set  *Var[9] 0
-					Set  *Var[A] 0
-					Set  *Var[B] 0
-					Set  *Var[C] 0
-					Exec  $Script_UpdateTexturePan_80244A70
-				EndThread
-		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 7 )
-		  2E8:  Thread
-		  2F0:  	Set   *Var0  7
-		  300:  	Set   *Var1  1438`
-		  310:  	Set   *Var2  808`
-		  320:  	Set   *Var3  710`
-		  330:  	Set   *Var4  420`
-		  340:  	Set   *Var5  00000001
-		  350:  	Set   *Var6  00000001
-		  360:  	Set   *Var7  00000001
-		  370:  	Set   *Var8  00000001
-		  380:  	Set   *Var9  00000000
-		  390:  	Set   *VarA  00000000
-		  3A0:  	Set   *VarB  00000000
-		  3B0:  	Set   *VarC  00000000
-		  3C0:  	Exec   $Script_UpdateTexturePan_80244A70
-		  3CC:  EndThread
-	Loop
-		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
-		Add   *Var2   1`
-		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
-		%Call  GetCamPosA    ( .Cam:Default *Var0 *Var1 )
-		%Call  RotateModel   ( ~Model:fgdarkness 000000DF *Var0 0` *Var1 )
-		Wait  1`
-	EndLoop
-	Return
-	End
-}
-
-%There's a lot of precautionary things set up on load for this map
-%as it is where you go after using the Return Pipe or Death Warping.
-
-@	$Script_Main
-{
-		Set   *Byte_Settings_BGM  1`
-		Set   *Byte_Settings_BGM2 1`
-		Set *ShopState 00000000  %In case you Return Pipe inside a shop
-		ExecWait  $NukeBossChecks  %This is only for retrying boss fights
-		Set  *DidDojoFight  0`    %Fix Master dialogue and music
-		Call $ClearFlagCarryOverworldMusicToBattle()   %Fix battle music not working
-		Set  *ReturnPipeLock .False
-    0:  Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-				Exec  $DarknessFollow
-   88:  	Default
-				Call  EnableGroup   ( ~Model:darkness .False )
-   9C:  EndSwitch
-    0:  Set   *GB_WorldLocation  .Location:ToadTown
-		Call  SetSpriteShading  ( .Shading:None )
-   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
-   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
-   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
-   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-   84:  If  *GB_StoryProgress  >=  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
-   94:  	Set   *GF_Map_ToadTown  .True
-   A4:  EndIf
-   AC:  Call  SetRenderMode ( ~Model:minka1_yuka 00000015 )
-   C0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:dummy 7FFFFE00 )
-   D8:  Switch  *GB_StoryProgress
-   E4:  	Case  ==  .Story:Intro % FFFFFF80
-   F0:  		Call  MakeNpcs  ( .False $NpcGroupList_802531FC )
-  104:  	Case  >=  .Story:Epilogue % 60
-  110:  		Call  MakeNpcs  ( .False $NpcGroupList_80255334 )
-  124:  	Default
-  12C:  		Call  MakeNpcs  ( .False $NpcGroupList_8024E1A8 )
-  140:  EndSwitch
-  148:  ExecWait  $Script_MakeEntities
-  154:  Exec  $Script_80245BF8
-  160:  Exec  $Script_8024E3A8
-  16C:  Call  ModifyColliderFlags   ( 00000003 ~Collider:water 00000001 )
-  184:  Exec  $Script_8024EAF0
-  190:  Call  EnableTexPanning      ( ~Model:water .True )
-  1A4:  Thread
-  1AC:  	Set   *Var0  00000001
-  1BC:  	Set   *Var1  00000000
-  1CC:  	Set   *Var2  00000000
-  1DC:  	Set   *Var3  00000000
-  1EC:  	Set   *Var4  00000078
-  1FC:  	Set   *Var5  00000000
-  20C:  	Set   *Var6  00000001
-  21C:  	Set   *Var7  00000000
-  22C:  	Set   *Var8  00000000
-  23C:  	Set   *Var9  00000000
-  24C:  	Set   *VarA  00000000
-  25C:  	Set   *VarB  00000000
-  26C:  	Set   *VarC  00000000
-  27C:  	Exec  $Script_UpdateTexturePan_80244A70
-  288:  EndThread
-  290:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op_1 00000004 )
-  2A8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op2 00000004 )
-  2C0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:op3 00000004 )
-  2D8:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op_1 00080000 )
-  2F0:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op2 00080000 )
-  308:  Call  ModifyColliderFlags   ( 00000000 ~Collider:op3 00080000 )
-  320:  Call  $Function_802405EC    ( 00000061 )
-  330:  Call  $Function_802405EC    ( 00000062 )
-  340:  Call  $Function_802405EC    ( 00000063 )
-  350:  Call  GetDemoState  ( *Var0 )
-  360:  If  *Var0  !=  00000000
-  370:  	Set   *VarA  $Script_80244CD4
-  380:  	Exec  $Script_80243D40
-  38C:  	ExecWait  $Script_8024EAB4
-  398:  	Return
-  3A0:  EndIf
-  3A8:  Exec  $Script_80243C20
-  3B4:  If  *GB_StoryProgress  ==  .Story:Ch0_KammyReturnedToBowser % FFFFFF94
-  3C4:  	Set   *GB_StoryProgress  .Story:Ch0_ArrivedAtToadTown
-  3D4:  	Exec  $Script_8024F64C
-  3E0:  EndIf
-  3E8:  Exec  $Script_EnterWalk_80244D74
-  3F4:  Wait  1`
-  400:  Call  $Function_80240624 ( )
-		If  *GF_MAC00_MetalBlock  ==  .False 
-			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 )
-			Call     AssignScript 	( $Script_SmashBlock )
-		EndIf	
-		If  *GB_StoryProgress  <  .Story:Epilogue % Woah now, we can't be saving in the epilogue
-			Exec  $AutoSaveCheck
-		EndIf
-  40C:  Return
-  414:  End
-}
-
-
-@	$Script_80245BF8
-{
-    0:  Call  MakeDoorAdvanced  ( 00000000 $Script_OpenDoor_80245330 $Script_MoveWalls_80245360 $Script_DropDoor_80245570 $Script_ToggleVis_802455A0 ~Collider:deilit3 ~Collider:deilit3u ~Model:intel_house $NpcList_80245BBC )
-   30:  Call  MakeDoorAdvanced  ( 00001002 $Script_OpenDoor_80245624 $Script_MoveWalls_80245654 00000000 $Script_ToggleVis_80245784 ~Collider:deilit5 ~Collider:deilit5u ~Model:omise $NpcList_80245BC4 )
-   60:  Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_8024581C $Script_MoveWalls_8024584C $Script_DropDoor_802458FC $Script_ToggleVis_8024592C ~Collider:deilit6 ~Collider:deilit6u ~Model:minka_1 $NpcList_80245BD4 )
-		If  *GB_StoryProgress  < .Story:Ch3_StarSpritDeparted
-			Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_802459C0 $Script_MoveWalls_802459F0 00000000 $Script_ToggleVis_80245B10 ~Collider:deilit4 ~Collider:deilit4u ~Model:minka2 $NpcList_80245BE4 )
-		Else
-			If 	*HarryDresdenTakenCareOf == .True
-				Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_802459C0 $Script_MoveWalls_802459F0 00000000 $Script_ToggleVis_80245B10 ~Collider:deilit4 ~Collider:deilit4u ~Model:minka2 $NpcList_80245BE4 )
+		If  *HarryDresdenTakenCareOf == .True
+			If  *JohnTThanks == .False
+				Set  *JohnTThanks .True
+				Call  SpeakToPlayer ( .Npc:Self 00830104 00830101 00000000 00020176 )
+							Set   *Var0  1BC
+							Set   *Var1  2
+							Call  ShowGotItem   ( *Var0 .True 00000000 )
+							If  *HavePieceofHeart == .False
+								Set  *HavePieceofHeart .True
+								Call  AddBadge  ( .Item:PieceOfHeart *Var0 )
+							EndIf
+							Add *PiecesofHeart 1`
+				Return
 			EndIf
 		EndIf
-   C0:  Set   *Var0  00000003
-   D0:  Exec  $Script_ToggleVis_802455A0
-   DC:  Exec  $Script_ToggleVis_80245B10
-   E8:  Exec  $Script_ToggleVis_80245784
-   F4:  Exec  $Script_ToggleVis_8024592C
-  100:  Return
-  108:  End
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+   18:  		Set   *Var0  00020044
+   28:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
+   34:  		Set   *Var0  00020045
+   44:  	Case  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   50:  		Set   *Var0  00020046
+   60:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   6C:  		If  *GF_MAC03_BombedRock  ==  .False
+   7C:  			Set   *Var0  00020047
+   8C:  		Else
+   94:  			Set   *Var0  00020048
+   A4:  		EndIf
+   AC:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   B8:  		Set   *Var0  00020049
+   C8:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   D4:  		If  *GF_MAC00_DictionaryStolen  ==  .False
+   E4:  			Set   *Var0  0002004A
+   F4:  		Else
+   FC:  			If  *GF_MAC00_DictionaryReturned  ==  .False
+  10C:  				Set   *Var0  0002004B
+  11C:  			Else
+  124:  				Set   *Var0  0002004C
+  134:  			EndIf
+  13C:  		EndIf
+  144:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  150:  		Set   *Var0  0002004D
+  160:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  16C:  		Set   *Var0  0002004E
+  17C:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  188:  		Set   *Var0  0002004F
+  198:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  1A4:  		Set   *Var0  00020050
+  1B4:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  1C0:  		Set   *Var0  00020051
+  1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  1DC:  		Set   *Var0  00020052
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  00020053
+  208:  	Case  >=  .Story:Epilogue % 60
+  214:  		Set   *Var0  00010036
+  224:  EndSwitch
+  22C:  Call  SpeakToPlayer ( .Npc:Self 00830104 00830101 00000000 *Var0 ) % variable string ID
+  24C:  Return
+  254:  End
 }
 
 
-@	$Script_MakeEntities
-{
-    0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity802452A8 ~Model:o262 80000000 )
-   28:  Call  AssignPanelFlag   ( *GF_MAC00_HiddenPanel )
-   38:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item802452E0 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC00_Item_StarPiece )
-		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *MAC00_NewStarPiece )
-		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
-			Call  MakeItemEntity    ( .Item:HopeFragment ~Vec3d:HopeFragment .ItemSpawnMode:Fixed_NeverVanish *MAC00_HopeFragment )
-		EndIf
-   5C:  Bind  $Script_80245260 .Trigger:WallPressA ~Collider:sign 00000001 00000000
-   78:  Return
-   80:  End
-}
 
-@	$Script_EnterWalk_80244D74
-{
-    0:  Call  GetLoadType   ( *Var1 )
-   10:  If  *Var1  ==  00000001
-   20:  	Exec  EnterSavePoint
-   2C:  	Exec  $Script_80244CD4
-   38:  	Return
-   40:  EndIf
-    0:  Call  GetEntryID    ( *Var0 )
-   10:  Switch  *Var0
-   1C:  	CaseOR  ==  ~Entry:Entry3
-   28:  	CaseOR  ==  ~Entry:Entry4
-   34:  		Set   *VarA  $Script_80244CD4
-   44:  		Exec  $Script_80243D40
-   50:  	EndCaseGroup
-   58:  	Case  ==  ~Entry:Entry5
-   64:  		Exec  $Script_80253508
-   70:  	Case  ==  ~Entry:Entry7
-   7C:  		ExecWait  $Script_80255688
-   88:  		Exec  $Script_80244CD4
-   94:  	Default
-   9C:  		Set   *Var0  $Script_80244CD4
-   AC:  		Exec  EnterWalk
-   B8:  EndSwitch
-   C0:  Return
-   C8:  End
-}
 
-#import AutoSave.mpat
 
-#new:Script  $AutoSaveCheck
-{
-	Label 0
-	Wait  1`
-	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
-	If  *Var1 == 115`
-		Wait  15`
-		Exec  $AutoSave
-	Else
-		Goto  0
-	EndIf
-	Return
-	End
-}
 
+%Below scripts are related with the dojo
 
 %Move final Master to a separate Battle Formation.
 
 @	$DojoBattleIDs
 {
-	00000300 00000301 00000302 00000303 00000404 %Fifth slot is final Master
+	00000300 00000301 00000302 00000303 00000404 %Fifth slot is new final Master
 }
 
 #new:Script  $FindDojoRank
@@ -1556,7 +1444,7 @@
 			If  *GB_StoryProgress  <  .Story:Ch8_StarShipActivated
    30:  		Set   *Var0  00020017
 			Else
-				Set   *Var0  00020135  %This dialogue is only ever possible to see if you never touch the dojo before starting Chapter 8
+				Set   *Var0  00020135  %This dialogue is only ever possible to see if you never touch the dojo before finishing Chapter 7
 			EndIf
    40:  Else
 				Switch  *GB_StoryProgress
@@ -1575,6 +1463,28 @@
 				Set   *Var0  00020152   %If you've already done a dojo battle, have something different to say
 			EndIf
 		EndIf
+		Call  FindKeyItem   ( .Item:JinxBelt *VarB )
+		If  *VarB != FFFFFFFF
+			If  *ShishoNoticesJinxBelt == .False
+				Wait 15`
+				Call  PlaySoundAtNpc    ( 3` .Sound:EmoteIdea 00000000 )
+				Call  ShowEmote     ( 3` .Emote:Exclamation  0`  25` .True  0`  80`  0`  0` )
+				Wait  30`
+				Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020180 )
+				Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020181 )
+				Call  ShowChoice    ( 001E005C ) % Who's that?
+				Call  ContinueSpeech        ( 00000003 00A20009 00A20002 00000000 00020182 )
+				Set   *Var0  00020183
+				Set  *ShishoNoticesJinxBelt .True
+				Wait  10`
+			EndIf
+		EndIf
+		%Move this script up here and don't bother with the choice dialogue
+   E0:  If  *GB_MAC00_DojoRank  >  00000004	
+   F0:  	Call  ContinueSpeech        ( 00000003 00A20009 00A20002 00000000 00020043 ) % Cough cough... Mario, you have already proven your ...
+  110:  	Call  DisablePlayerInput    ( .False )
+  120:  	Return
+  128:  EndIf
    60:  Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 *Var0 ) % variable string ID
    80:  Call  ShowChoice    ( 001E0016 ) % Try Only drop in
    90:  If  *Var0  ==  00000001
@@ -1586,11 +1496,6 @@
    C0:  	Call  DisablePlayerInput    ( .False )
    D0:  	Return
    D8:  EndIf
-   E0:  If  *GB_MAC00_DojoRank  >  00000004
-   F0:  	Call  ContinueSpeech        ( 00000003 00A20009 00A20002 00000000 00020043 ) % Cough cough... Mario, you have already proven your ...
-  110:  	Call  DisablePlayerInput    ( .False )
-  120:  	Return
-  128:  EndIf
 		If *Byte_Settings_Difficulty == 0` %Casual difficulty
 			Call  ContinueSpeech    ( 00000003 00A20009 00A20002 00000000 00020139 ) % I won't battle you on casual difficulty
 			Call  DisablePlayerInput    ( .False )
@@ -1646,11 +1551,14 @@
   354:  Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_8024B164 )
   368:  Wait  1`
   374:  Call  $Function_80242178 ( )
-  380:  If  *GB_MAC00_DojoRank  <  00000002
-  390:  	Call  StartBattle ( )
-  39C:  Else
-  3A4:  	Call  StartBattleWith   ( .Song:MasterBattle )
-  3B4:  EndIf
+		Switch *GB_MAC00_DojoRank
+			Case == 2`
+				Call  StartBattleWith   ( .Song:PenguinWakesUp ) %Wario Master of Disguise Boss theme
+			Case == 3`
+				Call  StartBattleWith   ( .Song:MasterBattle )
+			Case == 4`
+				Call  StartBattleWith   ( .Song:MasterBattle )
+		EndSwitch
   3BC:  Call  DisablePlayerInput    ( .False )
   3CC:  Return
   3D4:  End
@@ -1759,6 +1667,15 @@
   338:  		ExecWait  $Script_80245DC4
   344:  		Call  AddKeyItem    ( *Var0 )
 				Set *DidDojoFight 1`
+				If  *GB_MAC00_DojoRank == 3`
+					Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 0002017F )  %I give you Tatsujin
+					Set   *Var0  .Item:DodgeMaster
+					Set   *Var1  00000002
+					Call  ShowGotItem   ( *Var0 .True 00000000 )
+					Call  RemoveBadge   ( .Item:DodgeMaster )	%For people updating from an older version
+					Call  AddBadge  ( .Item:DodgeMaster *Var0 )	%Tatsujin has been moved to as soon as you can beat Shisho's first form. Technically meaning you can get it very early.
+				EndIf
+				Exec  $AutoSaveNoMessage
   354:  		If  *GB_MAC00_DojoRank  <  00000005
   364:  			Call  SpeakToPlayer ( 00000003 00A20009 00A20002 00000000 00020041 ) % You are welcome to train here with us anytime. Cou ...
   384:  		EndIf
@@ -1768,6 +1685,281 @@
   3B0:  Return
   3B8:  End
 }
+
+
+
+
+
+
+@	$Script_Init_80249684
+{
+    0:  If  *GB_StoryProgress  <  .Story:Ch3_StarSpritDeparted % FFFFFFF3
+   10:  	Return
+   18:  EndIf
+   20:  If  *GB_StoryProgress  >  .Story:Ch4_GotTayceTsCake % FFFFFFFD
+   30:  	Return
+   38:  EndIf
+   40:  If  *GF_MAC00_DictionaryStolen  !=  .False
+   50:  	Return
+   58:  EndIf
+   60:  Exec  $Script_802492DC
+   6C:  Return
+   74:  End
+}
+
+
+@ $Script_80244CD4
+{
+	0:  Bind  $Script_ExitWalk_80244B68 .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   1C:  Bind  $Script_80244C7C .Trigger:FloorAbove ~Collider:deilim 00000001 00000000
+   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
+			%spawn indestructible block
+			Call     MakeEntity  	( .Entity:Hammer2Block ~Vec4d:MetalBlock 80000000 ) %this is a stone block to prevent access to the endgame zone too early. Might change to metal block later
+			Call     AssignScript 	( $Script_SmashBlockInfinite )
+   48:  	Return
+   50:  EndIf
+   58:  Bind  $Script_ExitWalk_80244B0C .Trigger:FloorAbove ~Collider:deilinw 00000001 00000000
+   74:  Bind  $Script_80244C24 .Trigger:FloorTouch ~Collider:deilit 00000001 00000000
+		Bind     $Script_Entry8  .Trigger:FloorAbove ~Collider:loadingzone 00000001 00000000
+   90:  Return
+   98:  End
+}
+
+
+
+
+#new:Script $Script_SmashBlock
+{
+	Set  *GF_MAC00_MetalBlock  .True
+	Return
+	End
+}
+	
+#new:Script $Script_SmashBlockInfinite
+{
+	Call     MakeEntity  	( .Entity:Hammer3Block ~Vec4d:MetalBlock 80000000 ) %stone block evolved into metal block
+	Call     AssignScript 	( $Script_SmashBlockInfinite )	
+	Return
+	End
+}
+
+#new:Script $Script_Entry8
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 8 ) % opposite of entry8?
+	Exec     ExitWalk 
+	Call     GotoMap     	( "mac_08" 0 )
+	Wait     00000064 
+	Return
+	End
+}
+
+
+
+@	$Script_80243C20
+{
+		Thread
+			Wait  50`
+			Call  FadeOutMusic  ( 00000001 00000588 )  %Just as a safety precaution
+		EndThread
+    0:  Switch  *GB_StoryProgress
+   34:  	Case  ==  .Story:Epilogue % 60
+				If  *GF_EnclosureFlag == .False
+   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+				EndIf
+			Case  .Story:Intro  to  .Story:Ch2_BeganPeachMission
+				Call  SetMusicTrack ( 00000000 .Song:BulletBillAssault 00000001 00000008 )  %Play the prototype Kinoko Town song
+   5C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+				If  *GF_OMO04_Chest_StoreroomKey == .True
+					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )  %Update to alt version if key has been collected
+				Else
+					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000002 00000008 )
+				EndIf
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   88:  	Default
+   90:  		Exec  $Script_8024E420
+   9C:  EndSwitch
+   A4:  Call  GetEntryID    ( *Var0 )
+   B4:  Switch  *Var0
+   C0:  	CaseOR  ==  ~Entry:Entry4
+   CC:  	CaseOR  ==  ~Entry:Entry5
+   D8:  	CaseOR  ==  ~Entry:Entry6
+   E4:  	CaseOR  ==  ~Entry:Entry7
+   F0:  		Call  ClearAmbientSounds    ( 000000FA )
+  100:  	EndCaseGroup
+  108:  EndSwitch
+  110:  Return
+  118:  End
+}
+
+
+
+#new:Script  $DarknessFollow
+{
+				Call  EnableGroup   ( ~Model:darkness .True )
+		  2D4:  Call  SetTexPanner  ( ~Model:bgdarkness 6 )
+		  2E8:  Thread
+					Set  *Var[0] 6
+					Set  *Var[1] 738
+					Set  *Var[2] 440
+					Set  *Var[3] 380
+					Set  *Var[4] 220
+					Set  *Var[5] 1
+					Set  *Var[6] 1
+					Set  *Var[7] 1
+					Set  *Var[8] 1
+					Set  *Var[9] 0
+					Set  *Var[A] 0
+					Set  *Var[B] 0
+					Set  *Var[C] 0
+					Exec  $Script_UpdateTexturePan_80244A70
+				EndThread
+		  2D4:  Call  SetTexPanner  ( ~Model:fgdarkness 7 )
+		  2E8:  Thread
+		  2F0:  	Set   *Var0  7
+		  300:  	Set   *Var1  1438`
+		  310:  	Set   *Var2  808`
+		  320:  	Set   *Var3  710`
+		  330:  	Set   *Var4  420`
+		  340:  	Set   *Var5  00000001
+		  350:  	Set   *Var6  00000001
+		  360:  	Set   *Var7  00000001
+		  370:  	Set   *Var8  00000001
+		  380:  	Set   *Var9  00000000
+		  390:  	Set   *VarA  00000000
+		  3A0:  	Set   *VarB  00000000
+		  3B0:  	Set   *VarC  00000000
+		  3C0:  	Exec   $Script_UpdateTexturePan_80244A70
+		  3CC:  EndThread
+	Loop
+		Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+		Add   *Var2   1`
+		Call  TranslateModel        ( ~Model:fgdarkness *Var0 0` *Var2 )
+		%Call  GetCamPosA    ( .Cam:Default *Var0 *Var1 )
+		%Call  RotateModel   ( ~Model:fgdarkness 000000DF *Var0 0` *Var1 )
+		Wait  1`
+	EndLoop
+	Return
+	End
+}
+
+
+
+@	$Script_80245BF8
+{
+    0:  Call  MakeDoorAdvanced  ( 00000000 $Script_OpenDoor_80245330 $Script_MoveWalls_80245360 $Script_DropDoor_80245570 $Script_ToggleVis_802455A0 ~Collider:deilit3 ~Collider:deilit3u ~Model:intel_house $NpcList_80245BBC )
+   30:  Call  MakeDoorAdvanced  ( 00001002 $Script_OpenDoor_80245624 $Script_MoveWalls_80245654 00000000 $Script_ToggleVis_80245784 ~Collider:deilit5 ~Collider:deilit5u ~Model:omise $NpcList_80245BC4 )
+   60:  Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_8024581C $Script_MoveWalls_8024584C $Script_DropDoor_802458FC $Script_ToggleVis_8024592C ~Collider:deilit6 ~Collider:deilit6u ~Model:minka_1 $NpcList_80245BD4 )
+		If  *GB_StoryProgress  < .Story:Ch3_StarSpritDeparted
+			Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_802459C0 $Script_MoveWalls_802459F0 00000000 $Script_ToggleVis_80245B10 ~Collider:deilit4 ~Collider:deilit4u ~Model:minka2 $NpcList_80245BE4 )
+		Else
+			If 	*HarryDresdenTakenCareOf == .True
+				Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_802459C0 $Script_MoveWalls_802459F0 00000000 $Script_ToggleVis_80245B10 ~Collider:deilit4 ~Collider:deilit4u ~Model:minka2 $NpcList_80245BE4 )
+			EndIf
+		EndIf
+		Call  MakeDoorAdvanced  ( 00000007 $Script_OpenDoor_NewDoor $Script_MoveWalls_NewDoor 00000000 $Script_ToggleVis_NewDoor ~Collider:Fireplace_Exit ~Collider:Fireplace_Entrance ~Model:minka2 $NpcList_80245BE4 )
+   C0:  Set   *Var0  00000003
+   D0:  Exec  $Script_ToggleVis_802455A0
+   DC:  Exec  $Script_ToggleVis_80245B10
+   E8:  Exec  $Script_ToggleVis_80245784
+   F4:  Exec  $Script_ToggleVis_8024592C
+  100:  Return
+  108:  End
+}
+
+
+
+#new:Script $Script_OpenDoor_NewDoor
+{
+    Call  RotateModel   ( ~Model:gardenDoor *Var0 00000000 00000001 00000000 )
+    Return
+    End
+}
+
+#new:Script $Script_MoveWalls_NewDoor
+{
+    Return
+    End
+}
+
+#new:Script $Script_ToggleVis_NewDoor
+{
+    Switch *Var0
+        Case == 0 % Enter?
+            Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+        Case == 1 % Leave?
+    EndSwitch
+    Return
+    End
+}
+
+
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity        ( .Entity:HiddenPanel ~Vec4d:Entity802452A8 ~Model:o262 80000000 )
+   28:  Call  AssignPanelFlag   ( *GF_MAC00_HiddenPanel )
+   38:  Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item802452E0 .ItemSpawnMode:Fixed_NeverVanish *GF_MAC00_Item_StarPiece )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *MAC00_NewStarPiece )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece2 .ItemSpawnMode:Fixed_NeverVanish *MAC00_NewStarPiece2 )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece3 .ItemSpawnMode:Fixed_NeverVanish *MAC00_NewStarPiece3 )
+		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
+			Call  MakeItemEntity    ( .Item:HopeFragment ~Vec3d:HopeFragment .ItemSpawnMode:Fixed_NeverVanish *MAC00_HopeFragment )
+		EndIf
+   5C:  Bind  $Script_80245260 .Trigger:WallPressA ~Collider:sign 00000001 00000000
+   78:  Return
+   80:  End
+}
+
+@	$Script_EnterWalk_80244D74
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80244CD4
+   38:  	Return
+   40:  EndIf
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	CaseOR  ==  ~Entry:Entry3
+   28:  	CaseOR  ==  ~Entry:Entry4
+   34:  		Set   *VarA  $Script_80244CD4
+   44:  		Exec  $Script_80243D40
+   50:  	EndCaseGroup
+   58:  	Case  ==  ~Entry:Entry5
+   64:  		Exec  $Script_80253508
+   70:  	Case  ==  ~Entry:Entry7
+   7C:  		ExecWait  $Script_80255688
+   88:  		Exec  $Script_80244CD4
+   94:  	Default
+   9C:  		Set   *Var0  $Script_80244CD4
+   AC:  		Exec  EnterWalk
+   B8:  EndSwitch
+   C0:  Return
+   C8:  End
+}
+
+#import AutoSave.mpat
+
+#new:Script  $AutoSaveCheck
+{
+	Label 0
+	Wait  1`
+	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+	If  *Var1 == 115`
+		Wait  15`
+		Exec  $AutoSave
+	Else
+		Goto  0
+	EndIf
+	Return
+	End
+}
+
+
 
 
 %Shop toggle visibility.
@@ -1813,6 +2005,7 @@
 %Change song to dojo theme when you enter
 %and revert when you leave.
 %Also don't do it at all if past Chapter 7.
+%Revert if in post-game.
 
 @	$Script_ToggleVis_8024592C
 {
@@ -2257,7 +2450,7 @@ FFFFFFF2 00000012 % < chapter 4 start
 	00000000 00000000 00000000 001A0013 % This Toad is always standing in front of the gate. ...
 	%
 	% $NpcGroup_80251124[1F0]
-	.NpcID:Toad_08 $NpcSettings_8024EB90 ~Vec3f:NPC_Toad_08 % 219 0 -45
+	.NpcID:Toad_08 $NpcSettings_8024EC38 ~Vec3f:NPC_Toad_08 % 219 0 -45
 	00012D09 $Script_Init_80250F5C 00000000 00000000 0000005A
 	~NoDrops
 	~Movement:NPC_Toad_08
@@ -2403,7 +2596,7 @@ Coins. Take it or leave it.[BR]
 #new:String $HelloAgain
 {
 [Style Right]
-Hello again, sir.[BR]
+Salutations again, sir.[BR]
 [Pause 10]Is that Return Pipe serving[BR]
 you well?[BR]
 [Wait][Next]
@@ -2415,6 +2608,6 @@ at clutch moments, it randomly[BR]
 decides to deactivate.[BR]
 [Pause 10]Blasted thing...[BR]
 [Wait][Next]
-Still, it's quite useful.[BR]
+Nonetheless, it's a lifeline.[BR]
 [Pause 10]Take good care of it.[Wait][End]
 }

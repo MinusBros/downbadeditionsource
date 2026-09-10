@@ -1,0 +1,574 @@
+% Auto-generated script for mac_11
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 00000000
+	[EntryList] $EntryList
+	[EntryCount] 1
+	[MapTattle]   0019019C
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+}
+
+#define .Npc:Jagger 0`
+#define .Npc:Jinx 1`
+
+#import AutoSave.mpat
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTown
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Call  MakeNpcs  ( .False $NpcGroupList_Generated )
+	Exec  $Script_SetupMusic
+	Set *Var0 $Script_CreateExitTriggers
+	Exec  EnterWalk
+	Return
+	End
+}
+
+
+#new:Script $Script_Init_Jagger
+{
+		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Jagger )
+		Call    BindNpcDefeat ( .Npc:Self $Script_Defeat_Jagger )
+		If   *MAC11_MetJagger == .False
+			Call  BindNpcIdle   ( .Npc:Self $IdleJagger )
+			Call    SetNpcPos ( .Npc:Self -115` 0` -180` )		%Spawn at the back of the room if meeting Jagger for the first time
+			Call  SetNpcYaw ( .Npc:Self  0` )
+			Exec $MeetingJagger
+			Return
+		EndIf
+		Call  SetNpcYaw ( .Npc:Self  180` )
+		If  *MAC11_JaggerBeaten == .False
+			Call  BindNpcIdle   ( .Npc:Self $IdleJagger )
+			Call    SetNpcPos ( .Npc:Self -115` 0` -120` )		%Spawn in the middle if Jagger has been met but not defeated
+			Return
+		EndIf
+		If   *MAC11_JinxBeatenCutscene == .False
+			Call    SetNpcPos ( .Npc:Self -220` 0` -150` )		%Spawn next to the tree if Jinx hasn't been defeated
+			Return
+		EndIf
+		Call  BindNpcIdle   ( .Npc:Self $IdleJagger2 )
+		Call    SetNpcPos ( .Npc:Self -150` 0` -50` )		%If Jinx has been defeated, spawn in the middle of the room next to Jinx
+   68:  Return
+   70:  End
+}
+
+#new:Script $MeetingJagger
+{
+			Call  WaitForPlayerInputEnabled ( )
+			Call  DisablePlayerInput    ( .True )
+			Call  PlayerMoveTo  (  -120` 0` 30` )	
+			Call  PlaySoundAtNpc    ( .Npc:Jagger .Sound:EmoteIdea 00000000 )
+			Call  ShowEmote     ( .Npc:Jagger .Emote:Exclamation  0`  25` .True  0`  80`  0`  0` )
+			Wait  45`
+			Call  SpeakToPlayer ( .Npc:Jagger 00580508 00580501 00000000 0008006F )
+			Call  BringPartnerOut   ( .Partner:Kooper )
+			Wait  5
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToNpc     ( .Npc:Partner 0002000D 00020003 00000000 .Npc:Jagger 00080070 )
+			Call  SetNpcAnimation   ( .Npc:Jagger 00580506 )
+			Call  NpcMoveTo ( .Npc:Jagger  -115` -90` 10` )
+			Call  SetNpcAnimation   ( .Npc:Jagger 00580501 )
+			Call  SpeakToPlayer ( .Npc:Jagger 00580508 00580501 00000000 00080071 )
+			Call  SpeakToNpc     ( .Npc:Partner 0002000D 00020003 00000000 .Npc:Jagger 00080072 )
+			Call  SpeakToPlayer ( .Npc:Jagger 00580508 00580501 00000000 00080073 )
+			Call  PutPartnerAway ( )
+			Wait  3
+			Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0  ==  .Partner:Goombario % 0
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 00080074 )
+			EndIf
+			Set  *MAC11_MetJagger .True
+			Call  EnablePartnerAI ( )
+			Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+#new:Script  $IdleJagger
+{
+		Label Beginning
+		Loop
+			If  *MapFlag[07] == .True
+				BreakLoop
+			EndIf
+		Wait  1`
+		EndLoop
+		Call  PlayerFaceNpc ( .Npc:Jagger 00000001 )
+		Set  *MapFlag[07] .False
+		Call  StartBattleWith   ( .Song:PenguinWakesUp )  %Wario Master of Disguise boss theme
+		Wait 1`
+		Goto  Beginning
+		Return
+		End
+}
+
+
+#new:Script  $IdleJagger2
+{
+		Loop
+			Call  SetNpcJumpscale   ( .Npc:Jagger *Fixed[3.5] )
+			Call  GetNpcPos ( .Npc:Jagger *Var0 0` *Var2 )
+			Call  NpcJump0  ( .Npc:Jagger *Var0 0` *Var2  5` )		
+			Wait  1`
+		EndLoop
+		Return
+		End
+}
+
+
+#new:Script  $Script_Interact_Jagger
+{
+		If  *MAC11_JinxBeatenCutscene == .True
+			Call  SpeakToPlayer ( .Npc:Jagger FFFFFFFF FFFFFFFF 00000000 0008009A )
+			Return
+		EndIf
+		If  *MAC11_JaggerBeaten == .True
+			Call  SpeakToPlayer ( .Npc:Jagger 00580508 00580501 00000000 00080089 )
+		Else
+			Call  SpeakToPlayer ( .Npc:Jagger 00580508 00580501 00000000 00080075 )  %Would you like to spar?
+			Call  ShowChoice    ( 001E0016 )
+			If  *Var0  ==  00000000  % Yes, fight
+				Call  ContinueSpeech    ( .Npc:Jagger 00580508 00580501 00000000 00080076 ) % Let's fight
+				Call  SetEncounterStatusFlags   ( 00000004 .False )
+				Thread
+					Call  SetNpcJumpscale   ( .Npc:Jagger *Fixed[2.5] )
+					Call  SetNpcAnimation   ( .Npc:Jagger 00580512 )
+					Call  NpcJump0  ( .Npc:Jagger -115` 0 -100`  6` )
+					Call  SetNpcAnimation   ( .Npc:Jagger 00580515 )
+					Call  PlaySound     ( 20C5 )
+				EndThread
+				Call  SetPlayerFlagBits ( 00300000 .True )
+				Call  PlayerMoveTo  (  -115` -60` 4` )	
+				Call  PlayerMoveTo  (  -115` -61` 1` )	
+				Call  SetPlayerFlagBits ( 00300000 .False )
+				Wait  10`
+			Else
+				Call  ContinueSpeech    ( .Npc:Jagger 00580508 00580501 00000000 00080077 )
+				Return
+			EndIf
+			Call	$Function_SaveItems ( )
+			Set  *MapFlag[07] .True
+			Wait  1`
+		EndIf
+		Return
+		End
+}
+
+
+
+#new:Script $Script_Defeat_Jagger
+{    
+	Call  SetEncounterStatusFlags   ( 00000004 .True )
+	Set  *MapFlag[07] .False
+    Call    GetBattleOutcome ( *Var0 )
+	Call  SetNpcAnimation   ( .Npc:Jagger 00580501 )
+    Switch  *Var0
+        Case == .Outcome:PlayerWon		
+			Call    SetNpcPos ( .Npc:Jinx -220` 57` -200` )
+            Call	SpeakToPlayer ( .Npc:Jagger 00580510 00580510 00000000 0008007B )		%You're too tough
+			Wait  15`
+			Call  AdjustCam     ( .Cam:Default *Fixed[4.0] *Fixed[0.0] *Fixed[150.0] *Fixed[40.0] *Fixed[-30.0] )
+			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 0008007C )	%You sucked Jagger
+			Call  SetNpcAnimation   ( .Npc:Jagger 00580506 )
+			Call  NpcMoveTo ( .Npc:Jagger  -218` -148` 10` )	
+			Call  SetNpcAnimation   ( .Npc:Jagger 00580501 )
+			Call	SpeakToNpc ( .Npc:Jagger 00580508 00580501 00000000 .Npc:Jinx 0008007D )	%Oh my God SENSEIIIII
+			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 0008007F )	%Stop doing that
+			Call  SetNpcFlagBits    ( .Npc:Jinx 00000100 .True )
+			Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+			Wait  5
+			Call  PlaySound     ( 2F2 )
+			Call  SetNpcJumpscale   ( .Npc:Jagger *Fixed[2.5] )
+			Call  GetNpcPos ( .Npc:Jagger *Var0 *Var1 *Var2 )
+			Call  NpcJump0  ( .Npc:Jagger *Var0 *Var1 *Var2  5` )
+			Wait  5
+			Call	SpeakToNpc ( .Npc:Jagger 00580508 00580501 00000000 .Npc:Jinx 0008007E )
+			Call  SetNpcJumpscale   ( .Npc:Jinx *Fixed[1.5] )
+			Call  PlaySound     ( 0000032C )
+			Call  NpcJump0  ( .Npc:Jinx -166` 0` -188`  8` )
+			Wait  5
+			Call  SetNpcAnimation   ( .Npc:Jinx 00F70001 )
+			Call  NpcMoveTo ( .Npc:Jinx  -115` -120` 10` )
+			Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )	
+			Wait  5
+			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70001 00000000 00080080 )
+			Call  PlaySound     ( 000001C4 )
+			Call  NpcFlyTo      ( .Npc:Jinx  -88`  0`  -70`  4`  4` .Easing:SinOut )
+			Wait  2`
+			Call  PlaySound     ( 000001C4 )
+			Call  NpcFlyTo      ( .Npc:Jinx  -115`  0`  -45`  4`  4` .Easing:SinOut )
+			Call  SetNpcAnimation   ( .Npc:Jinx 00F70011 )
+			Call	SpeakToNpc ( .Npc:Jinx 00F70002 00F70011 00000000 .Npc:Jagger 00080081 )
+			Call	SpeakToNpc ( .Npc:Jagger 00580508 00580501 00000000 .Npc:Jinx 00080082 )
+			Call  PlaySound     ( 000001C4 )
+			Call  NpcFlyTo      ( .Npc:Jinx  -150`  0`  -70`  4`  4` .Easing:SinOut )
+			Wait  2`
+			Call  PlaySound     ( 000001C4 )
+			Call  NpcFlyTo      ( .Npc:Jinx  -115`  0`  -110`  4`  4` .Easing:SinOut )
+			Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )
+			Wait  10`
+			Call	SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080083 )
+			Call  SetNpcFlagBits    ( .Npc:Jinx 00000100 .False )
+				Set   *Var0  1BD
+				Set   *Var1  2
+				Call  ShowGotItem   ( *Var0 .True 00000000 )
+				If  *HaveSourceofPower == .False
+					Set  *HaveSourceofPower .True
+					Call  AddBadge  ( .Item:SourceOfPower *Var0 )
+				EndIf
+				Add *SourcesofPower 1`
+			Set  *MAC11_JaggerBeaten .True
+			Exec  $AutoSave
+        CaseOR == .Outcome:PlayerFled
+				Call  SpeakToPlayer ( .Npc:Jagger 0058051A 0058051A 00000000 0008007A )
+				Call	$Function_LoadItems ( )
+				Call  FullyRestoreHPandFP ( )
+				Call  FullyRestoreSP ( )
+		CaseOR == .Outcome:PlayerLost		
+				Call  SpeakToPlayer ( .Npc:Jagger 0058051A 0058051A 00000000 00080079 )
+				Call	$Function_LoadItems ( )
+				Call  FullyRestoreHPandFP ( )
+				Call  FullyRestoreSP ( )
+        EndCaseGroup
+    EndSwitch
+	Call  BindNpcIdle   ( .Npc:Jagger $IdleJagger )
+    Return
+    End
+}
+
+#new:Script  $Script_Init_Jinx
+{
+		If  *MAC11_JaggerBeaten == .False
+			Call    SetNpcPos ( .Npc:Self -117` -1000` -244 )
+		Else
+			Call    SetNpcPos ( .Npc:Self -115` 0` -115` )
+		EndIf
+		If  *MAC11_JinxBeatenCutscene == .False
+			Call  BindNpcIdle   ( .Npc:Self $IdleJinx )
+		Else
+			Call  BindNpcIdle   ( .Npc:Self $IdleJinx2 )
+			Call    SetNpcPos ( .Npc:Self -65` 0` -50` )		%If Jinx has been defeated, spawn in the middle of the room next to Jagger
+		EndIf
+		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Jinx )	
+		Call    BindNpcDefeat ( .Npc:Self $Script_Defeat_Jinx )
+		Return
+		End
+}
+
+#new:Script  $Script_Interact_Jinx
+{
+		If  *MAC11_JinxBeatenCutscene == .True
+			Call  SpeakToPlayer ( .Npc:Jinx FFFFFFFF FFFFFFFF 00000000 0008009B )
+			Return
+		EndIf
+		If  *MAC11_JinxBeaten == .True
+				Call  SetPlayerFlagBits ( 00300000 .True )
+				Call  PlayerMoveTo  (  -115` -60` 4` )	
+				Call  PlayerMoveTo  (  -115` -61` 1` )	
+				Call  SetPlayerFlagBits ( 00300000 .False )
+			ExecWait  $JinxBeaten
+		Else
+			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080084 )  %Would you like to spar?
+			Call  ShowChoice    ( 001E0016 )
+			If  *Var0  ==  00000000  % Yes, fight
+				Call  ContinueSpeech    ( .Npc:Jinx 00F70001 00F70000 00000000 00080086 ) % Let's fight
+				Thread
+					Call  SetNpcJumpscale   ( .Npc:Jinx *Fixed[2.5] )
+					Call  NpcJump0  ( .Npc:Jinx -115` 0 -100`  2` )
+					Call  PlaySound ( 2115 )
+					Call  SetNpcAnimation   ( .Npc:Jinx 00F70003 ) %Duel
+					Wait  4`
+					Call  PlaySound ( 365 )
+					Wait  1`
+					Call  PlaySound ( 366 )
+					Wait  1`
+					Call  PlaySound ( 2076 )
+					Wait  1`
+					Call  PlaySound ( 20B0 )
+					Call  PlaySound ( 2049 )
+					Call  PlaySound ( 20B )
+				EndThread
+				Call  SetPlayerFlagBits ( 00300000 .True )
+				Call  PlayerMoveTo  (  -115` -60` 4` )	
+				Call  PlayerMoveTo  (  -115` -61` 1` )	
+				Call  SetPlayerFlagBits ( 00300000 .False )
+				Wait  15`
+			Else
+				Call  ContinueSpeech    ( .Npc:Jinx 00F70001 00F70000 00000000 00080085 ) %Coward
+				Return
+			EndIf
+			Call	$Function_SaveItems ( )
+			Set  *MapFlag[08] .True
+			Wait  1`			
+		EndIf
+		Return
+		End
+}
+
+#new:Script  $IdleJinx
+{
+		Label Beginning
+		Loop
+			If  *MapFlag[08] == .True
+				BreakLoop
+			EndIf
+		Wait  1`
+		EndLoop
+		Set  *MapFlag[08] .False
+		Call  PlayerFaceNpc ( .Npc:Jinx 00000001 )
+		Call  StartBattleWith   ( .Song:CorruptedBrother )  %SMRPG Factory music
+		Goto  Beginning
+		Wait 1`
+		Return
+		End
+}
+
+#new:Script  $IdleJinx2
+{
+		Loop
+			Call  PlaySoundWithVolume   ( 32C 45` )
+			Call  SetNpcJumpscale   ( .Npc:Jinx *Fixed[3.5] )
+			Call  GetNpcPos ( .Npc:Jinx *Var0 0` *Var2 )
+			Call  NpcJump0  ( .Npc:Jinx *Var0 0` *Var2  5` )		
+			Wait  1`
+		EndLoop
+		Return
+		End
+}
+
+
+#new:Script $Script_Defeat_Jinx
+{    
+	Call  SetEncounterStatusFlags   ( 00000004 .True )
+	Set  *MapFlag[07] .False
+	Call    SetNpcPos ( .Npc:Self -115` 0` -115` )
+    Call    GetBattleOutcome ( *Var0 )
+	Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )
+	Call  SetNpcAnimation   ( .Npc:Jagger 00580501 )
+    Switch  *Var0
+        Case == .Outcome:PlayerWon		
+            ExecWait  $JinxBeaten
+        CaseOR == .Outcome:PlayerFled
+			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080088 )
+				Call	$Function_LoadItems ( )
+				Call  FullyRestoreHPandFP ( )
+				Call  FullyRestoreSP ( )
+		CaseOR == .Outcome:PlayerLost
+			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080087 )
+				Call	$Function_LoadItems ( )
+				Call  FullyRestoreHPandFP ( )
+				Call  FullyRestoreSP ( )
+        EndCaseGroup
+    EndSwitch
+	Call    DisablePlayerInput ( .False )
+    Return
+    End
+}
+
+#new:Script  $JinxBeaten
+{
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F7000B )
+		Wait  20`
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70001 )
+		Call  NpcMoveTo ( .Npc:Jinx  -115` -95` 10` )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )
+		Wait  10`
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 0008008E )  %Excellent work
+		%Jinx leaves to use the bathroom and comes back
+		Call  SetNpcSpeed       ( .Npc:Jinx *Fixed[8.0] )
+		Call  SetNpcFlagBits    ( .Npc:Jinx 00000100 .True )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70013 )
+		Call  NpcMoveTo ( .Npc:Jinx  -150` -95` 0` )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70012 )
+		Call  NpcMoveTo ( .Npc:Jinx  -150` 79` 0` )	
+		Call  NpcMoveTo ( .Npc:Jinx  -115` 190` 0` )
+		Call  SetNpcPos ( .Npc:Jinx -115` -1000` 190` )
+		Call  PlaySoundAtNpc    ( .Npc:Jinx 46 00000000 )		%Pissing
+		Wait  60`
+		Call  StopSound     ( 46 )
+		Wait  15`
+		Call  PlaySoundAtNpc    ( .Npc:Jinx 22B 00000000 )	%Flush
+		Wait  60`
+		Call  SetNpcPos ( .Npc:Jinx -115` 0` 190` )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70013 )
+		Call  NpcMoveTo ( .Npc:Jinx  -115` 50` 0` )
+		Call  NpcMoveTo ( .Npc:Jinx  -70` -55` 0` )
+		Call  NpcMoveTo ( .Npc:Jinx  -70` -95` 0` )
+		Call  NpcMoveTo ( .Npc:Jinx  -115` -96` 0` )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70001 )
+		Call  NpcMoveTo ( .Npc:Jinx  -115` -95` 0` )
+		Call  StopSound     ( 22B )
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 0008008F )	%As I was saying
+		Call  EndSpeech     ( .Npc:Jinx  00F70002 00F70011 00000000 )
+		Call  SpeakToNpc ( .Npc:Jagger 00580508 00580501 00000000 .Npc:Jinx 00080090 ) %It's around here somewhere
+		Call  InterpNpcYaw  ( .Npc:Jagger  270`  5` )
+		Call  PlaySound     ( 29 )
+		Call  EndSpeech     ( .Npc:Jagger 00580509 00580502 00000005 ) %Pull out flashlight
+		Wait  10`
+		Call  SpeakToNpc ( .Npc:Jagger 00580512 00580512 00000000 .Npc:Jinx 00080091 )  %Sensei catch!
+		Wait  2`
+		Call  PlaySound     ( 2C6 )
+  770:  Call  GetNpcPos ( .Npc:Jagger *Var0 *Var1 *Var2 )
+  78C:  Add   *Var1  48`
+  79C:  Call  MakeItemEntity    ( .Item:DustyHammer *Var0 *Var1 *Var2 .ItemSpawnMode:Decoration 00000000 )	
+  888:  	Call  GetNpcPos ( .Npc:Jagger *Var0 *Var1 *Var2 )
+  8A4:  	Add   *Var1  20`
+  8B4:  	Set   *Var4  *Var1
+  8C4:  	Add   *Var4  40`
+  8D4:  	Set   *Var3  *Var0
+  8E4:  	Call  MakeLerp  ( *Var1 *Var4 00000007 .Easing:QuadraticOut )
+  900:  	Loop
+  90C:  		Call  UpdateLerp ( )
+  918:  		Call  SetItemPos    ( *MapVar[A] *Var3 *Var0 *Var2 )
+  934:  		Wait  1`
+  940:  		Add   *Var3  00000002
+  950:  		If  *Var1  ==  00000000
+  960:  			BreakLoop
+  968:  		EndIf
+  970:  	EndLoop
+  978:  	Call  GetNpcPos  ( .Npc:Jinx *Var5 *Var6 *Var7 )
+  990:  	Add   *Var6  8`
+  9A0:  	Call  MakeLerp      ( *Var0 *Var6 00000007 .Easing:QuadraticIn )
+  9BC:  	Loop
+  9C8:  		Call  UpdateLerp ( )
+  9D4:  		Call  SetItemPos    ( *MapVar[A] *Var3 *Var0 *Var2 )
+  9F0:  		Wait  1`
+  9FC:  		Add   *Var3  00000002
+  A0C:  		If  *Var1  ==  00000000
+  A1C:  			BreakLoop
+  A24:  		EndIf
+  A2C:  	EndLoop
+			Call  PlaySound     ( 2091 )  %Bonk
+  A34:  	Call  RemoveItemEntity  ( *MapVar[A] )
+		Wait  8` 
+		Call  PlaySound     ( 20E5 )  %Bird chirping
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )
+		Loop  5`
+			Call  InterpNpcYaw  ( .Npc:Jinx  270`  0` ) %Facing left
+			Wait  2`
+			Call  SetNpcAnimation   ( .Npc:Jinx 00F70011 ) %Behind sprite
+			Wait  2`
+			Call  InterpNpcYaw  ( .Npc:Jinx  90`  0` ) %Facing right
+			Wait  2`
+			Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )
+			Wait  2`
+		EndLoop
+		Call  InterpNpcYaw  ( .Npc:Jinx  270`  0` ) %Facing left
+		Wait  10`
+		Call  SpeakToNpc ( .Npc:Jagger 00580512 00580512 00000000 .Npc:Jinx 00080092 )  %My bad
+		Call  ShowEmote ( .Npc:Jinx .Emote:Ellipsis  20`  35` .True  0`  0`  0`  0` )
+		Wait  35`
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080093 )
+		Call  SpeakToNpc ( .Npc:Jagger 00580512 00580512 00000000 .Npc:Jinx 00080094 )
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080095 )
+		Wait  3`
+  A80:  Set   *Var0  .Item:JinxBelt
+  A90:  Set   *Var1  00000004
+  AA0:  Call  ShowGotItem       ( *Var0 .True 00000000 )
+  AB8:  Call  AddKeyItem        ( *Var0 )
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080096 )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70011 ) %Behind sprite
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70011 00F70002 00000000 00080098 )
+		Loop  2`
+			Wait 6`
+			Call  PlaySound     ( 1FF )
+		EndLoop
+		Wait  5`
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70012 )
+		Thread
+			Call  SetNpcFlagBits    ( .Npc:Jagger 00000100 .True )
+			Call  SetNpcSpeed       ( .Npc:Jagger *Fixed[10.0] )
+			Call  SetNpcAnimation   ( .Npc:Jagger 00580506 )
+			Call  NpcMoveTo ( .Npc:Jagger  -150` -50` 5` )
+			Call  SetNpcAnimation   ( .Npc:Jagger 00580501 )
+			Call  SetNpcFlagBits    ( .Npc:Jagger 00000100 .False )
+		EndThread
+		Call  NpcMoveTo ( .Npc:Jinx  -65` -50` 10` )
+		Call  SetNpcAnimation   ( .Npc:Jinx 00F70000 )
+		Call  SetNpcFlagBits    ( .Npc:Jinx 00000100 .False )
+		Wait  5`
+		Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080099 )
+		Exec $IdleJagger2
+		Exec $IdleJinx2
+		Set  *MAC11_JinxBeatenCutscene .True
+		Return
+		End
+}
+
+#new:NpcGroupList $NpcGroupList_Generated
+{
+	1` $NpcGroup_Jagger 03060000
+	1` $NpcGroup_Jinx 	03070000
+	00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_Jagger
+{
+	.Npc:Jagger $NpcSettings_Jagger ~Vec3f:Jagger
+	00852D0D $Script_Init_Jagger 00000000 00000000 00000000
+	~NoDrops
+	~Movement:Jagger
+	~AnimationTable:Jagger
+	00000000 00000000 00000000 001A016C
+}
+
+#new:NpcGroup $NpcGroup_Jinx
+{
+	.Npc:Jinx $NpcSettings_Jinx ~Vec3f:Jinx
+	00852D0D $Script_Init_Jinx 00000000 00000000 00000000
+	~NoDrops
+	~Movement:Jinx
+	~AnimationTable:Jinx
+	00000000 00000000 00000000 001A016D
+}
+
+#new:NpcSettings $NpcSettings_Jagger
+{
+	00000000 00280018 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+#new:NpcSettings $NpcSettings_Jinx
+{
+	00000000 000F000F 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+#new:Script $Script_SetupMusic
+{
+	Call  SetMusicTrack ( 00000000 .Song:StarshipTheme 00000001 00000008 )
+	Call  ClearAmbientSounds ( 250` )
+	Return
+	End
+}
+
+
+
+#new:Script $Script_Exit_Entry0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "mac_10" 1 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit_Entry0 .Trigger:FloorAbove ~Collider:loadingzone 00000001 00000000
+	Return
+	End
+}
+

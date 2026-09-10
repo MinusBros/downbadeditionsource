@@ -3,7 +3,7 @@
 
 @	$Header
 {
-	[EntryCount]  00000005
+	[EntryCount]  00000006
 }
 
 @	$EntryList
@@ -13,10 +13,11 @@
 	~Vec4f:Entry2
 	~Vec4f:Entry3
 	~Vec4f:Entry4
+	~Vec4f:Entry5
 }
 
 
-%Fixed the kill plane not activating when you enter with the blue pipe
+%Fixed the kill plane not activating when you enter with a blue pipe
 
 #new:Script $Script_CheckPos
 {
@@ -75,9 +76,14 @@
 		EndIf
    9C:  Wait  1`
 		Call  GetEntryID    ( *Var0 )
-		If    *Var0  != ~Entry:Entry4
-			Exec  $Script_CheckPos
-		EndIf
+		Switch  *Var0
+			CaseOR == ~Entry:Entry0
+			CaseOR == ~Entry:Entry1
+			CaseOR == ~Entry:Entry2
+			CaseOR == ~Entry:Entry3
+				Exec  $Script_CheckPos
+			EndCaseGroup
+		EndSwitch
    A8:  Exec  $Script_80240390
    B4:  Call  EnableTexPanning  ( ~Model:o1287 .True )
    C8:  Call  EnableTexPanning  ( ~Model:o1289 .True )
@@ -193,10 +199,11 @@
 
 @	$Script_MakeEntities
 {
-    0:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80240400 80000000 )
+		Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80240400 80000000 )
 		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry4 $Script_UseBluePipe ~Index:*GF_Chapter8_BluePipeB 80000000 )
-   24:  Return
-   2C:  End
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe2 ~Entry:Entry5 $Script_UseBluePipe2 ~Index:*GF_Chapter8_BluePipeD 80000000 )
+		Return
+		End
 }
 
 @	$Script_EnterDoubleDoor_802407A4
@@ -251,6 +258,27 @@
   1A0:  		Exec  $Script_EnterVerticalPipe
 				Exec  $Script_CheckPos
 				Wait  1`
+			Case ==  ~Entry:Entry5
+   70:  		If  *GF_Chapter8_BluePipeD   ==  .False
+   80:  			Call  DisablePlayerInput    ( .True )
+   90:  			Call  DisablePlayerPhysics  ( .True )
+   A0:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   B8:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   D4:  			Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+   EC:  			Wait  30`
+   F8:  			Call  PlaySound ( 0000208E )
+  108:  			Set   *GF_Chapter8_BluePipeD  .True
+  118:  			Wait  30`
+  124:  			Call  SetPlayerActionState  ( .ActionState:Idle )
+  134:  			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  14C:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  168:  			Call  DisablePlayerPhysics  ( .False )
+  178:  			Call  DisablePlayerInput    ( .False )
+  188:  		EndIf
+  190:  		Set   *VarA  $Script_80240724
+  1A0:  		Exec  $Script_EnterVerticalPipe
+				Exec  $Script_CheckPos
+				Wait  1`
   188:  EndSwitch
   190:  Return
   198:  End
@@ -260,6 +288,14 @@
 #new:Script $Script_UseBluePipe
 {
 	Call     GotoMap	( "kpa_53" 2 )
+	Wait     92` 
+	Return
+	End
+}
+
+#new:Script $Script_UseBluePipe2
+{
+	Call     GotoMap	( "kpa_113" 3 )
 	Wait     92` 
 	Return
 	End

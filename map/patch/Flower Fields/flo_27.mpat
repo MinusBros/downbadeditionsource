@@ -1,3 +1,7 @@
+#define .Npc:Luigi  16
+
+%Bonus Cloudy Clime room from TTYD64
+
 #new:Header $Header
 {
 	[MainScript] $Script_Main
@@ -39,7 +43,7 @@
   188:  Call  MakeEntity    ( .Entity:MultiCoinBrick ~Vec4d:stem3_reward 80000000 )
   1AC:  Call  AssignBlockFlag   ( *GF_FLO27_Item2 )
       %
-      Call  MakeItemEntity  	( .Item:StarPiece ~Vec3d:stem4_reward .ItemSpawnMode:Fixed_NeverVanish *GF_FLO27_Item3 )
+      Call  MakeItemEntity  	( .Item:DekajaGem ~Vec3d:stem4_reward .ItemSpawnMode:Fixed_NeverVanish *GF_FLO27_Item3 )
       Set   *MapVar[1] *Var0
       %
       Call  MakeItemEntity  	( .Item:ElectroPop ~Vec3d:stem5_reward .ItemSpawnMode:Fixed_NeverVanish *GF_FLO27_Item4 )
@@ -71,7 +75,7 @@
     SetGroup  0000001B
     Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
     Exec  ExitWalk
-    Call  GotoMap   ( "flo_19" 00000004 )
+    Call  GotoMapSpecial   ( "flo_19" 00000004 00000006 )  %Transition with white screen
     Wait  100`
     Return
     End
@@ -84,6 +88,7 @@
 	00000001 $NpcGroup_Ruff1 18240008
 	00000001 $NpcGroup_Ruff2 181F0008
 	00000001 $NpcGroup_Ruff3 181F0008
+	1 $Luigi 0
 	00000000 00000000 00000000
 }
 
@@ -116,6 +121,79 @@
 	~AnimationTable:NPC_RuffPuff3 % .Sprite:TuffPuff
 	00000003 00000000 00000000 00000000 % no tattle string
 }
+
+
+
+
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 001A014C  %Tattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GB_StoryProgress > .Story:Ch6_DefeatedHuffNPuff
+		Call  RemoveNpc ( .Npc:Self )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 00110111 ) % 
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
+}
+
+
+
+
+
+
+
 
 #new:Function $Function_80240E50_flo_16 {
     0:  ADDIU     SP, SP, FFC8

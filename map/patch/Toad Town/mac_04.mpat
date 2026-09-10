@@ -21,7 +21,7 @@
 {
 	[MainScript]  $Script_Main
 	[EntryList]   $EntryList
-	[EntryCount]  00000007
+	[EntryCount]  00000008
 	[Background]  80200000
 	[MapTattle]   00190004
 }
@@ -37,41 +37,9 @@
 	~Vec4f:Entry5 % -420.0   20.0  235.0  270.0
     ~Vec4f:Entry6
     ~Vec4f:Entry7
+    ~Vec4f:Entry8
 }
 
-
-%Make this Toad a femboy
-
-@	$Script_Interact_8024A858
-{
-  [1A8]  Call  SpeakToPlayer ( .Npc:Self 00830404 00830401 00000000 *Var0 ) % variable string ID
-}
-
-%ThreeSisters_02
-@	$Script_Interact_80249B24
-{
-  [1A8]  Call  SpeakToPlayer ( .Npc:Self 00840404 00840401 00000000 *Var0 ) % variable string ID
-}
-
-%Toad_03
-@	$Script_Interact_80249D30
-{
-  [1A8]  Call  SpeakToPlayer ( .Npc:Self 00830B04 00830B01 00000000 *Var0 ) % variable string ID
-}
-
-
-%Toad_04
-@	$Script_Interact_80249F2C
-{
-  [1A8]  Call  SpeakToPlayer ( .Npc:Self 00830804 00830801 00000000 *Var0 ) % variable string ID
-}
-
-
-%ThreeSisters_08
-@	$Script_Interact_8024A54C
-{
-  [278]  Call  SpeakToPlayer ( .Npc:Self 00840B04 00840B01 00000000 *Var0 ) % variable string ID
-}
 
 
 @	$Script_Main
@@ -129,6 +97,424 @@
   290:  Return
   298:  End
 }
+
+
+@	$Script_EnterWalk_80242280
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry2
+   28:  		Exec  $Script_80242238
+   34:  		Exec  $Script_8024ECDC
+   40:  		Thread
+   48:  			Wait  20`
+   54:  			Set   *MapFlag[0A]  .True
+   64:  		EndThread
+   6C:  	Case  ==  ~Entry:Entry3
+   78:  		Exec  $Script_80242238
+   84:  		Call  SetPlayerPos  (  -420`  20`  -95` )
+   9C:  		Call  SetNpcPos     ( .Npc:Partner  -420`  20`  -65` )
+   B8:  		Thread
+   C0:  			Wait  20`
+   CC:  			Set   *MapFlag[0A]  .True
+   DC:  		EndThread
+   E4:  	Case  ==  ~Entry:Entry4
+   F0:  		Call  $Function_80240194 ( )
+   FC:  		Call  $Function_80240050    ( 00000000 00000000 00000000 00000000 00000000 00000000 00000000 000003B6 000003E8 )
+  12C:  		Exec  $Script_8024DED0
+  138:  	Case  ==  ~Entry:Entry5
+  144:  		Exec  $Script_80242238
+			Case  ==  ~Entry:Entry7
+   70:  		If  *GF_Chapter4_BluePipeB   ==  .False
+   80:  			Call  DisablePlayerInput    ( .True )
+   90:  			Call  DisablePlayerPhysics  ( .True )
+   A0:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   B8:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   D4:  			Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+   EC:  			Wait  30`
+   F8:  			Call  PlaySound ( 0000208E )
+  108:  			Set   *GF_Chapter4_BluePipeB  .True
+  118:  			Wait  30`
+  124:  			Call  SetPlayerActionState  ( .ActionState:Idle )
+  134:  			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  14C:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  168:  			Call  DisablePlayerPhysics  ( .False )
+  178:  			Call  DisablePlayerInput    ( .False )
+  188:  		EndIf
+				Set *Var[A] $Script_80242238
+				Exec $Script_EnterVerticalPipe
+				Wait 1`
+            Case  ==  ~Entry:Entry8
+                Set   *VarA $Script_80242238
+			    Exec  $Script_EnterVerticalPipe
+  150:  	Default
+  158:  		Set   *Var0  $Script_80242238
+  168:  		Exec  EnterWalk
+  174:  EndSwitch
+  17C:  Return
+  184:  End
+}
+
+
+%Make this Toad a femboy
+@	$Script_Interact_8024A858
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  00060074
+   38:  		Else
+   40:  			Set   *Var0  00060075
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  00060076
+   74:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   80:  		If  *GF_MAC04_StoreroomKeyStolen  ==  .False
+   90:  			Set   *Var0  00060077
+   A0:  		Else
+   A8:  			Set   *Var0  00060078
+   B8:  		EndIf
+   C0:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   CC:  		Set   *Var0  00060079
+   DC:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   E8:  		Set   *Var0  0006007A
+   F8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  104:  		Set   *Var0  0006007B
+  114:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  120:  		Set   *Var0  0006007C
+  130:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  13C:  		Set   *Var0  0006007D
+  14C:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  158:  		Set   *Var0  0006007E
+  168:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  174:  		Set   *Var0  0006007F
+			Case  <  .Story:PostGame
+				Set   *Var0  00060080
+  184:  	Case  <  .Story:Epilogue % 60
+  190:  		Set   *Var0  000600E1		%New dialogue
+  1A0:  EndSwitch
+  1A8:  Call  SpeakToPlayer ( .Npc:Self 00830404 00830401 00000000 *Var0 ) % variable string ID
+  1C8:  Return
+  1D0:  End
+}
+
+
+%Natsu T.
+@	$Script_Interact_8024A54C
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  00060061
+   38:  		Else
+   40:  			Set   *Var0  00060062
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  00060063
+   74:  	Case  <  .Story:Ch4_EnteredTheToyBox % FFFFFFF7
+   80:  		Set   *Var0  00060064
+   90:  	Case  <  .Story:Ch4_GotStoreroomKey % FFFFFFF8
+   9C:  		Set   *Var0  00060065
+   AC:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   B8:  		Set   *Var0  00060066
+   C8:  	Case  <  .Story:Ch4_GotFryingPan % FFFFFFFC
+   D4:  		Set   *Var0  00060067
+   E4:  	Case  <  .Story:Ch4_GotTayceTsCake % FFFFFFFD
+   F0:  		Set   *Var0  00060068
+  100:  	Case  <  .Story:Ch4_SolvedColorPuzzle % 0
+  10C:  		Call  FindKeyItem   ( .Item:MysteryNote *Var0 )
+  120:  		If  *Var0  ==  FFFFFFFF
+  130:  			If  *GF_MAC00_DictionaryReturned  ==  .False
+  140:  				Set   *Var0  00060069
+  150:  			Else
+  158:  				Set   *Var0  0006006B
+  168:  			EndIf
+  170:  		Else
+  178:  			Set   *Var0  0006006A
+  188:  		EndIf
+  190:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  19C:  		Set   *Var0  0006006C
+  1AC:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+  1B8:  		Set   *Var0  0006006D
+  1C8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  1D4:  		Set   *Var0  0006006E
+  1E4:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  1F0:  		Set   *Var0  0006006F
+  200:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  20C:  		Set   *Var0  00060070
+  21C:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  228:  		Set   *Var0  00060071
+  238:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  244:  		Set   *Var0  00060072
+			Case  <  .Story:PostGame
+				Set   *Var0  00060073
+  254:  	Case  <  .Story:Epilogue % 60
+  260:  		Set   *Var0  000600DF
+  270:  EndSwitch
+  278:  Call  SpeakToPlayer ( .Npc:Self 00840B04 00840B01 00000000 *Var0 ) % variable string ID
+  298:  Return
+  2A0:  End
+}
+
+
+
+
+%Girl in the house
+@	$Script_Interact_80249918
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  00060006
+   38:  		Else
+   40:  			Set   *Var0  00060007
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  00060008
+   74:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   80:  		If  *GF_MAC04_StoreroomKeyStolen  ==  .False
+   90:  			Set   *Var0  00060009
+   A0:  		Else
+   A8:  			Set   *Var0  0006000A
+   B8:  		EndIf
+   C0:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   CC:  		Set   *Var0  0006000B
+   DC:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   E8:  		Set   *Var0  0006000C
+   F8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  104:  		Set   *Var0  0006000D
+  114:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  120:  		Set   *Var0  0006000E
+  130:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  13C:  		Set   *Var0  0006000F
+  14C:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  158:  		Set   *Var0  00060010
+  168:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  174:  		Set   *Var0  00060011
+			Case  <  .Story:PostGame
+				Set   *Var0  00060012
+  184:  	Case  <  .Story:Epilogue % 60
+  190:  		Set   *Var0  00060012
+  1A0:  EndSwitch
+  1A8:  Call  SpeakToPlayer ( .Npc:Self 00840204 00840201 00000000 *Var0 ) % variable string ID
+  1C8:  Return
+  1D0:  End
+}
+
+
+%Other girl in the house
+@	$Script_Interact_80249B24
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  00060013
+   38:  		Else
+   40:  			Set   *Var0  00060014
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  00060015
+   74:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   80:  		If  *GF_MAC04_StoreroomKeyStolen  ==  .False
+   90:  			Set   *Var0  00060016
+   A0:  		Else
+   A8:  			Set   *Var0  00060017
+   B8:  		EndIf
+   C0:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   CC:  		Set   *Var0  00060018
+   DC:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   E8:  		Set   *Var0  00060019
+   F8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  104:  		Set   *Var0  0006001A
+  114:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  120:  		Set   *Var0  0006001B
+  130:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  13C:  		Set   *Var0  0006001C
+  14C:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  158:  		Set   *Var0  0006001D
+  168:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  174:  		Set   *Var0  0006001E
+			Case  <  .Story:PostGame
+				Set   *Var0  0006001F
+  184:  	Case  <  .Story:Epilogue % 60
+  190:  		Set   *Var0  0006001F
+  1A0:  EndSwitch
+  1A8:  Call  SpeakToPlayer ( .Npc:Self 00840404 00840401 00000000 *Var0 ) % variable string ID
+  1C8:  Return
+  1D0:  End
+}
+
+
+%Mushroom World Wrestling Toad
+@	$Script_Interact_80249D30
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  00060020
+   38:  		Else
+   40:  			Set   *Var0  00060021
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  00060022
+   74:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   80:  		If  *GF_MAC04_StoreroomKeyStolen  ==  .False
+   90:  			Set   *Var0  00060023
+   A0:  		Else
+   A8:  			Set   *Var0  00060024
+   B8:  		EndIf
+   C0:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   CC:  		Set   *Var0  00060025
+   DC:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   E8:  		Set   *Var0  00060026
+   F8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  104:  		Set   *Var0  00060027
+  114:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  120:  		Set   *Var0  00060028
+  130:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  13C:  		Set   *Var0  00060029
+  14C:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  158:  		Set   *Var0  0006002A
+  168:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  174:  		Set   *Var0  0006002B
+  184:  	Case  <  .Story:Epilogue % 60
+  190:  		Set   *Var0  0006002C
+  1A0:  EndSwitch
+  1A8:  Call  SpeakToPlayer ( .Npc:Self 00830B04 00830B01 00000000 *Var0 ) % variable string ID
+  1C8:  Return
+  1D0:  End
+}
+
+
+%Toad_04
+@	$Script_Interact_80249F2C
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   18:  		If  *GF_MAC03_BombedRock  ==  .False
+   28:  			Set   *Var0  0006002D
+   38:  		Else
+   40:  			Set   *Var0  0006002E
+   50:  		EndIf
+   58:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   64:  		Set   *Var0  0006002F
+   74:  	Case  <  .Story:Ch4_ReturnedStoreroomKey % FFFFFFF9
+   80:  		If  *GF_MAC04_StoreroomKeyStolen  ==  .False
+   90:  			Set   *Var0  00060030
+   A0:  		Else
+   A8:  			Set   *Var0  00060031
+   B8:  		EndIf
+   C0:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+   CC:  		Set   *Var0  00060032
+   DC:  	Case  <  .Story:Ch5_DefeatedFuzzipede % A
+   E8:  		Set   *Var0  00060033
+   F8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  104:  		Set   *Var0  00060034
+  114:  	Case  <  .Story:Ch6_ArrivedAtFlowerFields % 2B
+  120:  		Set   *Var0  00060035
+  130:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  13C:  		Set   *Var0  00060036
+  14C:  	Case  <  .Story:Ch7_InvitedToStarbornValley % 3D
+  158:  		Set   *Var0  00060037
+  168:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  174:  		Set   *Var0  00060038
+  184:  	Case  <  .Story:Epilogue % 60
+  190:  		Set   *Var0  00060039
+  1A0:  EndSwitch
+  1A8:  Call  SpeakToPlayer ( .Npc:Self 00830804 00830801 00000000 *Var0 ) % variable string ID
+  1C8:  Return
+  1D0:  End
+}
+
+
+%Let's axe all of the repeated dialogue and have it update every chapter instead
+@	$Script_Interact_8024A128
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   28:  		Set   *Var0  0006003A
+   38:  		Set   *Var1  0006003B
+   48:  		Set   *Var2  0006003C
+   98:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   A4:  		Set   *Var0  00060040
+   B4:  		Set   *Var1  00060041
+   C4:  		Set   *Var2  00060042
+  160:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  16C:  		Set   *Var0  00060049
+  17C:  		Set   *Var1  0006004A
+  18C:  		Set   *Var2  0006004B
+  1D8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  1E4:  		Set   *Var0  0006004F
+  1F4:  		Set   *Var1  00060050
+  204:  		Set   *Var2  00060051
+  250:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  25C:  		Set   *Var0  00060055
+  26C:  		Set   *Var1  00060056
+  27C:  		Set   *Var2  00060057
+  2C8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  2D4:  		Set   *Var0  0006005B
+  2E4:  		Set   *Var1  0006005C
+  2F4:  		Set   *Var2  0006005D
+			Case  <  .Story:PostGame
+				Set   *Var0  0006005E
+				Set   *Var1  0006005F
+				Set   *Var2  00060060
+			Case  <  .Story:Epilogue % 60
+				Set   *Var0  000600E3
+				Set   *Var1  000600E4
+				Set   *Var2  000600E5
+  340:  EndSwitch
+  348:  Call  SpeakToPlayer ( .NpcID:ToadKid_05 00860004 00860001 00000000 *Var0 ) % variable string ID
+  368:  Call  SpeakToPlayer ( .NpcID:ToadKid_06 00860304 00860301 00000000 *Var1 ) % variable string ID
+  388:  Call  SpeakToPlayer ( .NpcID:ToadKid_07 00860104 00860101 00000000 *Var2 ) % variable string ID
+  3A8:  Return
+  3B0:  End
+}
+
+
+
+%Three gossip Toads
+@	$Script_Interact_8024AA54
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   28:  			Set   *Var0  00060081
+   38:  			Set   *Var1  00060082
+   48:  			Set   *Var2  00060083
+   98:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
+   A4:  		Set   *Var0  00060087
+   B4:  		Set   *Var1  00060088
+   C4:  		Set   *Var2  00060089
+  160:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
+  16C:  		Set   *Var0  00060090
+  17C:  		Set   *Var1  00060091
+  18C:  		Set   *Var2  00060092
+  1D8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  1E4:  		Set   *Var0  00060096
+  1F4:  		Set   *Var1  00060097
+  204:  		Set   *Var2  00060098
+  250:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
+  25C:  		Set   *Var0  0006009C
+  26C:  		Set   *Var1  0006009D
+  27C:  		Set   *Var2  0006009E
+  2C8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
+  2D4:  		Set   *Var0  000600A2
+  2E4:  		Set   *Var1  000600A3
+  2F4:  		Set   *Var2  000600A4
+  304:  	Case  <  .Story:Epilogue % 60
+  310:  		Set   *Var0  000600A5
+  320:  		Set   *Var1  000600A6
+  330:  		Set   *Var2  000600A7
+  340:  EndSwitch
+  348:  Call  SpeakToPlayer ( 0000000A 00830104 00830101 00000000 *Var0 ) % variable string ID
+  368:  Call  SpeakToPlayer ( 0000000B 00830004 00830001 00000000 *Var1 ) % variable string ID
+  388:  Call  SpeakToPlayer ( 0000000C 00830304 00830301 00000000 *Var2 ) % variable string ID
+  3A8:  Return
+  3B0:  End
+}
+
+
+
 
 #import SwapToGoombarius.mpat
 #import AutoSave.mpat
@@ -352,6 +738,7 @@
 }
 
 #import EnterViaPipe.mpat
+#import ExitViaPipe.mpat
 
 #new:Script $Script_UseBluePipe
 {
@@ -361,16 +748,23 @@
 	End
 }
 
-
-
-@	$Script_ExitWalk_80242180
+#new:Script $Script_ExitTTYD
 {
-   [40]  Wait  50`
+	SetGroup 0000001B
+	Set   *VarA ~Entry:Entry8
+	Set   *VarB ~Collider:Exit3
+	Set   *VarC $Script_GotoMap_TTYD
+	ExecWait  $Script_VerticalPipe
+	Return
+	End
 }
 
-@ $Script_ExitWalk_802421DC
+#new:Script $Script_GotoMap_TTYD
 {
-   [40]  Wait  50`
+	Call  GotoMap   ( "mac_09" 00000000 )
+	Wait  100`
+	Return
+	End
 }
 
 @	$Script_80242238
@@ -378,6 +772,7 @@
     0:  Bind  $Script_ExitWalk_80242180 .Trigger:FloorAbove ~Collider:deilisw 00000001 00000000
    1C:  Bind  $Script_ExitWalk_802421DC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
 		Bind  $Script_ExitWalk_BackAlley .Trigger:FloorAbove ~Collider:Exit2 00000001 00000000
+		Bind  $Script_ExitTTYD 			.Trigger:FloorAbove ~Collider:Exit3 00000001 00000000
    38:  Return
    40:  End
 }
@@ -488,58 +883,6 @@
 
 
 
-@	$Script_EnterWalk_80242280
-{
-    0:  Call  GetEntryID    ( *Var0 )
-   10:  Switch  *Var0
-   1C:  	Case  ==  ~Entry:Entry2
-   28:  		Exec  $Script_80242238
-   34:  		Exec  $Script_8024ECDC
-   40:  		Thread
-   48:  			Wait  20`
-   54:  			Set   *MapFlag[0A]  .True
-   64:  		EndThread
-   6C:  	Case  ==  ~Entry:Entry3
-   78:  		Exec  $Script_80242238
-   84:  		Call  SetPlayerPos  (  -420`  20`  -95` )
-   9C:  		Call  SetNpcPos     ( .Npc:Partner  -420`  20`  -65` )
-   B8:  		Thread
-   C0:  			Wait  20`
-   CC:  			Set   *MapFlag[0A]  .True
-   DC:  		EndThread
-   E4:  	Case  ==  ~Entry:Entry4
-   F0:  		Call  $Function_80240194 ( )
-   FC:  		Call  $Function_80240050    ( 00000000 00000000 00000000 00000000 00000000 00000000 00000000 000003B6 000003E8 )
-  12C:  		Exec  $Script_8024DED0
-  138:  	Case  ==  ~Entry:Entry5
-  144:  		Exec  $Script_80242238
-			Case  ==  ~Entry:Entry7
-   70:  		If  *GF_Chapter4_BluePipeB   ==  .False
-   80:  			Call  DisablePlayerInput    ( .True )
-   90:  			Call  DisablePlayerPhysics  ( .True )
-   A0:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
-   B8:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
-   D4:  			Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
-   EC:  			Wait  30`
-   F8:  			Call  PlaySound ( 0000208E )
-  108:  			Set   *GF_Chapter4_BluePipeB  .True
-  118:  			Wait  30`
-  124:  			Call  SetPlayerActionState  ( .ActionState:Idle )
-  134:  			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
-  14C:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
-  168:  			Call  DisablePlayerPhysics  ( .False )
-  178:  			Call  DisablePlayerInput    ( .False )
-  188:  		EndIf
-				Set *Var[A] $Script_80242238
-				Exec $Script_EnterVerticalPipe
-				Wait 1`
-  150:  	Default
-  158:  		Set   *Var0  $Script_80242238
-  168:  		Exec  EnterWalk
-  174:  EndSwitch
-  17C:  Return
-  184:  End
-}
 
 %Add Gold Credit in the Warehouse.
 %The secret TTYD pipe behind the shop is now replaced with a Star Piece panel.
@@ -578,6 +921,7 @@
 		If  *GB_StoryProgress  >=  .Story:Ch3_StarSpritDeparted
 			Call  MakeItemEntity    ( .Item:HopeFragment ~Vec3d:HopeFragment .ItemSpawnMode:Fixed_NeverVanish *MAC04_HopeFragment )
 		EndIf
+		Call  MakeItemEntity    ( .Item:HeartPiece ~Vec3d:Coin .ItemSpawnMode:Fixed_NeverVanish *MAC04_BlueCoin )
   1F4:  Return
   1FC:  End
 }
@@ -587,14 +931,14 @@
 
 @	$ShopInventory_80243C6C
 {
-	.Item:CakeMix        10` 00230020
-	.Item:Egg             6` 002300DA %use the description from the Peach Egg item for no reason
-	.Item:ThunderRage    20` 00230002 % Lightning that strikes all enemies. Attack Power:  ...
-	.Item:KoopaTea        9` 00230046 
-	.Item:VoltShroom     25` 00230008 % Electrifies Mario briefly and damages enemies who  ...
-	.Item:SuperShroom    15` 0023000A % A truly super Mushroom. Restores 10 HP.
-	.Item:GoldBar       100` 0023013E
-	.Item:GoldBarX3     300` 0023013F
+	.Item:CakeMix        10` 002400A6
+	.Item:Egg             6` 002400A7
+	.Item:ThunderRage    20` 002400A8 % Lightning that strikes all enemies. Attack Power:  ...
+	.Item:KoopaTea        9` 002400A9 
+	.Item:VoltShroom     25` 002400AA % Electrifies Mario briefly and damages enemies who  ...
+	.Item:SuperShroom    15` 002400AB % A truly super Mushroom. Restores 10 HP.
+	.Item:GoldBar       100` 002400AC
+	.Item:GoldBarX3     300` 002400AD
 	00000000 00000000 00000000
 }
 
@@ -637,86 +981,6 @@
    58:  EndSwitch
    60:  Return
    68:  End
-}
-
-
-%Let's axe all of the repeated dialogue and have it update every chapter instead
-@	$Script_Interact_8024A128
-{
-    0:  Switch  *GB_StoryProgress
-    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
-   28:  		Set   *Var0  0006003A
-   38:  		Set   *Var1  0006003B
-   48:  		Set   *Var2  0006003C
-   98:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
-   A4:  		Set   *Var0  00060040
-   B4:  		Set   *Var1  00060041
-   C4:  		Set   *Var2  00060042
-  160:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
-  16C:  		Set   *Var0  00060049
-  17C:  		Set   *Var1  0006004A
-  18C:  		Set   *Var2  0006004B
-  1D8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
-  1E4:  		Set   *Var0  0006004F
-  1F4:  		Set   *Var1  00060050
-  204:  		Set   *Var2  00060051
-  250:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
-  25C:  		Set   *Var0  00060055
-  26C:  		Set   *Var1  00060056
-  27C:  		Set   *Var2  00060057
-  2C8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
-  2D4:  		Set   *Var0  0006005B
-  2E4:  		Set   *Var1  0006005C
-  2F4:  		Set   *Var2  0006005D
-  304:  	Case  <  .Story:Epilogue % 60
-  310:  		Set   *Var0  0006005E
-  320:  		Set   *Var1  0006005F
-  330:  		Set   *Var2  00060060
-  340:  EndSwitch
-  348:  Call  SpeakToPlayer ( .NpcID:ToadKid_05 00860004 00860001 00000000 *Var0 ) % variable string ID
-  368:  Call  SpeakToPlayer ( .NpcID:ToadKid_06 00860304 00860301 00000000 *Var1 ) % variable string ID
-  388:  Call  SpeakToPlayer ( .NpcID:ToadKid_07 00860104 00860101 00000000 *Var2 ) % variable string ID
-  3A8:  Return
-  3B0:  End
-}
-
-@	$Script_Interact_8024AA54
-{
-    0:  Switch  *GB_StoryProgress
-    C:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
-   28:  			Set   *Var0  00060081
-   38:  			Set   *Var1  00060082
-   48:  			Set   *Var2  00060083
-   98:  	Case  <  .Story:Ch3_StarSpiritRescued % FFFFFFF1
-   A4:  		Set   *Var0  00060087
-   B4:  		Set   *Var1  00060088
-   C4:  		Set   *Var2  00060089
-  160:  	Case  <  .Story:Ch4_StarSpritDeparted % 7
-  16C:  		Set   *Var0  00060090
-  17C:  		Set   *Var1  00060091
-  18C:  		Set   *Var2  00060092
-  1D8:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
-  1E4:  		Set   *Var0  00060096
-  1F4:  		Set   *Var1  00060097
-  204:  		Set   *Var2  00060098
-  250:  	Case  <  .Story:Ch6_StarSpiritRescued % 39
-  25C:  		Set   *Var0  0006009C
-  26C:  		Set   *Var1  0006009D
-  27C:  		Set   *Var2  0006009E
-  2C8:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
-  2D4:  		Set   *Var0  000600A2
-  2E4:  		Set   *Var1  000600A3
-  2F4:  		Set   *Var2  000600A4
-  304:  	Case  <  .Story:Epilogue % 60
-  310:  		Set   *Var0  000600A5
-  320:  		Set   *Var1  000600A6
-  330:  		Set   *Var2  000600A7
-  340:  EndSwitch
-  348:  Call  SpeakToPlayer ( 0000000A 00830104 00830101 00000000 *Var0 ) % variable string ID
-  368:  Call  SpeakToPlayer ( 0000000B 00830004 00830001 00000000 *Var1 ) % variable string ID
-  388:  Call  SpeakToPlayer ( 0000000C 00830304 00830301 00000000 *Var2 ) % variable string ID
-  3A8:  Return
-  3B0:  End
 }
 
 

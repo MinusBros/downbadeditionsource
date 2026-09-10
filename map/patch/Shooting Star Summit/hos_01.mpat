@@ -8,6 +8,67 @@
 #define .NpcID:WorldKlevar_05       05
 #define .NpcID:WorldKalmar_06       06
 
+@	$EntryList
+{
+	~Vec4f:Entry0 % -400.0    0.0  410.0   45.0
+	~Vec4f:Entry1 %   22.0  285.0 -190.0    0.0
+	~Vec4f:Entry2
+}
+
+@ $Header
+{
+	[MainScript]  $Script_Main_EnterWalk
+	[EntryList]   $EntryList
+	[EntryCount]  3
+	[Background]  80200000
+	[MapTattle]   0019001D
+}
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ShootingStarSummit
+   10:  Call  SetSpriteShading  ( .Shading:hos_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Thread
+   8C:  	Label  1
+   98:  	If  *GB_StoryProgress  !=  .Story:Ch0_MetStarSpirits % FFFFFF96
+   A8:  		Wait  1`
+   B4:  		Goto  1
+   C0:  	EndIf
+   C8:  	Call  DisablePlayerInput    ( .True )
+   D8:  	ExecWait  $Script_ExitWalk_80241384
+   E4:  EndThread
+  100:  ExecWait  $Script_MakeEntities
+  10C:  Exec  $Script_80241D48
+  118:  Exec  $Script_8024121C
+  124:  Exec  $Script_80240E80
+  130:  Call  GetEntryID    ( *Var0 )
+  140:  Switch  *Var0
+  14C:  	Case  ==  ~Entry:Entry0
+				Call  MakeNpcs      ( .False $NpcGroupList_80244FC0 )
+  158:  		Set   *Var0  $Script_80241540
+  168:  		Exec  EnterWalk
+  174:  		Wait  1`
+  180:  	Case  ==  ~Entry:Entry1
+				Call  MakeNpcs      ( .False $NpcGroupList_80244FC0 )
+  18C:  		Thread
+  194:  			ExecWait  $Script_802415B0
+  1A0:  			Exec  $Script_80241540
+  1AC:  		EndThread
+			Case  ==  ~Entry:Entry2
+				Set   *Var0  $Script_80241540
+				Exec  $PrologueCutsceneSecondHalf
+  1B4:  EndSwitch
+  1BC:  If  *GB_StoryProgress  ==  .Story:Ch7_StarSpritDeparted % 59
+  1CC:  	Exec  $Script_80245050
+  1D8:  EndIf
+  1E0:  Return
+  1E8:  End
+}
+
 @	$Script_80245050
 {
    [84]  Wait  10`
@@ -18,11 +79,72 @@
   [49C]  Wait  6`
 }
 
+
 @	$Script_80245580
 {
-   [B0]  Call  SetMusicTrack     ( 00000000 .Song:MarioFalls 00000000 00000008 )
-  [258]  Wait  25`
+    0:  Call  $Function_80240B10    ( *MapVar[A] )
+   10:  Call  UseSettingsFrom   ( .Cam:Default  -30`  250`  -160` )
+   2C:  Call  SetPanTarget      ( .Cam:Default  -30`  250`  -160` )
+   48:  Call  SetCamSpeed       ( .Cam:Default *Fixed[1.5] )
+   5C:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   74:  Call  SetPlayerSpeed    ( *Fixed[6.0] )
+   84:  Call  PlayerMoveTo      (  -30`  -160`  0` )
+   9C:  Call  InterpPlayerYaw   (  90`  0` )
+   B0:  Call  SetMusicTrack     ( 00000000 .Song:MarioFalls 00000000 00000008 )
+		Exec  $SkipRisingCutscene
+   CC:  Call  SetNpcFlagBits    ( .Npc:Partner 00000200 .False )
+   E4:  Call  SetNpcFlagBits    ( .Npc:Partner 00000140 .True )
+   FC:  Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[1.0] )
+  110:  Call  NpcJump0  ( .Npc:Partner  -30`  250`  -170`  10` )
+  130:  Thread
+  138:  	Set   *Var2  0000005A
+  148:  	Call  MakeLerp  ( 00000001 0000005A 0000003C .Easing:QuadraticIn )
+  164:  	Loop
+  170:  		Call  UpdateLerp ( )
+  17C:  		Add   *Var2  *Var0
+  18C:  		Call  InterpPlayerYaw   ( *Var2  0` )
+  1A0:  		Call  SetNpcRotation    ( .Npc:Partner 00000000 *Var2 00000000 )
+  1BC:  		Wait  1`
+  1C8:  		If  *Var1  ==  00000000
+  1D8:  			BreakLoop
+  1E0:  		EndIf
+  1E8:  	EndLoop
+  1F0:  	Loop
+  1FC:  		Add   *Var2  *Var0
+  20C:  		Call  InterpPlayerYaw   ( *Var2  0` )
+  220:  		Call  SetNpcRotation    ( .Npc:Partner 00000000 *Var2 00000000 )
+  23C:  		Wait  1`
+  248:  	EndLoop
+  250:  EndThread
+  258:  Wait  24`
+  264:  Call  $Function_80240DD0 ( )
+  270:  Thread
+  278:  	Label  A
+  284:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  298:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  2B0:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  2CC:  	If  *Var1  <  000001AE
+  2DC:  		Wait  1`
+  2E8:  		Goto  A
+  2F4:  	EndIf
+  2FC:  EndThread
+  304:  Call  GetPlayerPos  ( *Var2 *Var3 *Var4 )
+  31C:  Set   *Var5  *Var4
+  32C:  Add   *Var5  FFFFFFF6
+  33C:  Call  MakeLerp      ( *Var3 000002BC 0000005A .Easing:QuadraticIn )
+  358:  Loop
+  364:  	Call  UpdateLerp ( )
+  370:  	Call  SetPlayerPos  ( *Var2 *Var0 *Var4 )
+  388:  	Call  SetNpcPos     ( .Npc:Partner *Var2 *Var0 *Var5 )
+  3A4:  	Wait  1`
+  3B0:  	If  *Var1  ==  00000000
+  3C0:  		BreakLoop
+  3C8:  	EndIf
+  3D0:  EndLoop
+  3D8:  Return
+  3E0:  End
 }
+
 
 %Send Mario to the crossroads area instead of the first room.
 
@@ -100,6 +222,249 @@
 }
 
 
+
+@	$Script_802427C8
+{
+		Exec  $SkipLoveDeityCutscene
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePartnerAI  ( 00000000 )
+   20:  Call  UseSettingsFrom   ( .Cam:Default  -35`  250`  -145` )
+   3C:  Call  SetPanTarget      ( .Cam:Default  -35`  250`  -145` )
+   58:  Call  SetCamDistance    ( .Cam:Default  450` )
+   6C:  Call  SetCamPitch       ( .Cam:Default *Fixed[20.0] *Fixed[-5.5] )
+   84:  Call  SetCamSpeed       ( .Cam:Default *Fixed[0.5] )
+   98:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   B0:  Call  802D2C14  ( 00000002 )
+		If  *NoGoombariusMode == .False
+	   C0:  Call  SetNpcFlagBits    ( .Npc:Partner 00000100 .True )
+	   D8:  Thread
+	   E0:  	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+	   F8:  	Add   *Var2  0000001E
+	  108:  	Call  SetNpcJumpscale   ( .Npc:Partner 00000000 )
+	  11C:  	Call  NpcJump0  ( .Npc:Partner *Var0 *Var1 *Var2  15` )
+	  13C:  	Call  SetNpcAnimation   ( .Npc:Partner 00000106 )
+	  150:  EndThread
+		EndIf
+  158:  Call  SetMusicTrack ( 00000000 .Song:StarSpiritTheme 00000001 00000008 )
+		Set   *ReturnPipeLock .True
+  174:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_00 00120002 00120001 00000000 000A0000 ) % Welcome Mario... We've been waiting for you.
+		Thread
+			Call  FullyRestoreHPandFP ( )
+		EndThread
+  194:  Wait  10`
+  1A0:  Wait  1`
+  1AC:  Call  PlayerFaceNpc ( .NpcID:WorldEldstar_00 .True )
+  1C0:  Call  SetNpcFlagBits        ( .NpcID:WorldEldstar_00 00000100 .True )
+  1D8:  Call  SetNpcJumpscale       ( .NpcID:WorldEldstar_00 00000000 )
+  1EC:  Call  NpcJump0      ( .NpcID:WorldEldstar_00  21`  260`  -277`  30` )
+  20C:  Call  EnableModel   ( ~Model:1 .True )
+  220:  Call  PlaySound     ( 00000064 )
+  230:  Call  GetNpcPos     ( .NpcID:WorldMamar_01 *Var0 *Var1 *Var2 )
+  24C:  Add   *Var1  0000000F
+  25C:  Call  $Function_80240CDC    ( 00000000 *Var0 *Var1 *Var2 0000000A )
+  27C:  Call  GetNpcPos     ( .NpcID:WorldSkolar_02 *Var0 *Var1 *Var2 )
+  298:  Add   *Var1  0000000F
+  2A8:  Call  $Function_80240CDC    ( 00000000 *Var0 *Var1 *Var2 0000000A )
+  2C8:  Call  GetNpcPos     ( .NpcID:WorldMuskular_03 *Var0 *Var1 *Var2 )
+  2E4:  Add   *Var1  0000000F
+  2F4:  Call  $Function_80240CDC    ( 00000000 *Var0 *Var1 *Var2 0000000A )
+  314:  Call  GetNpcPos     ( .NpcID:WorldMisstar_04 *Var0 *Var1 *Var2 )
+  330:  Add   *Var1  0000000F
+  340:  Call  $Function_80240CDC    ( 00000000 *Var0 *Var1 *Var2 0000000A )
+  360:  Call  GetNpcPos     ( .NpcID:WorldKlevar_05 *Var0 *Var1 *Var2 )
+  37C:  Add   *Var1  0000000F
+  38C:  Call  $Function_80240CDC    ( 00000000 *Var0 *Var1 *Var2 0000000A )
+  3AC:  Call  GetNpcPos     ( .NpcID:WorldKalmar_06 *Var0 *Var1 *Var2 )
+  3C8:  Add   *Var1  0000000F
+  3D8:  Call  $Function_80240CDC    ( 00000000 *Var0 *Var1 *Var2 0000000A )
+  3F8:  Call  EnableModel   ( ~Model:2 .True )
+  40C:  Call  EnableModel   ( ~Model:3 .True )
+  420:  Call  EnableModel   ( ~Model:4 .True )
+  434:  Call  EnableModel   ( ~Model:5 .True )
+  448:  Call  EnableModel   ( ~Model:6 .True )
+  45C:  Call  EnableModel   ( ~Model:7 .True )
+  470:  SetF  *MapVar[1]  *Fixed[-80.0]
+  480:  Loop  00000014
+  48C:  	AddF  *MapVar[1]  *Fixed[6.0]
+  49C:  	Wait  1`
+  4A8:  EndLoop
+  4B0:  Call  EnableNpcShadow   ( .NpcID:WorldMamar_01 .True )
+  4C4:  Call  EnableNpcShadow   ( .NpcID:WorldSkolar_02 .True )
+  4D8:  Call  EnableNpcShadow   ( .NpcID:WorldMuskular_03 .True )
+  4EC:  Call  EnableNpcShadow   ( .NpcID:WorldMisstar_04 .True )
+  500:  Call  EnableNpcShadow   ( .NpcID:WorldKlevar_05 .True )
+  514:  Call  EnableNpcShadow   ( .NpcID:WorldKalmar_06 .True )
+  528:  Wait  10`
+  534:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_00 00120002 00120001 00000000 000A0001 ) % We're the 7 Star Spirits. Our job is to grant the  ...
+  554:  Call  SetCamDistance    ( .Cam:Default  270` )
+  568:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.8] )
+  57C:  Call  GetNpcPos     ( .NpcID:WorldEldstar_00 *Var0 *Var1 *Var2 )
+  598:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  5B4:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-6.5] )
+  5CC:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  5E4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  5F8:  Call  SpeakToPlayer ( .NpcID:WorldEldstar_00 00120002 00120001 00000000 000A0002 ) % The other day, Bowser and his followers invaded ou ...
+  618:  Call  GetNpcPos     ( .NpcID:WorldMamar_01 *Var0 *Var1 *Var2 )
+  634:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  650:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-6.9] )
+  668:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  67C:  Call  SpeakToPlayer ( .NpcID:WorldMamar_01 00130002 00120001 00000000 000A0003 ) % The Star Rod... ...is powerful beyond belief. It c ...
+  69C:  Call  GetNpcPos     ( .NpcID:WorldSkolar_02 *Var0 *Var1 *Var2 )
+  6B8:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  6D4:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-7.3] )
+  6EC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  700:  Call  SpeakToPlayer ( .NpcID:WorldSkolar_02 00140002 00130001 00000000 000A0004 ) % Bowser...that fiend... When he found out that we w ...
+  720:  Call  GetNpcPos     ( .NpcID:WorldMuskular_03 *Var0 *Var1 *Var2 )
+  73C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  758:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-7.7] )
+  770:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  784:  Call  SpeakToPlayer ( .NpcID:WorldMuskular_03 00150002 00150001 00000000 000A0005 ) % It is the responsibility of the 7 Star Spirits to  ...
+  7A4:  Call  GetNpcPos     ( .NpcID:WorldMisstar_04 *Var0 *Var1 *Var2 )
+  7C0:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  7DC:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-7.7] )
+  7F4:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  808:  Call  SpeakToPlayer ( .NpcID:WorldMisstar_04 00160002 00160001 00000000 000A0006 ) % Sadly... ...right now you are not strong enough to ...
+  828:  Call  GetNpcPos     ( .NpcID:WorldKlevar_05 *Var0 *Var1 *Var2 )
+  844:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  860:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-7.3] )
+  878:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  88C:  Call  SpeakToPlayer ( .NpcID:WorldKlevar_05 00170003 00170001 00000000 000A0007 ) % Once we 7 Star Spirits are reunited in Star Haven, ...
+  8AC:  Call  GetNpcPos     ( .NpcID:WorldKalmar_06 *Var0 *Var1 *Var2 )
+  8C8:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  8E4:  Call  SetCamPitch   ( .Cam:Default *Fixed[20.0] *Fixed[-6.9] )
+  8FC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  910:  Call  SpeakToPlayer ( .NpcID:WorldKalmar_06 00180002 00180001 00000000 000A0008 ) % Mario...we are...
+  930:  Set   *AreaByte[6]  000000C8
+  940:  Wait  30`
+  94C:  Set   *AreaByte[6]  00000000
+  95C:  Wait  20`
+		Call  SpeakToPlayer ( .NpcID:WorldKalmar_06 00180002 00180001 00000000 000A008F ) % Gimme a sec
+		Wait  40`
+		Call  SpeakToPlayer ( .NpcID:WorldKalmar_06 00180002 00180001 00000000 000A0090 ) % Gimme a sec
+		Wait  60`
+		Call  SpeakToPlayer ( .NpcID:WorldKalmar_06 00180002 00180001 00000000 000A0009 ) % Mario...we are...
+  988:  Call  GetNpcPos     ( .NpcID:WorldEldstar_00 *Var0 *Var1 *Var2 )
+  9A4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  9C0:  Call  SetCamDistance    ( .Cam:Default  -300` )
+  9D4:  Call  SetCamPitch   ( .Cam:Default *Fixed[16.0] *Fixed[-6.0] )
+  9EC:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  A20:  Set   *AreaByte[0]  000000C8
+  A30:  Set   *AreaByte[1]  000000C8
+  A40:  Set   *AreaByte[2]  000000C8
+  A50:  Set   *AreaByte[3]  000000C8
+  A60:  Set   *AreaByte[4]  000000C8
+  A70:  Set   *AreaByte[5]  000000C8
+  A80:  Set   *AreaByte[6]  000000C8
+  A90:  Wait  30`
+  A9C:  Set   *AreaByte[0]  00000000
+  AAC:  Set   *AreaByte[1]  00000000
+  ABC:  Set   *AreaByte[2]  00000000
+  ACC:  Set   *AreaByte[3]  00000000
+  ADC:  Set   *AreaByte[4]  00000000
+  AEC:  Set   *AreaByte[5]  00000000
+  AFC:  Set   *AreaByte[6]  00000000
+  B2C:  Call  EnableNpcShadow   ( .NpcID:WorldEldstar_00 .False )
+  B40:  Call  EnableNpcShadow   ( .NpcID:WorldMamar_01 .False )
+  B54:  Call  EnableNpcShadow   ( .NpcID:WorldSkolar_02 .False )
+  B68:  Call  EnableNpcShadow   ( .NpcID:WorldMuskular_03 .False )
+  B7C:  Call  EnableNpcShadow   ( .NpcID:WorldMisstar_04 .False )
+  B90:  Call  EnableNpcShadow   ( .NpcID:WorldKlevar_05 .False )
+  BA4:  Call  EnableNpcShadow   ( .NpcID:WorldKalmar_06 .False )
+  BC4:  Set   *AreaByte[0]  00000064
+  BD4:  Set   *AreaByte[1]  00000064
+  BE4:  Set   *AreaByte[2]  00000064
+  BF4:  Set   *AreaByte[3]  00000064
+  C04:  Set   *AreaByte[4]  00000064
+  C14:  Set   *AreaByte[5]  00000064
+  C24:  Set   *AreaByte[6]  00000064
+  C34:  SetF  *MapVar[0]  *Fixed[40.0]
+  C44:  SetF  *MapVar[1]  *Fixed[40.0]
+  C54:  Loop  00000014
+  C60:  	AddF  *MapVar[0]  *Fixed[-6.0]
+  C70:  	AddF  *MapVar[1]  *Fixed[-6.0]
+  C80:  	Wait  1`
+  C8C:  EndLoop
+  C94:  Set   *MapFlag[00]  .True
+  CA4:  Set   *AreaByte[0]  00000000
+  CB4:  Set   *AreaByte[1]  00000000
+  CC4:  Set   *AreaByte[2]  00000000
+  CD4:  Set   *AreaByte[3]  00000000
+  CE4:  Set   *AreaByte[4]  00000000
+  CF4:  Set   *AreaByte[5]  00000000
+  D04:  Set   *AreaByte[6]  00000000
+  D14:  Call  EnableModel   ( ~Model:1 .False )
+  D28:  Call  EnableModel   ( ~Model:2 .False )
+  D3C:  Call  EnableModel   ( ~Model:3 .False )
+  D50:  Call  EnableModel   ( ~Model:4 .False )
+  D64:  Call  EnableModel   ( ~Model:5 .False )
+  D78:  Call  EnableModel   ( ~Model:6 .False )
+  D8C:  Call  EnableModel   ( ~Model:7 .False )
+		Wait  30`
+		Call  GotoMapSpecial    ( "hos_10" 00000003 16` )
+  F64:  Return
+  F6C:  End
+}
+
+
+#new:Script  $PrologueCutsceneSecondHalf
+{
+		Call  DisablePlayerInput    ( .True )
+  DA0:  Call  DisablePartnerAI      ( 00000000 )
+  DB0:  Wait  10`
+  DBC:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  DD4:  Add   *Var0  00000014
+  DE4:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  E00:  Call  SetCamDistance        ( .Cam:Default  300` )
+  E14:  Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  E28:  Call  $Function_80240CB0    ( 00000001 )
+  E38:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  E50:  Add   *Var0  0000001E
+  E60:  Add   *Var2  0000001E
+		If  *NoGoombariusMode == .False
+	  E70:  Call  SetNpcSpeed   ( .Npc:Partner *Fixed[2.0] )
+	  E84:  Call  NpcMoveTo     ( .Npc:Partner *Var0 *Var2  0` )
+		EndIf
+  EA0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  EB4:  Wait  10`
+		If  *NoGoombariusMode == .False
+	  EC0:  Call  PlayerFaceNpc ( .Npc:Partner .False )
+	  ED4:  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000A000C ) % Mario... It looks like things are a lot more serio ...
+	  EF4:  Call  EnablePartnerAI ( )
+		EndIf
+  F00:  Thread
+  F08:  	Set   *GB_StoryProgress  .Story:Ch0_MetStarSpirits
+  F18:  	Call  ResetCam  ( .Cam:Default *Fixed[1.5] )
+  F2C:  EndThread
+  F34:  Call  FadeOutMusic  ( 00000000 00000BB8 )
+  F48:  Wait  10`
+  F54:  Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+#new:Script $SkipLoveDeityCutscene
+{
+	Call  $SkipCutscene ( )
+	Set   *GB_StoryProgress  .Story:Ch0_MetStarSpirits
+	Call  CloseMessage ( )
+    0:  Call  FadeOutMusic      ( 00000000 000005DC )
+   14:  Call  GotoMapSpecial    ( $ASCII_80245988 00000000 0000000B ) % kmr_24
+   2C:  Wait  100`
+	Return
+	End
+}
+
+
+#new:Script $SkipRisingCutscene
+{
+		Call  $SkipCutscene ( )
+   F8:  Call  GotoMap   ( $ASCII_80245998 00000000 ) % hos_02
+  10C:  Wait  100`
+		Return
+		End
+}
+
+
 #new:Script $ShowGotItem
 {
     0:  Call  ShowGotItem   ( *Var0 .True 00000000 )
@@ -135,4 +500,45 @@
   1A8:  Goto  0
   1B4:  Return
   1BC:  End
+}
+
+
+@	$Script_Init_80244058
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024373C )
+   14:  Call  BindNpcAux        ( .Npc:Self $Script_Aux_80243758 )
+   28:  If  *GB_StoryProgress  <  .Story:Ch0_MetStarSpirits % FFFFFF96
+			Exec  $Script_80242604
+   44:  EndIf
+   4C:  If  *GB_StoryProgress  >=  .Story:Ch0_MetStarSpirits % FFFFFF96
+   5C:  	Call  SetNpcPos ( .NpcID:WorldEldstar_00  0`  -1000`  0` )
+   78:  	Call  SetNpcPos ( .NpcID:WorldMamar_01  0`  -1000`  0` )
+   94:  	Call  SetNpcPos ( .NpcID:WorldSkolar_02  0`  -1000`  0` )
+   B0:  	Call  SetNpcPos ( .NpcID:WorldMuskular_03  0`  -1000`  0` )
+   CC:  	Call  SetNpcPos ( .NpcID:WorldMisstar_04  0`  -1000`  0` )
+   E8:  	Call  SetNpcPos ( .NpcID:WorldKlevar_05  0`  -1000`  0` )
+  104:  	Call  SetNpcPos ( .NpcID:WorldKalmar_06  0`  -1000`  0` )
+  120:  	Return
+  128:  EndIf
+  130:  Call  EnableNpcShadow   ( .NpcID:WorldMamar_01 .False )
+  144:  Call  EnableNpcShadow   ( .NpcID:WorldSkolar_02 .False )
+  158:  Call  EnableNpcShadow   ( .NpcID:WorldMuskular_03 .False )
+  16C:  Call  EnableNpcShadow   ( .NpcID:WorldMisstar_04 .False )
+  180:  Call  EnableNpcShadow   ( .NpcID:WorldKlevar_05 .False )
+  194:  Call  EnableNpcShadow   ( .NpcID:WorldKalmar_06 .False )
+  1A8:  Set   *MapVar[0]  00000028
+  1B8:  Set   *MapVar[1]  FFFFFFB0
+  1C8:  Return
+  1D0:  End
+}
+
+
+#new:Function $SkipCutscene
+{
+    0:  LAW       V0, 8007419C
+    8:  LW        V0, 10 (V0)
+    C:  ANDI      V0, V0, 1000
+   10:  SLTU      V0, R0, V0
+   14:  JR        RA
+   18:  SLL       V0, V0, 1
 }

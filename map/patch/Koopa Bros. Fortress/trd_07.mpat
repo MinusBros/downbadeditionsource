@@ -2,38 +2,6 @@
 #define .NpcID:ParaTroopa_01        01
 #define .NpcID:ParaTroopa_02        02
 
-@	$AISettings_80242DE0
-{
-    1.8 % move speed
-    45` % move time
-    20` % wait time
-   70.0 % alert radius
-   50.0
-    10`
-    8.5 % chase speed
-    0`
-    0`
-   80.0 % chase radius
-   60.0
-    1`
-}
-
-@	$AISettings_80242EC4
-{
-    3.0 % move speed
-    30` % move time
-    30` % wait time
-  100.0 % alert radius
-   20.0
-    10`
-    3.6 % chase speed
-    60`
-    10`
-  150.0 % chase radius
-   20.0
-    1`
-}
-
 
 @	$Script_Main_EnterWalk
 {
@@ -44,6 +12,7 @@
    5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    70:  Call  SetCamEnabled     ( .Cam:Default .True )
 		If   *GF_TRD08_Item_FortressKey == .False
+			Call $SetFlagCarryOverworldMusicToBattle()
    84:  	Call  MakeNpcs  ( .True $NpcGroupList_8024369C )
 		Else
 			Call  MakeNpcs  ( .False $Fuzzy_NpcGroupList )
@@ -90,11 +59,94 @@
 
 @	$Script_80242950
 {
-    0:  Call  SetMusicTrack ( 00000000 .Song:KoopaFortress 00000000 00000008 )
+		Call  SetMusicTrack ( 00000000 .Song:KoopaFortress 00000000 00000008 )
 		Call  802D5FA4  ( 00000005 )
+		Thread
+			Wait  30`
+			Call  802D5FA4  ( 00000005 )
+		EndThread
    1C:  Call  UseDoorSounds ( .DoorSounds:Metal )
    2C:  Return
    34:  End
+}
+
+
+
+@	$AISettings_80242DE0
+{
+    1.8 % move speed
+    45` % move time
+    20` % wait time
+   70.0 % alert radius
+   50.0
+    10`
+    8.5 % chase speed
+    0`
+    0`
+   80.0 % chase radius
+   60.0
+    1`
+}
+
+@	$AISettings_80242EC4
+{
+    3.0 % move speed
+    30` % move time
+    30` % wait time
+  100.0 % alert radius
+   20.0
+    10`
+    3.6 % chase speed
+    60`
+    10`
+  150.0 % chase radius
+   20.0
+    1`
+}
+
+@	$NpcSettings_80242E80
+{
+	00000000 00230018 00000000 00000000 $Script_NpcAI_80242E10 $KoopaEncounter 00000000 8007809C
+	00000000 00000000 00060000
+}
+
+@	$NpcSettings_80242F64
+{
+	00000000 00280018 00000000 00000000 $Script_NpcAI_80242EF4 $KoopaEncounter 00000000 8007809C
+	00000000 00000000 00060001
+}
+
+#new:Script  $KoopaEncounter
+{
+	Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000002 00000008 )  %Battle theme	
+	ExecWait  80077F70
+	Return
+	End
+}
+
+
+@	$Script_ExitWalk_80242A2C
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80244810 00000000 ) % trd_08
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+@	 $Script_ExitWalk_80242A88
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_80244818 00000004 ) % trd_04
+   40:  Wait  100`
+   4C:  Return
+   54:  End
 }
 
 

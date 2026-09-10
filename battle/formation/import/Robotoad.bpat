@@ -4,48 +4,48 @@
 % Define your graphics here
 #define .AnimStop	00870500
 #define .AnimIdle	00870501
-#define .AnimPain	00870508
-#define .AnimDead	0087050C
-#define .AnimBurn   00870508
-#define .AnimBurn2  00870508
-#define .AnimStabWindup  00870509 %windup
+#define .AnimPain	00870519
+#define .AnimDead	0087051A
+#define .AnimBurn   00870919
+#define .AnimBurn2  00870919
+#define .AnimStabWindup  0087050C %windup
 
 #define .AnimStopR	00870500
 #define .AnimIdleR	00870501
-#define .AnimPainR	00870508
-#define .AnimDeadR	0087050C
-#define .AnimBurnR  00870508
-#define .AnimBurn2R  00870508
-#define .AnimStabR  00870505 %fast stab
-#define .AnimSpearOutR 0087050A
+#define .AnimPainR	00870519
+#define .AnimDeadR	0087051A
+#define .AnimBurnR  00870919
+#define .AnimBurn2R  00870919
+#define .AnimStabR  00870518 %fast stab
+#define .AnimSpearOutR 0087050C
 #define .AnimRunR	00870503
 
 #define .AnimStopB	00870700
 #define .AnimIdleB	00870701
-#define .AnimPainB	00870708
-#define .AnimDeadB	0087070C
-#define .AnimBurnB  00870708
-#define .AnimBurn2B 00870708
-#define .AnimStabB  00870706 %slow stab
-#define .AnimSpearOutB 0087070A
+#define .AnimPainB	00870719
+#define .AnimDeadB	0087071A
+#define .AnimBurnB  00870919
+#define .AnimBurn2B 00870919
+#define .AnimStabB  00870717 %slow stab
+#define .AnimSpearOutB 0087070C
 #define .AnimRunB	00870703
 
 #define .AnimStopY	00870800
 #define .AnimIdleY	00870801
-#define .AnimPainY	00870808
-#define .AnimDeadY	0087080C
-#define .AnimBurnY  00870808
-#define .AnimBurn2Y 00870808
-#define .AnimStabY  00870807 %spear slap
-#define .AnimSpearOutY 0087080A
+#define .AnimPainY	00870819
+#define .AnimDeadY	0087081A
+#define .AnimBurnY  00870919
+#define .AnimBurn2Y 00870919
+#define .AnimStabY  0087080C %spear slap
+#define .AnimSpearOutY 0087080C
 #define .AnimRunY	00870803
 
 #new:Actor $Robotoad
 {
 % stats
-[Index]         EAb % index from ActorTable.xml
-[Level]        50`b %give you some sp 
-[MaxHP]        75`b %big robot 
+[Index]        2Ab % index from ActorTable.xml
+[Level]       120`b %give you some sp 
+[MaxHP]       171`b %big robot 
 [Coins]         1`b 
 [Flags]       00000000 
 [StatusTable] $StatusTable_Robotoad 
@@ -73,26 +73,37 @@
 
 #new:DefenseTable $DefenseTable_Robotoad_Red
 {
-.Element:Normal 00000001
-.Element:Fire   00000063
-.Element:Water  FFFFFFFE
-.Element:Ice  FFFFFFFE
+.Element:Normal 3`
+.Element:Fire   99`
+.Element:Blast  99`
+.Element:Water  1`
+.Element:Ice    1`
+.Element:Cosmic 2`
+.Element:Magic  2`
 .Element:End
 }
 
 #new:DefenseTable $DefenseTable_Robotoad_Blue
 {
-.Element:Normal 00000007
-.Element:Water  00000063
-.Element:Shock  FFFFFFFE
+.Element:Normal  6`
+.Element:Water  99`
+.Element:Ice    99`
+.Element:Shock   0`
+.Element:Quake   0
+.Element:Cosmic  5`
+.Element:Magic   5`
 .Element:End
 }
 
 #new:DefenseTable $DefenseTable_Robotoad_Yellow
 {
-.Element:Normal 00000002
-.Element:Shock   00000063
-.Element:Fire  FFFFFFFE
+.Element:Normal 4`
+.Element:Shock 99`
+.Element:Quake 99`
+.Element:Fire   2`
+.Element:Blast  2`
+.Element:Cosmic 3`
+.Element:Magic  3`
 .Element:End
 }
 
@@ -108,16 +119,16 @@
 .Status:Static      0`
 .Status:Paralyze    0`
 .Status:Shrink      0`
-.Status:Stop       60` %for easier access after chapter 6
+.Status:Stop      100`
 .Status:DefaultTurnMod    0`
 .Status:SleepTurnMod      0`
-.Status:PoisonTurnMod     0`
+.Status:PoisonTurnMod    -1`
 .Status:FrozenTurnMod     0`
-.Status:DizzyTurnMod     -1`
+.Status:DizzyTurnMod     -2`
 .Status:FearTurnMod       0`
 .Status:StaticTurnMod     0`
-.Status:ParalyzeTurnMod   0`
-.Status:ShrinkTurnMod     0`
+.Status:ParalyzeTurnMod  -4`
+.Status:ShrinkTurnMod    -4`
 .Status:StopTurnMod      -1`
 .Status:End
 }
@@ -169,6 +180,8 @@
 .Status:End
 }
 
+%I originally wanted the colour in his name to change, but that causes the game to crash apparently if you do it too many times, so I'll scrap the idea
+
 #new:Script $Script_Init_Robotoad
 {
 	Call     BindTakeTurn 	( .Actor:Self $Script_TakeTurn_Robotoad )
@@ -177,6 +190,11 @@
     Call     BindNextTurn 	( .Actor:Self $Script_NextTurn_Robotoad )
 	Call	 SetActorVar (.Actor:Self 00000001 00000000) %current color (0 = red, 2 = blue, 3 = yellow)
 	Call	 SetActorVar (.Actor:Self 00000002 00000000) %last color
+	Call  $Function_SetName_C ( 2A 002900DC )  %Red name
+	Call  $Function_SetTattle_C ( 2A 001C00ED )	
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Robotoad 150` )
+		EndIf
     Return
     End
 }
@@ -220,10 +238,12 @@
 			Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_Robotoad_Blue )
 			Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_Robotoad_Blue )
 			Call	 SetActorVar (.Actor:Self 00000002 *Var[F]) 
+			Call  	 SetPartEventBits  ( .Actor:Self 00000001 00040000 .True )  %Immune to piercing, debuffs and statuses
 		Case == 00000003
 			Call     SetIdleAnimations 	( .Actor:Self 00000001 $IdleAnimations_Robotoad_Yellow )
 			Call     SetDefenseTable 	( .Actor:Self 00000001 $DefenseTable_Robotoad_Yellow )
 			Call	 SetActorVar (.Actor:Self 00000002 *Var[F]) 
+			Call  	 SetPartEventBits  ( .Actor:Self 00000001 00040000 .False )
 	EndSwitch
 	Return
 	End
@@ -276,6 +296,7 @@
 				Call	 GetActorVar (.Actor:Self 00000001 *Var[3] )
 				Mul *Var[3] 100
 				Add *Var[1] *Var[3]
+				Exec  $EndingStinger
   160:  		ExecWait DoDeath 
   16C:  		Return
   174:  	Case  ==  .Event:SpinSmashHit
@@ -298,6 +319,7 @@
 				Call	 GetActorVar (.Actor:Self 00000001 *Var[3] )
 				Mul *Var[3] 100
 				Add *Var[1] *Var[3]
+				Exec  $EndingStinger
   204:  		ExecWait DoDeath 
   210:  		Return
   218:  	Case  ==  .Event:ShockHit
@@ -337,6 +359,7 @@
 				Call	 GetActorVar (.Actor:Self 00000001 *Var[3] )
 				Mul *Var[3] 100
 				Add *Var[1] *Var[3]
+				Exec  $EndingStinger
   3D0:  		ExecWait DoDeath 
   3DC:  		Return
   3E4:  	Case  ==  .Event:StarBeam
@@ -363,13 +386,14 @@
 				Call	 GetActorVar (.Actor:Self 00000001 *Var[3] )
 				Mul *Var[3] 100
 				Add *Var[1] *Var[3]
+				Exec  $EndingStinger
   4AC:  		ExecWait DoDeath 
   4B8:  		Return
   4C0:  	Case  ==  .Event:EndFirstStrike
   4CC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
   4E4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRunR )
   4FC:  		Call     SetGoalToHome 	( .Actor:Self )
-  50C:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[4.0] )
+  50C:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
   520:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
   538:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
   550:  		Call     HPBarToHome 	( .Actor:Self )
@@ -407,7 +431,6 @@
   658:  		Return
   660:  	Default
   668:  EndSwitch
-  %670:  Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
   688:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
   69C:  Call     UseIdleAnimation 	( .Actor:Self .True )
   6B0:  Return
@@ -429,6 +452,8 @@
     End
 }
 
+
+%This is actually a quintuple stab now. It hits very hard, so make sure you guard
 #new:Script $Script_TripleStab
 {
     0:  Call     UseIdleAnimation 	( .Actor:Self .False )
@@ -438,7 +463,7 @@
    4C:  Call     BattleCamTargetActor ( .Actor:Self )
    5C:  Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
    74:  Call     SetAnimation 	( .Actor:Self 00000002 .AnimRunR )
-   8C:  Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+   8C:  Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
    A0:  Call     SetGoalToTarget 	( .Actor:Self )
    B0:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
    CC:  Call     GetStatusFlags ( .Actor:Self *Var[A] )
@@ -477,7 +502,7 @@
   36C:  		Call     SetActorYaw 	( .Actor:Self 000000B4 )
   380:  		Call     AddActorDecoration 	( .Actor:Self 00000002 00000000 .Decoration:Sweat )
 				Call	 SetGoalToHome  ( .Actor:Self )
-				Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+				Call     SetActorSpeed 	( .Actor:Self *Fixed[12.0] )
 				Call     SetAnimation 	( .Actor:Self 00000002 .AnimRunR )
 				Call     RunToGoal   	( .Actor:Self 00000000 .False )
   3A8:  		Call     RemoveActorDecoration 	( .Actor:Self 00000002 00000000 )
@@ -488,7 +513,7 @@
   404:  	EndCaseGroup
   40C:  EndSwitch
 		Call     SetAnimation 	( .Actor:Self 00000002 .AnimStabWindup )
-		Loop 3
+		Loop 5
 			Call     SetAnimation 	( .Actor:Self 00000002 .AnimStabWindup )
 			Wait	 00000003
 			Call     SetAnimation 	( .Actor:Self 00000002 .AnimStabR )
@@ -496,9 +521,9 @@
   414:  		Call     PlaySoundAtActor 	( .Actor:Self 00000309 )
   440:  		Wait     00000005
   458:  		Call     SetGoalToTarget 	( .Actor:Self )
-  468:  		Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 00000000 00000007 00000020 )
+  468:  		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 6` 00000020 )
 			EndThread
-			Wait 	00000006
+			Wait 	00000003
 		EndLoop
 		Call     SetAnimation 	( .Actor:Self 00000002 .AnimIdleR )
   %490:  Switch  *Var[0] 
@@ -507,7 +532,7 @@
   4B4:  		Call     UseBattleCamPreset 	( 00000002 )
   4C4:  		Wait     00000014 
 				Call	 SetGoalToHome  ( .Actor:Self )
-				Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+				Call     SetActorSpeed 	( .Actor:Self *Fixed[14.0] )
 				Call     SetAnimation 	( .Actor:Self 00000002 .AnimRunR )
 				Call     RunToGoal   	( .Actor:Self 00000000 .False )
   %4DC:  	EndCaseGroup
@@ -518,6 +543,8 @@
   51C:  End
 }
 
+
+%This stab inflicts blast elemental damage and a chance to poison
 #new:Script $Script_SingleStab
 {
     0:  Call     UseIdleAnimation 	( .Actor:Self .False )
@@ -527,7 +554,7 @@
    4C:  Call     BattleCamTargetActor ( .Actor:Self )
    5C:  Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
    74:  Call     SetAnimation 	( .Actor:Self 00000002 .AnimRunB )
-   8C:  Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+   8C:  Call     SetActorSpeed 	( .Actor:Self *Fixed[10.0] )
    A0:  Call     SetGoalToTarget 	( .Actor:Self )
    B0:  Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
    CC:  Call     GetStatusFlags ( .Actor:Self *Var[A] )
@@ -566,7 +593,7 @@
   36C:  		Call     SetActorYaw 	( .Actor:Self 000000B4 )
   380:  		Call     AddActorDecoration 	( .Actor:Self 00000002 00000000 .Decoration:Sweat )
 				Call	 SetGoalToHome  ( .Actor:Self )
-				Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+				Call     SetActorSpeed 	( .Actor:Self *Fixed[10.0] )
 				Call     SetAnimation 	( .Actor:Self 00000002 .AnimRunB )
 				Call     RunToGoal   	( .Actor:Self 00000000 .False )
   3A8:  		Call     RemoveActorDecoration 	( .Actor:Self 00000002 00000000 )
@@ -577,11 +604,11 @@
   404:  	EndCaseGroup
   40C:  EndSwitch
 		Thread
-			Wait     0000000D
+			Wait     00000008
   414:  	Call     PlaySoundAtActor 	( .Actor:Self 00000309 )
   440:  	Wait     00000002
   458:  	Call     SetGoalToTarget 	( .Actor:Self )
-  468:  	Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 80010164 0000000B 00000020 )
+  468:  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Blast 00000000 ~DebuffType:Poison:3:200` 23` 00000020 )
 		EndThread
 		Call     SetAnimation 	( .Actor:Self 00000002 .AnimStabB )
 		Wait	 0000000F
@@ -593,7 +620,7 @@
   4B4:  		Call     UseBattleCamPreset 	( 00000002 )
   4C4:  		Wait     00000014 
 				Call	 SetGoalToHome  ( .Actor:Self )
-				Call     SetActorSpeed 	( .Actor:Self *Fixed[6.0] )
+				Call     SetActorSpeed 	( .Actor:Self *Fixed[14.0] )
 				Call     SetAnimation 	( .Actor:Self 00000002 .AnimRunB )
 				Call     RunToGoal   	( .Actor:Self 00000000 .False )
   %4DC:  	EndCaseGroup
@@ -604,25 +631,77 @@
   51C:  End
 }
 
+
+%New gimmick. Give a different buff depending on phase
+%If he's red, buff attack
+%If he's blue, buff defence
+%If he's yellow, electrify himself for a turn
 #new:Script $Script_NextTurn_Robotoad
 {
 	Call	GetBattlePhase ( *Var[0] )
 	If  *Var[0] ==  .Phase:EnemyEnd
 		Call	 GetActorVar (.Actor:Self 00000001 *Var[1] )
-		If *Var[1] == 3`
-			Call	PlaySoundAtActor	( .Actor:Self 000002D8 )
-			%Thread
-			Call	 8026BF48	( 00000001 )
-			Call	 BoostAttack 	( .Actor:Self 00000001 )
-			Call	 BoostDefense 	( .Actor:Self 00000001 )
-			Call 	 8026BF48 ( 00000000 )
-			%EndThread
-		EndIf
+		Switch  *Var1
+			Case == 0`
+				Call	PlaySoundAtActor	( .Actor:Self 000002D8 )
+				Call	 8026BF48	( 00000001 )
+				Call	 BoostAttack 	( .Actor:Self 00000002 )
+				Call 	 8026BF48 ( 00000000 )
+			Case == 2`
+				Call	PlaySoundAtActor	( .Actor:Self 000002D8 )
+				Call	 8026BF48	( 00000001 )
+				Call	 BoostDefense 	( .Actor:Self 00000002 )
+				Call 	 8026BF48 ( 00000000 )
+			Case == 3`
+				ExecWait  $Script_Electrify
+		EndSwitch
 	EndIf
 	Return
 	End
 }
 
+#new:Script $Script_Electrify
+{
+	0:  Wait 8`
+   40:  Call  GetStatusFlags    ( .Actor:Self *Var3 )
+  100:  	Call  UseBattleCamPreset    ( 00000013 )
+  110:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  12C:  	Sub   *Var0  00000006 
+  13C:  	Add   *Var1  00000027 
+  14C:  	Call  SetBattleCamTarget    ( *Var0 *Var1 *Var2 )
+  164:  	Call  SetBattleCamZoom      (  294` )
+  174:  	Call  SetBattleCamOffsetZ   (  0` )
+  184:  	Call  MoveBattleCamOver     (  40` )
+  32C:  Call  PlaySoundAtActor  ( .Actor:Self 000002F0 )
+  19D: 	If       *Var3 !&  00080000
+  19E: 		Add      *Var[1] 00000010
+  19F:	Else
+  1A0:		Add      *Var[1] 00000006
+  1A1:	EndIf
+  1F8:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  214:  	Add   *Var0  00000016 
+  224:  	Add   *Var1  00000087 
+  234:  	Sub   *Var2  00000003 
+  3D4:  	Call  PlayEffect    ( ~FX:SnakingStatic *Var0 *Var1 *Var2 *Fixed[0.12] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  654:  Wait  5`
+  1C0:  Call  PlaySoundAtActor  ( .Actor:Self 000003D2 )
+  6D4:  Thread
+  6DC:  	Call  8026BF48  ( 00000001 )
+			If *Byte_Settings_Difficulty == 2` %Gamer
+  6EC:  		Call  ElectrifyActor ( .Actor:Self 00000002 )
+			Else
+				Call  ElectrifyActor ( .Actor:Self 00000001 )
+			EndIf
+  700:  	Call  8026BF48  ( 00000000 )
+  710:  EndThread
+  724:  Call  UseBattleCamPreset    ( 00000002 )
+  734:  Wait  5`
+  740:  Return
+  748:  End
+}
+
+
+%Mostly identical to DSE, except I made it do more damage, paralyzes Mario for two turns and knocks partner out for three turns
 #new:Script $Script_RangeBeam
 {
 	Call 	EnableIdleScript 	(.Actor:Self 00000000 )
@@ -653,7 +732,7 @@
 			Call     EnemyTestTarget ( .Actor:Self *Var[A] 80000000 00000000 00000000 00000000 )
 		Case == 00000006
 		Default
-			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000020 00000000 00000000 00000008 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Electric|NoContact 0000FFFF 80010248 18` 00000020 )
 	EndSwitch
 	Wait	0000000B
 	Call GetStatusFlags ( .Actor:Partner *Var[B] )
@@ -667,11 +746,21 @@
 		Case == 00000005
 		Case == 00000006
 		Default
-			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000020 00000000 00000000 00000002 00000020 )
+			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000020 00000000 00000000 00000003 00000020 )
 	EndSwitch
 	Label C
 	Call 	EnableIdleScript 	(.Actor:Self 00000001 )
 	Call    UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+
+
+#new:Script  $EndingStinger
+{
+	Call  SetMusicTrack ( 00000000 .Song:TwinkTheme 00000001 00000008 )  %Ending stinger
+	Wait  220`
+	Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
 	Return
 	End
 }

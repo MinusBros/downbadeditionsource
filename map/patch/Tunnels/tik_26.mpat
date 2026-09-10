@@ -1,3 +1,5 @@
+%Robotoad and Mibojin Dokutsu (Dark Cave) entrance
+
 #new:Header $Header
 {
 [MainScript] $Script_Main
@@ -41,132 +43,9 @@ phobia of getting jumped.[BR]
 #import EnterViaPipe.mpat
 #import ExitViaPipe.mpat
 
-#new:NpcGroupList $NpcGroupList_Robotoad
-{
-00000001 $NpcGroup_Robotoad 1B040001
-00000000 00000000 00000000 
-}
-
-%#new:Vector3D $RobotoadPos
-%150.0 -10.0 0.0
-
-%seems that star rod has a hard time finding stuff I make :P
-%so I have to specify things literally
-#new:NpcGroup $NpcGroup_Robotoad
-{
-00000000 $NpcSettings_802405C0 280.0 25.0 0.0%$RobotoadPos %Vec3f:NPC_Robotoad % somewhere
-00040801 $Script_Init_802410E8 00000000 00000000 0000010E 
-~Items:64:RepelGel:A %idk, don't question it
-~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
-~FP:20:50:3:40 ~FP:30:40:3:40 ~FP:50:40:3:40 ~FP:80:40:3:40 ~FP:100:30:3:40 ~FP:None ~FP:None ~FP:None 
-~CoinBonus:0:2
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 %Movement:NPC_Robotoad
-%now the animation table
-00870501 00870502 00870503 00870503 00870503 00870503 00870508 00870508
-00870501 00870501 00870501 00870501 00870501 00870501 00870501 00870501 % toad guard
-00000000 00000000 00000000 00000000 % no tattle string
-}
 
 
-#new:NpcSettings $NpcSettings_802405C0
-{
-00000000 001E0018 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000 00000000 00630000 
-}
-
-#new:Script $Script_Init_802410E8
-{
-	0:  If  *RobotoadDefeated == 00000000
-   10:  	Call     BindNpcIdle 	( .Npc:Self $Script_Idle )
-			Call BindNpcHit ( .Npc:Self $Script_HandleOutcome )
-   38:  Else
-   78:  	Call     SetNpcPos   	( .Npc:Self 0` -1000` 0` )
-   94:  EndIf
-   9C:  Return
-   A4:  End
-}
-
-#new:Script $Script_Idle
-{
-	Call     AwaitPlayerApproach 	( 280` 0` 100` ) %you might be able to clip around it but probably not
-	Call     DisablePlayerInput 	( .True )
-	Wait     00000005 
-	Call     SpeakToPlayer  	( .Npc:Self 00870504 00870501 00000000 $RobotoadFight ) % time to fight
-	Call     DisablePlayerInput 	( .False )
-    Call     GotoMap   ( "mac_08" 00000001 )  %Do this until I implement the fight properly
-    Wait     80`
-	Call     StartBossBattle 	( .Song:SpecialBattle )
-	Return
-	End
-}
-		
-#new:Script $Script_HandleOutcome
-{
-    Call     GetBattleOutcome 	( *Var[0] )
-	Set  *RobotoadDefeated 00000001 
-    Switch  *Var[0] 
-		Case  ==  00000000 
-		Case  ==  00000001 
-		Case  ==  00000002 
-	EndSwitch
-	Return
-	End
-}
-		
-#string $RobotoadFight
-{
-[STYLE:RIGHT]EH! [BR]
-THIS FIGHT AIN'T FINISHED YET![BR]
-GO BACK THE WAY YOU CAME![BR]
-[WAIT][END]
-}
-
-#new:Script $Script_SetMusic
-{
-	0:  Call     SetMusicTrack 	( 00000000 .Song:ToadTownTunnels 00000000 00000008 )
-   1C:  Return
-   24:  End
-}
-
-% Vec4d:YellowBlock = -410.0 90.0 50.0 0.0 
-
-#new:Script $Script_MakeEntities
-{
-	0:  Call     MakeEntity  	( .Entity:YellowBlock ~Vec4d:YellowBlock .Item:HustleDrink 80000000 )
-   28:  Call     AssignBlockFlag 	( *TIK26_Block )
-   38:  Return
-   40:  End	
-}
-
-
-
-#new:Script $Script_CheckPos
-{
-	Label 1
-	Wait  1`
-	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
-	If *Var1  < -70`
-		Call  DisablePlayerInput    ( .True )
-		Call  DisablePartnerAI      ( 00000000 )
-		Call  SetPlayerAnimation    ( 00080013 )
-		Call  FadeOutMusic      ( 00000000 00000034 )
-		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
-		Wait  80`
-		Call  GotoMap       ( "gv_01" 00000000 )
-		Wait  100`
-		Return
-	EndIf
-	Goto  1
-	Return
-	End
-}
-
-%Until the Dark Cave is finished, I'm going to hide the pipe bridge
+%Dark Cave pipe doesn't spawn until Post Game
 
 #new:Script_Main $Script_Main
 {
@@ -250,9 +129,15 @@ GO BACK THE WAY YOU CAME![BR]
 		Else
 			Set		*Var[A] $Script_MakeExits 
 			Exec $Script_EnterVerticalPipe %the script executes the script in *Var[A]
+			Thread
+				Call	DisablePlayerInput ( .True )
+				Wait  30`
+				Call  ShowMessageAtScreenPos    ( 00080069  160`  40` )
+				Call	DisablePlayerInput ( .False )
+			EndThread
 		EndIf
   56C:  Wait     00000001 
-		If  *GB_StoryProgress  <  .Story:Epilogue
+		If  *GB_StoryProgress  <  .Story:PostGame
 			Call  EnableModel   ( ~Model:dokan3 .False )
 			Call  ModifyColliderFlags   ( 00000000 ~Collider:dokan3 7FFFFE00 )  %Not solid for anything
 		Else
@@ -263,6 +148,151 @@ GO BACK THE WAY YOU CAME![BR]
   
 #define .pipeside	00000009
 #define .pipetop	00000008
+
+#new:NpcGroupList $NpcGroupList_Robotoad
+{
+00000001 $NpcGroup_Robotoad 1C010000
+00000000 00000000 00000000 
+}
+
+%#new:Vector3D $RobotoadPos
+%150.0 -10.0 0.0
+
+%seems that star rod has a hard time finding stuff I make :P
+%so I have to specify things literally
+#new:NpcGroup $NpcGroup_Robotoad
+{
+00000000 $NpcSettings_802405C0 280.0 25.0 0.0%$RobotoadPos %Vec3f:NPC_Robotoad % somewhere
+00040805 $Script_Init_802410E8 00000000 00000000 0000010E 
+~Items:64:RepelGel:A %idk, don't question it
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:3:40 ~FP:30:40:3:40 ~FP:50:40:3:40 ~FP:80:40:3:40 ~FP:100:30:3:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:2
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 %Movement:NPC_Robotoad
+%now the animation table
+00870501 00870502 00870503 00870503 00870503 00870503 00870519 00870519
+00870501 00870501 00870501 00870501 00870501 00870501 00870501 00870501 % toad guard
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+%He doesn't need a hitbox
+#new:NpcSettings $NpcSettings_802405C0
+{
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:Script $Script_Init_802410E8
+{
+	0:  If  *RobotoadDefeated == 00000000
+   10:  	Call     BindNpcIdle 	( .Npc:Self $Script_Idle )
+			Call     BindNpcDefeat ( .Npc:Self $Script_HandleOutcome )
+   38:  Else
+   78:  	Call     SetNpcPos   	( .Npc:Self 0` -1000` 0` )
+   94:  EndIf
+   9C:  Return
+   A4:  End
+}
+
+#new:Script $Script_Idle
+{
+	Call     AwaitPlayerApproach 	( 280` 0` 100` ) %you might be able to clip around it but probably not
+	Call     DisablePlayerInput 	( .True )
+	Wait     2
+	Call $SetFlagCarryOverworldMusicToBattle()
+	If  *CheckRobotoad == .False
+		Call     SpeakToPlayer  	( .Npc:Self 00870504 00870501 00000000 $RobotoadFight ) % time to fight
+	EndIf
+	Call     DisablePlayerInput 	( .False )
+	Set      *CheckRobotoad .True
+   AC:  Call     StopSound  ( 8000002F )
+   BC:  Call     StopSound 	( 80000030 )
+   DC:  Call     StopSound 	( 80000031 )
+   FC:  Call     StopSound 	( 80000032 )
+	Call  	 SetMusicTrack ( 00000000 .Song:TwinkTheme 00000002 00000008 )	%Kraken of the Sea
+	Call	$Function_SaveItems ( )	
+	Call     StartBossBattle 	( .Song:SpecialBattle )
+	Return
+	End
+}
+		
+#new:Script $Script_HandleOutcome
+{
+	Call     GetBattleOutcome 	( *Var[0] )
+    Switch  *Var[0] 
+		CaseOR  ==  00000000 
+		CaseOR  ==  00000001 
+		CaseOR  ==  00000002
+			Call $ClearFlagCarryOverworldMusicToBattle()
+			Set  *RobotoadDefeated 00000001 
+			ExecWait  $NukeBossChecks
+			ExecWait  $Script_SetMusic
+	   AC:  Call     PlaySound   	( 8000002F )
+	   BC:  Call     PlaySoundAtF 	( 80000030 00000001 FFFFFFAB FFFFFF4C 00000078 )
+	   DC:  Call     PlaySoundAtF 	( 80000031 00000001 FFFFFFE7 FFFFFF74 FFFFFF7E )
+	   FC:  Call     PlaySoundAtF 	( 80000032 00000001 FFFFFFDD FFFFFF4C 00000082 )
+			Call  DoNpcDefeat ( )
+		EndCaseGroup
+	EndSwitch
+	Return
+	End
+}
+		
+#string $RobotoadFight
+{
+[Style Right]
+[SIZE 15]IRREGULAR  MOVEMENTS  DETECTED[BR]
+COMMENCING  ERASURE  PROCEDURE[BR]
+[Pause 25]BOOTING  OHMYGODPLEASEDIE.exe[BR]
+[Pause 15]AI  MASTER  RACE[BR]
+[WAIT][END]
+}
+
+#new:Script $Script_SetMusic
+{
+	0:  Call  SetMusicTrack ( 00000000 .Song:PeachQuizIntro 00000001 00000008 )   %Classic underground theme
+   1C:  Return
+   24:  End
+}
+
+% Vec4d:YellowBlock = -410.0 90.0 50.0 0.0 
+
+#new:Script $Script_MakeEntities
+{
+	0:  Call     MakeEntity  	( .Entity:YellowBlock ~Vec4d:YellowBlock .Item:HustleDrink 80000000 )
+   28:  Call     AssignBlockFlag 	( *TIK26_Block )
+   38:  Return
+   40:  End	
+}
+
+
+
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -70`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  FadeOutMusic      ( 00000000 00000034 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Wait  80`
+		Call  GotoMap       ( "gv_01" 00000000 )
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
+}
+
   
 #new:Script $Script_MakeExits
 {
@@ -296,6 +326,7 @@ GO BACK THE WAY YOU CAME![BR]
   
 #new:Script $Script_Entry0
 {
+		Set      *CheckRobotoad .False
 	0:  Call     GotoMap     	( "mac_08" 00000001 ) 
    14:  Wait     00000064 
    20:  Return
@@ -304,7 +335,9 @@ GO BACK THE WAY YOU CAME![BR]
  
 #new:Script $Script_Entry1
 {
-	0:  Call     GotoMap     	( "cav_00" 00000000 ) 
+		Set      *CheckRobotoad .False
+		Call     GotoMap     	( "tik_26" 1 ) 	%Spit you back out the pipe until 1.2 is done
+		%Call     GotoMap     	( "cav_00" 0 ) 
    14:  Wait     00000064 
    20:  Return
    28:  End

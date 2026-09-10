@@ -132,11 +132,13 @@
   3B8:  Set   *GB_StoryProgress  .Story:Ch0_DefeatedGoombaKing
   3C8:  Exec  $Script_802411C0
   3D4:  Call  AdjustCam ( .Cam:Default *Fixed[4.0]  0` *Fixed[250.0] *Fixed[15.0] *Fixed[-7.5] )
-  3F8:  Wait  4`
-  404:  Call  DisablePartnerAI  ( 00000000 )
-  414:  Call  SpeakToPlayer     ( .Npc:Partner 00010008 00010001 00000000 000B00D2 ) % Yeah! I knew we could do it! Cooool!! Victory!!
-  434:  Call  EnablePartnerAI ( )
-  440:  Wait  5`
+		If  *NoGoombariusMode == .False
+	  3F8:  Wait  4`
+	  404:  Call  DisablePartnerAI  ( 00000000 )
+	  414:  Call  SpeakToPlayer     ( .Npc:Partner 00010008 00010001 00000000 000B00D2 ) % Yeah! I knew we could do it! Cooool!! Victory!!
+	  434:  Call  EnablePartnerAI ( )
+	  440:  Wait  5`
+		EndIf
   44C:  Call  DisablePlayerInput    ( .True )
   45C:  Thread
   464:  	Wait  40`
@@ -206,53 +208,315 @@
 }
 
 %Speed up this cutscene and give Goomba King a talking animation
+
 @	$Script_80242CF4
 {
-   [10]  Wait  5`
-   [AC]  Call  SetCamSpeed   ( .Cam:Default *Fixed[6.0] )
-  [108]  Wait  10`
-  [174]  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[2.0] )
-  [190]  Wait  5`
-  [1FC]  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 0063000F 00630001 00000000 000B00D8 ) % Uh...Mario! Good fight and all that! I must warn y ...
-  [2A4]  Wait  40`
-  [2B0]  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 00630007 00630007 00000000 000B00D9 ) % Oh nooo!!!
-  [378]  Wait  15`
-  [678]  Loop  00000001
-  [6E4]  Call  SpeakToPlayer ( .Npc:Partner 0001000F 0001000E 00000000 000B00DA ) % Look! The bridge!! Now we can cross it and continu ...
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Wait  3`
+   1C:  Call  SetCamType    ( .Cam:Default 00000001 .False )
+   34:  Call  SetCamPitch   ( .Cam:Default  0` *Fixed[-12.5] )
+   4C:  Call  SetCamDistance    ( .Cam:Default  300` )
+   60:  Call  SetCamPosA    ( .Cam:Default  -389`  -12` )
+   78:  Call  SetCamPosB    ( .Cam:Default  -469`  156` )
+   90:  Call  SetPanTarget  ( .Cam:Default  -389`  120`  -12` )
+   AC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[6.4] )
+   C0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   D8:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+   EC:  Call  SetNpcPos     ( .NpcID:GoombaKing_02  -380`  0`  -42` )
+  108:  Wait  8`
+  114:  Call  SetNpcJumpscale   ( .NpcID:GoombaKing_02 *Fixed[0.8] )
+  128:  Call  NpcFacePlayer ( .NpcID:GoombaKing_02 00000000 )
+  13C:  Call  PlaySoundAtNpc    ( .NpcID:GoombaKing_02 000003E7 00000000 )
+  154:  Call  NpcJump1      ( .NpcID:GoombaKing_02  -380`  120`  -42` 00000019 )
+  174:  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[2.0] )
+  190:  Wait  4`
+  19C:  Call  SetPlayerPos  (  -497`  0`  130` )
+  1B4:  Call  InterpPlayerYaw   (  270`  0` )
+		If  *NoGoombariusMode == .False
+  1C8:  Call  SetNpcPos     ( .Npc:Partner  -534`  0`  127` )
+  1E4:  Call  InterpNpcYaw  ( .Npc:Partner  90`  0` )
+		EndIf
+  1FC:  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 0063000F 00630001 00000000 000B00D8 ) % Uh...Mario! Good fight and all that! I must warn y ...
+  21C:  Set   *GB_StoryProgress  .Story:Ch0_HitGatehouseSwitch
+  22C:  Call  EnableModel   ( ~Model:eye_mask .True )
+  240:  Wait  1`
+  24C:  Exec  $Script_802424E4 *VarA
+  25C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.7] )
+  270:  Call  UseSettingsFrom   ( .Cam:Default  0`  -100`  0` )
+  28C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  2A4:  Wait  40`
+  2B0:  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 00630007 00630007 00000000 000B00D9 ) % Oh nooo!!!
+  2D0:  Loop  00000064
+  2DC:  	Call  GetNpcPos ( .NpcID:GoombaKing_02 *Var0 *Var1 *Var2 )
+  2F8:  	Sub   *Var1  00000001
+  308:  	Call  SetNpcPos ( .NpcID:GoombaKing_02 *Var0 *Var1 *Var2 )
+  324:  	Wait  1`
+  330:  EndLoop
+  338:  Call  SetNpcPos ( .NpcID:GoombaKing_02  -303`  286`  -120` )
+  354:  Call  FadeOutMusic  ( 00000000 000003E8 )
+  368:  Call  SetPlayerAnimation    ( .PlayerAnim:ShockStill )
+  378:  Wait  14`
+  384:  Kill  *VarA
+  390:  Thread
+  398:  	Call  ShakeCam  ( .Cam:Default 00000000  100` *Fixed[0.5] )
+  3B4:  	Call  ShakeCam  ( .Cam:Default 00000000  15` *Fixed[4.0] )
+  3D0:  	Call  ShakeCam  ( .Cam:Default 00000000  83` *Fixed[0.5] )
+  3EC:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[1.5] )
+  408:  	Call  ShakeCam  ( .Cam:Default 00000000  15` *Fixed[0.5] )
+  424:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[1.5] )
+  440:  	Call  ShakeCam  ( .Cam:Default 00000000  170` *Fixed[0.5] )
+  45C:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[3.0] )
+  478:  	Wait  50`
+  484:  	Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[4.0] )
+  4A0:  	Wait  20`
+  4AC:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[0.5] )
+  4C8:  	Wait  20`
+  4D4:  	Call  ShakeCam  ( .Cam:Default 00000000  10` *Fixed[0.2] )
+  4F0:  	Call  PlaySound ( 000004A5 )
+  500:  EndThread
+  508:  Exec  $Script_80241B54
+  514:  Exec  $Script_80242A70
+  520:  Exec  $Script_80242B98
+  52C:  Wait  380`
+  538:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  550:  Call  UseSettingsFrom       ( .Cam:Default  0`  -150`  0` )
+  56C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  584:  Wait  20`
+  590:  Exec  $Script_80242170
+  59C:  Exec  $Script_80241BBC
+  5A8:  Wait  150`
+  5B4:  Wait  50`
+  5C0:  Call  EnableModel   ( ~Model:o416 .False )
+  5D4:  Call  EnableModel   ( ~Model:o415 .False )
+  5E8:  Call  EnableModel   ( ~Model:eye_mask .False )
+  5FC:  Call  DeleteAnimatedModel   ( 00000001 )
+  60C:  Call  DeleteAnimatedModel   ( 00000000 )
+  61C:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  634:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  648:  Exec  $Script_802411C0
+		If  *NoGoombariusMode == .False
+	  654:  Call  DisablePartnerAI      ( 00000000 )
+	  664:  Call  SetNpcJumpscale       ( .Npc:Partner *Fixed[0.8] )
+	  678:  Loop  00000001
+	  684:  	Call  GetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+	  6A0:  	Call  NpcJump0  ( .Npc:Partner *Var0 *Var1 *Var2  10` )
+	  6C0:  	Wait  3`
+	  6CC:  EndLoop
+	  6D4:  Call  DisablePartnerAI      ( 00000000 )
+	  6E4:  Call  SpeakToPlayer ( .Npc:Partner 0001000F 0001000E 00000000 000B00DA ) % Look! The bridge!! Now we can cross it and continu ...
+	  704:  Call  EnablePartnerAI ( )
+		EndIf
+  710:  Call  ModifyColliderFlags   ( 00000000 ~Collider:tt 7FFFFE00 )
+  728:  Set   *GB_StoryProgress  .Story:Ch0_OpenedBridgeToToadTown
+  738:  Call  DisablePlayerInput    ( .False )
+  748:  Call  EnablePartnerAI ( )
+  754:  Unbind
+  75C:  Return
+  764:  End
 }
 
 
+@	$Script_80242B98
+{
+		If  *NoGoombariusMode == .False
+			Call  DisablePartnerAI      ( 00000000 )
+		EndIf
+   10:  Wait  37`
+   1C:  Call  SetPlayerAnimation    ( 0008001F )
+   2C:  Wait  60`
+   38:  Call  SetPlayerAnimation    ( 0001002B )
+   48:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   60:  Call  SetPlayerJumpscale    ( *Fixed[1.8] )
+   70:  Call  PlayerJump1   ( *Var0 *Var1 *Var2  10` )
+   8C:  Wait  30`
+   98:  Call  SetPlayerAnimation    ( .PlayerAnim:Running )
+   A8:  Call  SetPlayerSpeed        ( *Fixed[6.0] )
+		If  *NoGoombariusMode == .False
+	   B8:  Call  SetNpcSpeed   ( .Npc:Partner *Fixed[6.0] )
+	   CC:  Thread
+	   D4:  	Call  NpcMoveTo ( .Npc:Partner  -573`  162`  0` )
+	   F0:  EndThread
+		EndIf
+   F8:  Call  PlayerMoveTo  (  -547`  147`  0` )
+  110:  Call  InterpPlayerYaw       (  90`  0` )
+  124:  Call  SetPlayerAnimation    ( 00010002 )
+		If  *NoGoombariusMode == .False
+			Call  EnablePartnerAI ( )
+		EndIf
+  140:  Wait  100`
+  14C:  Return
+  154:  End
+}
+
+
+
 %Speed up and exaggerate this cutscene. Also make Goombarius and Goomba King more expressive.
+
+
 @	$Script_80243514
 {
-   [1C]  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.4] )
-   [48]  Wait  150`
-   [B4]  Call  SetNpcSpeed   ( .NpcID:GoombaBros_00 *Fixed[6.0] )
-   [C8]  Call  SetNpcSpeed   ( .NpcID:GoombaBros_01 *Fixed[6.0] )
-   [DC]  Wait  20`
-  [42C]  Call  SetPlayerSpeed    ( *Fixed[5.0] )
-  [454]  Wait  15`
-  [460]  Call  DisablePartnerAI  ( 00000000 )
-  [470]  Wait  10`
-  [490]  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010010 00000000 000B00C5 ) % Hey, look, Mario! See that building over there? I' ...
-  [4C4]  Wait  20`
-  [598]  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[0.4] )
-  [5D0]  Wait  50`
-  [6A4]  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[0.8] )
-  [6DC]  Wait  50`
-  [7B0]  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[2.0] )
-  [7E8]  Wait  40`
-  [8BC]  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[3.5] )
-  [8F4]  Wait  25`
-  [91C]  Wait  28`
-  [A30]  Wait  5`
-  [BD0]  Wait  50`
-  [BDC]  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 0063000F 00630001 00000000 000B00C6 ) % So, Mario, it's true! You've made it this far. I r ...
-  [C84]  Wait  3`
-  [C90]  Call  SpeakToPlayer ( .Npc:Partner 0001000C 0001000B 00000000 000B00C9 ) % Wow... That King Goomba is... really huge! I'm sur ...
-  [CF8] Wait  3`
-  [D04]  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 0063000F 00630001 00000000 000B00CA ) % Ready to meet my wrath, Mario? You'd better be!!
-  [D3C]  Wait  10`
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  ExecWait  $Script_802422C8
+   1C:  Call  SetCamSpeed   ( .Cam:Default *Fixed[0.5] )
+   30:  Call  PanToTarget   ( .Cam:Default *Fixed[0.5] 00000001 )
+   48:  Wait  130`
+   54:  Call  SetNpcPos     ( .NpcID:GoombaBros_00  -830`  0`  -70` )
+   70:  Call  SetNpcPos     ( .NpcID:GoombaBros_01  -800`  0`  -20` )
+   8C:  Call  SetNpcAnimation       ( .NpcID:GoombaBros_00 00620107 )
+   A0:  Call  SetNpcAnimation       ( .NpcID:GoombaBros_01 00620007 )
+   B4:  Call  SetNpcSpeed   ( .NpcID:GoombaBros_00 *Fixed[6.0] )
+   C8:  Call  SetNpcSpeed   ( .NpcID:GoombaBros_01 *Fixed[6.0] )
+   DC:  Wait  19`
+   E8:  Thread
+   F0:  	Call  NpcMoveTo ( .NpcID:GoombaBros_00  -521`  -100`  0` )
+  10C:  EndThread
+  114:  Call  NpcMoveTo     ( .NpcID:GoombaBros_01  -504`  -74`  0` )
+  130:  Call  SpeakToPlayer ( .NpcID:GoombaBros_01 00620005 00620003 00000005 000B00C3 ) % King Goomba! Help us!
+  150:  Call  SpeakToPlayer ( .NpcID:GoombaBros_00 00620105 00620103 00000005 000B00C4 ) % Mario beat us up!
+  170:  Call  PlaySoundAtCollider   ( ~Collider:tt .Sound:MetalDoorOpen 00000000 )
+  188:  Call  MakeLerp      ( 00000000 0000005A 0000001E .Easing:CosInOut )
+  1A4:  Label  0
+  1B0:  Call  UpdateLerp ( )
+  1BC:  Call  RotateModel   ( ~Model:o416 *Var0 00000000 FFFFFFFF 00000000 )
+  1DC:  Call  RotateModel   ( ~Model:o415 *Var0 00000000 00000001 00000000 )
+  1FC:  Wait  1`
+  208:  If  *Var1  ==  00000001
+  218:  	Goto  0
+  224:  EndIf
+  22C:  Thread
+  234:  	Call  NpcMoveTo ( .NpcID:GoombaBros_00  -353`  -93`  0` )
+  250:  EndThread
+  258:  Call  NpcMoveTo     ( .NpcID:GoombaBros_01  -364`  -77`  0` )
+  274:  Call  MakeLerp      ( 0000005A 00000000 0000001E .Easing:CosInOut )
+  290:  Label  1
+  29C:  Call  UpdateLerp ( )
+  2A8:  Call  RotateModel   ( ~Model:o416 *Var0 00000000 FFFFFFFF 00000000 )
+  2C8:  Call  RotateModel   ( ~Model:o415 *Var0 00000000 00000001 00000000 )
+  2E8:  Wait  1`
+  2F4:  If  *Var1  ==  00000001
+  304:  	Goto  1
+  310:  EndIf
+  318:  Call  PlaySoundAtCollider   ( ~Collider:tt .Sound:MetalDoorClose 00000000 )
+  330:  Call  PlaySoundAt   ( 000020EC 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  350:  Call  PlaySoundAt   ( 000020B4 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  370:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD2B 00000075 FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3B4:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD97 0000006C FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  3F8:  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[0.5] )
+  414:  Call  SetPlayerPos  (  -920`  0`  -35` )
+  42C:  Call  SetPlayerSpeed    ( *Fixed[6.0] )
+  43C:  Call  PlayerMoveTo  (  -575`  -60`  0` )
+		If  *NoGoombariusMode == .False
+	  454:  Wait  14`
+	  460:  Call  DisablePartnerAI  ( 00000000 )
+	  470:  Wait  4`
+	  47C:  Call  PlayerFaceNpc ( .Npc:Partner .False )
+	  490:  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010010 00000000 000B00C5 ) % Hey, look, Mario! See that building over there? I' ...
+		EndIf
+  4B0:  Call  InterpPlayerYaw   (  90`  0` )
+  4C4:  Wait  20`
+  4D0:  Call  PlaySoundAt   ( 000020EC 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  4F0:  Call  PlaySoundAt   ( 000020B4 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  510:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD2B 00000075 FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  554:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD97 0000006C FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  598:  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[0.8] )
+  5B4:  Set   *Var3  00000002
+  5C4:  Exec  $Script_80243460
+  5D0:  Wait  40`
+  5DC:  Call  PlaySoundAt   ( 000020EC 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  5FC:  Call  PlaySoundAt   ( 000020B4 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  61C:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD2B 00000075 FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  660:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD97 0000006C FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  6A4:  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[1.2] )
+  6C0:  Set   *Var3  00000004
+  6D0:  Exec  $Script_80243460
+  6DC:  Wait  30`
+  6E8:  Call  PlaySoundAt   ( 000020EC 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  708:  Call  PlaySoundAt   ( 000020B4 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  728:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD2B 00000075 FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  76C:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD97 0000006C FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  7B0:  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[2.0] )
+  7CC:  Set   *Var3  00000006
+  7DC:  Exec  $Script_80243460
+  7E8:  Wait  40`
+  7F4:  Call  PlaySoundAt   ( 000020EC 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  814:  Call  PlaySoundAt   ( 000020B4 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  834:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD2B 00000075 FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  878:  Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD97 0000006C FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  8BC:  Call  ShakeCam      ( .Cam:Default 00000000  5` *Fixed[3.5] )
+  8D8:  Set   *Var3  00000008
+  8E8:  Exec  $Script_80243460
+  8F4:  Wait  22`
+  900:  Call  SetMusicTrack ( 00000000 .Song:GoombaKingTheme 00000000 00000008 )
+  91C:  Wait  25`
+  928:  Call  SetNpcAnimation   ( .NpcID:GoombaBros_00 00620102 )
+  93C:  Call  SetNpcAnimation   ( .NpcID:GoombaBros_01 00620002 )
+  950:  Call  SetNpcJumpscale   ( .NpcID:GoombaBros_00 *Fixed[0.8] )
+  964:  Call  SetNpcJumpscale   ( .NpcID:GoombaBros_01 *Fixed[0.8] )
+  978:  Thread
+  980:  	Call  SetNpcPos ( .NpcID:GoombaBros_00  -400`  0`  -162` )
+  99C:  	Call  PlaySoundAtNpc    ( .NpcID:GoombaBros_00 0000010F 00000000 )
+  9B4:  	Call  NpcJump0  ( .NpcID:GoombaBros_00  -432`  130`  -146`  30` )
+  9D4:  EndThread
+  9DC:  Call  SetNpcPos ( .NpcID:GoombaBros_01  -400`  0`  -41` )
+  9F8:  Call  PlaySoundAtNpc    ( .NpcID:GoombaBros_01 0000010F 00000000 )
+  A10:  Call  NpcJump0  ( .NpcID:GoombaBros_01  -412`  130`  -35`  30` )
+  A30:  Wait  10`
+  A3C:  Thread
+  A44:  	Call  SetNpcJumpscale   ( .NpcID:GoombaKing_02 *Fixed[0.8] )
+  A58:  	Call  SetNpcPos     ( .NpcID:GoombaKing_02  -405`  0`  -91` )
+  A74:  	Call  PlaySoundAtNpc    ( .NpcID:GoombaKing_02 000003E7 00000000 )
+  A8C:  	Call  NpcJump0      ( .NpcID:GoombaKing_02  -419`  119`  -91`  30` )
+  AAC:  	Call  PlaySoundAt   ( 000020EC 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  ACC:  	Call  PlaySoundAt   ( 000020B4 00000000 FFFFFEB6 00000000 FFFFFF7E )
+  AEC:  	Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD2B 00000075 FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  B30:  	Call  PlayEffect    ( ~FX:DropLeaves:Random FFFFFD97 0000006C FFFFFF77 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  B74:  	Call  ShakeCam      ( .Cam:Default 00000000  10` *Fixed[1.0] )
+  B90:  EndThread
+  B98:  ExecWait  $Script_80242430
+  BA4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  BB8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  BD0:  Wait  50`
+  BDC:  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 0063000F 00630001 00000000 000B00C6 ) % So, Mario, it's true! You've made it this far. I r ...
+  BFC:  Call  SpeakToPlayer ( .NpcID:GoombaBros_01 00620004 00620002 00000000 000B00C7 ) % You hear that, Mario! No farther! Not one step! Ar ...
+  C1C:  Call  SpeakToPlayer ( .NpcID:GoombaBros_00 00620104 00620102 00000000 000B00C8 ) % Bah ha ha!!! Yeah, you're scared, all right. You w ...
+  C3C:  ExecWait  $Script_8024237C
+  C48:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  C5C:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+		If  *NoGoombariusMode == .False
+	  C74:  Call  DisablePartnerAI  ( 00000000 )
+	  C84:  Wait  2`
+	  C90:  Call  SpeakToPlayer ( .Npc:Partner 0001000C 0001000B 00000000 000B00C9 ) % Wow... That King Goomba is... really huge! I'm sur ...
+	  CB0:  Call  DisablePartnerAI  ( 00000000 )
+		Else
+			Wait  20`
+		EndIf
+  CC0:  ExecWait  $Script_80242430
+  CCC:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  CE0:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  CF8:  Wait  2`
+  D04:  Call  SpeakToPlayer ( .NpcID:GoombaKing_02 0063000F 00630001 00000000 000B00CA ) % Ready to meet my wrath, Mario? You'd better be!!
+  D24:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  D3C:  Wait  10`
+  D48:  Call  SetNpcVar     ( .NpcID:GoombaKing_02 00000000 00000001 )
+  D60:  Return
+  D68:  End
+}
+
+
+@	$Script_80243460
+{
+    0:  Thread
+    8:  	Call  SetPlayerJumpscale    ( *Fixed[2.0] )
+   18:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   30:  	Call  PlayerJump1   ( *Var0 *Var1 *Var2 *Var3 )
+   4C:  EndThread
+		If  *NoGoombariusMode == .False
+	   54:  Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[2.0] )
+	   68:  Call  GetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+	   84:  Call  NpcJump1  ( .Npc:Partner *Var0 *Var1 *Var2 *Var3 )
+		EndIf
+   A4:  Return
+   AC:  End
 }
 
 

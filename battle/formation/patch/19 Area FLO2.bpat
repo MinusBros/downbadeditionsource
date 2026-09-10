@@ -56,7 +56,7 @@
 
 @	$MontyMole
 {
-	[Level]        38`b
+	[Level]        32`b
 	[MaxHP]        21`b
 	[Coins]         3`b
 	[Item]         80`b
@@ -73,7 +73,7 @@
    28:  	Call  SetPartScale  ( .Actor:Self 00000001 *Fixed[0.4] *Fixed[0.4] *Fixed[0.4] )
    48:  EndIf
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $MontyMole 44` )
+			Call	$Function_SetLevel	( $MontyMole 37` )
 		EndIf
    50:  Return
    58:  End
@@ -102,25 +102,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      30`
-	.Status:Poison     80`
-	.Status:Frozen      0`
-	.Status:Dizzy      40`
+	.Status:Sleep       0`
+	.Status:Poison     50`
+	.Status:Frozen     50`
+	.Status:Dizzy      50`
 	.Status:Fear        0`
-	.Status:Static     10`
-	.Status:Paralyze   40`
-	.Status:Shrink     25`
-	.Status:Stop       40`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink     50`
+	.Status:Stop       50`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod     -1`
+	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -1`
+	.Status:DizzyTurnMod     -2`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod   0`
-	.Status:ShrinkTurnMod     0`
-	.Status:StopTurnMod      -1`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -1`
+	.Status:StopTurnMod      -2`
 	.Status:End
 }
 
@@ -244,7 +244,7 @@
 		Call  YieldTurn ( )
   474:  Call  FlyPartTo ( .Actor:Self 00000003 *Var0 *Var1 *Var2  0`  20` .Easing:Linear )
   4A0:  Wait  2`
-  4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 0000000A 00000020 )
+  4AC:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000000 00000000 18` 00000020 )
    44:  EndIf
   4D4:  Switch  *Var0
   4E0:  	CaseOR  ==  .HitResult:Hit % 0
@@ -292,6 +292,33 @@
    3C:  Return
    44:  End
 }
+
+@	$StatusTable_80231874
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep       0`
+	.Status:Poison      0`
+	.Status:Frozen      0`
+	.Status:Dizzy       0`
+	.Status:Fear        0`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink      0`
+	.Status:Stop        0`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -4`
+	.Status:PoisonTurnMod     0`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod     -2`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -4`
+	.Status:End
+}
+
 
 
 @	$Script_HandleEvent_80231A6C
@@ -428,6 +455,7 @@
 			ExecWait  $Script_Buff
 			Wait	2`
 		EndIf
+		
     ExecWait  $Script_80231FBC 
 	EndIf
     Return
@@ -442,6 +470,7 @@
 
 @	$Script_80231FBC
 {
+		Exec  $ShowMessageSonicBoom
     0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
    28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
@@ -524,7 +553,7 @@
   88C:  Call  SetGoalToTarget   ( .Actor:Self )
   89C:  Call  GetGoalPos        ( .Actor:Self *Var0 *Var1 *Var2 )
 		Call  GetActorVar   ( .Actor:Self 00000006 *Var5 )
-		If   *Var5  > 5`	%Jonathan's speed stat
+		If   *Var5  > 5`	%Jonathan's speed stat. Yes it increases.
 			Sub   *Var5  1`
 		EndIf
 		Call  SetActorVar  ( .Actor:Self 00000006 *Var5 )
@@ -664,11 +693,18 @@
 	End
 }
 
+#new:Script $ShowMessageSonicBoom
+{
+	Call  ActorSpeak        ( 001F0067 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %For Jonathan
+	Return 
+	End
+}
+
 
 @	$HuffNPuff
 {
 	[Level]       120`b
-	[MaxHP]       164`b
+	[MaxHP]       157`b
 	[PowerBounce]   3`b
 }
 
@@ -688,6 +724,32 @@
 	.Element:Cosmic -2`
 	.Element:Quake  -2`
 	.Element:End
+}
+
+@	$StatusTable_80219A60
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep       0`
+	.Status:Poison      0`
+	.Status:Frozen      0`
+	.Status:Dizzy       0`
+	.Status:Fear        0`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink      0`
+	.Status:Stop        0`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -4`
+	.Status:PoisonTurnMod     0`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod     -4`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -4`
+	.Status:End
 }
 
 
@@ -1238,7 +1300,7 @@
   630:  Call  JumpToGoal    ( .Actor:Self  20` .False .False .False )
   660:  Wait  1`
   66C:  Call  SetGoalToTarget       ( .Actor:Self )
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000008 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000000 00000000 15` 00000020 )
   58C:  Call  SetAnimation  ( .Actor:Self 00000001 007C000B )
   5A4:  Call  SetAnimation  ( .Actor:Self 00000002 007C000C )
   5BC:  Call  SetAnimation  ( .Actor:Self 00000003 007C000D )
@@ -1250,7 +1312,7 @@
   650:  Call  80269EAC      ( 00000018 )
   660:  Wait  3`
   66C:  Call  SetGoalToTarget       ( .Actor:Self )
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000008 00000000 00000009 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000008 00000000 16` 00000020 )
   7D8:  Switch  *Var0
   7E4:  	CaseOR  ==  .HitResult:Hit % 0
   7F0:  	CaseOR  ==  .HitResult:QuakeImmune % 2

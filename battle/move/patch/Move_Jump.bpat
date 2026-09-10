@@ -43,7 +43,6 @@ ADDIU	V0, R0, 2
 {
     0:  Call  LoadActionCommand ( .ActionCommand:Jump )
    10:  Call  802A9000 ( )
-		Exec $Script_NukeTracker
    1C:  ExecWait  $Script_802A11FC
    28:  ExecWait  $Script_802A1370
    34:  Call  802A9120  ( *VarA 00000003 )
@@ -55,95 +54,6 @@ ADDIU	V0, R0, 2
    A4:  End
 }
 
-
-
-#new:Script $Script_DoStylish
-{
-    Call  UseBattleCamPreset      ( 00000022 ) % restore vanilla code
-    % Init A tracker
-    Exec $Script_InitTracker
-    % if the player press A in the next frames the stylish will be locked
-    Wait 5
-    % Check if the A button was pressed too soon
-    Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
-    If *Var0 == .True
-        Set *TrackInput .False
-        Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
-        Return
-    EndIf
-    % TRACK A - RIGHT TIME TO PRESS THE BUTTON
-    Loop 3 % 3 frames
-        % Timing Tutor Badge
-        ExecWait $Script_TimingTutor % writes in var0,1,2
-        Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
-        If *Var0 == .True
-            % Add 1 to the stylish counter (last move only)
-            Call $ReadAddress  ( $Data_Inputs 0 *Var0 2 .False )
-            Add *Var0 1
-            Call $WriteAddress ( $Data_Inputs 0 *Var0 2 .False )
-            Call $WriteAddress ( 8029FC40 0 0 .False .False ) % restard current action command bool, so the game ignores you pressed A when doing the stylish
-            Set *VarA .False % this move doesn't have an SP cap
-            ExecWait $Script_DoStylishFX
-            Call  SetJumpAnimations ( .Actor:Player 00000000 00010013 00010013 0001000C )
-            BreakLoop
-        EndIf
-        Wait 1
-    EndLoop
-    Set *TrackInput .False
-    Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
-    Return
-    End
-}
-
-
-
-#new:Script $Script_DoStylish2
-{
-Call  LoadActionCommand ( 1 ) % restore previous line of code before the Exec was placed
-% Init A tracker
-Exec $Script_InitTracker
-% if the player press A in the next frames the stylish will be locked
-Wait 5 % 3 frames
-% Check if the A button was pressed too soon
-Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
-If *Var0 == .True
-    Set *TrackInput .False
-    Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
-    Return
-EndIf
-% TRACK A - RIGHT TIME TO PRESS THE BUTTON
-Loop 3 % 3 frames
-    % Timing Tutor Badge
-    ExecWait $Script_TimingTutor % writes in var0,1,2
-    Call $ReadAddress ( $Data_Inputs 0 *Var0 .False .False )
-    If *Var0 == .True
-        % Add 1 to the stylish counter (last move only)
-        Call $ReadAddress  ( $Data_Inputs 0 *Var0 2 .False )
-        Add *Var0 1
-        Call $WriteAddress ( $Data_Inputs 0 *Var0 2 .False )
-        Call $WriteAddress ( 8029FC40 0 0 .False .False ) % Restart Last Action Command Succed Bool
-        Set *VarA .False % this move doesn't have an SP cap
-        ExecWait $Script_DoStylishFX
-        Call $ReadAddress ( 8010F290 0 *Var0 .False .False )
-        % Var0 = Current Boots
-        Switch *Var0
-            Case == 0 % Boots
-                Call  SetJumpAnimations ( .Actor:Player 00000000 00050000 00050000 0001000C )
-            Case == 1 % Super Boots
-                Call  SetAnimation  ( .Actor:Player 00000000 00050000 )
-                Call  SetJumpAnimations ( .Actor:Player 00000000 00050000 0001000A 0001000B )
-            Case == 2 % Ultra Boots
-                Call  SetJumpAnimations ( .Actor:Player 00000000 0001001F 0001001F 0001000C )
-        EndSwitch
-        BreakLoop
-    EndIf
-    Wait 1
-EndLoop
-Set *TrackInput .False
-Call $WriteAddress ( $Data_Inputs 0 0 .False .False ) % turn input bool as false again
-Return
-End
-}
 
 @ $Script_802A1628
 {

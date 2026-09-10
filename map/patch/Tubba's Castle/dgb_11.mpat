@@ -1,0 +1,97 @@
+
+%Replace D-Down Jump for a Big Star Point
+@	$Script_MakeEntities
+{
+    0:  Call  MakeItemEntity    ( .Item:BigStarPoint ~Vec3d:Item80240A84 .ItemSpawnMode:Fixed_NeverVanish *DGB11_BigStarPoint )
+   24:  Call  MakeEntity        ( .Entity:ScriptSpring ~Vec4d:Entity80240AA8 80000000 )
+   48:  Call  AssignScript      ( $Script_8024062C )
+   58:  Set   *MapVar[0]  *Var0
+   68:  Return
+   70:  End
+}
+
+
+@	$Script_8024062C
+{
+    0:  If  *AreaFlag[003]  ==  .True
+   10:  	Return
+   18:  EndIf
+   20:  Set   *AreaFlag[003]  .True
+   30:  Call  DisablePlayerInput    ( .True )
+   40:  Call  SetZoneEnabled        ( ~Zone:o203 .False )
+   54:  If  *AreaFlag[002]  ==  .False
+   64:  	If  *GF_DGB10_BoardedFloor3  ==  .False
+   74:  		Call  DisablePlayerPhysics  ( .True )
+   84:  		Call  SetPlayerActionState  ( .ActionState:Jump )
+   94:  		Wait  1`
+   A0:  		Set   *Var3  000001F4
+   B0:  		Exec  $Script_80240570 *VarA
+   C0:  		Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+   D0:  		Exec  $Script_80240600 *VarB
+   E0:  		Loop
+   EC:  			Wait  1`
+   F8:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  110:  			If  *Var1  >=  000000A5
+  120:  				BreakLoop
+  128:  			EndIf
+  130:  		EndLoop
+  138:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  150:  		Call  SetPlayerPos  ( *Var0  165` *Var2 )
+  168:  		Kill  *VarB
+  174:  		Call  SetPlayerAnimation    ( 00080015 )
+  184:  		Call  ShakeCam  ( .Cam:Default 00000000  20` *Fixed[1.0] )
+  1A0:  		Wait  10`
+  1AC:  		Call  SetPlayerAnimation    ( 00010002 )
+  1BC:  		Call  SetPlayerJumpscale    ( *Fixed[0.0] )
+  1CC:  		Call  PlayerJump1   (  375`  25`  -250`  10` )
+  1E8:  		Call  $Function_80240000 ( )
+  1F4:  		Call  PlaySoundAtPlayer     ( .Sound:Spring 00000000 )
+  208:  		Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+  218:  		Call  PlayerJump    ( ~Vec3d:JumpDest_80240844  15` )
+  234:  		Kill  *VarA
+  240:  		Call  SetPlayerActionState  ( .ActionState:Idle )
+  250:  		Wait  2`
+  25C:  		Call  SetZoneEnabled        ( ~Zone:o203 .True )
+  270:  		Call  DisablePlayerPhysics  ( .False )
+  280:  		Call  DisablePlayerInput    ( .False )
+  290:  		Set   *AreaFlag[003]  .False
+  2A0:  	Else
+  2A8:  		Call  DisablePlayerPhysics  ( .True )
+  2B8:  		Call  SetPlayerActionState  ( .ActionState:Jump )
+  2C8:  		Wait  1`
+  2D4:  		Thread
+  2DC:  			Wait  8`
+  2E8:  			Call  GotoMap   ( $ASCII_80240B08 00000001 ) % dgb_10
+  2FC:  			Wait  100`
+  308:  		EndThread
+  310:  		Set   *Var3  000001F4
+  320:  		Exec  $Script_80240570 *VarA
+  330:  		Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+  340:  		Call  PlayerJump    ( ~Vec3d:JumpDest_8024096C  20` )
+  35C:  		Set   *AreaFlag[003]  .False
+  36C:  	EndIf
+  374:  Else
+  37C:  	Call  SetPlayerActionState  ( .ActionState:Jump )
+  38C:  	Wait  1`
+  398:  	Set   *Var3  00000019
+  3A8:  	Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+  3B8:  	Call  PlayerJump    ( ~Vec3d:JumpDest_802409E4  15` )
+  3D4:  	Set   *AreaFlag[002]  .False
+  3E4:  	Kill  *VarA
+  3F0:  	Call  SetPlayerActionState  ( .ActionState:Idle )
+  400:  	Wait  2`
+  40C:  	Call  SetZoneEnabled        ( ~Zone:o203 .True )
+  420:  	Call  DisablePlayerInput    ( .False )
+  430:  	Set   *AreaFlag[003]  .False
+  440:  EndIf
+  448:  Return
+  450:  End
+}
+
+
+@	$Script_80240600
+{
+    0:  Call  PlayerJump    ( ~Vec3d:JumpDest_80240600  20` )
+   1C:  Return
+   24:  End
+}

@@ -64,18 +64,40 @@
 			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000002 00000008 )
 		Else
 			Call  SetMusicTrack ( 00000000 .Song:Sorrow 00000001 00000008 )
-			Thread
-				Wait  20`
-				Exec  $AutoSave
-			EndThread
+			Exec  $AutoSaveNoMessage
 		EndIf
   160:  Exec  $Script_802413C4
   16C:  Exec  $Script_EnterSingleDoor_80241460
+		Exec  $GoombariusCommentPostGame
   178:  Wait  1`
   184:  Return
   18C:  End
 }
 
+
+#new:Script  $GoombariusCommentPostGame
+{
+		Wait  32`
+		If  *GoombariusTalksAboutDokiDokiCastle == .False
+			Call  GetEntryID    ( *Var0 )
+			If  *Var0  == 0`
+				If  *GB_StoryProgress  ==  .Story:PostGame	
+					Call  DisablePlayerInput    ( .True )
+					Call  BringPartnerOut   ( .Partner:Goombario )
+					Call  DisablePartnerAI  ( 00000000 )
+					Wait  5`	
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 00000024 )
+					Call  PutPartnerAway ( )
+					Wait  5`
+					Call  EnablePartnerAI ( )
+					Set  *GoombariusTalksAboutDokiDokiCastle .True
+					Call  DisablePlayerInput    ( .False )
+				EndIf
+			EndIf
+		EndIf
+		Return
+		End
+}
 
 @	$Script_802413C4
 {
@@ -100,7 +122,7 @@
    5C:  Set   *Var3  ~Model:door1
    6C:  Exec  ExitDoubleDoor
    78:  Wait  17`
-   84:  Call  GotoMap   ( "osr_00" 00000001 ) % osr_00
+   84:  Call  GotoMap   ( "osr_00" 00000002 ) % osr_00
    98:  Wait  100`
    A4:  Return
    AC:  End
@@ -371,14 +393,14 @@
    30:  		Call  SetNpcAnimation   ( 00000006 00E10002 )
    44:  		Call  SetSelfVar        ( 00000001 00000001 )
    58:  	Else
-   60:  		Call  SetNpcAnimation   ( 00000007 009B0104 )
+   60:  		Call  SetNpcAnimation   ( 00000007 009B0304 )
    74:  		Call  SetSelfVar        ( 00000001 00000000 )
    88:  	EndIf
    90:  	Call  RandInt   ( 0000003C *Var0 )
    A4:  	Add   *Var0  0000001E
    B4:  	Wait  *Var0
    C0:  	Call  SetNpcAnimation   ( 00000006 00E10001 )
-   D4:  	Call  SetNpcAnimation   ( 00000007 009B0101 )
+   D4:  	Call  SetNpcAnimation   ( 00000007 009B0301 )
    E8:  	Wait  10`
    F4:  EndLoop
    FC:  End
@@ -387,7 +409,7 @@
 %Russ T., now replaced with a drummer
 @	$Script_Interact_80242018
 {
-    0:  Call  SetNpcAnimation   ( 00000007 009B0101 )
+    0:  Call  SetNpcAnimation   ( 00000007 009B0301 )
    14:  Call  SetNpcAnimation   ( 00000006 00E10001 )
    28:  Wait  10`
    34:  Call  SpeakToPlayer     ( .Npc:Self 00E10002 00E10001 00000010 00000027 ) % Ah! Salutations, Mario! Do you know Frost T. here? ...
@@ -401,9 +423,9 @@
 {
     0:  Call  EnableNpcAI       ( 00000006 .False )
    14:  Call  SetNpcAnimation   ( 00000006 00E10001 )
-   28:  Call  SetNpcAnimation   ( 00000007 009B0101 )
+   28:  Call  SetNpcAnimation   ( 00000007 009B0301 )
    3C:  Wait  10`
-   48:  Call  SpeakToPlayer     ( .Npc:Self 009B0104 009B0101 00000010 00000028 ) % Princess Peach is such a generous and wonderful la ...
+   48:  Call  SpeakToPlayer     ( .Npc:Self 009B0304 009B0301 00000010 00000028 ) % Princess Peach is such a generous and wonderful la ...
    68:  Call  EnableNpcAI       ( 00000006 .True )
    7C:  Return
    84:  End
@@ -417,6 +439,7 @@
 
 %Post Game NPCs
 %We also need to update them to have tattles
+%All done
 
 @	$NpcGroup_80242474
 {
@@ -457,7 +480,7 @@
 	~NoDrops
 	~Movement:NPC_ThreeSisters_04
 	~AnimationTable:NPC_ThreeSisters_04 % .Sprite:ThreeSisters
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A014E % She's May T.
 	%
 	% $NpcGroup_80242474[9B0]
 	00000005 $NpcSettings_802418F4 ~Vec3f:NPC_ThreeSisters_05 % -270 0 85
@@ -465,7 +488,7 @@
 	~NoDrops
 	~Movement:NPC_ThreeSisters_05
 	~AnimationTable:NPC_ThreeSisters_05 % .Sprite:ThreeSisters
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A014F % She's Mand T.
 	%
 	% $NpcGroup_80242474[BA0]
 	00000006 $NpcSettings_802418F4 ~Vec3f:NPC_RussT_06 % 300 0 150
@@ -473,7 +496,7 @@
 	~NoDrops
 	~Movement:NPC_RussT_06
 	~AnimationTable:NPC_RussT_06 % .Sprite:RussT
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A0143 % He's  T. Drummond
 	%
 	% $NpcGroup_80242474[D90]
 	00000007 $NpcSettings_802418F4 ~Vec3f:NPC_ShiverToad_07 % 330 0 135
@@ -481,7 +504,7 @@
 	~NoDrops
 	~Movement:NPC_ShiverToad_07
 	~AnimationTable:NPC_ShiverToad_07 % .Sprite:ShiverToad
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A014D % He's Long Jevva T.
 	%
 	% $NpcGroup_80242474[F80]
 	00000008 $NpcSettings_8024194C ~Vec3f:NPC_Penguin_08 % -120 100 -305
@@ -489,7 +512,7 @@
 	~NoDrops
 	~Movement:NPC_Penguin_08
 	~AnimationTable:NPC_Penguin_08 % .Sprite:Penguin
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A0156  % He's Ivan
 	%
 	% $NpcGroup_80242474[1170]
 	00000009 $NpcSettings_802418F4 ~Vec3f:NPC_ToadGuard_09 % 100 0 150
@@ -497,7 +520,7 @@
 	~NoDrops
 	~Movement:NPC_ToadGuard_09
 	~AnimationTable:NPC_ToadGuard_09 % .Sprite:ToadGuard
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A0142 % He's Majess T.
 	%
 	% $NpcGroup_80242474[1360]
 	0000000A $NpcSettings_802418F4 ~Vec3f:NPC_ToadGuard_10 % -50 100 -365
@@ -505,7 +528,7 @@
 	~NoDrops
 	~Movement:NPC_ToadGuard_10
 	~AnimationTable:NPC_ToadGuard_10 % .Sprite:ToadGuard
-	00000000 00000000 00000000 00000000 % no tattle string
+	00000000 00000000 00000000 001A0157 % He's Athora T.
 }
 
 

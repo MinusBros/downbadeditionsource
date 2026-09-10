@@ -38,6 +38,17 @@
 %though it is never set to anything else IIRC
 %(though some battle data surrounding it is also reset, so that might just be what happens to that part of the battle data)
 
+
+@Hook 1A02E4
+{
+LW 		V0, 7C (FP) 	%where the flags are
+SW		V0, 19C (S1)	%S1 = 800DC070 I think
+LUI 	V0, 800E 		%hooked over
+J 		80271A0C
+LW 		V0, C070 (V0) 	%hooked over
+}
+
+
 %Changed it to 19C so it should be better
 
 %Mario sprite event flags stuff
@@ -77,25 +88,15 @@
 
 
 
-%Make it so that Quake + Jump does not trigger spikiness (normally, jump moves are hardcoded to trigger spikiness unless you have spike shield, regardless of other factors)
-%1A0034 --> 80271754
-
-
-@Hook 1A0114
+@Hook 1ACD00
 {
-	LW        V0, 188 (S2)
-	%Check for 800 flag
-	ANDI      V0, V0, 800
-	BNE		  V0, R0, .new
-	NOP
-	.normal
-	LW        V0, 188 (S2)
-	J		  8027183C
-	ANDI      V0, V0, 80	%check it normally
-	.new
-	J		  8027183C
-	ORI		  V0, R0, 0		%nope, no jump flag here
+LW		A0, 7C (S6) %get sprite event flags (hooked over)
+SW		A0, 19C (S1) %S1 = 800DC070 I think
+J		8027E428
+ANDI	V0, A0, 0020 %hooked over
 }
+
+
 
 @Hook 1A03DC
 {
@@ -117,5 +118,28 @@
 	J		  80271B04
 	AND       V0, V0, V1
 }
+
+
+
+%Make it so that Quake + Jump does not trigger spikiness (normally, jump moves are hardcoded to trigger spikiness unless you have spike shield, regardless of other factors)
+%1A0034 --> 80271754
+
+
+@Hook 1A0114
+{
+	LW        V0, 188 (S2)
+	%Check for 800 flag
+	ANDI      V0, V0, 800
+	BNE		  V0, R0, .new
+	NOP
+	.normal
+	LW        V0, 188 (S2)
+	J		  8027183C
+	ANDI      V0, V0, 80	%check it normally
+	.new
+	J		  8027183C
+	ORI		  V0, R0, 0		%nope, no jump flag here
+}
+
 
 

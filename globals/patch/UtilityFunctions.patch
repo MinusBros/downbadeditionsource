@@ -1308,6 +1308,38 @@ NOP
 
 
 
+% Call $GetActorPointer ( ActorID *out )
+#new:Function:Battle $GetActorPointer
+{
+    PUSH    RA, A0, S0, S1, S2
+    COPY    S2, A0
+    % Get Arg 1
+    LW      S0, C (A0)
+    JAL     ~Func:get_variable
+    LW      A1, 0 (S0)
+    COPY    S1, V0
+    % S1 = actorID
+    % .Actor:Self was used?
+    LIO     V0, FFFFFF81
+    BNE	    S1, V0, .GetPointer
+    NOP
+    LW	    S1, 0148 (S2) % load self id
+    .GetPointer
+    JAL		~Func:get_actor
+    COPY    A0, S1
+    % Save pointer data before POPing
+    COPY    T0, S0
+    POP     RA, A0, S0, S1, S2
+    PUSH    RA
+    % Write Var
+    COPY    A2, V0
+    JAL     ~Func:set_variable
+    LW      A1, 4 (T0) % Get Arg 2
+    POP     RA
+    JR      RA
+    ORI     V0, R0, 2
+}
+
 
 
 
@@ -1667,6 +1699,42 @@ JR            RA
 ADDIU         SP, SP, 58
 }
 
+
+
+
+% Call  $GetEntityPointer ( EntityID *out )
+%
+% Get the data pointer from an entity by reading his ID
+#new:Function $GetEntityPointer
+{
+/% Why double PUSH/POP?
+Because ASM is awesome and when using set_variable the value
+wasn't actually being saved.
+
+(Actually looks like was because A0)
+%/
+PUSH    RA, A0, S0
+% Get Arg 1
+LW      S0, C (A0)
+JAL     ~Func:get_variable
+LW      A1, 0 (S0)
+% A0 = Entity ID
+JAL     ~Func:get_entity_by_index
+COPY    A0, V0
+% Save pointer data before POPing
+COPY    T0, S0
+POP     RA, A0, S0
+PUSH    RA
+% Write Var
+COPY    A2, V0
+JAL     ~Func:set_variable
+LW      A1, 4 (T0) % Get Arg 2
+POP     RA
+JR      RA
+ORI     V0, R0, 2
+}
+
+
 %Bosses set flags before their encounters
 %If the player dies during these encounters, they can choose
 %to retry the boss battle
@@ -1676,6 +1744,7 @@ ADDIU         SP, SP, 58
 	Set *CheckGoombaBros .False
 	Set *CheckGoombaKing .False
 	Set *CheckCody .False
+	Set *CheckFuzzies .False
 	Set *CheckCoopNotes .False
 	Set *CheckMrTrooper2 .False
 	Set *CheckBuzzar .False
@@ -1709,9 +1778,10 @@ ADDIU         SP, SP, 58
 	Set *CheckMrTrooper7 .False
 	Set *CheckMrTrooper7Again .False
 	Set *CheckBlackCrystalKing .False
-	Set *CheckFinalBower .False
 	Set *CheckXinSui .False
 	Set *CheckPriest .False
+	Set *CheckFinalBower .False
+	Set *CheckRobotoad .False
 	Return
 	End
 }
@@ -1721,9 +1791,19 @@ ADDIU         SP, SP, 58
 {
 		Call  $EscapeSequenceFog ( )
 		Call  SetSpriteShading  ( .Shading:mim_08 )	%Red shading
-		Call  SetMusicTrack     ( 00000000 .Song:Escape 00000000 00000008 )
 		Call  PlaySound ( 8000006B )
+		If   *EscapeSequenceAlarmNotice == .False
+			Call	$Function_SaveItems ( )
+			Call  DisablePlayerInput    ( .True )
+			Wait  40`
+			Call  PlaySound ( 0000032E )
+			Call  ShowMessageAtScreenPos    ( 0013010E  160`  40` )
+			Set  *EscapeSequenceAlarmNotice .True
+			Call  DisablePlayerInput    ( .False )
+			Call  StopSound ( 0000032E )
+		EndIf
 		Call  SetPlayerFlagBits ( 000001C0 .True )	%No opening menus
+		Call  SetMusicTrack     ( 00000000 .Song:Escape 00000000 00000008 )
 		Thread
     0:  SetGroup  0000000B
     C:  Loop
@@ -1774,6 +1854,7 @@ ADDIU         SP, SP, 58
 #export $ReadAddress
 #export $WriteAddress
 #export $ReadAddressFloat
+#export $GetEntityPointer
 #export $Script_FadeScreenIn
 #export $Script_FadeScreenOut
 #export $WriteAddressFloat
@@ -1784,3 +1865,4 @@ ADDIU         SP, SP, 58
 #export $DrawBox % by Clover
 #export $NukeBossChecks
 #export $EscapeSequenceShake
+#export $GetActorPointer

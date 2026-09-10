@@ -1,25 +1,7 @@
-@	$Script_ExitWalk_80240A60
-{
-	[40]  Wait 50`
-}
+#define .NpcID:Nomadimouse_00       00
+#define .NpcID:Nomadimouse_01       01
 
-@ $Script_ExitWalk_80240ABC
-{
-	[40]  Wait 50`
-}
-
-@ $Script_ExitWalk_80240B18
-{
-	[40]  Wait 50`
-}
-
-@ $Script_ExitWalk_80240B74
-{
-	[40]  Wait 50`
-}
-
-
-
+#define .Npc:Luigi   4
 
 @ $Script_Main_EnterWalk
 {
@@ -71,4 +53,112 @@
    28:  Call     DisablePlayerInput	( .False )
    38:  Return
    40:  End
+}
+
+
+
+@	$NpcGroup_802419B0
+{
+	.NpcID:Nomadimouse_00 $NpcSettings_80240D70 ~Vec3f:NPC_Nomadimouse_00 % 114 0 -50
+	00402D01 $Script_Init_80241954 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Nomadimouse_00
+	~AnimationTable:NPC_Nomadimouse_00 % .Sprite:Nomadimouse
+	00000000 00000000 00000000 001A008E % He's a Nomadimouse. It looks like he's in mid-jour ...
+	%
+	% $NpcGroup_802419B0[1F0]
+	.NpcID:Nomadimouse_01 $NpcSettings_80240D70 ~Vec3f:NPC_Nomadimouse_01 % 134 0 -50
+	00402D01 $Script_Init_8024198C 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Nomadimouse_01
+	~AnimationTable:NPC_Nomadimouse_01 % .Sprite:Nomadimouse
+	00000000 00000000 00000000 001A0145  %This was funnier on paper
+}
+
+
+@	$Script_Init_8024198C
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00B90004 )
+		Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Thingy )
+   14:  Return
+   1C:  End
+}
+
+
+
+#new:Script $Script_Interact_Thingy
+{
+  180:  Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000005 000D0137 ) % I recently saw a billow of smoke over the northern ...
+  1E0:  Return
+  1E8:  End
+}
+
+@ $NpcGroupList_80241D90
+{
+	00000002 $NpcGroup_802419B0 00000000
+	1 $Luigi 0
+	00000000 00000000 00000000
+}
+
+
+%Oh and Luigi is on this map too
+
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 001A0146  %Tattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GB_StoryProgress >=  .Story:Ch2_UncoveredDryDryRuins
+		Call  RemoveNpc ( .Npc:Self )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 000D0136 ) % 
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
 }

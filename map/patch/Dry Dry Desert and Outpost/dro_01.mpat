@@ -31,13 +31,13 @@
 
 @	$ShopInventory_8024B4FC
 {
-	.Item:ThunderBolt    0000000A 00240003 % Lightning that strikes an enemy. Attack Power: 5
-	.Item:DustyHammer    00000004 00240005 % A dusty old Hammer. Throw it to damage an enemy.
-	.Item:HoneySyrup     00000008 00240016 % Sweet honey syrup. Restores 5 FP.
-	.Item:DriedShroom    00000002 0024000D % A very dry Mushroom. Restores 1 HP.
-	.Item:DriedPasta     00000008 0024001D % Pasta from Dry Dry Outpost. Restores 3 HP and 2 FP ...
-	.Item:DriedFruit     0000000E 0023001E % Dried Fruit added. Heals 12 HP.
-	.Item:PeachyPeach    00000006 00230136 % Peachy Peach desc
+	.Item:ThunderBolt    0000000A 002400B4 % Lightning that strikes an enemy. Attack Power: 5
+	.Item:DustyHammer    00000004 002400B5 % A dusty old Hammer. Throw it to damage an enemy.
+	.Item:DriedSyrup     00000002 002400B6 % A new joke item to coincide with dried shrooms.
+	.Item:DriedShroom    00000002 002400B7 % A very dry Mushroom. Restores 1 HP.
+	.Item:DriedPasta     00000008 002400B8 % Pasta from Dry Dry Outpost. Restores 3 HP and 2 FP ...
+	.Item:PeachyPeach    00000006 002400BA % Peachy Peach desc
+	.Item:DriedFruit     0000000E 002400B9 % Dried Fruit added. Heals 12 HP.
 	00000000 00000000 00000000
 }
 
@@ -180,6 +180,30 @@
 }
 
 
+%Mouser near the gate
+@	$Script_Interact_802480E0
+{
+		If  *GB_StoryProgress  ==  .Story:PostGame
+   10:  	Call  SpeakToPlayer ( .Npc:Self 00940005 00940001 00000000 000D014A ) % Welcome! You must have had a grueling trip getting ...
+   30:  	Return
+		EndIf
+    0:  If  *GB_StoryProgress  >=  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   10:  	Call  SpeakToPlayer ( .Npc:Self 00940005 00940001 00000000 000D0062 ) % Welcome! You must have had a grueling trip getting ...
+   30:  	Return
+   38:  EndIf
+   40:  Switch  *AreaByte[0]
+   4C:  	Case  ==  00000000
+   58:  		Call  SpeakToPlayer ( .Npc:Self 00940005 00940001 00000000 000D005F ) % Welcome, travelers! You must have had a long, hot  ...
+   78:  		Add   *AreaByte[0]  00000001
+   88:  	Case  ==  00000001
+   94:  		Call  SpeakToPlayer ( .Npc:Self 00940005 00940001 00000000 000D0060 ) % There's no question that Mr. Moustafa is the boss  ...
+   B4:  		Add   *AreaByte[0]  00000001
+  100:  EndSwitch
+  108:  Return
+  110:  End
+}
+
+
 %Redoing this guy's dialogue. Change dialogue after chapters 2-5
 @	 $Script_Interact_8024821C
 {
@@ -192,12 +216,138 @@
 				Call  SpeakToPlayer ( .Npc:Self 00930304 00930301 00000000 000D0065 ) % New dialogue
   120:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
   12C:  		Call  SpeakToPlayer ( .Npc:Self 00930304 00930301 00000000 000D0066 ) % Dry Dry Desert is a desert, very dry Winds of chan ...
+			Case  <  .Story:PostGame
+				Call  SpeakToPlayer ( .Npc:Self 00930304 00930301 00000000 000D0067 ) % I'm out of new songs. I can't sing a song some com ...
   14C:  	Default
   154:  		Call  SpeakToPlayer ( .Npc:Self 00930304 00930301 00000000 000D0067 ) % I'm out of new songs. I can't sing a song some com ...
   174:  EndSwitch
   17C:  Return
   184:  End
 }
+
+
+
+%The hint blue guy
+@	$Script_Interact_802483CC
+{
+    0:  Switch  *AreaByte[2]
+    C:  	Case  ==  00000000
+   18:  		Call  SpeakToPlayer ( .Npc:Self 00930204 00930201 00000000 000D0068 ) % Hey! Guess what! Hey! Somewhere in the desert, the ...
+   38:  		Add   *AreaByte[2]  00000001
+   48:  	Case  ==  00000001
+   54:  		Call  SpeakToPlayer ( .Npc:Self 00930204 00930201 00000000 000D0069 ) % Hey! Did you know? The desert is dangerous! If you ...
+   74:  		Add   *AreaByte[2]  00000001
+   84:  	Case  ==  00000002
+   90:  		Call  SpeakToPlayer ( .Npc:Self 00930204 00930201 00000000 000D006A ) % Hey! Guess what? Here's something not a whole lot  ...
+   B0:  		Add   *AreaByte[2]  00000001
+   C0:  	Case  ==  00000003
+   CC:  		Call  SpeakToPlayer ( .Npc:Self 00930204 00930201 00000000 000D006B ) % Hey! Know what I heard? There are these three tree ...
+   EC:  		Set   *AreaByte[2]  00000000
+   FC:  EndSwitch
+  104:  Return
+  10C:  End
+}
+
+
+%Two guys near tree
+@	$Script_Interact_80248864
+{
+    0:  If  *GF_MAC01_Merlon_HeardAboutDream  ==  .True
+   10:  	If  *GF_DRO01_HeardHintAboutSpinningRoof  ==  .True
+   20:  		Call  $Function_802431B4 ( )
+   2C:  		If  *Var0  ==  00000001
+   3C:  			Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D007B ) % I remember the message that came to me in a dream: ...
+   5C:  			Return
+   64:  		EndIf
+   6C:  	EndIf
+   74:  EndIf
+   7C:  Switch  *GB_StoryProgress
+   88:  	Case  <  .Story:Ch2_StarSpritDeparted % FFFFFFCB
+   94:  		If  *AreaFlag[001]  ==  .False
+   A4:  			Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D006C ) % Are you from Toad Town? Wow, that's a ways away! D ...
+   C4:  			Call  SpeakToPlayer ( .NpcID:Dryite_04 00930004 00930001 00000000 000D006D ) % ...
+   E4:  			Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D006E ) % Hey, if you're serious about looking for Dry Dry w ...
+  104:  			Set   *AreaFlag[001]  .True
+  114:  		Else
+  11C:  			Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D006F ) % My friend is the shyest guy. He can't talk to stra ...
+  13C:  			Call  SpeakToPlayer ( .NpcID:Dryite_04 00930004 00930001 00000000 000D0070 ) % ...
+  15C:  			Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0071 ) % What's that, buddy? You want to see the princess?  ...
+  17C:  			Set   *AreaFlag[001]  .False
+  18C:  		EndIf
+  194:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
+  1A0:  		Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0072 ) % My quiet friend here just adores Princess Peach. H ...
+  1C0:  		Call  SpeakToPlayer ( .NpcID:Dryite_04 00930004 00930001 00000000 000D0073 ) % !!!!
+  1E0:  		Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0074 ) % See... Look at this guy... He's only imagining see ...
+			Case  <  .Story:PostGame
+  208:  		Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0075 ) % Hey, someone said you're on a quest to save Prince ...
+  228:  		Call  SpeakToPlayer ( .NpcID:Dryite_04 00930004 00930001 00000000 000D0076 ) % Mario... Ahem... Good luck. Please save Princess P ...
+  248:  		Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0077 ) % .......! Buddy! You spoke out loud! It's a miracle ...
+  200:  	Default
+  208:  		Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0075 ) % Hey, someone said you're on a quest to save Prince ...
+  228:  		Call  SpeakToPlayer ( .NpcID:Dryite_04 00930004 00930001 00000000 000D0076 ) % Mario... Ahem... Good luck. Please save Princess P ...
+  248:  		Call  SpeakToPlayer ( .NpcID:Dryite_03 00930004 00930001 00000000 000D0077 ) % .......! Buddy! You spoke out loud! It's a miracle ...
+  268:  EndSwitch
+  270:  Return
+  278:  End
+}
+
+
+%Fix this guy. I want him to always start with the same message and then follow up with whatever rank you are at the dojo.
+@	$Script_Interact_802498E8
+{
+    0:  Call  FindKeyItem   ( .Item:FirstDegreeCard *Var1 )
+   14:  Call  FindKeyItem   ( .Item:SecondDegreeCard *Var2 )
+   28:  Call  FindKeyItem   ( .Item:ThirdDegreeCard *Var3 )
+   3C:  Call  FindKeyItem   ( .Item:FourthDegreeCard *Var4 )
+   50:  Call  FindKeyItem   ( .Item:Diploma *Var5 )
+		Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D0099 ) % I am the assessor
+   64:  If  *Var1  !=  FFFFFFFF
+   74:  	Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D009A ) % Sayyyyy... Is that... ...a First-Degree Card? Hee  ...
+   94:  	Return
+   9C:  EndIf
+   A4:  If  *Var2  !=  FFFFFFFF
+   B4:  	Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D009B ) % Sayyyyy... Is that... ...a Second-Degree Card? Hey ...
+   D4:  	Return
+   DC:  EndIf
+   E4:  If  *Var3  !=  FFFFFFFF
+   F4:  	Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D009C ) % Sayyyyy... Is that... ...a Third-Degree Card? Whoo ...
+  114:  	Return
+  11C:  EndIf
+  124:  If  *Var4  !=  FFFFFFFF
+  134:  	Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D009D ) % Sayyyyy... Is that... ...a Fourth-Degree Card? Who ...
+  154:  	Return
+  15C:  EndIf
+  164:  If  *Var5  !=  FFFFFFFF
+  174:  	Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D009E ) % Sayyyyy... Is that... ...a Diploma...!? Whoa! WHOO ...
+  194:  	Return
+  19C:  EndIf
+		Call  SpeakToPlayer ( .Npc:Self 00930104 00930101 00000000 000D0149 ) % You are too weak
+  1C4:  Return
+  1CC:  End
+}
+
+
+
+
+%How does this guy only have one line of dialogue?
+@	$Script_Interact_80249AE0
+{
+		If  *GB_StoryProgress  ==  .Story:PostGame
+			Call  SpeakToPlayer ( .Npc:Self 00930404 00930401 00000000 000D009F ) % Have you seen the old fortune- teller in Toad Town ...
+		Else
+			Call  SpeakToPlayer ( .Npc:Self 00930404 00930401 00000000 000D009F ) % Have you seen the old fortune- teller in Toad Town ...
+		EndIf
+   20:  Return
+   28:  End
+}
+
+
+
+
+
+
+
+%Change song as you go in and out of houses
 
 @	$Script_ToggleVis_8024C040
 {
@@ -217,7 +367,7 @@
 					If *ShopState == 00000000
 						Set *ShopState 00000001
 						Wait  30`
-						Call  PushSong      ( 000000A2 00000000 ) %Desert Hills / Desert Shop Theme
+						Call  PushSong      ( .Song:Shop2 00000000 ) %Desert Hills / Desert Shop Theme
 					EndIf
 				EndThread
    A0:  	Case  ==  00000002

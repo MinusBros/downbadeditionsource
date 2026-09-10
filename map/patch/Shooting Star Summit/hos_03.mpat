@@ -37,7 +37,7 @@
 
 @	$Script_80243630
 {
-    [0]  Call  SetMusicTrack ( 00000000 .Song:StarShop 00000000 00000008 )
+    [0]  Call  SetMusicTrack ( 00000000 .Song:Shop2 00000002 00000008 )
 }
 
 @	$Script_8024365C
@@ -76,12 +76,12 @@
 
 @	$ShopInventory_8024BB5C
 {
-	.Item:UltraShroom    75` 0023000B %
-	.Item:JamminJelly    90` 00230018 %
-	.Item:ShootingStar   50` 00240004 %
-	.Item:TarundaGem     64` 00230128
-	.Item:RakundaGem     64` 00230129
-	.Item:HustleDrink   180` 0023010D %
+	.Item:UltraShroom    75` 002400CE %
+	.Item:JamminJelly    90` 002400CF %
+	.Item:DekajaGem      48` 002400D0 %
+	.Item:TarundaGem     64` 002400D1 %
+	.Item:RakundaGem     64` 002400D2 %
+	.Item:HustleDrink   180` 002400D3 %
 	00000000 00000000 00000000
 }
 
@@ -172,6 +172,54 @@
 			EndSwitch
 			Return
 			End
+}
+
+
+@	$Script_80244650
+{
+    0:  Call  MakeDoorAdvanced  ( 00000000 $Script_OpenDoor_802442C0 $Script_MoveWalls_802442F0 $Script_DropDoor_802443C0 00000000 ~Collider:o99 ~Collider:o184 ~Model:o76 00000000 )
+   30:  Call  MakeDoorAdvanced  ( 00000000 $Script_OpenDoor_802443F0 $Script_MoveWalls_80244420 00000000 00000000 ~Collider:o72 ~Collider:o185 ~Model:o76 $NpcList_802444F0 )
+   60:  Call  MakeDoorAdvanced  ( 00000000 $Script_OpenDoor_802444F8 $Script_MoveWalls_80244528 00000000 00000000 ~Collider:o100 ~Collider:o186 ~Model:o76 $NpcList_80244648 )
+		Bind  $SetUpShopMusic1 .Trigger:FloorTouch ~Collider:shoptrigger1 00000001 00000000
+		Bind  $SetUpShopMusic2 .Trigger:FloorTouch ~Collider:shoptrigger2 00000001 00000000
+   90:  Return
+   98:  End
+}
+
+
+#new:Script   $SetUpShopMusic1
+{
+	If *ShopState == 0
+		Set *ShopState 1
+		Call  PushSong      ( .Song:Shop 3 ) %MM8 Stage Select music
+	EndIf	
+	Return
+	End
+}
+
+#new:Script 	$SetUpShopMusic2
+{
+	If *ShopState == 1
+		Set *ShopState 0
+		Call  PopSong  (  )
+	EndIf	
+	Return
+	End
+}
+
+@	$Script_ExitWalk_802436EC
+{
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+		If  *GF_HOS04_Visited == .True
+   2C:  	Call  GotoMap   ( $ASCII_8024BD58 0 ) % hos_04
+		Else
+			Call  GotoMap   ( $ASCII_8024BD58 3 ) % hos_04	%Go to the unused cutscene
+		EndIf
+   40:  Wait  100`
+   4C:  Return
+   54:  End
 }
 
 @	$Script_OpenDoor_802443F0

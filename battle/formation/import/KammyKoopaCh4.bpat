@@ -117,6 +117,8 @@
 00124002 03000000 000C00FF $IdleAnimations_Toad $DefenseTable_80218618_26 00000000 00000000 00000000 00000000 
 }
 
+#define .ForceStone 5
+
 #new:Script $Script_Init_80218740_26 {
     0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_KammyKoopa )
 		Call  SetPartPos 	( .Actor:Self 00000003  -4` 50` -77` )
@@ -128,6 +130,7 @@
 		Call  SetActorVar   ( .Actor:Self 00000002 00000000 ) %Check for heal
 		Call  SetActorVar   ( .Actor:Self 00000003 00000000 ) %Check how many turns invisible
 		Call  SetActorVar   ( .Actor:Self 00000004 00000000 ) %Change tactics if Kahn Dam is on
+		Call  SetActorVar   ( .Actor:Self .ForceStone 00000000 ) %Kamopa will force Mario to stone once per fight when she's low
 		Set   *GB_EnemyDefense  00000000
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
 			Call	$Function_SetLevel	( $KammyKoopa 60` )
@@ -187,7 +190,7 @@
 	Call  GetActorVar   ( .Actor:Self 00000002 *Var0 )	
 	If *Var0 == 0`
 		Call  GetActorHP    ( .Actor:Self *Var0 )
-		If  *Var0  <  30` 
+		If  *Var0  <  32` 
 			Call  SetActorVar   ( .Actor:Self 00000002 00000001 )
 			ExecWait  $Heal
 			Return
@@ -224,7 +227,15 @@
 			Return
 		EndIf
 	
-
+	Call  GetActorVar   ( .Actor:Self .ForceStone *Var1 )
+	If	*Var1 == 1`
+		Call  GetStatusFlags    ( .Actor:Player *Var3 )
+		If  *Var3  !&  ~Flags:StatusFlags:Stone
+			Call  SetActorVar   ( .Actor:Self .ForceStone 0` )
+			ExecWait  $ForceMarioIntoStone
+			Return
+		EndIf
+	EndIf
 	Call  GetActorVar   ( .Actor:Self 00000004 *Var1 )
 	If  *Var1 == 1`
 			Exec  $ShowMessage3
@@ -233,8 +244,8 @@
 			Return
 	EndIf	
 
-		Call  RandInt   ( 00000001 *Var0 )
-		If  *Var0  ==  00000000
+		Call  RandInt   ( 100` *Var0 )
+		If  *Var0  >  69`
 			Exec  $ShowMessage3
 			ExecWait $MagicBlast
 		Else
@@ -261,6 +272,7 @@
    94:  Call  BattleCamTargetActor  ( .Actor:Self )
    A4:  Call  MoveBattleCamOver (  15` )
    B4:  Wait  15`
+		Call  SetActorVar   ( .Actor:Self .ForceStone 1` )
 		Call  SetActorVar   ( .Actor:Self 00000004 1` )	%Change tactics
   120:  Call  GetBattlePhase    ( *Var0 )
   168:  	Call  UseBattleCamPreset    ( 00000002 )
@@ -543,6 +555,58 @@
   DB0:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic 00000000 00000000 00000006 00000020 )
 		Call  EnableActorGlow   ( .Actor:Self .False )
 		EndIf
+  E1C:  Switch  *Var0 
+  E28:  	CaseOR  ==  .HitResult:Hit % 0
+  E34:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  E40:  		Wait  20`
+  E4C:  		Call  YieldTurn ( )
+  E58:  	EndCaseGroup
+  E60:  EndSwitch
+	
+  E68:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  EA8:  Return
+  EB0:  End
+}
+
+
+
+
+#new:Script $ForceMarioIntoStone
+{
+   CC:  Call  UseIdleAnimation  ( .Actor:Self .False )
+  10C:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+  120:  Call  GetBattlePhase    ( *Var0 )
+  168:  	Call  UseBattleCamPreset    ( 00000002 )
+  178:  	Call  MoveBattleCamOver     (  10` ) %Set to 1 later if it's weird.
+  190:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast1 )
+  1A4:  If  *Flag[01]  ==  .False 
+  264:  	Call  SetAnimation      ( .Actor:Self 00000001 0061000B )
+  27C:  	Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  298:  	Call  GetStatusFlags    ( .Actor:Self *Var3 )
+  2AC:  	If  *Var3  &  ~Flags:StatusFlags:Shrink % 80000
+  2BC:  		Sub   *Var0  00000006 
+  2CC:  		Add   *Var1  0000000D 
+  2DC:  	Else
+  2E4:  		Sub   *Var0  00000011 
+  2F4:  		Add   *Var1  00000021 
+  304:  	EndIf
+  30C:  	Call  PlayEffect    ( ~FX:GatherMagic:Pink *Var0 *Var1 *Var2 *Fixed[0.5] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  350:  Else
+  408:  	Call  SetAnimation      ( .Actor:Self 00000001 0061000B )
+  420:  	Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  43C:  	Call  GetStatusFlags    ( .Actor:Self *Var3 )
+  450:  	If  *Var3  &  ~Flags:StatusFlags:Shrink % 80000
+  460:  		Sub   *Var0  0000000C 
+  470:  		Add   *Var1  0000000E 
+  480:  	Else
+  488:  		Sub   *Var0  0000001E 
+  498:  		Add   *Var1  00000024 
+  4A8:  	EndIf
+  4B0:  	Call  PlayEffect    ( ~FX:GatherMagic:Pink *Var0 *Var1 *Var2 *Fixed[0.5] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  4F4:  EndIf
+		Wait  10`
+		Call  PlaySound  ( 2CD )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|StatusAlwaysHits|Unblockable 00000000 001002FE 00000000 00000020 )  %This inflicts Stone on Mario
   E1C:  Switch  *Var0 
   E28:  	CaseOR  ==  .HitResult:Hit % 0
   E34:  	CaseOR  ==  .HitResult:QuakeImmune % 2

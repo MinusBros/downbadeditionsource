@@ -6,7 +6,7 @@
 [Level]         0`b 
 [MaxHP]       150`b 
 [Coins]         0`b 
-[Flags]       00000000 
+[Flags]       00040000 
 [StatusTable] $StatusTable_8022151C_23 
 % ai
 [PartsCount]    1`s 
@@ -216,12 +216,12 @@
 			  1C8:  Call  GetPartEventFlags ( .Actor:Self 00000001 *Var3 )
 			  1E0:  Call  GetStatusFlags    ( .Actor:Self *Var4 )
 			  1F4:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
-					Sub   *Var0  00000021
+					Sub   *Var0  00000028
 					Add   *Var1  00000021
 			  2F0:  Add   *Var2  0000000A
 					  300:  Call  SetGoalToTarget   ( .Actor:Self )
 					  310:  Call  GetGoalPos        ( .Actor:Self *Var3 *Var4 *Var5 )
-					  32C:  Sub   *Var3  00000028
+					  32C:  Sub   *Var3  00000032
 					  33C:  Set   *Var4  00000014
 							Thread
 							Loop
@@ -240,39 +240,48 @@
 							EndLoop
 				  464:  EndThread
 					Label Command1
-					Call  SetBattleCamZoom      (  325` )
+					Call  SetBattleCamZoom      (  333` )
 					Call  MoveBattleCamOver (  8` )
 					Call  SetAnimation      ( .Actor:Player 00000000 0004002E )
 			  46C:  Wait  10`
-					Call  LoadActionCommand ( .ActionCommand:Bomb )
+					Call  802694A4  ( 00000001 )
+					Call  LoadActionCommand ( .ActionCommand:StopLeech )
+					%Call  LoadActionCommand ( .ActionCommand:Bomb )
 					Call  802A9000 ( )
-					Call  SetupMashMeter  ( 1` 100` 0` 0` 0` 0` )
+					Set   *Var8  24`
+					Add   *Var8  *GB_EnemyByte2
+					Call  SetupMashMeter    ( 00000001 *Var8 00000000 00000000 00000000 00000000 )
+					Call  PlaySound ( 00000248 )
 					Wait  10`
+					Call  802A9110  ( 00000000 00007FFF 00000003 )
 					Call  InitTargetIterator ( )
-					Call  802A9170  ( 00000000 00000039 00000003 00000000 )
-					Wait  60`
+					%Call  802A9170  ( 00000000 00000039 00000003 00000000 )
+					Call  802A9110  ( 00000000 00007FFF 00000003 )
+					Wait  123`
+					Call  StopSound ( 00000248 )
 					Set   *Flag[00]  .False
  10B4:  		Call  PlaySoundAtActor  ( .Actor:Player .Sound:Cannon1 )
  10C8:  		Call  PlayerTestEnemy       ( *Var0 ~Flags:DamageType:Cosmic 00000019 00000000 00000000 00000010 )
  10EC:  		If  *Var0  ==  .HitResult:Miss % 6
  10FC:  			Wait  1`
  1104:  		EndIf
-				ExecWait  $MarioLaser
  110C:  		Call  GetActionSuccessCopy  ( *Var0 )
  112C:  		Switch  *Var0
- 1138:  			Case  >  99`
+ 1138:  			Case  ==  1`
 						Call  SetAnimation      ( .Actor:Player 00000000 0004002D )
-						Set   *Var5 7`
+						Set   *Var5 8`
 						Mul   *Var5 *GB_EnemyByte2
 						If    *GB_EnemyByte2  > 3`
-							  Call  RandInt   ( 00000004 *Var6 )
+							  Call  RandInt   ( 5` *Var6 )
 							  Add  *Var5  *Var6
 					    EndIf
-						Call  SetGoalToTarget   ( .Actor:Enemy0 )
 						Wait  6`
 						Call  ShakeCam      ( .Cam:Battle 00000000  4` *Fixed[3.0] )
- 1144:  				Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Blast|Cosmic 00000000 00000000 *Var5 00000070 )
- 1168:  				Set   *Flag[00]  .True
+						Call  SetTargetActor    ( .Actor:Self .Actor:Enemy0 )
+						Call  SetGoalToTarget   ( .Actor:Self )
+						%Call  EnemyDamageTarget ( .Actor:Self *VarA ~Flags:DamageType:NoContact|Blast|Cosmic 00000000 00000000 *Var5 00000070 )
+						Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:NoContact|Blast|Cosmic 00000000 00000000 *Var5 00000070 )
+						Set   *Flag[00]  .True
 						Add   *GB_EnemyByte2  1`
 						Wait  16`
 						Call  SetAnimation      ( .Actor:Player 00000000 00040028 )
@@ -383,39 +392,6 @@
   738:  End
 }
 
-%Borrowed from, DarkSword.bpat
-
-#new:Script  $MarioLaser
-{
-		Call     InitTargetIterator ( )
-		Wait     00000008
-		Call     PlaySoundAtActor 	( .Actor:Player 000003C1 )
-		Wait     00000004
-		Call     GetActorPos 	( .Actor:Player *Var[0] *Var[1] *Var[2] )
-		Add  *Var1  32`
-		Add  *Var[0]  00000005
-		Call  $Function_80238000 ( )
-		Call	 SetGoalToTarget ( .Actor:Player ) %Bower
-		Call     GetGoalPos  	( .Actor:Player *Var[3] *Var[4] *Var[5] )
-  4DC:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
-  4F8:  Add   *Var0  0000000A
-  508:  Add   *Var1  0000000B
-  518:  Call  GetGoalPos    ( .Actor:Player *Var3 *Var4 *Var5 )
-  534:  Call  PlayEffect    ( ~FX:Squirt:Waterbeam *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 *VarE 0000000A 00000000 00000000 00000000 00000000 )
-		Call	 $Function_LaserBeam ( *VarF )
-		Wait     0000000A
-		%Call	 SetGoalToTarget ( .Actor:Enemy0 )
-		Set 	 *VarF 6
-		Call	 GetActorVar ( .Actor:Self 00000002 *VarE )
-		Add *VarF *VarE
-		Add *VarF *VarE
-		Add *VarF *VarE
-		Add *VarF *VarE
-		Add *VarF *VarE
-		Add *VarF *VarE
-		Return
-		End
-}
 
 
 #new:Script  $GoombariusFinishingBlow
@@ -567,74 +543,26 @@
 }
 
 #new:Script $Script_HandleEvent_80221B18_23 {
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
    14:  Call  GetLastElement    ( *VarE )
    24:  Call  GetLastEvent      ( .Actor:Self *Var0 )
    38:  Switch  *Var0 
    44:  	Case  ==  .Event:BeginFirstStrike % 38
    50:  	Case  ==  .Event:HitCombo % 9
-   5C:  		Set   *Var1  0081000D 
-   6C:  		ExecWait  $Script_802227B4_23 
    78:  		Return
    80:  	Case  ==  .Event:Hit % A
-   8C:  		Set   *Var1  0081000D 
-   9C:  		ExecWait  $Script_8022260C_23 
    A8:  		Return
    B0:  	Case  ==  .Event:Death % 20
-   BC:  		SetConst  *Var1  0081000D 
-   CC:  		ExecWait  $Script_802227B4_23 
-   D8:  		SetConst  *Var0  00000001 
-   E8:  		SetConst  *Var1  0081000D 
-   F8:  		ExecWait  $Script_802227E0_23 
   104:  		Return
   10C:  	Case  ==  .Event:BurnHit % E
-  118:  		Set   *Var0  00000001 
-  128:  		Set   *Var1  00810020 
-  138:  		Set   *Var2  00810021 
-  148:  		ExecWait  $Script_80226F08_23 
-  154:  		Call  GetPartEventFlags ( .Actor:Self 00000001 *Var0 )
-  270:  		Call  UseIdleAnimation  ( .Actor:Self .True )
   284:  		Return
   28C:  	Case  ==  .Event:BurnDeath % 24
-  298:  		Set   *Var0  00000001 
-  2A8:  		Set   *Var1  00810020 
-  2B8:  		Set   *Var2  00810021 
-  2C8:  		ExecWait  $Script_80226F08_23 
-  2D4:  		SetConst  *Var0  00000001 
-  2E4:  		SetConst  *Var1  00810021 
-  2F4:  		ExecWait  $Script_802227E0_23 
   300:  		Return
   308:  	Case  ==  .Event:SpinSmashHit % B
-  314:  		Set   *Var1  0081000D 
-  324:  		ExecWait  $Script_8022260C_23 
   330:  		Return
   338:  	Case  ==  .Event:SpinSmashDeath % 21
-  344:  		SetConst  *Var1  0081000D 
-  354:  		ExecWait  $Script_802227B4_23 
-  360:  		SetConst  *Var0  00000001 
-  370:  		SetConst  *Var1  0081000D 
-  380:  		ExecWait  $Script_802227E0_23 
   38C:  		Return
   394:  	Case  ==  .Event:ShockHit % 2F
-  3A0:  		SetConst  *Var0  00000001 
-  3B0:  		SetConst  *Var1  0081000D 
-  3C0:  		ExecWait  DoShockHit 
-  3CC:  		SetConst  *Var0  00000001 
-  3DC:  		SetConst  *Var1  0081000D 
-  3EC:  		ExecWait  $Script_8022356C_23 
-  3F8:  		Call  SetActorSpeed ( .Actor:Self *Fixed[8.0] )
-  40C:  		Set   *Var1  00810003 
-  41C:  		ExecWait  $Script_80222CD8_23 
   428:  	Case  ==  .Event:ShockDeath % 26
-  434:  		SetConst  *Var0  00000001 
-  444:  		SetConst  *Var1  0081000D 
-  454:  		ExecWait  DoShockHit 
-  460:  		SetConst  *Var0  00000001 
-  470:  		SetConst  *Var1  0081000D 
-  480:  		ExecWait  $Script_8022356C_23 
-  48C:  		SetConst  *Var0  00000001 
-  49C:  		SetConst  *Var1  0081000D 
-  4AC:  		ExecWait  $Script_802227E0_23 
   4B8:  		Return
   4C0:  	CaseOR  ==  00000017 % 17
   4CC:  	CaseOR  ==  .Event:Immune % 19
@@ -671,7 +599,6 @@
   AB4:  		Wait  30`
   AC0:  	Default
   AC8:  EndSwitch
-  AD0:  Call  UseIdleAnimation  ( .Actor:Self .True )
   AE4:  Return
   AEC:  End
 }

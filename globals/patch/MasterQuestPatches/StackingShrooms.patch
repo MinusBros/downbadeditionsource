@@ -4,46 +4,6 @@
 %Function we're hooked into
 %18FAF4 - 18FAC8
 %2C
-/%
-% 0018FAC8 --> 802611E8
-#new:Function $Function_802611E8
-    0:  ADDIU     SP, SP, FFE0
-    4:  SW        S2, 18 (SP)
-    8:  COPY      S2, A0
-    C:  LIA       A0, 8010F290
-   14:  SW        S1, 14 (SP)
-   18:  LIA       S1, 80088B80	%item table
-   20:  SW        RA, 1C (SP)
-   24:  SW        S0, 10 (SP)
-   28:  LBU       V0, 2 (A0)	%load player HP
-   2C:  LBU       V1, 1B (S1)	%HP of life shroom		hook here
-   30:  ADDU      V0, V0, V1	%						hook here
-   34:  SB        V0, 2 (A0)	%store player HP
-   38:  SLL       V0, V0, 18
-   3C:  LB        V1, 3 (A0)	%load max HP
-   40:  SRA       V0, V0, 18	
-   44:  SLT       V1, V1, V0	
-   48:  LBU       V0, 3 (A0)	%load max hp again?
-   4C:  BEQ       V1, R0, .o58
-   50:  COPY      S0, A0
-   54:  SB        V0, 2 (A0)
-        .o58
-   58:  JAL       800E7644		%find life shroom? (what happens if it can't find any?)
-   5C:  ADDIU     A0, R0, 95	%life shroom ID
-   60:  SLL       V0, V0, 1
-   64:  ADDU      V0, V0, S0
-   68:  JAL       {Func:SortConsumableItems}	%
-   6C:  SH        R0, 1B4 (V0)					%delete life shroom?
-   70:  LB        V1, 1B (S1)
-   74:  SW        V1, 90 (S2)
-   78:  LW        RA, 1C (SP)
-   7C:  LW        S2, 18 (SP)
-   80:  LW        S1, 14 (SP)
-   84:  LW        S0, 10 (SP)
-   88:  ADDIU     V0, R0, 2
-   8C:  JR        RA
-   90:  ADDIU     SP, SP, 20
-%/
 
 @Hook 18FAF4 
 {
@@ -102,3 +62,157 @@ FE363C87
 
 
 
+
+
+%We're going to try and prompt the player to use their Life Shroom or not
+
+@Script:Battle 1B62A0	%Use Life Shroom
+{
+				Call  8026BF48 ( .True )	%Freeze battle state
+				Call  ActorSpeak    ( 001F00E7 .Actor:Player 00000001 FFFFFFFF FFFFFFFF )	%Easy way to do this since Mario is always in the party
+				Call  ShowBattleChoice  ( 001E0013 ) % Yes No
+				If  *Var0 == 1`
+					Call  802D0A98 ( )	%Close message
+					Call  8026BF48 ( .False )	%Freeze battle state
+					Return
+				EndIf
+				Call  802D0A98 ( )	%Close message
+				Call  8026BF48 ( .False )	%Freeze battle state
+    0:  Call  8026F0EC    ( .Actor:Player .False )
+   14:  ChildThread
+   1C:  	Call  80261388 ( )
+   28:  	If  *Var0  ==  00000001
+   38:  		Call  8027D264       ( .Actor:Partner .Event:LifeShroomProc )
+   4C:  		Call  8026CE8C    ( .Actor:Partner 00000004 .True )
+   64:  		Set   *Var0  000000FF
+   74:  		Loop  0000000A
+   80:  			Sub   *Var0  00000019
+   90:  			If  *Var0  <  00000000
+   A0:  				Set   *Var0  00000000
+   B0:  			EndIf
+   B8:  			Call  8026F470    ( .Actor:Partner FFFFFFFF *Var0 )
+   D0:  			Wait  1`
+   DC:  		EndLoop
+   E4:  		Call  8026F470    ( .Actor:Partner FFFFFFFF 00000000 )
+   FC:  	EndIf
+  104:  EndChildThread
+  10C:  Call  802610CC ( )
+  118:  Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )
+  134:  Call  MakeItemEntity        ( .Item:LifeShroom *Var0 *Var1 *Var2 .ItemSpawnMode:Decoration 00000000 )
+  158:  Set   *VarA  *Var0
+  168:  Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )
+  184:  Set   *Var3  0000001E
+  194:  Set   *Var4  00000010
+  1A4:  Loop  *Var3
+  1B0:  	Add   *Var4  00000008
+  1C0:  	If  *Var4  >  000000FF
+  1D0:  		Set   *Var4  000000FF
+  1E0:  	EndIf
+  1E8:  	AddF  *Var1  *Fixed[1.0]
+  1F8:  	Call  SetItemPos    ( *VarA *Var0 *Var1 *Var2 )
+  214:  	Wait  1`
+  220:  EndLoop
+  228:  Set   *Var3  *Var0
+  238:  Set   *Var4  *Var1
+  248:  Set   *Var5  *Var2
+  258:  Call  802613A8 ( )
+  264:  Call  80260E90 ( )
+  270:  If  *Var0  >  00000000
+  280:  	Wait  *Var0
+  28C:  	Wait  15`
+  298:  	Call  80261064 ( )
+  2A4:  EndIf
+  2AC:  Call  8025385C    ( .Actor:Player 00000372 )
+  2C0:  Add   *Var4  0000000F
+  2D0:  Call  PlayEffect    ( ~FX:EnergyOut:ShortStreaks *Var3 *Var4 *Var5 *Fixed[1.0] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  314:  Set   *Var0  *VarF
+  324:  Loop  00000004
+  330:  	Call  SetItemFlags  ( *VarA 00000040 00000001 )
+  348:  	Wait  2`
+  354:  	Call  SetItemFlags  ( *VarA 00000040 00000000 )
+  36C:  	Wait  5`
+  378:  EndLoop
+  380:  Call  RemoveEffect      ( *Var0 )
+  390:  Call  RemoveItemEntity  ( *VarA )
+  3A0:  Call  8025385C    ( .Actor:Player 00002055 )
+  3B4:  Call  PlayEffect        ( 00000022 00000001 *Var3 *Var4 *Var5 00000046 00000046 0000000A 00000014 00000000 00000000 00000000 00000000 00000000 )
+  3F8:  Wait  18`
+  404:  Call  8025385C    ( .Actor:Player 00000373 )
+  418:  Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )
+  434:  Call  PlayEffect        ( ~FX:RedShimmer:Spiral *Var0 *Var1 *Var2 00000032 00000014 00000020 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  478:  Wait  36`
+  484:  Call  PlayEffect        ( ~FX:RedShimmer:Spiral *Var0 *Var1 *Var2 0000001E 00000032 00000020 0000001E 00000000 00000000 00000000 00000000 00000000 )
+  4C8:  ChildThread
+  4D0:  	Loop  00000003
+  4DC:  		Call  8026BA04  ( .Actor:Player 00000001 00000000 00000000 )
+  4F8:  		Wait  4`
+  504:  		Call  8026BA04  ( .Actor:Player FFFFFFFF 00000000 00000000 )
+  520:  		Wait  4`
+  52C:  	EndLoop
+  534:  	Loop  00000003
+  540:  		Call  8026BA04  ( .Actor:Player 00000001 00000000 00000000 )
+  55C:  		Wait  2`
+  568:  		Call  8026BA04  ( .Actor:Player FFFFFFFF 00000000 00000000 )
+  584:  		Wait  2`
+  590:  	EndLoop
+  598:  	Loop  00000007
+  5A4:  		Call  8026BA04  ( .Actor:Player 00000001 00000000 00000000 )
+  5C0:  		Wait  1`
+  5CC:  		Call  8026BA04  ( .Actor:Player FFFFFFFF 00000000 00000000 )
+  5E8:  		Wait  1`
+  5F4:  	EndLoop
+  5FC:  EndChildThread
+  604:  Wait  50`
+  610:  ChildThread
+  618:  	Call  80261164 ( )
+  624:  EndChildThread
+  62C:  Call  8025385C    ( .Actor:Player 00000374 )
+  640:  Call  8026C3AC    ( .Actor:Player 00000000 00000000 00000000 )
+  65C:  Call  8026B358 ( .Actor:Self 00000000 )
+  670:  Call  802611E8 ( )
+  67C:  Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )
+  698:  Add   *Var1  00000019
+  6EC:  Call  8024ED78    ( .False )
+  6FC:  Call  8024E61C  ( 00000002 )
+  70C:  Call  8024EC08   ( 0000000F )
+  71C:  ChildThread
+  724:  	Call  80261388 ( )
+  730:  	If  *Var0  ==  00000001
+  740:  		Call  8026CE8C   ( .Actor:Partner 00000004 .False )
+  758:  		Set   *Var0  00000000
+  768:  		Loop  0000000A
+  774:  			Add   *Var0  00000019
+  784:  			If  *Var0  >  000000FF
+  794:  				Set   *Var0  000000FF
+  7A4:  			EndIf
+  7AC:  			Call  8026F470    ( .Actor:Partner FFFFFFFF *Var0 )
+  7C4:  			Wait  1`
+  7D0:  		EndLoop
+  7D8:  		Call  8027D264   ( .Actor:Partner .Event:Revive )
+  7EC:  		Call  8026F470    ( .Actor:Partner FFFFFFFF 000000FF )
+  804:  	EndIf
+  80C:  EndChildThread
+  814:  ChildThread
+  81C:  	Loop  00000005
+  828:  		Wait  2`
+  834:  		Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )
+  850:  		Call  PlayEffect    ( ~FX:EmitterVolume:GoldShimmer1 *Var0 *Var1 *Var2 00000014 00000014 *Fixed[1.0] 0000000A 00000032 00000000 00000000 00000000 00000000 )
+  894:  	EndLoop
+  89C:  EndChildThread
+  8A4:  Call  8025385C    ( .Actor:Player 00000160 )
+  8B8:  Call  8026B55C ( .Actor:Player *Fixed[1.0] )
+  8CC:  Call  8026B654  ( .Actor:Player *Fixed[2.0] )
+  8E0:  Call  8026AAA8     ( .Actor:Player *Var0 *Var1 *Var2 )
+  8FC:  Set   *Var1  00000000
+  90C:  Call  8026B88C   ( .Actor:Player 00000000 00010007 00010008 00010009 )
+  92C:  Call  8026A510      ( .Actor:Player *Var0 *Var1 *Var2 )
+  948:  Call  80273444        ( 00000014 00000000 00000000 )
+  960:  Call  8026B1B0    ( .Actor:Player 00000000 00010009 )
+  978:  Wait  2`
+  984:  Call  8026B1B0    ( .Actor:Player 00000000 00010002 )
+  99C:  Wait  4`
+  9A8:  Call  8026F0EC    ( .Actor:Player .True )
+  9BC:  Call  8026127C ( )
+  9C8:  Return
+  9D0:  End
+}

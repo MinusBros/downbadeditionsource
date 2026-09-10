@@ -6,19 +6,9 @@
 @	$Script_80240F58
 {
    [80]  			Call  SetMusicTrack ( 00000000 .Song:StarSanctuary 00000000 00000008 )
-   [A4]  			Call  SetMusicTrack ( 00000000 .Song:StarShop 00000000 00000008 )
+   [A4]  			Call  SetMusicTrack ( 00000000 .Song:Shop2 00000002 00000008 )
 }
 
-
-@	$Script_ExitWalk_80241050
-{
-   [40]  Wait  50`
-}
-
-@ $Script_ExitWalk_802410AC
-{
-   [40]  Wait  50`
-}
 
 @	$Script_EnterWalk_80241150
 {
@@ -49,10 +39,10 @@
   1BC:  				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   1D0:  				Wait  10`
   1DC:  				Call  SetCamPitch   ( .Cam:Default *Fixed[4.0] *Fixed[-7.5] )
-  1F4:  				Call  SetCamSpeed   ( .Cam:Default *Fixed[0.15] )
+  1F4:  				Call  SetCamSpeed   ( .Cam:Default *Fixed[0.25] )
   208:  				Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   220:  				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
-  234:  				Wait  30`
+  234:  				Wait  20`
   240:  				Set   *Var0  $Script_80241108
   250:  				ExecWait  EnterWalk
   25C:  				Wait  20`
@@ -65,11 +55,11 @@
   2F4:  				Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   308:  				Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
   320:  				Set   *AreaFlag[0B5]  .True
+  330:  				Call  DisablePlayerInput    ( .False )
 						Thread
-							Wait  10`
+							Wait 10`
 							Call  ShowMessageAtScreenPos    ( 001F00AA  160`  40` ) % Display song title
 						EndThread
-  330:  				Call  DisablePlayerInput    ( .False )
   340:  			EndThread
   348:  		Else
   350:  			Set   *Var0  $Script_80241108
@@ -83,7 +73,13 @@
   3C0:  	Case  ==  ~Entry:Entry2
   3CC:  		Exec  $Script_802421E0
   3D8:  	Case  ==  ~Entry:Entry3
-  3E4:  		ExecWait  $Script_80241E48
+  3E4:  		Exec  $Script_80241E48	
+				Thread
+					Wait  240`
+					Call  GotoMapSpecial    ( "hos_04" 0` 16` )
+					Wait  100`
+					Return
+				EndThread
   3F0:  	Case  ==  ~Entry:Entry4
   3FC:  		ExecWait  $Script_80241B8C
   408:  	Case  ==  00000005
@@ -145,6 +141,7 @@
 		Call     802C9000 	( ~Model:o405 1 )
 		Call     802C9000 	( ~Model:o412 1 )
 		Call     802C9000 	( ~Model:o416 1 )
+			Call     802C9000 	( ~Model:o440 1 )
 		Call     802C9000 	( ~Model:o444 1 )
 		Call     802C9000 	( ~Model:o442 1 )
 		Call     802C9000 	( ~Model:o443 1 )
@@ -169,4 +166,51 @@
   28C:  Call  SetCustomGfxBuilders  ( 00000001 $Function_80240154 00000000 )
   2A4:  Return
   2AC:  End
+}
+
+
+@	$Script_80241E48
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  DisablePlayerPhysics  ( .True )
+		Exec  $SkipCutsceneScript
+   20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   34:  Call  $Function_802405E0    ( 00000000 0000004B )
+   48:  Call  SetPanTarget      ( .Cam:Default  0`  30`  0` )
+   64:  Call  LoadSettings      ( .Cam:Default $???_80241B24 )
+   78:  Call  PanToTarget       ( .Cam:Default 00000000 00000001 )
+   90:  Call  SetCamSpeed       ( .Cam:Default *Fixed[90.0] )
+   A4:  Thread
+   AC:  	Call  $Function_802408F8 ( )
+   B8:  EndThread
+   C0:  Thread
+   C8:  	Wait  300`
+   D4:  	Call  $Function_80240654 ( )
+   E0:  EndThread
+   E8:  Return
+   F0:  End
+}
+
+
+#new:Script $SkipCutsceneScript
+{
+	Thread
+		Call  ShowMessageAtScreenPos    ( 001F00E8  160`  40` )	%Skip cutscene
+	EndThread
+	Call  $SkipCutscene ( )
+	Call  CloseMessage ( )
+	Call  GotoMapSpecial    ( "hos_04" 0` 16` )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Function $SkipCutscene
+{
+    0:  LAW       V0, 8007419C
+    8:  LW        V0, 10 (V0)
+    C:  ANDI      V0, V0, 1000
+   10:  SLTU      V0, R0, V0
+   14:  JR        RA
+   18:  SLL       V0, V0, 1
 }

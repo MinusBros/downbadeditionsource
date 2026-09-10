@@ -5,6 +5,8 @@
 #define .NpcID:ShyGuy_04            04
 #define .NpcID:ShyGuy_05            05
 
+#define .Npc:Luigi 15
+
 #import AutoSave.mpat
 
 @	$Script_8024513C
@@ -405,4 +407,84 @@
 	~Movement:NPC_TrainStationToad_01
 	~AnimationTable:NPC_TrainStationToad_01 % .Sprite:TrainStationToad
 	00000000 00000000 00000000 001A00B8 % He's an employee of the Toy Box station. The emplo ...
+}
+
+
+
+@	$NpcGroupList_802486DC
+{
+	00000002 $NpcGroup_80247B3C 00000000
+	00000001 $NpcGroup_80247F1C 120A0007
+	00000001 $NpcGroup_8024810C 120A0007
+	00000001 $NpcGroup_802482FC 120A0007
+	00000001 $NpcGroup_802484EC 120A0007
+	1 $Luigi 0
+	00000000 00000000 00000000
+}
+
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 001A0148  %Tattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GB_StoryProgress >= .Story:Ch4_SolvedColorPuzzle
+		Call  RemoveNpc ( .Npc:Self )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		If   *GB_StoryProgress < .Story:Ch4_SolvedColorPuzzle
+			Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 000F008F ) % 
+		Else
+			Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 000F0090 )
+		EndIf
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
 }

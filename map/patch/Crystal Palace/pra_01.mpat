@@ -95,7 +95,7 @@
   248:  Exec  $Script_EnterWalk_80241AB4
   254:  Call  GetEntryID    ( *Var0 )
   264:  If  *Var0  ==  ~Entry:Entry4
-  274:  	Wait  65`
+  274:  	Wait  25`
   280:  Else
   288:  	Wait  1`
   294:  EndIf
@@ -103,6 +103,7 @@
   2A4:  End
 }
 
+%Skip dialogue if running it back
 #new:Script $Script_Idle_KoopaKoot
 {
 	Call  DisablePlayerInput    ( .True )
@@ -110,41 +111,52 @@
 	Call  AdjustCam     ( .Cam:Default *Fixed[300.0] *Var0 *Fixed[400.0] *Fixed[13] *Fixed[-1.8] )
 	Call  SetPanTarget      ( .Cam:Default  750`  0`  30` )
 	Wait  1`
-	Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[2.5] )
+	If   *CheckKoopaKoot == .True
+		Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[7.5] )
+	Else
+		Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[2.5] )
+	EndIf
 	Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50002 )
-	Call  NpcMoveTo ( .NpcID:KoopaKoot  800`  88` 40` )
-	Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50009 )
-	Wait  20`
-	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120172 )
-	Call  SetPlayerSpeed    ( *Fixed[4.0] )
-	Call  DisablePlayerInput    ( .False )
-    Call  PlayerMoveTo  (  700` 88` 40` )
-	Call  DisablePlayerInput    ( .True )
+	If   *CheckKoopaKoot == .True
+		Call  SetPlayerSpeed    ( *Fixed[8.0] )
+		Call  PlayerMoveTo  (  700` 88` 20` )
+	Else
+		Call  NpcMoveTo ( .NpcID:KoopaKoot  800`  88` 40` )
+		Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50009 )
+		Wait  20`
+		Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120172 )
+		Call  SetPlayerSpeed    ( *Fixed[4.0] )
+		Call  PlayerMoveTo  (  700` 88` 40` )
+	EndIf
 	Wait  1`
 	Call  SetNpcSpeed   ( .NpcID:KoopaKoot *Fixed[6.5] )
 	Call  NpcMoveTo ( .NpcID:KoopaKoot  790`  88` 1` )
-	Wait  30`
-	Call  SetPlayerAnimation    ( 00080007 )
-	Wait  30`
-	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120171 )
-	Call  NpcMoveTo ( .NpcID:KoopaKoot  792`  88` 1` )
-	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120173 )
-	Call  NpcMoveTo ( .NpcID:KoopaKoot  790`  88` 1` )
-	Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120174 )
-	Call  GetCurrentPartnerID   ( *Var0 )
-		If  *Var0  ==  .Partner:Goombario % 2
-				Wait  4`
-  570:  		Call  DisablePartnerAI  ( 00000000 )
-  580:  		Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:KoopaKoot 00120178 ) % 
-  5A4:  		Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120179 ) % 
-  580:  		Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:KoopaKoot 0012017A ) % 
-  5A4:  		Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 0012017B ) % 
-  5EC:  		Call  EnablePartnerAI ( )
-		Else
-				Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 0012017C )
-		EndIf
-	Wait  3`
+	If   *CheckKoopaKoot == .False
+		Wait  30`
+		Call  SetPlayerAnimation    ( 00080007 )
+		Wait  30`
+		Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120171 )
+		Call  NpcMoveTo ( .NpcID:KoopaKoot  792`  88` 1` )
+		Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120173 )
+		Call  NpcMoveTo ( .NpcID:KoopaKoot  790`  88` 1` )
+		Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120174 )
+		Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0  ==  .Partner:Goombario % 2
+					Wait  4`
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:KoopaKoot 00120178 ) % 
+					Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 00120179 ) % 
+					Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000000 .NpcID:KoopaKoot 0012017A ) % 
+					Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 0012017B ) % 
+					Call  EnablePartnerAI ( )
+			Else
+					Call  SpeakToPlayer ( .NpcID:KoopaKoot 00B50008 00B50009 00000005 0012017C )
+			EndIf
+		Wait  3`
+	EndIf
 	Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50001 )
+	Set   *CheckKoopaKoot .True
+	Call	$Function_SaveItems ( )
 	Wait  2`
 	Call  StartBossBattle   ( .Song:RadioIslandSounds )
 	Return

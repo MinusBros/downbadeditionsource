@@ -1,7 +1,9 @@
 #define .NpcID:WorldKoopatrol_02    02
 #define .NpcID:WorldKammy_03        03
 #define .Npc:Joseph 04
+#define .Npc:PeachPostGame  00	%Only for Postgame though
 
+%Peach's room
 
 @	$Function_Init
 {
@@ -28,7 +30,87 @@
 
 @	$Script_Main
 {
-   [10]  Call  SetSpriteShading  ( .Shading:kkj_23 )
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:kkj_23 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  GetEntryID        ( *Var0 )
+   80:  If  *Var0  >=  ~Entry:Entry3
+   90:  	If  *Var0  !=  ~Entry:EntryB
+   A0:  		Set   *GF_KKJ14_RevealedButton  .False
+   B0:  		Set   *GF_KKJ14_OpenedPassage  .False
+   C0:  	EndIf
+   C8:  	Switch  *Var0
+   D4:  		Case  ==  ~Entry:Entry3
+   E0:  			Set   *GB_StoryProgress  .Story:Ch0_BeganPeachMission
+   F0:  			Set   *GB_KKJ_CaughtCount  00000000
+  100:  			Set   *GF_KKJ14_SkipSecretPassage  .False
+  110:  			Call  MakeNpcs  ( .False $NpcGroupList_80243E3C )
+  124:  		Case  ==  ~Entry:Entry4
+  130:  			Set   *GB_StoryProgress  .Story:Ch1_BeganPeachMission
+  140:  			Set   *GB_KKJ_CaughtCount  00000000
+  150:  			Set   *GF_KKJ14_SkipSecretPassage  .False
+  160:  		Case  ==  ~Entry:Entry5
+  16C:  			Set   *GB_StoryProgress  .Story:Ch2_BeganPeachMission
+  17C:  			Set   *GB_KKJ_CaughtCount  00000000
+  18C:  			Set   *GF_KKJ14_SkipSecretPassage  .False
+  19C:  			Set   *AreaFlag[006]  .False
+  1AC:  			Call  MakeNpcs  ( .False $NpcGroupList_802442D0 )
+  1C0:  		Case  ==  ~Entry:Entry6
+  1CC:  			Set   *GB_StoryProgress  .Story:Ch3_BeganPeachMission
+  1DC:  			Set   *GB_KKJ_CaughtCount  00000000
+  1EC:  			Set   *GF_KKJ14_SkipSecretPassage  .False
+  1FC:  		Case  ==  ~Entry:Entry7
+  208:  			Set   *GB_StoryProgress  .Story:Ch4_BeganPeachMission
+  218:  			Set   *GB_KKJ_CaughtCount  00000000
+  228:  			Set   *GF_KKJ14_SkipSecretPassage  .True
+  238:  		Case  ==  ~Entry:Entry8
+  244:  			Set   *GB_StoryProgress  .Story:Ch5_BeganPeachMission
+  254:  			Set   *GB_KKJ_CaughtCount  00000000
+  264:  			Set   *GF_KKJ14_SkipSecretPassage  .True
+  274:  		Case  ==  ~Entry:Entry9
+  280:  			Call  $Function_80240384 ( )
+  28C:  			Set   *GB_StoryProgress  .Story:Ch6_BeganPeachMission
+  29C:  			Set   *GB_KKJ_CaughtCount  00000000
+  2AC:  			Set   *GF_KKJ14_SkipSecretPassage  .True
+  2BC:  		Case  ==  ~Entry:EntryA
+  2C8:  			Call  MakeNpcs  ( .False $NpcGroupList_80244B94 )
+  2DC:  		Case  ==  ~Entry:EntryB
+  2E8:  			Add   *GB_KKJ_CaughtCount  00000001
+  2F8:  			Call  MakeNpcs  ( .False $NpcGroupList_802439B4 )
+  30C:  	EndSwitch
+  314:  EndIf
+  31C:  Exec  $Script_80242744
+  328:  Call  GetEntryID    ( *Var0 )
+  338:  If  *Var0  !=  ~Entry:Entry5
+  348:  	Exec  $Script_802405C0
+  354:  EndIf
+		If   *GB_StoryProgress == .Story:PostGame
+			Call  MakeNpcs  ( .False $NpcGroupList_PostGame )
+		EndIf
+  35C:  Exec  $Script_EnterWalk_80240B54
+  368:  Call  SetTexPanner  ( ~Model:o154 00000000 )
+  37C:  Thread
+  384:  	Set   *Var0  00000000
+  394:  	Set   *Var1  00000000
+  3A4:  	Set   *Var2  00000000
+  3B4:  	Set   *Var3  00000028
+  3C4:  	Set   *Var4  00000384
+  3D4:  	Set   *Var5  00000001
+  3E4:  	Set   *Var6  00000001
+  3F4:  	Set   *Var7  00000001
+  404:  	Set   *Var8  00000001
+  414:  	Set   *Var9  00000000
+  424:  	Set   *VarA  00000000
+  434:  	Set   *VarB  00000000
+  444:  	Set   *VarC  00000000
+  454:  	Exec  $Script_UpdateTexturePan_80240680
+  460:  EndThread
+  468:  Call  SetModelCustomGfx ( ~Model:o154 00000000 FFFFFFFF )
+  480:  Call  SetCustomGfx      ( 00000000 $DisplayList_80240720 00000000 )
+  498:  Return
+  4A0:  End
 }
 
 @	$ExtraAnimationList_80243A28
@@ -770,8 +852,8 @@
   D74:  Call  NpcFlyTo      ( .Npc:Partner  500`  130`  10`  0`  0` .Easing:Linear )
   D9C:  Call  SpeakToPlayer ( .Npc:Player 000C001E 000C001E 00000005 00140171 ) % Twiiiiink!
   DBC:  Wait  5`
-  8B0:  		Call  PlaySound      ( 00000349 )
-  8C4:  		Call  PlaySound     ( 00000749 )
+		Call  PlaySound      ( 00000349 )
+		Call  PlaySound     ( 00000749 )
 		Call  SetNpcAnimation   ( 00000000 0080002C )
 		Call  SpeakToPlayer ( .Npc:Joseph 008F0107 008F0102 00000005 00140204 ) % Get owned!
   DC8:  Call  SetNpcAnimation   ( 00000000 00800002 )
@@ -1109,6 +1191,90 @@
 	00000000 00000000 00000000
 }
 
+#new:NpcGroupList $NpcGroupList_PostGame
+{
+	1 $NpcGroup_Peach 0
+	0 0 0
+}
+
+
+
+#new:Script $Script_Init_Peach
+{
+	    If  *GB_StoryProgress  ==  .Story:PostGame
+			If *KKJ14_PeachLeftRoom == .False
+				Call  SetNpcPos     ( .Npc:Self  150`  0`  -35` )
+				Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Peach )
+			EndIf
+		EndIf
+	    Return
+	    End
+}
+
+%Peach Postgame interact script
+#new:Script $Script_Interact_Peach
+{
+		If  *KKJ33_PeachCutscene == .True
+			Call  SpeakToPlayer     ( .Npc:Self 00D60002 00D60004 00000000 0000006C )	%Let me know how Mibojin Dokutsu goes.
+			Return
+		EndIf
+		Call  BringPartnerOut   ( .Partner:Goombario )
+   14:  Wait  10`
+		Call  SpeakToPlayer     ( .Npc:Self 00D60002 00D60004 00000000 0000005B )
+   20:  Call  SetNpcAnimation   ( .Npc:Self 00D60003 )
+		Call  DisablePartnerAI  ( 00000000 )
+   E4:  Wait  3`
+		Call  SpeakToNpc    ( .Npc:Partner 0001000F 0001000E .Npc:PeachPostGame 00000000 0000005C )
+   F0:  Call  SetNpcAnimation   ( .Npc:Self 000A0001 )
+		Wait  5`
+		Call  SpeakToPlayer     ( .Npc:Self 00D6000B 00D60000 00000000 0000005D )
+		Call  EndSpeech ( .Npc:Self 00D60002 00D60004 00000000 )
+		Call  SetNpcAnimation   ( .Npc:Self 00D60003 )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+		Wait  10`
+		Call  SetNpcAnimation   ( .Npc:Self 00D60015 )
+		Wait  25`
+		Call  SetNpcAnimation   ( .Npc:Self 00D6000F )
+		Thread
+			Wait  5`
+			Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
+		EndThread
+		Call  NpcMoveTo ( .Npc:Self  147`  -5`  20` )
+		Call  NpcMoveTo ( .Npc:Self  -139`  -4`  60` )
+		Call  SetNpcPos     ( .Npc:Self  150`  -1000`  -35` )
+		Call  SetNpcAnimation   ( .Npc:Partner 0001001B )
+		Call  SpeakToPlayer     ( .Npc:Partner 00010008 0001001B 00000000 0000005E )
+		Call  EndSpeech ( .Npc:Partner 00010014 00010014 00000000 )
+		Call  PutPartnerAway   ( )
+		Call  EnablePartnerAI  ( )
+		Set   *KKJ14_PeachLeftRoom .True
+  104:  Return
+  10C:  End
+}
+
+%Can't for the life of me get the Peach player actor to show up, so just use the parade sprite for now
+#new:NpcGroup $NpcGroup_Peach
+{
+	.Npc:PeachPostGame $NpcSettings_802405D0 ~Vec3f:PeachPostGame
+	00400509 $Script_Init_Peach 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:PeachPostGame
+	~AnimationTable:PeachPostGame
+	00000000 00000000 0 001A0170
+}
+
+
+#new:NpcSettings $NpcSettings_802405D0
+{
+	00000000 002E0024 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+
+
+
+
+
 @	$Script_ExitSingleDoor_802407A0
 {
     0:  Set   *Var0  *GB_KKJ_LastPartner
@@ -1134,4 +1300,82 @@
   12C:  Wait  100`
   138:  Return
   140:  End
+}
+
+
+
+%Dress interact
+@	$Script_8024143C
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Switch  *GB_StoryProgress
+   1C:  	Case  ==  .Story:Ch1_BeganPeachMission % FFFFFFB4
+   28:  		If  *GF_KKJ14_RevealedButton  ==  .False
+   38:  			If  *AreaFlag[015]  ==  .False
+   48:  				Call  DisablePartnerAI      ( 00000000 )
+   58:  				Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 0014003C ) % So many dresses...and yet they all look exactly th ...
+   78:  				Call  SetPlayerAnimation    ( 000C0000 )
+   88:  				Wait  10`
+   94:  				Call  SetPlayerAnimation    ( 000C0026 )
+   A4:  				Call  SpeakToPlayer ( .Npc:Player 000C0001 000C0026 00000005 0014003D ) % They're not the same! The designs are all slightly ...
+   C4:  				Call  SetPlayerAnimation    ( 000C0002 )
+   D4:  				Wait  10`
+   E0:  				Call  SetPlayerAnimation    ( 000A0001 )
+   F0:  				Set   *AreaFlag[015]  .True
+  100:  				Call  EnablePartnerAI ( )
+  10C:  			Else
+  114:  				Call  ShowMessageAtScreenPos    ( 0014017C  160`  40` ) % Princess Peach's dresses. Her favorite outfits!
+  12C:  			EndIf
+  134:  		Else
+  13C:  			Call  ShowMessageAtScreenPos    ( 0014017C  160`  40` ) % Princess Peach's dresses. Her favorite outfits!
+  154:  		EndIf
+  15C:  	Case  .Story:Ch2_BeganPeachMission  to  .Story:Ch7_BeganPeachMission % FFFFFFCA to 58
+  16C:  		Call  ShowMessageAtScreenPos    ( 0014017C  160`  40` ) % Princess Peach's dresses. Her favorite outfits!
+			Case  == .Story:PostGame
+				Call  ShowMessageAtScreenPos    ( 00000051  160`  40` )	% New dialogue for Post-Game
+  184:  	Default
+  18C:  		Call  ShowMessageAtScreenPos    ( 00000044  160`  40` ) % Her dresses are beautiful, but they all look the s ...
+  1A4:  EndSwitch
+  1AC:  Call  DisablePlayerInput    ( .False )
+  1BC:  Return
+  1C4:  End
+}
+
+
+
+%Photo interact 
+@	$Script_802417D4
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Switch  *GB_StoryProgress
+   1C:  	Case  ==  .Story:Ch1_BeganPeachMission % FFFFFFB4
+   28:  		If  *GF_KKJ14_RevealedButton  ==  .False
+   38:  			If  *AreaFlag[017]  ==  .False
+   48:  				Call  DisablePartnerAI      ( 00000000 )
+   58:  				Call  SpeakToPlayer ( .Npc:Partner 00200009 00200001 00000000 0014003E ) % Oh! A photo of Mario!
+   78:  				Call  SetPlayerAnimation    ( 000C0000 )
+   88:  				Wait  10`
+   94:  				Call  SetPlayerAnimation    ( 000C0026 )
+   A4:  				Call  SpeakToPlayer ( .Npc:Player 000C0001 000C0026 00000005 0014003F ) % Don't look at that!
+   C4:  				Call  SetPlayerAnimation    ( 000C0002 )
+   D4:  				Wait  10`
+   E0:  				Call  SetPlayerAnimation    ( 000A0001 )
+   F0:  				Set   *AreaFlag[017]  .True
+  100:  				Call  EnablePartnerAI ( )
+  10C:  			Else
+  114:  				Call  ShowMessageAtScreenPos    ( 0014017D  160`  40` ) % A photo of Mario.
+  12C:  			EndIf
+  134:  		Else
+  13C:  			Call  ShowMessageAtScreenPos    ( 0014017D  160`  40` ) % A photo of Mario.
+  154:  		EndIf
+  15C:  	Case  .Story:Ch2_BeganPeachMission  to  .Story:Ch7_BeganPeachMission % FFFFFFCA to 58
+  16C:  		Call  ShowMessageAtScreenPos    ( 0014017D  160`  40` ) % A photo of Mario.
+			Case  == .Story:PostGame
+				Call  ShowMessageAtScreenPos    ( 00000052  160`  40` )	% New dialogue for Post-Game
+  184:  	Default
+  18C:  		Call  ShowMessageAtScreenPos    ( 00000046  160`  40` ) % A framed photo of Mario!
+  1A4:  EndSwitch
+  1AC:  Call  DisablePlayerInput    ( .False )
+  1BC:  Return
+  1C4:  End
 }

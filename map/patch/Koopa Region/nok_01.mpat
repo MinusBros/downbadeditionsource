@@ -9,6 +9,7 @@
 #define .NpcID:Fuzzy_11             0B
 #define .NpcID:WorldBombomb_14      0E
 #define .NpcID:ChuckQuizmo_15       0F
+#define .Npc:Luigi                  15
 
 #import DonloninaBottle.mpat
 #import EnterViaPipe.mpat
@@ -24,6 +25,151 @@
 {
 	[EntryCount]  00000003
 }
+
+
+
+@	$ShopInventory_8024FB6C
+{
+	.Item:DizzyDial      12` 002400AE % If it works, dazes and paralyzes all enemies brief ...
+	.Item:POWBlock       6`  002400AF % Flips shell enemies and inflicts 2 damage points o ...
+	.Item:FireFlower     8`  002400B0 % A flower that burns all enemies with fireballs. At ...
+	.Item:HoneySyrup     12` 002400B1 % Sweet honey syrup. Restores 5 FP.
+	.Item:VoltShroom     24` 002400B2 % Electrifies Mario briefly and damages enemies who  ...
+	.Item:Mushroom       8`  002400B3 % A regular Mushroom. Restores 5 HP.
+	00000000 00000000 00000000
+}
+
+
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:KoopaVillage
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *GF_Map_KoopaVillage  .True
+   94:  Set   *AreaFlag[009]  .False
+   A4:  Set   *AreaFlag[00A]  .False
+   B4:  Set   *AreaFlag[00C]  .False
+   C4:  Set   *AreaFlag[00E]  .False
+   D4:  Set   *GF_NOK01_Bush4_KoopaLeaf  .False
+   E4:  If  *GB_StoryProgress  >=  .Story:Ch1_KooperJoinedParty % FFFFFFA4
+   F4:  	Set   *GF_NOK01_RecoveredShellA  .True
+  104:  	Set   *GF_NOK01_RecoveredShellB  .True
+  114:  	Set   *GF_NOK01_RecoveredShellC  .True
+  124:  EndIf
+  12C:  If  *GB_StoryProgress  <  .Story:Ch1_KooperJoinedParty % FFFFFFA4
+  13C:  	Call  MakeNpcs  ( .False $NpcGroupList_8024FAA8 )
+  150:  Else
+  158:  	Call  MakeNpcs  ( .False $NpcGroupList_8024FAE4 )
+  16C:  EndIf
+  174:  Call  ClearDefeatedEnemies ( )
+  180:  Exec  $Script_8024FCF0
+  18C:  Exec  $Script_80250B70
+  198:  Exec  $Script_802431CC
+  1A4:  ExecWait  $Script_MakeEntities
+  1B0:  Exec  $Script_802506C0
+		Bind  $InteractItemSign .Trigger:WallPressA ~Collider:itemsign 00000001 00000000
+  1BC:  Wait  1`
+  1C8:  ExecWait  $Script_80251840
+  1D4:  Exec  $Script_80242BD0
+  1E0:  Set   *AreaByte[0]  00000000
+  1F0:  Exec  $Script_EnterWalk_802430B8
+  1FC:  Return
+  204:  End
+}
+
+
+#new:Script  $InteractItemSign
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  ShowMessageAtScreenPos    ( 000C016D  160`  40` ) 
+	Call  DisablePlayerInput    ( .False )
+	Return
+	End
+}
+
+
+%Radio interact script
+%I've added a bunch of different radio messages that can play
+@	$Script_80250818
+{
+    0:  Switch  *GB_TradingEvent_Count
+    C:  	Case  ==  00000000
+   18:  		If  *GB_StoryProgress  <  .Story:Ch1_StarSpritDeparted % FFFFFFB5
+   28:  			If  *GB_StoryProgress  <  .Story:Ch1_KooperJoinedParty % FFFFFFA4
+   38:  				Call  SwitchMessage ( 000C0028 ) % News Flash! Fuzzies are running rampant in Koopa V ...
+   48:  			Else
+   50:  				ExecWait  $RandomRadioMessage
+   60:  			EndIf
+   68:  		Else
+					ExecWait  $RandomRadioMessage
+					Call  ShowMessageAtScreenPos ( 000C002A  160`  40` )
+   80:  			Set   *GF_TradingEvent1_Active  .True
+   90:  			Call  $Function_80242910 ( )
+   9C:  		EndIf
+   A4:  	Case  ==  00000001
+   B0:  		If  *GB_StoryProgress  <  .Story:Ch3_BeganPeachMission % FFFFFFF2
+   C0:  			ExecWait  $RandomRadioMessage
+   D0:  		Else
+					ExecWait  $RandomRadioMessage
+   D8:  			Call  ShowMessageAtScreenPos ( 000C002B  160`  40` ) % ...but seriously, folks... Ta-da-da-dum! Attention ...
+   E8:  			Set   *GF_TradingEvent2_Active  .True
+   F8:  			Call  $Function_80242910 ( )
+  104:  		EndIf
+  10C:  	Case  ==  00000002
+  118:  		If  *GB_StoryProgress  <  .Story:Ch5_StarSpritDeparted % 27
+  128:  			ExecWait  $RandomRadioMessage
+  138:  		Else
+					ExecWait  $RandomRadioMessage
+					Call  ShowMessageAtScreenPos ( 000C002C  160`  40` )
+  150:  			Set   *GF_TradingEvent3_Active  .True
+  160:  			Call  $Function_80242910 ( )
+  16C:  		EndIf
+  174:  	Case  ==  00000003
+  180:  		ExecWait  $RandomRadioMessage
+  190:  EndSwitch
+  198:  Return
+  1A0:  End
+}
+
+
+#new:Script  $RandomRadioMessage
+{
+	Call  RandInt   ( 11` *Var3 )
+	Switch  *Var3
+		Case == 0`
+			Call  SwitchMessage ( 000C002E ) % ...in other news... We're planning a big-time Trad ...
+		Case == 1`
+			Call  SwitchMessage ( 000C002D ) % ...in other news... The Trading Event is over! Con ...
+		Case == 2`
+			Call  SwitchMessage ( 000C0029 ) % News Flash! The Koopa Village Fuzzy madness has ca ...
+		Case == 3`
+			Call  SwitchMessage ( 000C0171 ) % Sonic  
+		Case == 4`
+			Call  SwitchMessage ( 000C0172 ) % Fawful
+		Case == 5`
+			Call  SwitchMessage ( 000C0173 ) % Marisa
+		Case == 6`
+			Call  CloseMessage ( )
+			Call  ShowMessageAtScreenPos    ( 000C016F  160`  40` ) % Eggman announcement
+			Call  ShowMessageAtScreenPos    ( 000C0170  160`  40` )
+		Case == 7`
+			Call  SwitchMessage ( 000C0174 ) % Wario
+		Case == 8`
+			Call  SwitchMessage ( 000C0175 ) % Astro Bot
+		Case == 9`
+			Call  SwitchMessage ( 000C0176 ) % All Night Nippon
+		Case == 10`
+			Call  SwitchMessage ( 000C0177 ) % Switch 2 commercial
+		Case == 11`
+			Call  SwitchMessage ( 000C0178 ) % Captain Falcon
+	EndSwitch
+	Return
+	End
+}
+
 
 @	$Script_OpenDoor_8024FF38
 {
@@ -511,6 +657,7 @@
 	00000001 $NpcGroup_8024E368 00000000
 	00000001 $NpcGroup_8024E558 00000000
 	00000001 $Donlon			00000000
+	00000001 $Luigi   			00000000
 	00000000 00000000 00000000
 }
 
@@ -571,6 +718,65 @@
 	~Movement:NPC_ChuckQuizmo_15
 	~AnimationTable:NPC_ChuckQuizmo_15 % .Sprite:ChuckQuizmo
 	00000000 00000000 00000000 001A0002 % He's Chuck Quizmo. He tries to quiz anybody who sp ...
+}
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 001A0144  %Tattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GB_StoryProgress >=  .Story:Ch1_PromisedToHelpKooper
+		Call  RemoveNpc ( .Npc:Self )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 000C016C ) % 
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
 }
 
 

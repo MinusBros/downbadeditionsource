@@ -1,6 +1,8 @@
 #define .NpcID:KoopaBros_00         00
 #define .NpcID:WorldEldstar_01      01
 
+#define  .Npc:Bombette 10
+
 %Plot points involving Goombarius will force him to swap out for the current partner.
 
 #new:Function $Function_802412C8
@@ -166,6 +168,10 @@
 }
 
 @ $Script_Main {
+		Set   *Byte_Settings_BGM  1`
+		Set   *Byte_Settings_BGM2 1`	
+		Set   *Byte_Settings_BGM3 1` %Revert Superstar Saga battle theme
+		Set   *Byte_Settings_BGM4 1`
     Set   *GB_WorldLocation  .Location:KoopaBrosFortress
     Call  SetSpriteShading  ( .Shading:None )
     Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
@@ -194,7 +200,7 @@
     Exec  $Script_EnterWalk_80240D8C
     Call  GetEntryID    ( *Var0 )
     If  *Var0  ==  ~Entry:Entry5
-        Wait  65`
+        Wait  3`
     Else
         Wait  1`
     EndIf
@@ -304,9 +310,13 @@
 		EndLoop
 	EndIf
 	Call  DisablePartnerAI  ( 00000000 )
-  498:  Call  SpeakToPlayer     ( .Npc:Partner 00120008 00120001 00000200 000C010E ) % Using a Star Power requires Star Energy. Would you ...
+		Call  SetPlayerAnimation    ( 0008002E )  %Open Lighter
+  498:  Call  SpeakToPlayer     ( .Npc:Partner 00010008 00010001 00000200 000C010E ) % Using a Star Power requires Star Energy. Would you ...
   554:  Call  ContinueSpeech    ( .NpcID:WorldEldstar_01 00120002 00120001 00000200 000C0111 ) % Allow me to explain.
+		Call  SetPlayerAnimation    ( 0008002F )
   60C:  Wait  30`
+		Call  SetPlayerAnimation    ( 00080030 )
+		Exec  $MarioSmoking
   618:  Call  GetNpcPos     ( .NpcID:WorldEldstar_01 *Var0 *Var1 *Var2 )
   634:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
   650:  Call  SetCamDistance    ( .Cam:Default *Fixed[250.0] )
@@ -363,14 +373,20 @@
   9CC:  	Call  PlaySoundAtNpc    ( .NpcID:WorldEldstar_01 00002045 00000000 )
   9E4:  EndThread
   9EC:  Wait  10`
-  9F8:  Call  SetPlayerAnimation    ( 0001002A )
   A08:  Wait  55`
   A14:  Call  ResetCam  ( .Cam:Default  3` )
   A28:  Wait  20`
-  A34:  Call  SetPlayerAnimation    ( 00010002 )
+		
   A44:  Set   *GB_StoryProgress  .Story:Ch1_StarSpritDeparted
   A54:  Exec  $Script_802406D0
+		
+		Call  SpeakToPlayer     ( .Npc:Partner 00010008 00010001 00000200 000C0186 )
+		Set  *MapFlag[00] .True
+		Call  SetPlayerAnimation    ( 0008001E )
+		Call  SpeakToPlayer     ( .Npc:Partner 00010018 00010017 00000200 000C0187 )
   A60:  Call  EnablePartnerAI ( )
+		Call  SetPlayerAnimation    ( 0001003D )
+		Wait  20`
   A6C:  Call  DisablePlayerInput    ( .False )
 		Set   *ReturnPipeLock .True
 		Exec  $AutoSave
@@ -378,6 +394,24 @@
   A84:  End
 }
 
+
+#new:Script  $MarioSmoking
+{
+	Wait  10`
+	Loop
+		If  *MapFlag[00] == .True	
+			Wait  1`
+			BreakLoop
+		EndIf
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		Sub   *Var0 24`
+		Add   *Var1 30`
+		Call  PlayEffect    ( ~FX:SmokeImpact:Small *Var0 *Var1 *Var2 0000003C 00000008 00000000 0000001E 00000000 00000000 00000000 00000000 00000000 )
+		Wait  16`
+	EndLoop
+	Return
+	End
+}
 
 %Fix it playing the variation and resetting the music
 
@@ -505,4 +539,185 @@
   560:  Call  RemoveNpc     ( .Npc:Self )
   570:  Return
   578:  End
+}
+
+
+%Bombette is here at Bengteng in post-game
+
+@	$NpcGroupList_80242CD4
+{
+	00000001 $NpcGroup_802428F4 00000000
+	00000001 $NpcGroup_80242AE4 08000000
+	1 $Bombette 0
+	00000000 00000000 00000000
+}
+
+
+#new:NpcGroup $Bombette
+{
+	.Npc:Bombette $NpcSettings_80241610 ~Vec3f:Bombette % -469 0 101
+	00000801 $Script_Init_Bombette 00000000 00000000 00000000
+	~NoDrops
+	~Movement:Bombette
+	~AnimationTable:Bombette
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_Init_Bombette
+{
+	If  *GB_StoryProgress == .Story:PostGame
+		If  *PostGameBombetteEvent == .False
+			Thread
+				Call  SpeakToPlayer ( .Npc:Self FFFFFFFF FFFFFFFF 00000005 000C017C )
+			EndThread
+			Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Bombette )
+		Else
+			Call  RemoveNpc     ( .Npc:Self )
+		EndIf
+	Else
+		Call  RemoveNpc     ( .Npc:Self )
+	EndIf
+	Return
+	End
+}
+
+
+
+
+
+#new:Script $Script_Interact_Bombette
+{
+   Call  CloseMessage ( )
+   Wait  15`
+   Call  SetNpcAnimation   ( .Npc:Self 00030003 )
+   Call  BringPartnerOut   ( .Partner:Goombario )
+   Call  DisablePartnerAI  ( 00000000 )
+   Wait  5`
+   Call  SpeakToPlayer ( .Npc:Partner 0001000F 0001000E 00000005 000C017D )
+   Call  EnablePartnerAI ( )
+   Call  SpeakToPlayer ( .Npc:Self 0003000D 00030014 00000000 000C017E ) % I can't help but think that Fuzzies'll steal my sh ...
+   Call  EndSpeech ( .Npc:Self 0003000E 00030003 00000000 )
+   Call  EndSpeech ( .Npc:Self 00030013 00030013 00000000 )
+   Call  EndSpeech ( .Npc:Self 0003000E 00030003 00000000 )
+   Call  PutPartnerAway ( )
+   Call  $ScriptApi_GivePartner ( .Partner:Bombette -1` )  %Give Bombette 
+   Call  $TurnNpcIntoPartner ( .Npc:Bombette .Partner:Bombette ) 
+   Call  DisablePartnerAI  ( 00000000 )
+   Set  *PostGameBombetteEvent .True
+   If   *PostGameParakariusEvent == .False
+	    Call  SpeakToPlayer ( .Npc:Partner 0003000E 00030003 00000000 000C017F )
+   EndIf
+   Wait  5`
+   Call  EnablePartnerAI ( )
+   Return
+   End
+}
+
+
+
+#new:Function $TurnNpcIntoPartner
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  SW        S1, 14 (SP)
+   10:  COPY      S1, A1
+   14:  SW        RA, 24 (SP)
+   18:  SW        S4, 20 (SP)
+   1C:  SW        S3, 1C (SP)
+   20:  SW        S0, 10 (SP)
+   24:  LW        S0, C (S2)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S2
+   38:  LW        A1, 0 (S0)
+   3C:  JAL       ~Func:get_variable
+   40:  COPY      S0, V0
+   44:  COPY      A0, S0
+   48:  JAL       ~Func:get_npc_safe
+   4C:  COPY      S4, V0
+   50:  LA        S3, 8010F290
+   58:  BEQ       S1, R0, .o74
+   5C:  COPY      S0, V0
+   60:  LB        V0, 12 (S3)
+   64:  BNEL      V0, R0, .o74
+   68:  SW        R0, 70 (S2)
+   6C:  LI        V0, 2
+   70:  SW        V0, 70 (S2)
+        .o74
+   74:  LW        V1, 70 (S2)
+   78:  LI        S1, 1
+   7C:  BEQ       V1, S1, .oCC
+   80:  SLTI      V0, V1, 2
+   84:  BEQ       V0, R0, .o9C
+   88:  LI        V0, 2
+   8C:  BEQ       V1, R0, .oB4
+   90:  CLEAR     V0
+   94:  BEQ       R0, R0, .o164
+   98:  NOP
+        .o9C
+   9C:  BEQ       V1, V0, .oEC
+   A0:  LI        V0, 3
+   A4:  BEQ       V1, V0, .o120
+   A8:  CLEAR     V0
+   AC:  BEQ       R0, R0, .o164
+   B0:  NOP
+        .oB4
+   B4:  JAL       ~Func:switch_to_partner
+   B8:  CLEAR     A0
+   BC:  LI        V0, 1E
+   C0:  SW        V0, 74 (S2)
+   C4:  BEQ       R0, R0, .o160
+   C8:  SW        S1, 70 (S2)
+        .oCC
+   CC:  LW        V0, 74 (S2)
+   D0:  LI        V1, FFFF
+   D4:  ADDIU     V0, V0, FFFF
+   D8:  BNE       V0, V1, .o160
+   DC:  SW        V0, 74 (S2)
+   E0:  LI        V0, 2
+   E4:  BEQ       R0, R0, .o160
+   E8:  SW        V0, 70 (S2)
+        .oEC
+   EC:  COPY      A0, S0
+   F0:  SLL       V0, S4, 18
+   F4:  SRA       V0, V0, 15
+   F8:  ADDU      V0, S3, V0
+   FC:  SB        S4, 12 (S3)
+  100:  JAL       ~Func:partner_clear_player_tracking
+  104:  SB        S1, 14 (V0)
+  108:  LB        A0, 12 (S3)
+  10C:  JAL       800EB2A4
+  110:  NOP
+  114:  LI        V0, 3
+  118:  BEQ       R0, R0, .o160
+  11C:  SW        V0, 70 (S2)
+        .o120
+  120:  JAL       ~Func:get_npc_safe
+  124:  LI        A0, FFFC
+  128:  LW        A1, C (S0)
+  12C:  JAL       ~Func:set_npc_yaw
+  130:  COPY      A0, V0
+  134:  COPY      A0, S0
+  138:  LW        V0, 0 (S0)
+  13C:  LI        V1, FFFB
+  140:  AND       V0, V0, V1
+  144:  JAL       ~Func:disable_npc_shadow
+  148:  SW        V0, 0 (S0)
+  14C:  LIF       F0, -1000.0
+  154:  LI        V0, 2
+  158:  BEQ       R0, R0, .o164
+  15C:  SWC1      F0, 3C (S0)
+        .o160
+  160:  CLEAR     V0
+        .o164
+  164:  LW        RA, 24 (SP)
+  168:  LW        S4, 20 (SP)
+  16C:  LW        S3, 1C (SP)
+  170:  LW        S2, 18 (SP)
+  174:  LW        S1, 14 (SP)
+  178:  LW        S0, 10 (SP)
+  17C:  JR        RA
+  180:  ADDIU     SP, SP, 28
 }

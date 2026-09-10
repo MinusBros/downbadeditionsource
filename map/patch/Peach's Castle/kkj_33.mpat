@@ -13,7 +13,29 @@
 	[EntryList]   $EntryList
 	[EntryCount]  00000001
 	[Background]  80200000
-	[MapTattle]   0019001A
+	[MapTattle]   0019019A
+}
+
+
+
+#new:Script_Main $Script_Main
+{
+   6C:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   7C:  Call  SetSpriteShading  ( .Shading:None )
+   8C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   A0:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   C0:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   DC:  Call  SetCamEnabled     ( .Cam:Default .True )
+   F0:  Call  SetCamSpeed       ( .Cam:Default *Fixed[0.75] )
+  1B4:  Call  UseDoorSounds ( .DoorSounds:Large )
+		If  *KKJ14_PeachLeftRoom == .True
+			Call  MakeNpcs  ( .False $NpcGroupList_Peach )
+		EndIf
+		Call  PlayAmbientSounds ( .AmbientSounds:Birds )
+  1C4:  Exec  $Script_EnterDoubleDoor_80241060
+		Exec  $Script_CheckPos
+  2BC:  Return
+  2C4:  End
 }
 
 #new:Script $Script_ExitDoubleDoor_80240F90
@@ -25,6 +47,7 @@
    3C:  Set   *Var2  ~Model:o84
    4C:  Set   *Var3  ~Model:o85
    5C:  Exec  ExitDoubleDoor
+		Call  ClearAmbientSounds    ( 00000096 )
    68:  Wait  17`
    74:  Call  GotoMap   ( "kkj_32" 00000001 )
    88:  Wait  100`
@@ -44,7 +67,6 @@
     0:  Call  GetEntryID    ( *Var0 )
    10:  Switch  *Var0
    1C:  	Case  ==  ~Entry:Entry0
-  200:  		Call  SetZoneEnabled    ( ~Zone:o15 .False )
   214:  		Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
   230:  		Set   *Var0  00000000
   240:  		Set   *Var2  ~Model:o84
@@ -57,18 +79,169 @@
 }
 
 
-#new:Script_Main $Script_Main
+
+
+
+#new:Script $Script_CheckPos
 {
-   6C:  Set   *GB_WorldLocation  .Location:PeachsCastle
-   7C:  Call  SetSpriteShading  ( .Shading:None )
-   8C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-   A0:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
-   C0:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
-   DC:  Call  SetCamEnabled     ( .Cam:Default .True )
-   F0:  Call  SetCamSpeed       ( .Cam:Default *Fixed[0.75] )
-  1B4:  Call  UseDoorSounds ( .DoorSounds:Large )
-  1C4:  Exec  $Script_EnterDoubleDoor_80241060
-  2BC:  Return
-  2C4:  End
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -150`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  SetPlayerAnimation    ( 00080013 )
+		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+		Call  ClearAmbientSounds    ( 00000096 )
+		Wait  80`
+		Call  GotoMap       ( "osr_00" 00000005 )
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
 }
+
+
+#new:Script $Script_Init_Peach
+{
+   Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Peach )
+   Return
+   End
+}
+
+#import SwapToGoombarius.mpat
+
+#new:Script $Script_Interact_Peach
+{
+		Call  ClearAmbientSounds    ( 00000096 )
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00D60001 )
+   14:  Wait  10`
+		Thread
+			Call  AdjustCam     ( .Cam:Default *Fixed[4.0] *Fixed[0.0] *Fixed[275.0] *Fixed[27.0] *Fixed[-14.5] )
+			Wait  15`
+			Call  PushSong      ( .Song:StarbornValley 2 )
+		EndThread
+		ExecWait  $SwapToGoombarius
+		Call  SpeakToPlayer ( .Npc:Self 00D60002 00D60004 00000000 00000060 )  %Good you're all here
+		Call  SetNpcAnimation   ( .Npc:Self 00D60003 )
+		Wait  5`
+		Call  DisablePartnerAI  ( 00000000 )
+		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 00000061 )  %Goombarius comment
+		Wait  16`
+		Call  SpeakToPlayer ( .Npc:Self 00D60002 00D60004 00000000 00000062 )  %Go to Mibojin Dokutsu
+		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 00000063 )  %Goombarius comment 2
+		Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+		Sub   *Var5  3`
+		Call  SetNpcPos ( .Npc:Wattage *Var3 *Var4 *Var5 )
+		Call  NpcFlyTo  ( .Npc:Wattage -600`  25`  -35`  20`  0` .Easing:Linear )
+		Call  NpcFacePlayer ( .Npc:Wattage 00000005 )
+		Wait  10`
+		Call  SpeakToNpc ( .Npc:Wattage 00060004 00060001 0` 00000000 00000064 ) %Wattage realize that's where her mama is
+		Call  SetNpcAnimation   ( .Npc:Self 00D6000D )
+		Call  SpeakToPlayer ( .Npc:Self 00D6000B 00D60004 00000000 00000065 )  %You're gonna look for your mama right?
+		Call  SpeakToNpc ( .Npc:Wattage 00060004 00060001 0` 00000000 00000066 )  %I do miss her
+		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 00000067 )  %Goombarius says we gotta find Wattage's mom
+		Call  EndSpeech ( .Npc:Partner 0001000F 0001000E 00000005 )
+		Wait  10`
+		Call  SpeakToPlayer ( .Npc:Self 00D60007 00D60007 00000000 00000068 )	%Ignore that idiot
+		Call  EndSpeech ( .Npc:Self 00D60002 00D60004 00000000 )
+		Call  SetNpcAnimation   ( .Npc:Self 00D6000D )
+		Call  SpeakToNpc ( .Npc:Wattage 00060006 00060000 0` 00000000 00000069 )	%Thanks Peachy
+		Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+		Call  SetNpcAnimation   ( .Npc:Self 00D6000F )
+		Call  NpcMoveTo ( .Npc:Self  -610`  -18`  20` )
+    0:  Call  PlaySoundAtCollider   ( ~Collider:ttw .Sound:BasicDoorOpen 00000000 )
+   18:  Call  MakeLerp  ( 00000000 00000078 0000000E .Easing:QuadraticOut )
+   34:  Loop
+   40:  	Call  UpdateLerp ( )
+   4C:  	Call  RotateModel   ( ~Model:o85 *Var0 00000000 00000001 00000000 )
+   6C:  	Wait  1`
+   78:  	If  *Var1  ==  00000000
+   88:  		BreakLoop
+   90:  	EndIf
+   98:  EndLoop
+		Call  PopSong ( )
+		Thread
+			Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+			Sub   *Var5  3`
+			Call  NpcFlyTo  ( .Npc:Wattage *Var3 *Var4 *Var5  20`  0` .Easing:Linear )
+			Call  SetNpcPos ( .Npc:Wattage -3000` -1000` *Var5 )	
+			Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
+		EndThread
+		Call  NpcMoveTo ( .Npc:Self  -675`  -18`  20` )
+		Call  PlayAmbientSounds ( .AmbientSounds:Birds )
+  52C:  Thread
+    0:  Call  MakeLerp  ( 00000078 00000000 00000008 .Easing:QuadraticOut )
+   1C:  Loop
+   28:  	Call  UpdateLerp ( )
+   34:  	Call  RotateModel   ( ~Model:o85 *Var0 00000000 00000001 00000000 )
+   54:  	Wait  1`
+   60:  	If  *Var1  ==  00000000
+   70:  		BreakLoop
+   78:  	EndIf
+   80:  EndLoop
+		Call  PlaySoundAtCollider   ( ~Collider:ttw .Sound:BasicDoorClose 00000000 )
+  5D4:  EndThread
+		Call  EnablePartnerAI  ( )
+		Set  *KKJ14_PeachLeftRoom .False
+		Set  *KKJ33_PeachCutscene .True
+  104:  Return
+  10C:  End
+}
+
+
+#define .Npc:Wattage         1`
+
+#new:Script $Script_Init_Wattage
+{
+		Call    SetNpcPos ( .Npc:Self -600` -51` -35 )
+   40:  Return
+   48:  End
+}
+
+#new:NpcGroupList  $NpcGroupList_Peach
+{
+	1 $NpcGroup_Peach 0
+	1 $WattagePostGame 0
+	0 0 0
+}
+
+#new:NpcGroup $NpcGroup_Peach
+{
+	0` $NpcSettings_802405D0 ~Vec3f:Peach
+	00400509 $Script_Init_Peach 00000000 00000000 90`
+	~NoDrops
+	~Movement:Peach
+	~AnimationTable:Peach
+	00000000 00000000 00000000 001A0170
+}
+
+#new:NpcGroup  $WattagePostGame
+{
+	% $NpcGroup_8024255C[1F0]
+	1` $DummySettings ~Vec3f:Watt % 50 15 160
+	00000005 $Script_Init_Wattage 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:Watt
+	~AnimationTable:Watt % .Sprite:WorldWatt
+	00000000 00000000 00000000 001A016E % new tattle
+}
+
+
+#new:NpcSettings $NpcSettings_802405D0
+{
+	00000000 002E0024 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+
+#new:NpcSettings $DummySettings
+{
+	00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+
 

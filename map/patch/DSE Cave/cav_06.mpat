@@ -1,0 +1,634 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000004
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+#new:Function $Function_SetupFog
+{
+	PUSH RA
+	JAL       8011BB50
+	NOP
+	ADDIU     A0, R0, 3B6
+	JAL       8011BB74
+	ADDIU     A1, R0, 3E8
+	ADDIU     A0, R0, BC
+	ADDIU     A1, R0, BC
+	ADDIU     A2, R0, BC
+	JAL       8011BB88
+	ADDIU     A3, R0, FF
+	ADDIU     V0, R0, 2
+	JPOP RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	PUSH	  RA
+	LI		  A1, *CAV06_Bridge1
+	JAL		  ~Func:get_variable
+	NOP
+	BEQ		  V0, R0 .no
+	NOP
+	%check if on left side
+	LI		  T0, 8010EFDE
+	LH		  T1, 0 (T0)
+	SLTI	  T1, T1, FCB0
+	BNE		  T1, R0, .no		%if less, you are on left side
+	NOP
+	LIO       V0, $MapTattle
+	BEQ		  R0, R0, .end
+	NOP
+	.no
+	LIO       V0, $MapTattleLeftSide
+	.end
+	JPOP	  RA	
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+~Vec4f:Entry3
+}
+
+#string $MapTattleLeftSide
+{
+[Style Tattle][EnableCDownNext]That switch over there[BR]
+looks important.[BR]
+[WAIT][NEXT]
+We should try to find a way[BR]
+to hit it.[BR]
+[WAIT][END]
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This looks like the center[BR]
+of the ruined city.[BR]
+[WAIT][NEXT]
+That big statue looks like[BR]
+it points somewhere important.[BR]
+[WAIT][END]
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+If  *CAV06_Bridge1 == .True
+	Thread
+		Wait 30`
+		Call  802D5FA4  ( 00000007 ) %Unmutes all channels
+	EndThread
+EndIf
+Return
+End
+}
+
+
+%just import this because I don't really feel like importing the other stuff
+#import Pit_AI.mpat
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_BuzzyBeetle1 34050000
+00000001 $NpcGroup_BuzzyBeetle2 34080000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_BuzzyBeetle1
+{
+00000000 $NpcSettings_BuzzyBeetle ~Vec3f:beetle1 % 561 25 47
+00000400 00000000 00000000 00000000 00000163 
+~Items:0:DriedShroom:A
+~HP:20:80:2:50 ~HP:30:70:2:50 ~HP:50:60:2:40 ~HP:80:50:2:40 ~HP:100:40:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:2
+~Movement:beetle1
+00330101 00330103 00330104 00330104 00330100 00330100 00330107 00330107
+0033010C 00330105 0033010D 00330100 00330100 00330100 00330100 00330100 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_BuzzyBeetle2
+{
+00000001 $NpcSettings_BuzzyBeetle ~Vec3f:beetle2 % 561 25 47
+00000400 00000000 00000000 00000000 00000163 
+~Items:0:DriedShroom:A
+~HP:20:80:2:50 ~HP:30:70:2:50 ~HP:50:60:2:40 ~HP:80:50:2:40 ~HP:100:40:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:2
+~Movement:beetle2
+00330101 00330103 00330104 00330104 00330100 00330100 00330107 00330107
+0033010C 00330105 0033010D 00330100 00330100 00330100 00330100 00330100 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+@ $NpcSettings_BuzzyBeetle
+{
+00000000 00140016 00000000 00000000 $Script_NpcAI_BuzzyBeetle 80077F70 00000000 8007809C 
+00000000 00000000 00200000 
+}
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( FFFFFFFF )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 6000` )	% default type, half vertical FOV, near clip, and far clip
+																%actually increase the far clip to 6000 because I put the temple really far away
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Bind     $Script_LoreText  .Trigger:WallPressA ~Collider:LoreText  00000001 00000000 
+Exec    $Script_SetMusic 
+If *CAV06_Bridge1 == .True	%Set the colliders and instantaneously move the bridge
+	Call     ModifyColliderFlags 	( 00000000 ~Collider:bridgewalls 7FFFFE00 ) 
+	Call  TranslateGroup        ( ~Model:leftbridgegroup -400` 00000000 00000000 )
+EndIf
+If *CAV06_LockLeft == .True
+	Call     ModifyColliderFlags 	( 00000000 ~Collider:backbridgewall 7FFFFE00 ) 
+	Call  TranslateGroup        ( ~Model:bridgetransformgroup 0` 400` 400` )
+EndIf
+Call  $Function_SetupFog
+ExecWait $Script_MakeEntities
+Call     MakeNpcs           ( 00000001 $NpcGroupList)
+%entry 0 = left loading zone
+%entry 1 = right loading zone
+%entry 2 = temple loading zone
+%entry 3 = palace loading zone
+Call     GetEntryID  	( *Var[0] )
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+#new:Script $Script_LoreText
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     ShowMessageAtScreenPos     	( $LoreText 000000A0 00000028 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+
+#new:String $LoreText
+{
+	[Style Inspect]THEIR VICTORY SEEMED SECURE[BR]
+	YET IT WOULD BECOME UNSURE[BR]
+	THE LIGHT WOULD NOT BE PUT OUT[BR]
+	NOW THEIR HEGEMONY WAS IN DOUBT[BR]
+	[WAIT][NEXT]
+	SOON THE STARS WOULD BE FREED[BR]
+	THE DARKNESS WOULD RECEDE[BR]
+	THE ARMIES WOULD RETREAT[BR]
+	SOON THE END THEY WOULD MEET[WAIT][END]
+}
+
+#new:Script $Script_MakeEntities
+{
+	If *CAV06_LockRight == .False
+		Call  MakeEntity    ( .Entity:Padlock ~Vec4d:lockR 80000000 )
+		Call  AssignScript  ( $Script_LockScriptR )
+		Set   *MapVar[1]  *Var0
+		BindLock  $Script_TryOpenLockR .Trigger:WallPressA 00004000 $ItemList_DarkKey 00000000 00000001
+	EndIf
+	If *CAV06_LockLeft == .False
+		Call  MakeEntity    ( .Entity:Padlock ~Vec4d:lockL 80000000 )
+		Call  AssignScript  ( $Script_LockScriptL )
+		Set   *MapVar[2]  *Var0
+		If *CAV06_LockRight == .False
+			BindLock  $Script_TryOpenLockL .Trigger:WallPressA 00004001 $ItemList_DarkKey 00000000 00000001
+		Else
+			BindLock  $Script_TryOpenLockL .Trigger:WallPressA 00004000 $ItemList_DarkKey 00000000 00000001		%note: needs to be 4000 instead of 4001 because this is the only lock?
+		EndIf
+	EndIf
+	If *CAV06_Bridge1 == .False
+		Call  MakeEntity    ( .Entity:GreenStompSwitch ~Vec4d:switch 80000000 )
+		Set   *MapVar[0]  *Var0				%good thing to know: MakeEntity sets *Var0 to a value that can be used to reference the entity again
+		Call  AssignScript  ( $Script_GreenSwitch )
+	EndIf
+	Call     MakeEntity  	( .Entity:YellowBlock ~Vec4d:blockL .Item:UltraShroom 80000000 )
+	Call     AssignBlockFlag 	( *GF_CAV06_BlockL )	
+	Call     MakeEntity  	( .Entity:HiddenYellowBlock ~Vec4d:blockR .Item:BigStarPoint 80000000 )
+	Call     AssignBlockFlag 	( *GF_CAV06_BlockR )	
+	Return
+	End
+}
+
+#new:ItemList $ItemList_DarkKey
+{
+	00000035
+	00000000
+}
+
+#new:Script $Script_LockScriptR
+{
+	Return
+	End
+}
+
+#new:Script $Script_LockScriptL
+{
+	Return
+	End
+}
+
+/%
+#new:Script $Script_8024346C
+{
+    0:  Return
+    8:  End
+}
+%/
+
+#new:Function $Function_80240040
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:get_entity_by_index
+    C:  LW        A0, 84 (A0)
+   10:  COPY      V1, V0
+   14:  LW        A0, 0 (V1)
+   18:  LUI       A1, 10
+   1C:  OR        A0, A0, A1
+   20:  SW        A0, 0 (V1)
+   24:  LW        RA, 10 (SP)
+   28:  LI        V0, 2
+   2C:  JR        RA
+   30:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80240074
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S1, 14 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, C (S2)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  JAL       ~Func:get_entity_by_index
+   2C:  COPY      A0, V0
+   30:  LW        A1, 0 (S0)
+   34:  ADDIU     S0, S0, 4
+   38:  COPY      S1, V0
+   3C:  LWC1      F0, 48 (S1)
+   40:  TRUNC.W.S F2, F0
+   44:  MFC1      A2, F2
+   48:  JAL       ~Func:set_variable
+   4C:  COPY      A0, S2
+   50:  LW        A1, 0 (S0)
+   54:  ADDIU     S0, S0, 4
+   58:  LWC1      F0, 4C (S1)
+   5C:  TRUNC.W.S F2, F0
+   60:  MFC1      A2, F2
+   64:  JAL       ~Func:set_variable
+   68:  COPY      A0, S2
+   6C:  LWC1      F0, 50 (S1)
+   70:  LW        A1, 0 (S0)
+   74:  TRUNC.W.S F2, F0
+   78:  MFC1      A2, F2
+   7C:  JAL       ~Func:set_variable
+   80:  COPY      A0, S2
+   84:  LW        RA, 1C (SP)
+   88:  LW        S2, 18 (SP)
+   8C:  LW        S1, 14 (SP)
+   90:  LW        S0, 10 (SP)
+   94:  LI        V0, 2
+   98:  JR        RA
+   9C:  ADDIU     SP, SP, 20
+}
+
+#new:Script $Script_TryOpenLockR
+{
+    0:  SetGroup  00000000
+    C:  SuspendAll  00000001
+   18:  Call  ShowKeyChoicePopup ( )
+   24:  If  *Var0  ==  00000000
+   34:  	Call  ShowMessageAtScreenPos    ( $LockMessageR 000000A0 00000028 ) % It's locked! You can't open it.
+   4C:  	Call  CloseChoicePopup ( )
+   58:  	ResumeAll  00000001
+   64:  	Return
+   6C:  EndIf
+   74:  If  *Var0  ==  FFFFFFFF
+   84:  	Call  CloseChoicePopup ( )
+   90:  	ResumeAll  00000001
+   9C:  	Return
+   A4:  EndIf
+   AC:  Call  FindKeyItem       ( 00000035 *Var0 )
+   C0:  Call  RemoveKeyItemAt   ( *Var0 )
+   D0:  Call  CloseChoicePopup ( )
+   EC:  Call  $Function_80240074    ( *MapVar[1] *Var0 *Var1 *Var2 )
+  108:  Call  PlaySoundAt       ( 00000269 00000000 *Var0 *Var1 *Var2 )
+  128:  Set   *Var0  *MapVar[1]
+  138:  Call  $Function_80240040 ( )
+		Set *CAV06_LockRight .True
+		%Do some animations
+		%buzzatrice comes out and gives you the opportunity to open the left lock
+  5FC:  Call  GetCurrentPartnerID   ( *Var0 )
+		Call  DisablePlayerInput ( .True )	%fix problems?
+		Set *VarE 1
+  60C:  If  *Var0  !=  0000000A
+  61C:  	Call  $Function_802412C8    ( 0000000A )
+  62C:  	Thread
+  634:  		Set   *MapVar[5]  00000000
+  644:  		Call  ShowMessageAtScreenPos    ( $WaitAMoment 000000A0 00000028 ) % You! Switch with me!
+  65C:  		Set   *MapVar[5]  00000001
+  66C:  	EndThread
+  674:  	Wait  50`
+  680:  	Call  DisablePartnerAI  ( 00000000 )
+  6A4:  	Call  EnablePartnerAI ( )
+  6B0:  	Loop
+  6BC:  		Wait  1`
+  6C8:  		If  *MapVar[5]  ==  00000001
+  6D8:  			BreakLoop
+  6E0:  		EndIf
+  6E8:  	EndLoop
+			Set *VarE 0
+  6F0:  EndIf
+  6F8:  Call  DisablePartnerAI  ( 00000000 )
+  708:  Call  SpeakToPlayer ( .Npc:Partner 00FC000E 00FC0001 00000000 $KeyWarning ) % Mario! We have to hide! Use my power! Immediately! ...
+  728:  Call  EnablePartnerAI ( )
+		Call  DisablePlayerInput ( .False )	%fix problems?
+  144:  ResumeAll  00000001
+  150:  Unbind
+		Return
+		End
+}
+
+#new:String $LockMessageR
+{
+	[Style Inspect]
+	[DelayOff]It's locked! You can't open it.[BR]
+	Maybe someone down here has[BR]
+	it...[BR][Wait][End]
+}
+
+%Forced partner swap
+#new:Function $Function_802412C8
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  JAL       800EB168
+   18:  COPY      A0, V0
+   1C:  LW        RA, 10 (SP)
+   20:  LI        V0, 2
+   24:  JR        RA
+   28:  ADDIU     SP, SP, 18
+}
+
+#new:Script $Script_TryOpenLockL
+{
+    0:  SetGroup  00000000
+    C:  SuspendAll  00000001
+		If *CAV06_LockRight == .False
+			Call  DisablePlayerInput ( .True )	%fix problems?
+			Call  FindKeyItem       ( 00000035 *Var0 )
+			If *Var0 == FFFFFFFF
+				Call  ShowMessageAtScreenPos    ( $LockMessageR 000000A0 00000028 ) % It's locked! You can't open it.
+			Else
+				Call  ShowMessageAtScreenPos    ( $LockMessageL2 000000A0 00000028 ) % It's locked! You can't open it.
+			EndIf
+			Call  CloseChoicePopup ( )
+			ResumeAll  00000001
+			Return
+		EndIf
+		%Sneakily give you the key
+		Call  AddKeyItem        ( 00000035 ) %dark key (should be)		
+   18:  Call  ShowKeyChoicePopup ( )
+   24:  If  *Var0  ==  00000000
+			%Sneakily remove the key
+			Call  FindKeyItem       ( 00000035 *Var0 )
+			Call  RemoveKeyItemAt   ( *Var0 )
+   34:  	Call  ShowMessageAtScreenPos    ( 001D00D8 000000A0 00000028 ) % It's locked! You can't open it.
+   4C:  	Call  CloseChoicePopup ( )
+   58:  	ResumeAll  00000001
+   64:  	Return
+   6C:  EndIf
+   74:  If  *Var0  ==  FFFFFFFF
+			%Sneakily remove the key
+			Call  FindKeyItem       ( 00000035 *Var0 )
+			Call  RemoveKeyItemAt   ( *Var0 )
+   84:  	Call  CloseChoicePopup ( )
+   90:  	ResumeAll  00000001
+   9C:  	Return
+   A4:  EndIf
+		%Sneakily remove the key
+   AC:  Call  FindKeyItem       ( 00000035 *Var0 )
+   C0:  Call  RemoveKeyItemAt   ( *Var0 )
+   D0:  Call  CloseChoicePopup ( )
+   EC:  Call  $Function_80240074    ( *MapVar[2] *Var0 *Var1 *Var2 )
+  108:  Call  PlaySoundAt       ( 00000269 00000000 *Var0 *Var1 *Var2 )
+  128:  Set   *Var0  *MapVar[2]
+  138:  Call  $Function_80240040 ( )
+		%Do some animations
+		Set *CAV06_LockLeft .True
+		%set some animations up
+		Call  MakeLerp  ( 00000000 400` 60` .Easing:CosInOut )		%go from 0 to 400 in 60 steps?
+		Label  0
+		Call  UpdateLerp ( )
+		Call  TranslateGroup        ( ~Model:bridgetransformgroup 00000000 *Var0 *Var0 )
+		Add   *Var0  *Var8
+		Call     ShakeCam    	( .Cam:Default 00000000 00000001 *Fixed[1.0] )
+		Wait  1`
+	   	If  *Var1  ==  00000001
+	   		Goto  0
+		EndIf		
+		Call  TranslateGroup        ( ~Model:bridgetransformgroup 00000000 400` 400` )
+		Call     ModifyColliderFlags 	( 00000000 ~Collider:backbridgewall 7FFFFE00 ) 		%the bridge floor colliders are actually always enabled, but I don't want to break the illusion		
+		%  
+  144:  ResumeAll  00000001
+  150:  Unbind
+		Return
+		End
+}
+
+#new:String $LockMessageL1
+{
+	[Style Inspect]
+	[DelayOff]It's locked! You can't open it.[BR]
+	Maybe someone down here has[BR]
+	it...[BR][Wait][End]
+}
+
+#new:String $LockMessageL2
+{
+	[Style Inspect]
+	[DelayOff]The Dark Key does not fit.[BR]
+	Maybe it would work in the other[BR]
+	lock...[Wait][End]
+}
+
+#new:String $WaitAMoment
+{
+	[STYLE:RIGHT]Wait a moment![WAIT][END]
+}
+
+#new:String $KeyWarning
+{
+	[STYLE:RIGHT]There is something important[BR]
+	I need to tell you.[BR]
+	[WAIT][NEXT]
+	The enemies in this temple are[BR]
+	the strongest in the world,[BR]
+	but there are five that are[BR]
+	especially strong.[BR]
+	[WAIT][NEXT]
+	They are also the only ones that[BR]
+	can travel to and from the[BR]
+	temple without the bridge.[BR]
+	You've probably seen them before.[BR]
+	[WAIT][NEXT]
+	I expect that they will be[BR]
+	waiting for us on the other[BR]
+	side.[BR]
+	[WAIT][NEXT]
+	You should prepare yourself[BR]
+	well for that encounter.[BR]
+	[WAIT][END]
+}
+
+/%
+#new:Function $Function_80240634
+{
+    0:  LA        V1, 800B1D80
+    8:  LHU       V0, 2 (V1)
+    C:  ANDI      V0, V0, FFFE
+   10:  SH        V0, 2 (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+%/
+
+#new:Script $Script_GreenSwitch
+{
+	If *CAV06_Bridge1 == .False
+		Set *CAV06_Bridge1 .True
+		%set some animations up
+		Call  MakeLerp  ( 00000000 -325` 60` .Easing:CosInOut )		%go from 0 to -400 in 60 steps?
+		Label  0
+		Call  UpdateLerp ( )
+		Call  TranslateGroup        ( ~Model:leftbridgegroup *Var0 00000000 00000000 )
+		Add   *Var0  *Var8
+		%Call  $Function_80240448    ( *MapVar[0] *Var7 *Var0 *Var9 )		<-- the switch on the ice platform actually moves along with it 
+		%Call  $Function_80240634 ( )											??? (might correctly transform the platform?)
+		Call     ShakeCam    	( .Cam:Default 00000000 00000001 *Fixed[1.0] )
+		Wait  1`
+    	%Call  $Function_802405B0    ( 00000016 00004000 )						??? (does stuff with the mario struct)
+	   	If  *Var1  ==  00000001
+	   		Goto  0
+		EndIf		
+		Call  TranslateGroup        ( ~Model:leftbridgegroup -325` 00000000 00000000 )
+		Call     ModifyColliderFlags 	( 00000000 ~Collider:bridgewalls 7FFFFE00 ) 		%the bridge floor colliders are actually always enabled, but I don't want to break the illusion		
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftlz 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:rightlz 00000001 00000000
+	Bind     $Script_Entry2 .Trigger:FloorAbove ~Collider:centerbridgeLZ 00000001 00000000
+	Bind     $Script_Entry3 .Trigger:FloorAbove ~Collider:palacelz 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_05" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_08" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Entry2
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000002 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_07" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+#new:Script $Script_Entry3
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000003 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_15" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+
+
+%second to last part of the empire lore (but this is the end of the empire)
+
+%all the empire guys got put into the pit
+%though most of the dark enemies escaped into the temple
+%scrapped this one, you can figure it out yourself
+/%
+#new:String $LoreText
+{
+	[Style Right]THE ARMIES WERE CAPTURED[BR]
+	THROWN INTO A GREAT DUNGEON[BR]
+	A PLACE WITH NO ESCAPE[BR]
+	FOR THOSE WHO ARE LOCKED IN[BR]
+}
+%/

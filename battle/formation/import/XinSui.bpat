@@ -231,6 +231,7 @@
    80:  Call     SetActorVar 	( .Actor:Self 00000003 00000000 )
 		Call     SetActorVar 	( .Actor:Self 00000004 00000000 )
 		Call     SetActorVar 	( .Actor:Self 00000006 00000000 )
+		Set   *XinSuiDefenceMessage .False
    80:  Call  SetActorPos   ( .Actor:Self  100` 20` 10` )
    9C:  Call  SetHomePos    ( .Actor:Self  100` 20` 10` )
    B8:  Call  HPBarToHome   ( .Actor:Self )
@@ -489,11 +490,11 @@
   6B0:  Wait     00000099 % Slightly faster than normal 
   6BC:  Wait     00000002 
   6C8:  Call     SetGoalToTarget 	( .Actor:Self )
-		Add      *Var5 9`
+		Add      *Var5 10`
 			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000100 00000000 00000000 *Var[5] 00000020 )
 		Call     GetActorVar 	( .Actor:Self 00000003 *Var[9] )
 		If  *Var9 >= 0000000E
-			Set *Var[E] 12`
+			Set *Var[E] 8`
 			ExecWait $Script_FP_Drain
 		EndIf
   700:  Switch  *Var[0] 
@@ -625,9 +626,9 @@
 		Wait     10`
 		Exec     $Shine
   6B0:  Wait     10` % way faster than normal monstar attack  
-		Add      *Var5 3`
+		Add      *Var5 4`
   6C8:  Call     SetGoalToTarget 	( .Actor:Self )
-			Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000100 00000000 00000000 *Var[5] 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Cosmic|Unsuperguardable|MultiBounce 00000000 00000000 *Var5 00000020 )
   700:  Switch  *Var[0] 
   70C:  	CaseOR  ==  00000000 
   718:  	CaseOR  ==  00000002 
@@ -978,30 +979,33 @@ EndLoop
 				Return
 			EndIf
    78:  EndIf
-   94:  Call     GetActorVar 	( .Actor:Self 00000003 *Var[0] )
-   AC:  Switch  *Var[0] 
-   B8:  	Case  ==  00000000 
-				Exec $MoveCamXinSui
-   C4:  		Call     ActorSpeak  	( $Turn1 .Actor:Self 00000001 007E0209 007E0209 ) 
-   E4:  	Case  ==  00000001 
-				Exec $MoveCamXinSui
-   F0:  		Call     ActorSpeak  	( $Turn2 .Actor:Self 00000001 007E0209 007E0209 )  
-  110:  	Case  ==  00000002
-				Exec $MoveCamXinSui
-  11C:  		Call     ActorSpeak  	( $Turn3 .Actor:Self 00000001 007E0209 007E0209 )    
-  110:  	Case  ==  00000003 
-				Exec $MoveCamXinSui
-  11C:  		Call     ActorSpeak  	( $Turn4 .Actor:Self 00000001 007E0209 007E0209 )    
-  110:  	Case  ==  00000004 
-				Exec $MoveCamXinSui
-  11C:  		Call     ActorSpeak  	( $Turn5 .Actor:Self 00000001 007E0209 007E0209 )    
-  110:  	Case  ==  00000005 
-				Exec $MoveCamXinSui
-  11C:  		Call     ActorSpeak  	( $Turn6 .Actor:Self 00000001 007E0209 007E0209 )
-			Case  ==  00000006
-				Exec $MoveCamXinSui
-			    Call     ActorSpeak  	( $Turn10 .Actor:Self 00000001 007E0209 007E0209 )
-  164:  EndSwitch
+		If  *XinSuiYapping == .False
+	   94:  Call     GetActorVar 	( .Actor:Self 00000003 *Var[0] )
+	   AC:  Switch  *Var[0] 
+	   B8:  	Case  ==  00000000 
+					Exec $MoveCamXinSui
+	   C4:  		Call     ActorSpeak  	( $Turn1 .Actor:Self 00000001 007E0209 007E0209 ) 
+	   E4:  	Case  ==  00000001 
+					Exec $MoveCamXinSui
+	   F0:  		Call     ActorSpeak  	( $Turn2 .Actor:Self 00000001 007E0209 007E0209 )  
+	  110:  	Case  ==  00000002
+					Exec $MoveCamXinSui
+	  11C:  		Call     ActorSpeak  	( $Turn3 .Actor:Self 00000001 007E0209 007E0209 )    
+	  110:  	Case  ==  00000003 
+					Exec $MoveCamXinSui
+	  11C:  		Call     ActorSpeak  	( $Turn4 .Actor:Self 00000001 007E0209 007E0209 )    
+	  110:  	Case  ==  00000004 
+					Exec $MoveCamXinSui
+	  11C:  		Call     ActorSpeak  	( $Turn5 .Actor:Self 00000001 007E0209 007E0209 )    
+	  110:  	Case  ==  00000005 
+					Exec $MoveCamXinSui
+	  11C:  		Call     ActorSpeak  	( $Turn6 .Actor:Self 00000001 007E0209 007E0209 )
+				Case  ==  00000006
+					Exec $MoveCamXinSui
+					Call     ActorSpeak  	( $Turn10 .Actor:Self 00000001 007E0209 007E0209 )
+					Set   *XinSuiYapping .True  %If you made it this far, he'll shut up on future attempts
+	  164:  EndSwitch
+		EndIf
 Call     GetActorVar 	( .Actor:Self 00000003 *Var[9] ) % Lets get some new attacks up in this joint, this is turn count
 Call     GetActorVar 	( .Actor:Self 00000004 *Var[8] ) % What move did I just use?
 Switch  *Var[9]
@@ -1023,12 +1027,12 @@ Switch  *Var[9]
 		ExecWait $Script_XinSuiRegular % normal monstar attack, damage = turn #
 	Case == 00000009
 		ExecWait $Script_XinSuiDebuff
-	Case == 0000000A
-		ExecWait $Script_GoInvisible
+	Case == 0000000A  %Turn 10
+		ExecWait $Script_GoInvisible  %New to DBE. Gives you a turn to breath 
 	Case == 0000000E % turn 15, 14 in hex
 		ExecWait $Script_XinSuiRegular
 	Case == 00000014
-		ExecWait $Script_GoInvisible
+		ExecWait $Script_GoInvisible  %New to DBE. Gives you a turn to breath 
 	Default
 		Switch *Var[8]
 			Case == 0`
@@ -1092,9 +1096,12 @@ EndSwitch
 				If      *Var5 > 0`
 					Call     SetDefenseTable 	( .Actor:Enemy0 00000001 $DefenseTable_0 )
 					Call     SetDefenseTable 	( .Actor:Enemy0 00000002 $DefenseTable_0 )
-					Thread
-						Call  ActorSpeak        ( 001F00D1 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )  %Defence is now 0!
-					EndThread
+					If  *XinSuiDefenceMessage == .False
+						Thread
+							Call  ActorSpeak        ( 001F00D1 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF )  %Defence is now 0!
+						EndThread
+						Set  *XinSuiDefenceMessage .True
+					EndIf
 				EndIf
 		EndSwitch
   Return

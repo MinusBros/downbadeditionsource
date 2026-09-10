@@ -1,20 +1,19 @@
+#import EnterViaPipe.mpat
+#define .NpcID:BonyBeetle_00        00
 
-
-@	$AISettings_80241880
+@	$Header
 {
-    1.5 % move speed
-    25` % move time
-    1` % wait time
-  120.0 % alert radius
-    0.0
-    3`
-    10.0 % chase speed
-    0`
-    0`
-  150.0 % chase radius
-    0.0
-    1`
+	[EntryCount]  00000004
 }
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -208.0    0.0  100.0   90.0
+	~Vec4f:Entry1 %  408.0    0.0  100.0  270.0
+	~Vec4f:Entry2 % -102.0    0.0   20.0  180.0
+	~Vec4f:Entry3
+}
+
 
 @	$Script_Main
 {
@@ -33,9 +32,78 @@
    90:  Exec  $Script_80241658
    9C:  Exec  $Script_80240B10
    A8:  Exec  $Script_EnterWalk_80240C80
+		If  *GF_Chapter8_BluePipeC == .False
+			Exec  $CheckBluePipe
+		EndIf
    B4:  Wait  1`
    C0:  Return
    C8:  End
+}
+
+
+
+@	$Script_MakeEntities
+{
+    0:  If  *GF_KPA113_UnlockedDoor  ==  .False
+   10:  	Call  MakeEntity    ( .Entity:Padlock ~Vec4d:Entity80241010 80000000 )
+   34:  	Set   *MapVar[1]  *Var0
+   44:  	BindLock  $Script_80240EDC .Trigger:WallPressA 00004000 $ItemList_80240E30 00000000 00000001
+   64:  Else
+   6C:  	Bind  $Script_ExitDoubleDoor_80240E38 .Trigger:WallPressA ~Collider:deiliett 00000001 00000000
+   88:  EndIf
+   90:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80241090 80000000 )
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_UseBluePipe ~Index:*GF_Chapter8_BluePipeC 80000000 )
+   B4:  Return
+   BC:  End
+}
+
+@	$AISettings_80241880
+{
+    1.5 % move speed
+    25` % move time
+    1` % wait time
+  120.0 % alert radius
+    0.0
+    3`
+    10.0 % chase speed
+    0`
+    0`
+  150.0 % chase radius
+    0.0
+    1`
+}
+
+
+
+#new:Script  $CheckBluePipe
+{
+	Label Start
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If	*Var0 < 150`
+		Goto  Start
+	EndIf
+	Exec  $Script_SwitchPressed
+	Return
+	End
+}
+
+
+#new:Script $Script_SwitchPressed
+{
+    C:  Call  PlaySound ( 0000208E )
+   1C:  Set   *GF_Chapter8_BluePipeC  .True
+   2C:  Unbind
+   34:  Return
+   3C:  End
+}
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "kpa_32" 5 )
+	Wait     92` 
+	Return
+	End
 }
 
 @	$Script_80241658
@@ -60,10 +128,50 @@
 }
 
 
+@	$Script_EnterWalk_80240C80
+{
+    0:  Call  GetLoadType   ( *Var0 )
+   10:  If  *Var0  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240C38
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+		Switch  *Var0
+			Case == ~Entry:Entry1
+	   68:  	Set   *Var2  ~Model:o136
+	   78:  	Set   *Var3  ~Model:o137
+	   88:  	ExecWait  EnterDoubleDoor
+	   94:  	Exec  $Script_80240C38
+			CaseOR == ~Entry:Entry0
+			CaseOR == ~Entry:Entry2
+   A8:  		Set   *Var0  $Script_80240C38
+   B8:  		Exec  EnterWalk
+			EndCaseGroup
+			Case == ~Entry:Entry3
+				Set   *VarA  $Script_80240C38
+				Exec  $Script_EnterVerticalPipe
+				Wait  1`				
+		EndSwitch
+   CC:  Return
+   D4:  End
+}
+
 
 @	$Script_80240B10
 {
    1C:  Call  UseDoorSounds ( .DoorSounds:Metal )
    58:  Return
    60:  End
+}
+
+
+@	 $NpcGroup_80241AC4
+{
+	.NpcID:BonyBeetle_00 $NpcSettings_80241A98 ~Vec3f:NPC_BonyBeetle_00 % 100 0 83
+	00002C00 00000000 00000000 00000000 0000005A
+	~Items:5:SuperShroom:A ~HP:Standard:4 ~FP:Standard:2 ~CoinBonus:0:4
+	~Movement:NPC_BonyBeetle_00
+	~AnimationTable:NPC_BonyBeetle_00 % .Sprite:BonyBeetle
+	00000000 00000000 00000000 00000000 % no tattle string
 }

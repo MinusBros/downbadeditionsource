@@ -16,6 +16,7 @@
    40:  	Call  802D5FA4  ( 00000004 )
    50:  EndThread
 		ExecWait $MakeNewBlock
+		Exec  $Script_CheckPos
    60:  Return
    68:  End
 }
@@ -28,6 +29,42 @@
    End
 }
 
+
+#new:Script $Script_CheckPos
+{
+	Label 1
+	Wait  1`
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	If *Var1  < -15`
+		Call  DisablePlayerInput    ( .True )
+		Call  DisablePartnerAI      ( 00000000 )
+		Call  FadeOutMusic      ( 00000000 000000F0 )
+		Wait  30`
+		Call  PlaySound ( 000020E9 )
+		Wait  30`
+		Call  PlaySound ( 000020EA )
+		Thread
+			Call  ShakeCam  ( .Cam:Default 00000000  25` *Fixed[2.0] )
+		EndThread
+		Wait  35`
+		Thread
+			Call  ShakeCam  ( .Cam:Default 00000000  80` *Fixed[0.5] )
+		EndThread
+		Loop  20`
+			Call  PlaySound ( 000003ED )
+			Wait  2`
+			Call  PlaySound ( 000003EE )
+			Wait  2`
+		EndLoop
+		Wait  50`
+		Call  GotoMap   ( "gv_01" 00000000 ) 
+		Wait  100`
+		Return
+	EndIf
+	Goto  1
+	Return
+	End
+}
 
 @	$Script_80241028
 {
@@ -68,6 +105,7 @@
   254:  			Call  SetNpcPos ( .NpcID:Bzzap_00  0`  -1000`  0` )
   270:  			Call  SetNpcFlagBits    ( .NpcID:Bzzap_00 00000002 .False )
   288:  			Call  SetNpcFlagBits    ( .NpcID:Bzzap_00 00000010 .True )
+					Call  ShowMessageAtWorldPos ( 00110112  35`  35`  0` ) % Sniffle!!!!! Luigi cameo
   2A0:  		Else
 					   If  *GB_StoryProgress  <  .Story:Ch6_StarSpritDeparted % FFFFFFFD
 							Call  ShowMessageAtWorldPos ( 001100DE  35`  35`  0` ) % Sniffle!!!!! Burp... No more berries! I'm stuffed  ...

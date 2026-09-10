@@ -1,7 +1,43 @@
+@	$Function_80240000
+{
+    0:  LAW       V0, 8007419C
+    8:  LBU       V1, 7E (V0)
+    C:  ANDI      V1, V1, FE
+   10:  SB        V1, 7E (V0)
+   14:  LBU       V0, 87 (A0)
+   18:  SAB       V0, 8010F2A2
+   20:  JR        RA
+   24:  LI        V0, 2
+}
+
+#new:Function_Init $Function_Init
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  CLEAR     A0
+    C:  LI        A1, *GB_StoryProgress
+   10:  JAL       ~Func:get_variable
+   14:  RESERVED
+   18:  LI        V1, 005F	%Check if you're in the post-game. If yes, change background
+   1C:  BNE       V0, V1, .o38
+   20:  NOP
+   24:  LA        A0, 800D9668
+   2C:  LA        A1, "nok_bg"
+   30:  JAL       ~Func:sprintf
+   34:  RESERVED
+        .o38
+   38:  LW        RA, 10 (SP)
+   3C:  CLEAR     V0
+   40:  JR        RA
+   44:  ADDIU     SP, SP, 18
+}
+
 @	$Script_Main
 {
     0:  Set   *GB_WorldLocation  .Location:PeachsCastle
-   10:  Call  SetSpriteShading  ( .Shading:kkj_26 )
+		If  *GB_StoryProgress != .Story:PostGame
+   10:  	Call  SetSpriteShading  ( .Shading:kkj_26 )
+		EndIf
    20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
    40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
    5C:  Call  SetCamEnabled     ( .Cam:Default .True )
@@ -37,7 +73,11 @@
 		Call  FadeOutMusic      ( 00000000 00000034 )
 		Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
 		Wait  80`
-		Call  GotoMap       ( "hos_10" 00000005 )
+		If  *GB_StoryProgress != .Story:PostGame
+			Call  GotoMap       ( "hos_10" 00000005 )
+		Else
+			Call  GotoMap       ( "hos_00" 00000000 )
+		EndIf
 		Wait  100`
 		Return
 	EndIf

@@ -1,0 +1,89 @@
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 00000000
+	[EntryList] $EntryList
+	[EntryCount] 2
+	[MapTattle]   0019019D
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+}
+
+#import EnterViaPipe.mpat
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTown
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True )
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Exec  $Script_SetupMusic
+	Call  GetEntryID    ( *Var1 )
+		If  *Var1 == ~Entry:Entry0
+			Set *Var0 $Script_CreateExitTriggers
+			Exec  EnterWalk
+		Else
+			Set *Var[A] $Script_CreateExitTriggers
+			Exec $Script_EnterVerticalPipe
+			Wait 1`			
+		EndIf
+	ExecWait $Script_MakeEntities
+	Thread
+		Wait  20`
+		If  *MAC12_BluePipe == .False
+			Call  PlaySound ( 0000208E )
+			Set  *MAC12_BluePipe .True
+		EndIf
+	EndThread
+	Return
+	End
+}
+
+
+
+#new:Script $Script_SetupMusic
+{
+	Call  SetMusicTrack ( 00000000 .Song:StarshipTheme 00000001 00000008 )
+	Call  ClearAmbientSounds ( 250` )
+	Return
+	End
+}
+
+#new:Script  $Script_MakeEntities
+{
+   		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry1 $Script_UseBluePipe ~Index:*MAC12_BluePipe 80000000 )
+		Return
+		End
+}
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "mim_10" 2 )	%Near Forever Forest
+	Wait     92` 
+	Return
+	End
+}
+
+#new:Script $Script_Exit_Entry0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "mac_10" 2 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit_Entry0 .Trigger:FloorAbove ~Collider:loadingzone 00000001 00000000
+	Return
+	End
+}
+

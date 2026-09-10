@@ -4,6 +4,8 @@
 #define .NpcID:Boo_03               03
 #define .NpcID:Boo_04               04
 
+#define .Npc:Luigi 15
+
 #import DonloninaBottle.mpat
 
 @	$EntryList
@@ -23,9 +25,49 @@
 	[EntryCount]  00000008
 }
 
+
 @	$Script_Main
 {
-   [10]  Call  SetSpriteShading  ( .Shading:kzn_22 )
+    0:  Set   *GB_WorldLocation  .Location:BoosMansion
+   10:  Call  SetSpriteShading  ( .Shading:kzn_22 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *GF_Map_BoosMansion  .True
+   94:  Call  MakeNpcs  ( .False $NpcGroupList_80245804 )
+   A8:  ExecWait  $Script_MakeEntities
+   B4:  Exec  $Script_80242CE8
+   C0:  Exec  $Script_80243B08
+   CC:  Exec  $Script_802411F0
+   D8:  Exec  $Script_EnterDoubleDoor_802418D4
+		If    *GB_StoryProgress == .Story:Ch3_BowJoinedParty
+			If    *OBK01_AfterBowBlurb == .False
+				Exec  $Script_PartnerBlurb
+			EndIf
+		EndIf
+   E4:  Return
+   EC:  End
+}
+
+
+%Have either Goombarius on Bow comment on the situation after obtaining her
+
+#new:Script  $Script_PartnerBlurb
+{
+		Set   *OBK01_AfterBowBlurb .True
+  4CC:  Call  GetCurrentPartnerID   ( *Var6 )
+  4DC:  Switch  *Var6
+  4E8:  	Case  ==  .Partner:Goombario % 1
+				Call  SetPlayerFlagBits ( 000000C0 .True )
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E0124 )
+				Wait  60`
+				Call  SetPlayerFlagBits ( 000000C0 .False )
+  598:  	Case  ==  .Partner:Bow % 9
+  5A4:  		Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 000E0125 ) 
+  648:  EndSwitch
+		Return
+		End
 }
 
 
@@ -46,7 +88,7 @@
    9C:  			Set   *GF_OBK01_Visited  .True
    AC:  			Set   *GB_StoryProgress  .Story:Ch3_EnteredBoosMansion
 					Thread
-						Wait  60`
+						Wait  30`
 						Call  ShowMessageAtScreenPos    ( 001F009E  160`  40` ) % Display song title
 					EndThread
    BC:  		EndIf
@@ -140,6 +182,7 @@
 }
 
 
+%Boo on the bottom
 @	$Script_Interact_80244B80
 {
     0:  Switch  *GB_StoryProgress
@@ -266,6 +309,7 @@
 	00000001 $NpcGroup_80245234 00000000
 	00000002 $NpcGroup_80245424 00000000
 	00000001 $Donlon			00000000
+	1 $Luigi 0
 	00000000 00000000 00000000
 }
 
@@ -318,4 +362,66 @@
 	~Movement:NPC_Boo_04
 	~AnimationTable:NPC_Boo_04 % .Sprite:Boo
 	00000000 00000000 00000000 001A00A7 % The Boos in this mansion are all big fans of Bow.  ...
+}
+
+
+
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 001A0147  %Tattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GB_StoryProgress !=  .Story:Ch3_GotWeight
+		Call  RemoveNpc ( .Npc:Self )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 000E0122 ) % 
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
 }

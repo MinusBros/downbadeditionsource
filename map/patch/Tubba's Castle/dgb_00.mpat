@@ -1,3 +1,5 @@
+%Outside the manor
+
 
 #define .NpcID:Boo_00               00
 #define .NpcID:Boo_01               01
@@ -20,17 +22,71 @@
 	[EntryCount]  00000005
 }
 
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:TubbasManor
+   10:  Set   *GF_Map_TubbasManor  .True
+   20:  Call  SetSpriteShading  ( .Shading:None )
+   30:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   50:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   6C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   80:  Call  SetCamEnabled     ( .Cam:Default .True )
+   94:  Call  GetEntryID        ( *Var0 )
+   A4:  If  *Var0  ==  00000002
+   B4:  	Call  MakeNpcs  ( .False $NpcGroupList_80243740 )
+   C8:  Else
+   D0:  	Call  MakeNpcs  ( .False $NpcGroupList_802436EC )
+   E4:  EndIf
+   EC:  ExecWait  $Script_MakeEntities
+   F8:  Exec  $Script_80240110
+  104:  Exec  $Script_EnterDoubleDoor_8024038C
+		If  *DGB00_PartnerBlurb == .False
+			Exec  $PartnerBlurb
+		EndIf
+  110:  Return
+  118:  End
+}
+
+
+#new:Script  $PartnerBlurb
+{
+				Label 0
+				Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+				If  *Var0  < -400`
+					Wait  1`
+					Goto  0
+				EndIf
+				Wait  15`
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Set  *DGB00_PartnerBlurb .True
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SetPlayerFlagBits ( 000000C0 .True )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E0142 )
+					Wait  145`
+					Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E0143 )
+				Case  ==  .Partner:Bombette % 3
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E0144 ) 
+				Case  ==  .Partner:Parakarry % 4
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E0145 ) 
+				Case  ==  .Partner:Bow % 9
+					Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 000E0146 ) 
+				EndSwitch
+				Return
+				End
+}
+
 @	$Script_MakeEntities
 {
     0:  Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity80243760 80000000 )
 		Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 )
 		Call     MakeEntity  	( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry3 $Script_UseBluePipe ~Index:*GF_Chapter3_BluePipeA 80000000 )
 		If  *GF_Chapter3_BluePipeA == .False
-			Call     MakeEntity  	( .Entity:BlueSwitch ~Vec4d:Switch 80000000 )
-			Call     AssignAreaFlag ( 00000003 )
-			Set      *MapVar[1] *Var[0] 
-			Bind     $Script_SwitchPressed .Trigger:AreaFlagSet *AreaFlag[003] 00000001 00000000 
+			Exec  $Script_SwitchPressed 
 		EndIf
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:NewStarPiece .ItemSpawnMode:Fixed_NeverVanish *DGB00_NewStarPiece )
    24:  Return
    2C:  End
 }
@@ -38,8 +94,10 @@
 
 @	$Script_80240110
 {
-		Set   *Byte_Settings_BGM  1`
-		Set   *Byte_Settings_BGM2 1`
+		Set   *Byte_Settings_BGM  1`	
+		Set   *Byte_Settings_BGM2 0`	%Activate Dragon Quest music	
+		Set   *Byte_Settings_BGM3 1`
+		Set   *Byte_Settings_BGM4 1`
     0:  Switch  *GB_StoryProgress
     C:  	Case  <  .Story:Ch3_TubbaWokeUp % FFFFFFE3
    18:  		Call  SetMusicTrack ( 00000000 .Song:GustyGulch 00000000 00000008 )
@@ -71,15 +129,10 @@
    E4:  End
 }
 
-@	$Script_ExitWalk_802401C0
-{
-   [40]  Wait  70`
-}
 
 @   $Script_ExitDoubleDoor_8024021C
 {
    [78]  Wait  15`
-   [98]  Wait  70`
 }
 
 @	$Script_80242B84
@@ -148,7 +201,7 @@
 
 #new:Script $Script_SwitchPressed
 {
-    0:  Wait  8`
+    0:  Wait  30`
     C:  Call  PlaySound ( 0000208E )
    1C:  Set   *GF_Chapter3_BluePipeA  .True
    2C:  Unbind
@@ -159,6 +212,10 @@
 
 #new:Script $Script_UseBluePipe
 {
+		Set   *Byte_Settings_BGM  0`	%Activate Super Kids music
+		Set   *Byte_Settings_BGM2 1`		
+		Set   *Byte_Settings_BGM3 1`
+		Set   *Byte_Settings_BGM4 1`
 	Call     GotoMap     	( "obk_01" 7 )
 	Wait     00000054 
 	Return

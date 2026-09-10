@@ -10,6 +10,9 @@
   [210]  		Set   *Var0  00000180  %Rakukaja Gem
 }
 
+
+
+
 %Modified cutscene featuring Mamar and Goombarius.
 
 @	$Script_80244330
@@ -190,6 +193,20 @@
     [230]  		Exec  $Script_80243B38_2
 }
 
+@	$Script_MakeEntities
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch2_UncoveredDryDryRuins % FFFFFFC2
+   10:  	Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:Entity80245590 00000006 80000000 )
+   38:  EndIf
+		Set   *Byte_Settings_BGM  1`
+		Set   *Byte_Settings_BGM2 1`	
+		Set   *Byte_Settings_BGM3 1` %Revert Superstar Saga battle theme
+		Set   *Byte_Settings_BGM4 1`
+   40:  Return
+   48:  End
+}
+
+
 #delete $Script_80243B38
 
 #new:Script $Script_80243B38_2 % Script_80243B38
@@ -302,6 +319,7 @@
 
 @	$Script_8024358C
 {
+		
     0:  Call  DisablePulseStone ( .True )
    10:  Call  ShowKeyChoicePopup ( )
    1C:  If  *Var0  <=  00000000
@@ -315,6 +333,7 @@
    88:  Call  CloseChoicePopup ( )
    94:  Set   *GB_StoryProgress  .Story:Ch2_UncoveredDryDryRuins
    A4:  Call  $Function_80240338 ( )
+		Exec  $SkipRuinsCutscene
    B0:  Call  SetMusicTrack ( 00000000 .Song:DryDryRuinsAppear 00000000 00000008 )		%Fixed this song
    CC:  Call  UseSettingsFrom   ( .Cam:Default  0`  0`  0` )
    E8:  Call  SetPanTarget  ( .Cam:Default  210`  0`  137` )
@@ -375,4 +394,27 @@
   458:  Wait  100`
   464:  Return
   46C:  End
+}
+
+#new:Script $SkipRuinsCutscene
+{
+	Thread
+		Call  ShowMessageAtScreenPos    ( 001F00E8  160`  40` )	%Skip cutscene
+	EndThread
+	Call  $SkipCutscene ( )
+	Call  CloseMessage ( )
+	Call  GotoMap    ( "sbk_02" 00000006  )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Function $SkipCutscene
+{
+    0:  LAW       V0, 8007419C
+    8:  LW        V0, 10 (V0)
+    C:  ANDI      V0, V0, 1000
+   10:  SLTU      V0, R0, V0
+   14:  JR        RA
+   18:  SLL       V0, V0, 1
 }

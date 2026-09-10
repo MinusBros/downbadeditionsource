@@ -156,12 +156,26 @@
 
 @	$CrazeeDayzee
 {
+	[Level]        22`b
 	[MaxHP]        17`b
 	[Coins]         3`b
 	[AirLift]      70`b
 	[Hurricane]    40`b % Bow's "Spook" as well
 }
 
+
+@	$Script_Init_8021A078
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021BD2C )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021A0DC )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021A16C )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $CrazeeDayzee 25` )
+		EndIf
+   54:  Return
+   5C:  End
+}
 
 @	$DefenseTable_8021D7A0
 {
@@ -182,25 +196,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      40`
+	.Status:Sleep      80`
 	.Status:Poison     50`
 	.Status:Frozen      0`
-	.Status:Dizzy      30`
+	.Status:Dizzy       0`
 	.Status:Fear        0`
-	.Status:Static     50`
+	.Status:Static      0`
 	.Status:Paralyze   30`
-	.Status:Shrink     30`
-	.Status:Stop       30`
+	.Status:Shrink     60`
+	.Status:Stop        0`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod      -1`
+	.Status:SleepTurnMod     -1`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod      -1`
+	.Status:DizzyTurnMod     -4`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod   -1`
+	.Status:ParalyzeTurnMod  -2`
 	.Status:ShrinkTurnMod     0`
-	.Status:StopTurnMod       0`
+	.Status:StopTurnMod      -4`
 	.Status:End
 }
 
@@ -210,17 +224,117 @@
 
 @	$Script_Crazee_Sing
 {
-  [1C4]  Call  JumpToGoal    ( .Actor:Self  1` .False .True .False )
-  [2B4]  	Call  JumpToGoal    ( .Actor:Self  1` .False .True .False )
-  [2F4]  Wait  8`
-  [320]  	Wait  20`
-  [34C]  Wait  6`
-  [42C]  	Wait  5`
-  [458]  Wait  5`
-  [508]  		Wait  18`
-  [5E4]  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 ~DebuffType:Sleep:3:33` 00000008 00000020 )
-  [650]  		Wait  5`
+    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
+   14:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+   28:  Call  GetBattlePhase    ( *Var0 )
+   38:  If  *Var0  ==  00000001
+   48:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+   64:  	Call  SetActorPos   ( .Actor:Self  -20` *Var1 *Var2 )
+   80:  Else
+   88:  	Call  UseBattleCamPreset    ( 0000003F )
+   98:  	Call  BattleCamTargetActor  ( .Actor:Self )
+   A8:  	Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
+   C0:  	Call  MoveBattleCamOver     (  70` )
+   D0:  	Set   *Flag[00]  .False
+   E0:  	Label  0
+   EC:  	If  *Flag[00]  ==  .False
+   FC:  		Call  SetAnimation  ( .Actor:Self 00000001 0048000E )
+  114:  		Set   *Flag[00]  .True
+  124:  	Else
+  12C:  		Call  SetAnimation  ( .Actor:Self 00000001 0048000F )
+  144:  		Set   *Flag[00]  .False
+  154:  	EndIf
+  15C:  	Wait  1`
+  168:  	Call  SetActorJumpGravity   ( .Actor:Self *Fixed[3.9] )
+  17C:  	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  198:  	Sub   *Var0  00000014
+  1A8:  	Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
+  1C4:  	Call  JumpToGoal    ( .Actor:Self  3` .False .True .False )
+  1E4:  	If  *Var0  >  00000000
+  1F4:  		Goto  0
+  200:  	EndIf
+  208:  	If  *Flag[00]  ==  .False
+  218:  		Call  SetAnimation  ( .Actor:Self 00000001 0048000E )
+  230:  		Set   *Flag[00]  .True
+  240:  	Else
+  248:  		Call  SetAnimation  ( .Actor:Self 00000001 0048000F )
+  260:  		Set   *Flag[00]  .False
+  270:  	EndIf
+  278:  	Wait  1`
+  284:  	Call  SetActorJumpGravity   ( .Actor:Self *Fixed[3.9] )
+  298:  	Call  SetGoalPos    ( .Actor:Self  -35`  0`  10` )
+  2B4:  	Call  JumpToGoal    ( .Actor:Self  3` .False .True .False )
+  2D4:  EndIf
+  2DC:  Call  SetAnimation  ( .Actor:Self 00000001 00480001 )
+  2F4:  Wait  2`
+  300:  Thread
+  308:  	Call  SetAnimation  ( .Actor:Self 00000001 00480006 )
+  320:  	Wait  10`
+  32C:  	Call  SetAnimation  ( .Actor:Self 00000001 00480007 )
+  344:  EndThread
+  34C:  Wait  10`
+  358:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:DayzeeSong )
+  36C:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
+  388:  Add   *Var1  00000019
+  398:  Add   *Var2  00000002
+  3A8:  Loop  0000000D
+  3B4:  	Call  RandInt       ( 0000001E *Var3 )
+  3C8:  	Sub   *Var3  0000000F
+  3D8:  	Add   *Var3  *Var0
+  3E8:  	Call  PlayEffect    ( ~FX:MusicNote:Left *Var3 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  42C:  	Wait  5`
+  438:  EndLoop
+		Call  RandInt       ( 2` *Var8 )
+		If   *Var8 == 0`
+			Call  SetAnimation      ( .Actor:Self 00000001 00480010 )  %Troll face
+		Else
+			Call  SetAnimation      ( .Actor:Self 00000001 00480001 )  
+		EndIf
+  458:  Wait  6`
+  464:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
+  488:  Switch  *Var0
+  494:  	CaseOR  ==  .HitResult:Miss % 6
+  4A0:  	CaseOR  ==  .HitResult:Lucky % 5
+  4AC:  		Set   *VarA  *Var0
+  4BC:  		If  *VarA  ==  .HitResult:Lucky % 5
+  4CC:  			Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
+  4F0:  		EndIf
+  4F8:  		Call  UseBattleCamPreset    ( 00000002 )
+  508:  		Wait  5`
+  514:  		Call  YieldTurn ( )
+  520:  		Call  SetActorYaw   ( .Actor:Self  180` )
+  534:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
+  550:  		ExecWait  $Script_8021D94C
+  55C:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
+  574:  		Call  SetActorYaw   ( .Actor:Self  0` )
+  588:  		Call  UseIdleAnimation      ( .Actor:Self .True )
+  59C:  		Return
+  5A4:  	EndCaseGroup
+  5AC:  EndSwitch
+  5B4:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
+  5C8:  Call  SetGoalToTarget   ( .Actor:Self )
+  5D8:  Wait  2`
+  5E4:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 ~DebuffType:Sleep:3:34` 00000008 00000020 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call  YieldTurn ( )
+		EndIf
+  60C:  Switch  *VarF
+  618:  	CaseOR  ==  .HitResult:Hit % 0
+  624:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  630:  		Call  UseBattleCamPreset    ( 00000002 )
+  640:  		Call  MoveBattleCamOver     (  10` )
+  650:  		Wait  4`
+  65C:  		Call  YieldTurn ( )
+  668:  		ExecWait  $Script_8021D94C
+  674:  	EndCaseGroup
+  67C:  EndSwitch
+  684:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  698:  Return
+  6A0:  End
 }
+
+
+
 
 %Crazee Dayzees get a new attack where they charge into you.
 %The script is borrowed from Shy Guys, but the build up
@@ -342,13 +456,26 @@
 
 @	$Lakitu
 {
-	[Level]        37`b
+	[Level]        25`b
 	[MaxHP]        24`b
 	[Coins]         4`b
 	[Item]         80`b
 	[AirLift]      30`b
 	[Hurricane]    15`b % Bow's "Spook" as well
 	[PowerBounce]  75`b
+}
+
+@	$Script_Init_8021A078
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021BD2C )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021A0DC )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021A16C )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Lakitu 30` )
+		EndIf
+   54:  Return
+   5C:  End
 }
 
 @	$IdleAnimations_8021BF68
@@ -376,25 +503,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      35`
+	.Status:Sleep       0`
 	.Status:Poison     50`
 	.Status:Frozen      0`
-	.Status:Dizzy      50`
+	.Status:Dizzy      80`
 	.Status:Fear        0`
-	.Status:Static     50`
-	.Status:Paralyze   25`
-	.Status:Shrink     50`
-	.Status:Stop       40`
+	.Status:Static    100`
+	.Status:Paralyze   50`
+	.Status:Shrink      0`
+	.Status:Stop        0`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod     -2`
+	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
 	.Status:DizzyTurnMod     -1`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod  -2`
-	.Status:ShrinkTurnMod    -1`
-	.Status:StopTurnMod      -2`
+	.Status:ParalyzeTurnMod  -1`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -4`
 	.Status:End
 }
 
@@ -534,9 +661,25 @@
 
 @	$Spiny
 {
+	[Level]        21`b
 	[MaxHP]        15`b
 	[Coins]         3`b
 	[Hurricane]    40`b % Bow's "Spook" as well
+}
+
+
+@	$Script_Init_8021C0A8
+{
+    0:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021C124 )
+   14:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021CDC0 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021C2F4 )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   54:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Spiny 23` )
+		EndIf
+   6C:  Return
+   74:  End
 }
 
 @	$DefenseTable_8021BF74
@@ -572,24 +715,24 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      40`
-	.Status:Poison     50`
+	.Status:Sleep     100`
+	.Status:Poison    100`
 	.Status:Frozen      0`
-	.Status:Dizzy      50`
+	.Status:Dizzy       0`
 	.Status:Fear        0`
 	.Status:Static     50`
-	.Status:Paralyze   40`
-	.Status:Shrink     50`
-	.Status:Stop       50`
+	.Status:Paralyze    0`
+	.Status:Shrink      0`
+	.Status:Stop      100`
 	.Status:DefaultTurnMod    0`
 	.Status:SleepTurnMod     -1`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -1`
+	.Status:DizzyTurnMod     -4`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod  -1`
-	.Status:ShrinkTurnMod     0`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -4`
 	.Status:StopTurnMod      -1`
 	.Status:End
 }
@@ -763,10 +906,23 @@
 
 @	$RuffPuff
 {
+	[Level]        21`b
 	[MaxHP]        17`b
 	[Coins]         4`b
 	[AirLift]      70`b
 	[Hurricane]    40`b % Bow's "Spook" as well
+}
+
+@	$Script_Init_802226F0
+{
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_80222DE8 )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8022273C )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80222898 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $RuffPuff 24` )
+		EndIf
+   3C:  Return
+   44:  End
 }
 
 @	$DefenseTable_802225E4
@@ -787,24 +943,24 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      50`
+	.Status:Sleep       0`
 	.Status:Poison     90`
 	.Status:Frozen      0`
-	.Status:Dizzy      50`
+	.Status:Dizzy      70`
 	.Status:Fear        0`
 	.Status:Static     70`
 	.Status:Paralyze    0`
-	.Status:Shrink     75`
+	.Status:Shrink     60`
 	.Status:Stop       80`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod     -2`
+	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
 	.Status:DizzyTurnMod     -1`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod   0`
-	.Status:ShrinkTurnMod     0`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -1`
 	.Status:StopTurnMod      -1`
 	.Status:End
 }
@@ -1345,12 +1501,30 @@
 
 @	$YMagikoopa
 {
-	[Level]        48`b
+	[Level]        33`b
 	[MaxHP]        49`b
 	[AirLift]       0`b
 	[Hurricane]     0`b % Bow's "Spook" as well
 	[UpAndAway]    95`b
 	[PowerBounce]  40`b
+}
+
+
+@	$Script_Init_802305B8
+{
+    0:  Call  BindIdle      ( .Actor:Self $Script_Idle_8022E474 )
+   14:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80230700 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8022E484 )
+   3C:  Call  GetBattleVar  ( 00000002 *Var0 )
+   50:  If  *Var0  ==  00000000
+   60:  	Call  SetBattleVar  ( 00000002 FFFFFFFF )
+   74:  EndIf
+   7C:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $YMagikoopa 43` )
+		EndIf
+   94:  Return
+   9C:  End
 }
 
 @	$DefenseTable_8022E180
@@ -1372,24 +1546,24 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      25`
-	.Status:Poison     50`
+	.Status:Sleep       0`
+	.Status:Poison      0`
 	.Status:Frozen      0`
-	.Status:Dizzy      35`
+	.Status:Dizzy       0`
 	.Status:Fear        0`
-	.Status:Static     50`
+	.Status:Static      0`
 	.Status:Paralyze    0`
-	.Status:Shrink     35`
-	.Status:Stop       35`
+	.Status:Shrink      0`
+	.Status:Stop       60`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod     -2`
+	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -2`
+	.Status:DizzyTurnMod     -4`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod  -2`
-	.Status:ShrinkTurnMod    -1`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -4`
 	.Status:StopTurnMod      -2`
 	.Status:End
 }

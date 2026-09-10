@@ -13,6 +13,35 @@
 }
 
 
+@	$Script_Init_8021E100
+{
+    0:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021D774 )
+   14:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80223B24 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021E6D8 )
+   3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8021E0B0 )
+   50:  Call  GetBattleVar  ( 00000002 *Var0 )
+   64:  If  *Var0  ==  00000000
+   74:  	Call  SetBattleVar  ( 00000002 FFFFFFFF )
+   88:  EndIf
+   90:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   A8:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   C0:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   D8:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   F0:  Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+  108:  Call  SetActorVar   ( .Actor:Self 00000005 00000000 )
+  120:  Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
+  138:  Call  SetActorVar   ( .Actor:Self 00000007 00000000 )
+  150:  Call  SetActorVar   ( .Actor:Self 00000008 00000000 )
+  168:  Call  SetActorVar   ( .Actor:Self 00000009 FFFFFFFF )
+  180:  Call  SetActorVar   ( .Actor:Self 0000000A 00000000 )
+  198:  Call  SetActorVar   ( .Actor:Self 0000000B FFFFFFFF )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Magikoopa 48` )
+		EndIf
+  1B0:  Return
+  1B8:  End
+}
+
 @	$Script_ShapeSpell
 {
   [4FC]  Wait  10`
@@ -21,8 +50,8 @@
   [968]  		Wait  5`
   [AC8]  Wait  3`
   [D88]  Wait  14`
-  [DB0] 	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic 00000000 00000000 00000000 00000020 )
-  [DEC]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic 00000000 00000000 00000004 00000020 )
+  [DB0] 	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce 00000000 00000000 00000008 00000020 )
+  [DEC]  	Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce 00000000 00000000 00000008 00000020 )
   [E40]  		Wait  8`
 }
 
@@ -31,13 +60,43 @@
 {
 	% stats
 	[Index]        45b
-	[Level]        37`b
+	[Level]        32`b
 	[MaxHP]        24`b
 	[Coins]         5`b
 	[Escape]        0`b %lol 
 	[Hurricane]    20`b % Bow's "Spook" as well
 	[UpAndAway]   100`b %100% Up & Away chance because they're lost souls
 	[PowerBounce]  50`b
+}
+
+
+@	$Script_Init_8021AEB4
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021D284 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021B07C )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021B8BC )
+   3C:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   54:  Switch  *Var0
+   60:  	Case  ==  00000000
+   6C:  		Call  SetActorVar   ( .Actor:Self 00000000 00000001 )
+   84:  	Case  ==  00000001
+   90:  		Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   A8:  EndSwitch
+   B0:  Call  SetPartScale  ( .Actor:Self 00000002 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+   D0:  Call  SetPartScale  ( .Actor:Self 00000003 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+   F0:  Call  SetPartScale  ( .Actor:Self 00000004 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+  110:  Call  SetPartScale  ( .Actor:Self 00000005 *Fixed[0.5] *Fixed[0.5] *Fixed[0.5] )
+  130:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+  148:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+  160:  Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+  17C:  Add   *Var1  00000005
+  18C:  Call  ForceHomePos  ( .Actor:Self *Var0 *Var1 *Var2 )
+  1A8:  Call  HPBarToHome   ( .Actor:Self )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Ember 37` )
+		EndIf
+  1B8:  Return
+  1C0:  End
 }
 
 %Lost Souls take extra damage from some attacks.
@@ -156,7 +215,7 @@
   4DC:  Call  JumpToGoal        ( .Actor:Self  10` .False .True .False )
 		Call  YieldTurn ( ) %This lets Lost Souls come at you sooner
   4FC:  Wait  2`
-  508:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire 00000000 00000000 00000007 00000020 )
+  508:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:Fire|MultiBounce 00000000 00000000 19` 00000020 )
   530:  Switch  *Var0
   53C:  	CaseOR  ==  .HitResult:Hit % 0
   548:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -247,7 +306,7 @@
   4A0:  ExecWait  $Script_8021C5F8
 		Call  YieldTurn ( ) %This lets Lost Souls come at you sooner
   4AC:  Wait  4`
-  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000003 00000020 )
+  4B8:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Fire 00000000 00000000 00000004 00000020 )
   4E0:  Wait  8`
   4EC:  Switch  *Var0
   4F8:  	CaseOR  ==  .HitResult:Hit % 0
@@ -391,7 +450,7 @@ $SpayceeDayzee $PitPos1 0000000A 00000000 00000000 00000000 00000000
 $SpayceeDayzee $PitPos2 00000009 00000000 00000000 00000000 00000000 
 $CosmicCleft $PitPos3 00000008 00000000 00000000 00000000 00000000 
 $CosmicCleft $PitPos4 00000007 00000000 00000000 00000000 00000000 
-$RogueStar  $PitPos5  00000006 00000000 00000000 00000000 00000000 
+$RogueStar  $PitPos10  00000006 00000000 00000000 00000000 00000000 
 }
 
 

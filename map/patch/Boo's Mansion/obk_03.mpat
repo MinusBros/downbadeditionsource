@@ -1,3 +1,5 @@
+#define .NpcID:Boo_00               00
+
 @	$Script_80241060
 {
 		If  *GB_StoryProgress  == .Story:Ch3_BowJoinedParty
@@ -18,13 +20,13 @@
 @	$ShopInventory_8024154C
 {
 	.Item:Mystery          5` 0024002B % Who knows what it does... Take a chance to find ou ...
-	.Item:RuinPowder      20` 0023015D % Who knows what it does... Take a chance to find ou ...
-	.Item:StopWatch       32` 00240028 % If it works, paralyzes all enemies for a short tim ...
-	.Item:SnowmanDoll     16` 00240001 % A snowman that crushes all enemies. Attack Power:  ...
-	.Item:MapleSyrup      24` 00240017 %
-	.Item:PowerSteak      20` 00230153 %
-	.Item:PointSwap        8` 00230134 %
-	.Item:HPSucker        27` 00230158 % 
+	.Item:RuinPowder      20` 002400BB % Who knows what it does... Take a chance to find ou ...
+	.Item:StopWatch       32` 002400BC % If it works, paralyzes all enemies for a short tim ...
+	.Item:SnowmanDoll     16` 002400BD % A snowman that crushes all enemies. Attack Power:  ...
+	.Item:MapleSyrup      24` 002400BE %
+	.Item:PowerSteak      20` 002400BF %
+	.Item:PointSwap        8` 002400C0 %
+	.Item:HPSucker        27` 002400C1 % 
 	00000000 00000000 00000000
 }
 
@@ -120,14 +122,75 @@
    FC:  End
 }
 
+@	$ShopOwnerNPC_80241654
+{
+	00000000 00950301 00950304 $Script_80241600 00000000 00000000 $IntTable_802414F0
+}
+
+%Reverse the shop interact
+%Bow's sidequest takes priority
 @	$Script_Interact_80243894
 {
-   10:  	ExecWait  ItemShopInteract
+		If  *GB_StoryProgress >= .Story:Ch3_BowJoinedParty
+			If  *SebastianGotEyeDrops == .False
+				Call  GetCurrentPartnerID   ( *Var0 )
+				If  *Var0 == .Partner:Bow
+					Call  SpeakToPlayer ( .Npc:Self 00950304 00950301 00000000 000E0133 )
+					Call  DisablePartnerAI  ( 00000000 )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E0134 )
+					Call  SpeakToPlayer ( .Npc:Self 0095030A 00950313 00000000 000E0135 )
+					Call  EndSpeech     ( .Npc:Self 00950304 00950301 00000005 )
+					Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+					Call  NpcMoveTo     ( .Npc:Self -205` -9`  30` )
+					Call  SpeakToPlayer ( .Npc:Partner 00010009 00010001 00000005 000E0136 )
+					Call  NpcMoveTo     ( .Npc:Self 43` -9`  30` )
+					Call  SpeakToPlayer ( .Npc:Self 00950304 00950301 00000000 000E0137 )
+					Call  SetNpcFlagBits    ( .Npc:Self 00000100 .False )
+					Thread
+						Call  SetNpcAnimation   ( .Npc:Self 0095030B )
+						Wait  15`
+						Call  SetNpcAnimation   ( .Npc:Self 00950301 )
+					EndThread
+					Set   *Var0  000001B3  %EyeDrops
+					Set   *Var1  00000004
+					Call  ShowGotItem   ( *Var0 .True 00000000 )
+					Call  AddKeyItem    ( *Var0 )
+					Call  InterpPlayerYaw       (  90`  5` )
+					Wait  15`
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000E0138 )
+					Call  EndSpeech     ( .Npc:Partner 0001000A 00010001 00000000 )
+					Set  *SebastianGotEyeDrops .True
+					Call  EnablePartnerAI ( )
+					Return
+				EndIf
+			EndIf
+		EndIf
    4C:  ExecWait  $Script_802437E0
    58:  ExecWait  $Script_80243830
    64:  If  *VarC  !=  00000000
+			ExecWait  ItemShopInteract
    74:  	Return
    7C:  EndIf
+		ExecWait  ItemShopInteract
    84:  Return
    8C:  End
+}
+
+
+@	$Script_802437E0
+{
+    0:  Call  $Function_802405DC    ( 00000000 00950304 00950301 00000041 00000000 000E005D 000E005E 000E005F 000E0060 $???_802437D8 )
+   34:  ExecWait  $Script_802434E0
+   40:  Return
+   48:  End
+}
+
+@	$NpcGroup_8024394C
+{
+	.NpcID:Boo_00 $NpcSettings_80242EA0 ~Vec3f:NPC_Boo_00 % 43 -200 -9
+	00000D01 $Script_Init_80243928 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_Boo_00
+	~AnimationTable:NPC_Boo_00 % .Sprite:Boo
+	00000000 00000000 00000000 001A00A5 % This Boo runs the shop. Nice selection, huh? I'm s ...
 }

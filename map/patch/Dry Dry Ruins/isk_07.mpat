@@ -5,6 +5,38 @@
 #import AutoSave.mpat
 
 
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:DryDryRuins
+   10:  Call  SetSpriteShading  ( .Shading:isk_07 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  If  *GF_ISK07_Defeated_Mummies  ==  .False
+			Call $SetFlagCarryOverworldMusicToBattle()
+   94:  	Call  MakeNpcs  ( .True $NpcGroupList_80241658 )
+   A8:  EndIf
+   B0:  ExecWait  $Script_MakeEntities
+   BC:  Exec  $Script_80241C98
+   C8:  Exec  $Script_80241A14
+   D4:  Exec  $Script_80241F50
+   E0:  Exec  $Script_80242190
+   EC:  Switch  *GB_StoryProgress
+   F8:  	Case  <  .Story:Ch2_SolvedArtifactPuzzle % FFFFFFC7
+  104:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  120:  	Case  <  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  12C:  		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000000 00000008 )
+  148:  	Case  >=  .Story:Ch2_DefeatedTutankoopa % FFFFFFC8
+  154:  		Call  SetMusicTrack ( 00000000 .Song:DryDryRuins 00000000 00000008 )
+  170:  EndSwitch
+  178:  Set   *Var0  $Script_80240228
+  188:  Exec  EnterWalk
+  194:  Return
+  19C:  End
+}
+
+
 @	$Script_Defeat_802408E8
 {
     0:  Call  GetBattleOutcome  ( *Var0 )
@@ -107,6 +139,21 @@
 }
 
 
+@	$NpcSettings_802408BC
+{
+	00000000 0048000F 00000000 00000000 $Script_NpcAI_80240890 $PokeyEncounter 00000000 8007809C
+	00000000 00000000 000A0000
+}
+
+#new:Script  $PokeyEncounter
+{
+	Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000002 00000008 )  %Battle theme	
+	ExecWait  80077F70
+	Return
+	End
+}
+
+
 @	$NpcGroup_80241088
 {
 	.NpcID:Pokey_00 $NpcSettings_802408BC ~Vec3f:NPC_Pokey_00 % -132 -390 492
@@ -135,4 +182,29 @@
 	~Movement:NPC_Pokey_02
 	~AnimationTable:NPC_Pokey_02 % .Sprite:Pokey
 	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+@	$Script_ExitWalk_80240170
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 00000028 ~Entry:Entry0 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_802429E0 00000002 ) % isk_08
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
+
+@ $Script_ExitWalk_802401CC
+{
+		Call $ClearFlagCarryOverworldMusicToBattle()
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 00000028 ~Entry:Entry1 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_802429E8 00000001 ) % isk_04
+   40:  Wait  100`
+   4C:  Return
+   54:  End
 }

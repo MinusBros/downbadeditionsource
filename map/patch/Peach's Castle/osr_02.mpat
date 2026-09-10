@@ -10,6 +10,10 @@
 #define .NpcID:WorldKalmar_08       08
 #define .NpcID:StarRod_09           09
 
+#define .Npc:Luigi    10
+#define .Npc:ClownCar 11
+#define .Npc:ClownCar2 12
+
 @ $EntryList
 {
 ~Vec4f:Entry0 % -205.0    0.0   55.0  135.0
@@ -120,7 +124,7 @@
   3B4:  	Call  EnableGroup   ( ~Model:g116 .False )
   3C8:  EndIf
 		If  *GB_StoryProgress == .Story:PostGame
-			If  *GF_KKJ25_Defeated_Bowser  ==  .False		%This will futureproof 1.0.3 onwards
+			If  *GF_KKJ25_Defeated_Bowser  ==  .False		%This will futureproof 1.1 onwards
 				Set   *GB_StoryProgress  .Story:Ch8_ReachedPeachsCastle
 			EndIf
 		EndIf
@@ -138,6 +142,21 @@
   444:  End
 }
 
+
+@	$Script_80240384
+{
+    0:  If  *GB_StoryProgress  ==  .Story:Ch6_BeganPeachMission % 3A
+   10:  	Bind  $Script_80240318 .Trigger:WallPressA ~Collider:tt1 00000001 00000000
+   2C:  Else
+   34:  	Bind  $Script_ExitSingleDoor_802401B0 .Trigger:WallPressA ~Collider:tt1 00000001 00000000
+   50:  EndIf
+		Call  GetEntryID    ( *Var0 )
+		If   *Var0 != 00000002
+			Bind  $Script_ExitDoubleDoor_80240264 .Trigger:WallPressA ~Collider:tt2 00000001 00000000
+		EndIf
+   74:  Return
+   7C:  End
+}
 
 
 
@@ -374,7 +393,9 @@
  1254:  Call  SetNpcAnimation   ( 00000000 000A0002 )
  1268:  Call  NpcMoveTo ( 00000000  -10`  30`  40` )
 		Thread
-			Call  NpcMoveTo ( .Npc:Partner  -20`  30`  40` )
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SetNpcAnimation   ( .Npc:Partner 0001001C )
+			Call  NpcMoveTo ( .Npc:Partner  -24`  25`  40` )
 		EndThread
  1284:  Call  SetNpcAnimation   ( 00000000 000A0001 )
  1298:  Call  SetPlayerAnimation    ( 00010002 )
@@ -383,17 +404,165 @@
  12C8:  Call  InterpPlayerYaw   (  90`  0` )
  12DC:  Call  SetPlayerAnimation    ( 0001002A )
 		
+		
+		
+		
 		%Add new stuff after original cutscene is over
 
+
+
+
 		Call  FadeOutMusic  ( 00000000 000007D0 )
-		Wait  40`
+		Wait  60`
+		Call  PlaySoundAtNpc    ( .Npc:Luigi 80000066 00000000 )
+		Call  SetNpcPos  ( .Npc:Luigi 410` 217` 78` )
+		Call  ShowMessageAtScreenPos    ( 00130107  160`  -40` ) % Brooooo!	
+		Thread
+			Call  SetPlayerAnimation    ( 00080022 )
+			Wait  20`
+			Call  SetPlayerAnimation    ( 00010036 )
+		EndThread
+		Call  SetNpcAnimation   ( .Npc:Luigi 00820023 )
+		Wait  5`
+		Call  LoadPath  ( 99` $VectorList_Luigi 00000003 .Easing:Linear )
+   90:  Loop
+   9C:  	Call  GetNextPathPos ( )
+			Call  SetNpcPos ( .Npc:ClownCar *Var1 *Var2 *Var3 )
+			Call  SetNpcPos ( .Npc:ClownCar2 *Var1 *Var2 *Var3 )
+			Add   *Var2 50`
+			Add   *Var3  3`
+   A8:  	Call  SetNpcPos ( .Npc:Luigi *Var1 *Var2 *Var3 )
+   C4:  	If  *Var0  ==  00000000
+   D4:  		BreakLoop
+   DC:  	EndIf
+   E4:  	Wait  1`
+   F0:  EndLoop
+		Thread
+			Call  SetNpcAnimation   ( .Npc:Luigi 0082000C )
+			Wait  5`
+			Call  SetNpcAnimation   ( .Npc:Luigi 0082000D )
+			Call  NpcJump0      ( .Npc:Luigi 102`  0`  17`  20` )
+			Call  SetNpcAnimation   ( .Npc:Luigi 00820004 )
+		EndThread
+			Set  *Var3  0`
+			Loop 3
+				Call  SetNpcAnimation   ( .Npc:ClownCar2 00800031 )
+				Sub   *Var3  3`
+				Call  SetNpcRotation    ( .Npc:ClownCar 0` 0` *Var3 )
+				Call  SetNpcRotation    ( .Npc:ClownCar2 0` 0` *Var3 )
+				Wait  1`
+			EndLoop
+			Loop 6
+				Add   *Var3  3`
+				Call  SetNpcRotation    ( .Npc:ClownCar 0` 0` *Var3 )
+				Call  SetNpcRotation    ( .Npc:ClownCar2 0` 0` *Var3 )
+				Wait  1`
+			EndLoop
+			Loop 9
+				Sub   *Var3  3`
+				Call  SetNpcRotation    ( .Npc:ClownCar 0` 0` *Var3 )
+				Call  SetNpcRotation    ( .Npc:ClownCar2 0` 0` *Var3 )
+				Wait  1`
+			EndLoop
+			Loop 10
+				Call  SetNpcAnimation   ( .Npc:ClownCar2 00800032 )
+				Add   *Var3  3`
+				Call  SetNpcRotation    ( .Npc:ClownCar 0` 0` *Var3 )
+				Call  SetNpcRotation    ( .Npc:ClownCar2 0` 0` *Var3 )
+				Wait  1`
+			EndLoop
+			Thread
+				Call  NpcJump0      ( .Npc:ClownCar  90`  0` -23`  20` )
+			EndThread
+			Call  NpcJump0      ( .Npc:ClownCar2  92`  3` -23`  20` )
+			Call  PlaySoundAtNpc    ( .Npc:ClownCar 00000200 00000000 )
+			Call  PlayEffect    ( ~FX:SmokeImpact:Large 92` 0` -20` 00000014 0000000A 00000000 0000003C 00000000 00000000 00000000 00000000 00000000 )
+		Call  StopSound ( 80000066 )
+		Call  SetPlayerAnimation    ( 00010002 )
+		Call  AdjustCam ( .Cam:Default *Fixed[0.9]  0`  500` *Fixed[17.0] *Fixed[-10.0] )
+		Call  SpeakToPlayer     ( .Npc:Luigi 00820014 00820004 00000000 00130108 ) %Hey Bro I'm here
+		Call  SetNpcAnimation   ( .Npc:Partner 0001000D )
+		Thread
+			Call  NpcJump0      ( .Npc:Partner -30`  1` 40` 15` )
+		EndThread
+		Thread
+			Call  SetNpcAnimation   ( 00000000 000C0005 )
+			Wait  15`
+			Call  SetNpcAnimation   ( 00000000 000C0006 )
+		EndThread
 		Exec  $Script_ShakeCam
+		Exec  $SpinNpcs	
 		Call  PlaySound ( 8000006B )
+		Wait  30` 
+		Call  SpeakToPlayer     ( 00000000 FFFFFFFF FFFFFFFF 00000005 00130109 )	%What's going on?
+		Wait  10`
+		Call  SpeakToPlayer     ( .Npc:Luigi 00820014 00820004 00000000 0013010A )	%Yeah the area's shaking, Bro! We gotta get outta here!
+		Set  *MapFlag[01] .True
+		Thread
+			Call  PlayerMoveTo  (  16`  -23`  8` )
+			Call  PlayerMoveTo  (  16`  -22`  1` )
+		EndThread
+		Wait  10`
+		Call  SetNpcAnimation   ( .Npc:Luigi 00820008 )
+		Call  NpcMoveTo ( .Npc:Luigi  15`  20`  18` )
+		Call  SetNpcAnimation   ( .Npc:Luigi 00820004 )  %Luigi holds out his hand
+		Wait  10`
+		Call  SetNpcAnimation   ( .Npc:Luigi 00820024 )
+		Wait  10`
+		Call  SetNpcAnimation   ( 00000000 000C002B )
+		Wait  5`
+		Call  SetNpcAnimation   ( .Npc:Partner 00010017 )
+		Wait  20`
+		Call  PlaySound   	( 00000160 )
+		Wait  2`
+		Call  SetNpcRotation    ( .Npc:ClownCar 0` 0` 0` )
+		Call  SetNpcRotation    ( .Npc:ClownCar2 0` 0` 0` )
+		Call  SetNpcPos ( .Npc:ClownCar 75`  5`  37` )
+		Call  SetNpcPos ( .Npc:ClownCar2 75`  5`  37` )
+		Call  SetNpcAnimation   ( .Npc:Luigi 0082000D )
+		Call  SetNpcAnimation   ( 00000000 000D0011 )
+		Call  SetNpcPos ( 00000000 -10` 0` 30` )
+		Thread
+			Call  NpcJump0      ( 00000000  63`  35`  17`  24` ) %Peach goes behind the clown car
+			Call  SetNpcAnimation   ( 00000000 000C0026 )
+		EndThread
+		Call  NpcJump0      ( .Npc:Luigi  75`  54`  37`  24` )  %Luigi jumps into the clown car
+		Call  SetNpcAnimation   ( .Npc:Luigi 00820023 )
+		Call  SetNpcAnimation   ( .Npc:ClownCar2 00800021 )
+		Wait  5`
+		Call  PlaySoundAtNpc    ( .Npc:Luigi 80000066 00000000 )
+		Thread
+			Call  InterpNpcYaw      ( 00000000  270`  10` )
+		EndThread
 		Wait  30`
-		Call  ShowMessageAtScreenPos    ( 001D016F  160`  40` ) % Peach's Castle Goomba Village
- 
- 12F8:  Call  GotoMap   ( $ASCII_80244110 00000002 ) % hos_10
- 130C:  Wait  95`
+		Call  SpeakToPlayer     ( .Npc:Luigi 00820023 00820023 00000000 0013010D )  %Be safe, Bro
+		Thread
+			Call  NpcJump0      ( .Npc:Luigi  90`  240`  37`  12` )
+		EndThread
+		Thread
+			Call  NpcJump0      ( 00000000  85`  240`  28`  12` )  %Peach jump
+		EndThread
+		Thread
+			Call  NpcJump0      ( .Npc:ClownCar  90`  190`  35`  12` )
+		EndThread
+		Call  NpcJump0      ( .Npc:ClownCar2  90`  190`  35`  12` )
+		Call  StopSound ( 80000066 )
+		Call  SetNpcPos ( .Npc:Luigi  0`  -1000`  0` )
+		Call  SetNpcPos ( 00000000  0`  -1000`  0` )  %Dispose Peach location too
+		Call  SetNpcPos ( .Npc:ClownCar  0`  -1000`  0` )
+		Call  SetNpcPos ( .Npc:ClownCar2  0`  -1000`  0` )
+		Call  SpeakToPlayer     ( .Npc:Partner 00010018 00010017 00000000 0013010B )
+		Call  SetPlayerFlagBits ( 000001C0 .True )	%No opening menus
+		Thread
+			Call  ResetCam  ( .Cam:Default *Fixed[3.0] )
+		EndThread
+		Call  EndSpeech     ( .Npc:Partner 00010008 00010001 00000000 )
+		Set   *EscapeSequence .True
+		Set   *ChannelTrailerFlag .False
+		Set   *GB_StoryProgress  .Story:PostGame
+		Set   *ReturnPipeLock .True
+		Call  EnablePartnerAI  ( )
+		Call  DisablePlayerInput    ( .False )
  1318:  Return
  1320:  End
 }
@@ -401,16 +570,22 @@
 %Spin Peach and Goombarius
 #new:Script  $SpinNpcs	
 {
+	Label Start
 	Thread
-		Call  InterpNpcYaw      ( .Npc:Partner  270`  8` )
+		Call  InterpNpcYaw      ( .Npc:Partner  270`  7` )
 		Wait  5`
-		Call  InterpNpcYaw      ( .Npc:Partner   90`  8` )
+		Call  InterpNpcYaw      ( .Npc:Partner   90`  7` )
 		Wait  5`
 	EndThread
-	Call  InterpNpcYaw      ( 00000000  270`  8` )
+	Call  InterpNpcYaw      ( 00000000  270`  10` )
 	Wait  5`
-	Call  InterpNpcYaw      ( 00000000   90`  8` )
+	Call  InterpNpcYaw      ( 00000000   90`  10` )
 	Wait  5`	
+	If  *MapFlag[01] == .False
+		Goto Start 
+	EndIf
+	Call  InterpNpcYaw      ( 00000000  90`  8` )
+	Call  InterpNpcYaw      ( .Npc:Partner  90`  8` )
 	Return
 	End
 }
@@ -432,13 +607,13 @@
 
 
 
-#new:VectorList $VectorList
+#new:VectorList $VectorList_Luigi
 {
 	% ~Path3f:Path_80240E88
-	410.000000 217.000000 78.000000
-	347.000000 154.000000 58.000000
-	210.000000 80.000000  38.000000
-	131.000000 44.000000  18.000000
+	310.000000 217.000000 78.000000
+	247.000000 138.000000 58.000000
+	110.000000 50.000000  38.000000
+	31.000000 4.000000  18.000000
 }
 
   
@@ -460,14 +635,51 @@
 	End
 }
 
-
-
-@	$Script_ExitSingleDoor_802401B0
+%Luigi is in the cutscene too
+@	$NpcGroupList_80243BB0
 {
-   [98]  Wait  60`
+	0000000A $NpcGroup_80242850 00000000
+	3 $Luigi 0	
+	00000000 00000000 00000000
 }
 
-@ $Script_ExitDoubleDoor_80240264
+
+#new:NpcGroup  $Luigi
 {
-   [98]  Wait  60`
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00000F05 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 0` 
+
+	.Npc:ClownCar $LuigiSettings ~Vec3f:ClownCar
+	00000F05 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:ClownCar
+	~AnimationTable:ClownCar
+	0` 0` 0` 0` 
+	
+	.Npc:ClownCar2 $LuigiSettings ~Vec3f:Luigi
+	00000F05 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:ClownCar2
+	~AnimationTable:ClownCar2
+	0` 0` 0` 0` 
 }
+
+
+#new:Script  $Script_Init_Luigi
+{
+	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+	Return
+	End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 001A0018 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+

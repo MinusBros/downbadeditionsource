@@ -1,12 +1,15 @@
+#define .Npc:Luigi  16
+
 @	$Script_Main_EnterWalk
 {
     0:  Set   *GB_WorldLocation  .Location:JadeJungle
-   10:  Call  SetSpriteShading  ( .Shading:jan_19 )
+   10:  Call  SetSpriteShading  ( .Shading:tik_09 )
    20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    34:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
    54:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
    70:  Call  SetCamEnabled     ( .Cam:Default .True )
    84:  ExecWait  $Script_MakeEntities
+		Call  MakeNpcs  ( .False $NpcGroupList_Luigi )
    90:  Call  $Function_80240000 ( )
    9C:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
    B4:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilite 7FFFFE00 )
@@ -38,3 +41,75 @@
 	Return
 	End
 }
+
+
+
+#new:NpcGroupList $NpcGroupList_Luigi
+{
+	1 $Luigi 0
+	00000000 00000000 00000000
+}
+
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` 001A014B  %Tattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GB_StoryProgress > .Story:Ch5_ReachedRafaelsTree
+		Call  RemoveNpc ( .Npc:Self )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 0010014D ) % 
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
+}
+

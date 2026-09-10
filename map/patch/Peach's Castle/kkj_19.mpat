@@ -1,6 +1,55 @@
 #define .NpcID:Toad_01              01
 
 
+@	$Script_Main
+{
+    0:  Set   *GB_WorldLocation  .Location:PeachsCastle
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Switch  *GB_StoryProgress
+   7C:  	Case  ==  .Story:PostGame % FFFFFF80
+   88:  		Call  MakeNpcs  ( .False $NpcGroupList_802416E4 )
+   9C:  	Case  ==  .Story:Ch4_BeganPeachMission % 6
+   A8:  		Call  MakeNpcs  ( .False $NpcGroupList_80241AF4 )
+   BC:  EndSwitch
+   C4:  Exec  $Script_80240D60
+   D0:  Call  UseDoorSounds ( .DoorSounds:Basic )
+   E0:  Exec  $Script_EnterSingleDoor_8024103C
+   EC:  Wait  1`
+   F8:  If  *GB_StoryProgress  ==  .Story:Ch4_BeganPeachMission % 6
+  108:  	Call  $Function_802401FC ( )
+  114:  EndIf
+		If  *GB_StoryProgress  >=  .Story:Ch8_ReachedPeachsCastle
+			Bind  $InteractSink .Trigger:WallPressA ~Collider:sink 00000001 00000000
+			Bind  $InteractBottles .Trigger:WallPressA ~Collider:bottles 00000001 00000000
+		EndIf
+  11C:  Return
+  124:  End
+}
+
+#new:Script  $InteractSink
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  ShowMessageAtScreenPos    ( 00000054  160`  40` )  %Haha sink joke
+	Call  DisablePlayerInput    ( .False )
+	Return
+	End
+}
+
+
+#new:Script  $InteractBottles
+{
+	Call  DisablePlayerInput    ( .True )
+	Call  ShowMessageAtScreenPos    ( 00000055  160`  40` )  %Haha bottle joke
+	Call  DisablePlayerInput    ( .False )
+	Return
+	End
+}
+
+
+
 @	$Script_EnterSingleDoor_80243828
 {
     0:  Set   *Var0  00000000
@@ -666,4 +715,59 @@
    BC:  Wait  100`
    C8:  Return
    D0:  End
+}
+
+
+
+
+%Replace Cathy with Mai T., who moved into Doki Doki Castle to cook
+@	$Script_Interact_80241248
+{
+    0:  Call  SpeakToPlayer ( .Npc:Self 00840505 00840501 00000000 00000031 ) % Oh, hello there, Mario! I'm Tayce T. I really love ...
+   20:  Return
+   28:  End
+}
+
+
+%This is now a mustache Toad who speaks French. He's the chef
+@ $Script_Interact_80241278
+{
+    0:  Call  SpeakToPlayer ( .Npc:Self 008E0402 008E0401 00000000 00000032 ) % I've been practicing cooking. I hope that someday  ...
+   20:  Return
+   28:  End
+}
+
+@ $Script_Init_802412A8
+{
+    0:  Call  SetNpcAnimation   ( .Npc:Self 00840501 )
+   14:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241248 )
+   28:  Return
+   30:  End
+}
+
+@ $Script_Init_802412E0
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241278 )
+   14:  Return
+   1C:  End
+}
+
+
+
+@	$NpcGroup_80241304
+{
+	00000000 $NpcSettings_802411F0 ~Vec3f:NPC_TayceT_00 % 400 0 -70
+	00000D09 $Script_Init_802412A8 00000000 00000000 0000005A
+	~NoDrops
+	~Movement:NPC_TayceT_00
+	~AnimationTable:NPC_TayceT_00 % .Sprite:TayceT
+	00000000 00000000 00000000 001A015B % new Mai. T tattle
+	%
+	% $NpcGroup_80241304[1F0]
+	.NpcID:Toad_01 $NpcSettings_802411F0 ~Vec3f:NPC_Toad_01 % 250 0 -110
+	00000D09 $Script_Init_802412E0 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_Toad_01
+	~AnimationTable:NPC_Toad_01 % .Sprite:Toad
+	00000000 00000000 00000000 001A015C % Rationàle T.
 }

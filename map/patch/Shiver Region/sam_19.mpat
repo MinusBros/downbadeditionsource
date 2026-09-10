@@ -1,0 +1,601 @@
+%The snow pile area before the snowmen room from Master Quest
+%Not doing too much with this room besides swapping out the Koopas for Dayzees
+
+#define  .Npc:CrazeeDayzee1  00
+#define  .Npc:CrazeeDayzee2  01
+
+#new:Header $Header
+{
+00000000 00000000 00000000 00000000 
+$Script_Main $EntryList 00000002 00000000 
+00000000 00000000 00000000 00000000 
+00000000 00000000 80200000 $Function_GetTattle 
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle]
+[EnableCDownNext]The path is covered in snow.[BR]
+It makes you wonder who's[BR]
+responsible for shoveling[BR]
+around here.[BR]
+[Wait][Next]
+Whoever it is, they must have gotten[BR]
+lazy. I can't blame them-- this[BR]
+path would take forever to shovel![BR]
+[Wait][Next]
+No one wants to spend all day[BR]
+doing chores, right Mario?[BR]
+Not that I've done any since I[BR]
+left home with you.[BR]
+[Wait][Next]
+Oh no... [Pause 16]Mom is going to have[BR]
+a ton of work for me to do when[BR]
+I get back.[BR]
+[Wait][End]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0 %  coordinates
+~Vec4f:Entry1 %  coordinates
+}
+
+#new:Script_Main $Script_Main
+{
+	Set  *GB_WorldLocation  .Location:ShiverSnowfield
+	Call  SetSpriteShading  ( .Shading:mim_01 )
+	Call     SetCamPerspective	( .Cam:Default  3  25` 16` 4096` ) % default type, half vertical FOV, near clip, and far clip
+	Call     SetCamBGColor   	( .Cam:Default  0  0  0 ) % color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
+	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_DefeatedJrTroopa  to  .Story:Ch7_StarSpiritRescued
+				Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000001 00000008 )	%Frost Man Stage
+			Default
+				Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000000 00000008 )	%Wily Marine Stage
+		EndSwitch
+	Call     PlayEffect  	( ~FX:Snowfall 00000028 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call     MakeNpcs       ( 00000001 $NpcGroups_SAM_19 )
+	Set  *Var[0]  $ShakeTreeEvent_1
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk1 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_1 00000001 00000000 	
+	Set  *Var[0]  $ShakeTreeEvent_2
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk2 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_2 00000001 00000000  	
+	Set  *Var[0]  $ShakeTreeEvent_3
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk3 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_3 00000001 00000000  	
+	Set  *Var[0]  $ShakeTreeEvent_4
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk4 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_4 00000001 00000000  	
+	Set  *Var[0]  $ShakeTreeEvent_5
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk5 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_5 00000001 00000000  	
+	Set  *Var[0]  $ShakeTreeEvent_6
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk6 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_6 00000001 00000000  	
+	Set  *Var[0]  $ShakeTreeEvent_7
+	Bind     $Script_ShakeTree .Trigger:WallHammer ~Collider:trunk7 00000001 00000000 
+	Bind     $Script_ShakeTree .Trigger:PointBomb $TriggerCoord_7 00000001 00000000 
+	ExecWait $Script_MakeEntities 
+		Set		*Var[0] $Script_MakeExits 
+		Exec	EnterWalk 
+	Return
+	End
+}
+		
+	#new:Script $Script_MakeEntities
+{
+	Call     MakeEntity       	( .Entity:YellowBlock ~Vec4d:itemblock .Item:HeartPiece 80000000 )
+	Call     AssignBlockFlag 	( *SAM19_Block1 )
+	Call     MakeEntity       	( .Entity:HiddenYellowBlock ~Vec4d:invisblock .Item:ShootingStar 80000000 )
+	Call     AssignBlockFlag 	( *SAM19_Block2 )
+	Return
+	End
+}
+	
+	
+	#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry1  .Trigger:FloorAbove ~Collider:exit1 00000001 00000000
+	Bind     $Script_Entry2  .Trigger:FloorAbove ~Collider:exit2 00000001 00000000
+	Return
+	End
+}
+	
+		#new:Script $Script_Entry1
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000000 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "sam_03" 00000001 )
+	Wait     00000064 
+	Return
+	End	
+}
+	
+	#new:Script $Script_Entry2
+{
+	SetGroup 0000001B 
+	Call     UseExitHeading ( 0000003C 00000001 ) % direction opposing Entry#0
+	Exec     ExitWalk 
+	Call     GotoMap     	( "sam_04" 00000000 )
+	Wait     00000064 
+	Return
+	End	
+}
+	
+	
+	% =============================
+	% NPC STUFF YOU KNOW THE DRILL
+	% =============================
+	
+	#new:NpcGroupList $NpcGroups_SAM_19
+{
+00000001 $NpcGroup_NUMBER1 1D040000 
+00000001 $NpcGroup_NUMBER2 1D050000  
+00000000 00000000 00000000
+}
+
+
+#import NPC_Dayzee.mpat
+
+#new:NpcGroup $NpcGroup_NUMBER1
+{
+.Npc:CrazeeDayzee1 $NpcSettings_Dayzee ~Vec3f:CrazeeDayzee1
+00000C00 00000000 00000000 00000000 0000005A 
+~Items:15:DayzeeTear:6:HoneySyrup:4
+~HP:Standard:2 ~FP:Standard:4 ~CoinBonus:0:3
+~Movement:CrazeeDayzee1
+~AnimationTable:CrazeeDayzee1 % .Sprite:Dayzee
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_NUMBER2
+{
+.Npc:CrazeeDayzee2 $NpcSettings_Dayzee ~Vec3f:CrazeeDayzee2
+00000C00 00000000 00000000 00000000 0000005A 
+~Items:15:DayzeeTear:6:HoneySyrup:4
+~HP:Standard:2 ~FP:Standard:4 ~CoinBonus:0:3
+~Movement:CrazeeDayzee2
+~AnimationTable:CrazeeDayzee2 % .Sprite:Dayzee
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+% Tree stuff. In memory of Kamina! RIP dude they did your girl dirty :(
+% (just so I dont get asked later, Kamina is a character in a show.)
+
+#new:TreeModelList $TreeModelList_Leaves_1
+{
+00000001 ~Model:leaves1 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_1
+{
+00000001 ~Model:trunk1 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_1
+{
+$TreeModelList_Leaves_1
+$TreeModelList_Trunk_1 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_1
+{
+~BombPos:Bomb1
+}
+
+%
+
+#new:TreeModelList $TreeModelList_Leaves_2
+{
+00000001 ~Model:leaves2 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_2
+{
+00000001 ~Model:trunk2 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_2
+{
+$TreeModelList_Leaves_2
+$TreeModelList_Trunk_2 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_2
+{
+~BombPos:Bomb2
+}
+
+%
+
+#new:TreeModelList $TreeModelList_Leaves_3
+{
+00000001 ~Model:leaves3 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_3
+{
+00000001 ~Model:trunk3 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_3
+{
+$TreeModelList_Leaves_3
+$TreeModelList_Trunk_3 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_3
+{
+~BombPos:Bomb3
+}
+
+%
+
+#new:TreeModelList $TreeModelList_Leaves_4
+{
+00000001 ~Model:leaves4 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_4
+{
+00000001 ~Model:trunk4 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_4
+{
+$TreeModelList_Leaves_4
+$TreeModelList_Trunk_4 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_4
+{
+~BombPos:Bomb4
+}
+
+%
+
+#new:TreeModelList $TreeModelList_Leaves_5
+{
+00000001 ~Model:leaves5 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_5
+{
+00000001 ~Model:trunk5 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_5
+{
+$TreeModelList_Leaves_5
+$TreeModelList_Trunk_5 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_5
+{
+~BombPos:Bomb5
+}
+
+%
+
+#new:TreeModelList $TreeModelList_Leaves_6
+{
+00000001 ~Model:leaves6 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_6
+{
+00000001 ~Model:trunk6 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_6
+{
+$TreeModelList_Leaves_6
+$TreeModelList_Trunk_6 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_6
+{
+~BombPos:Bomb6
+}
+
+%
+
+#new:TreeModelList $TreeModelList_Leaves_7
+{
+00000001 ~Model:leaves7 
+}
+
+#new:TreeModelList $TreeModelList_Trunk_7
+{
+00000001 ~Model:trunk7 
+}
+
+#new:ShakeTreeEvent $ShakeTreeEvent_7
+{
+$TreeModelList_Leaves_7
+$TreeModelList_Trunk_7 
+00000000 
+00000000 
+00000000 
+}
+
+#new:TriggerCoord $TriggerCoord_7
+{
+~BombPos:Bomb7
+}
+
+#new:Script $Script_ShakeTree
+{
+    0:  SetTimescale *Fixed[2.0] 
+    C:  UseIntBuffer *Var[0] 
+   18:  Get4Int  *Var[1] *Var[2] *Var[3] *Var[4] 
+   30:  Get1Int  *Var[5] 
+   3C:  Call     GetPlayerPos 	( *Var[6] *Var[F] *Var[8] )
+   54:  Call     PlaySound   	( 00000165 )
+   64:  Call     PlaySound   	( 00000166 )
+   74:  Thread
+   7C:  	Set  *Flag[00]  00000000 
+   8C:  	If  *Var[1]  !=  00000000 
+   9C:  		Wait     00000001 
+   A8:  		Loop     00000005 
+   B4:  			UseIntBuffer *Var[1] 
+   C0:  			Get1Int  *Var[2] 
+   CC:  			Loop     *Var[2] 
+   D8:  				Get1Int  *Var[3] 
+   E4:  				Call     $Function_8024TREE2 ( *Var[3] *Fixed[0.10058594] *Fixed[0.20019531] *Var[F] 00000000 )
+  104:  				If  *Flag[00]  ==  00000000 
+  114:  					Set  *Flag[00]  00000001 
+  124:  					Call     PlaySoundAtModel 	( *Var[3] 00000166 00000000 )
+  13C:  				EndIf
+  144:  			EndLoop
+  14C:  			Wait     00000001 
+  158:  			UseIntBuffer *Var[1] 
+  164:  			Get1Int  *Var[2] 
+  170:  			Loop     *Var[2] 
+  17C:  				Get1Int  *Var[3] 
+  188:  				Call     $Function_8024TREE2 ( *Var[3] *Fixed[0.10058594] *Fixed[-0.19921875] *Var[F] 00000000 )
+  1A8:  			EndLoop
+  1B0:  			Wait     00000001 
+  1BC:  		EndLoop
+  1C4:  		UseIntBuffer *Var[1] 
+  1D0:  		Get1Int  *Var[2] 
+  1DC:  		Loop     *Var[2] 
+  1E8:  			Get1Int  *Var[3] 
+  1F4:  			Call     TranslateModel ( *Var[3] 00000000 00000000 00000000 )
+  210:  		EndLoop
+  218:  		Wait     00000001 
+  224:  	EndIf
+  22C:  EndThread
+  234:  Thread
+  23C:  	Set  *Flag[00]  00000000 
+  24C:  	If  *Var[2]  !=  00000000 
+  25C:  		Loop     00000005 
+  268:  			UseIntBuffer *Var[2] 
+  274:  			Get1Int  *Var[3] 
+  280:  			Loop     *Var[3] 
+  28C:  				Get1Int  *Var[4] 
+  298:  				Call     $Function_8024TREE2 ( *Var[4] *Fixed[0.10058594] *Fixed[0.20019531] *Var[F] 00000000 )
+  2B8:  				If  *Flag[00]  ==  00000000 
+  2C8:  					Set  *Flag[00]  00000001 
+  2D8:  					Call     PlaySoundAtModel 	( *Var[4] 00000165 00000000 )
+  2F0:  				EndIf
+  2F8:  			EndLoop
+  300:  			Wait     00000001 
+  30C:  			UseIntBuffer *Var[2] 
+  318:  			Get1Int  *Var[3] 
+  324:  			Loop     *Var[3] 
+  330:  				Get1Int  *Var[4] 
+  33C:  				Call     $Function_8024TREE2 ( *Var[4] *Fixed[0.10058594] *Fixed[-0.19921875] *Var[F] 00000000 )
+  35C:  			EndLoop
+  364:  			Wait     00000001 
+  370:  		EndLoop
+  378:  		UseIntBuffer *Var[2] 
+  384:  		Get1Int  *Var[3] 
+  390:  		Loop     *Var[3] 
+  39C:  			Get1Int  *Var[4] 
+  3A8:  			Call     TranslateModel ( *Var[4] 00000000 00000000 00000000 )
+  3C4:  		EndLoop
+  3CC:  		Wait     00000001 
+  3D8:  	EndIf
+  3E0:  EndThread
+  518:  Thread
+  520:  	If  *Var[4]  !=  00000000 
+  530:  		UseIntBuffer *Var[4] 
+  53C:  		Get1Int  *Var[5] 
+  548:  		Loop     *Var[5] 
+  554:  			Get3Int  *Var[6] *Var[7] *Var[8] 
+  568:  			Call     PlayEffect  	( ~FX:DropLeaves:Random *Var[6] *Var[7] *Var[8] 00000064 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  5AC:  		EndLoop
+  5B4:  	EndIf
+  5BC:  EndThread
+  5C4:  If  *Var[5]  !=  00000000 
+  5D4:  	ExecWait *Var[5] 
+  5E0:  EndIf
+  5E8:  Wait     0000000F 
+  5F4:  Return
+  5FC:  End
+}
+  
+  #new:Function $Function_8024TREE2
+{
+    0:  ADDIU     SP, SP, FF78
+    4:  SW        S1, 54 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 5C (SP)
+   10:  SW        S2, 58 (SP)
+   14:  SW        S0, 50 (SP)
+   18:  SDC1      F28, 80 (SP)
+   1C:  SDC1      F26, 78 (SP)
+   20:  SDC1      F24, 70 (SP)
+   24:  SDC1      F22, 68 (SP)
+   28:  SDC1      F20, 60 (SP)
+   2C:  LW        S0, C (S1)
+   30:  LW        A1, 0 (S0)
+   34:  JAL       ~Func:get_variable
+   38:  ADDIU     S0, S0, 4
+   3C:  JAL       8011B010
+   40:  DADDU     A0, V0, R0
+   44:  LW        A1, 0 (S0)
+   48:  ADDIU     S0, S0, 4
+   4C:  DADDU     A0, S1, R0
+   50:  JAL       ~Func:get_float_variable
+   54:  DADDU     S2, V0, R0
+   58:  LW        A1, 0 (S0)
+   5C:  ADDIU     S0, S0, 4
+   60:  DADDU     A0, S1, R0
+   64:  JAL       ~Func:get_float_variable
+   68:  MOV.S     F28, F0
+   6C:  LW        A1, 0 (S0)
+   70:  ADDIU     S0, S0, 4
+   74:  DADDU     A0, S1, R0
+   78:  JAL       ~Func:get_float_variable
+   7C:  MOV.S     F26, F0
+   80:  DADDU     A0, S1, R0
+   84:  LW        A1, 0 (S0)
+   88:  JAL       ~Func:get_float_variable
+   8C:  MOV.S     F22, F0
+   90:  DADDU     A0, S2, R0
+   94:  JAL       8011AD30
+   98:  MOV.S     F24, F0
+   9C:  DADDU     S1, V0, R0
+   A0:  LHU       V0, 0 (S1)
+   A4:  ANDI      V0, V0, 400
+   A8:  BNE       V0, R0, .o124
+   AC:  ADDIU     S0, S1, 58
+   B0:  MTC1      R0, F20
+   B4:  MFC1      A2, F22
+   B8:  MFC1      A1, F20
+   BC:  MFC1      A3, F20
+   C0:  JAL       80067900
+   C4:  DADDU     A0, S0, R0
+   C8:  MFC1      A1, F28
+   CC:  MFC1      A2, F26
+   D0:  MFC1      A3, F24
+   D4:  JAL       $Function_8024TREE
+   D8:  ADDIU     A0, SP, 10
+   DC:  ADDIU     A0, SP, 10
+   E0:  DADDU     A1, S0, R0
+   E4:  JAL       80067600
+   E8:  DADDU     A2, S0, R0
+   EC:  ADDIU     A0, SP, 10
+   F0:  NEG.S     F22, F22
+   F4:  MFC1      A1, F20
+   F8:  MFC1      A2, F22
+   FC:  JAL       80067900
+  100:  DADDU     A3, A1, R0
+  104:  ADDIU     A0, SP, 10
+  108:  DADDU     A1, S0, R0
+  10C:  JAL       80067600
+  110:  DADDU     A2, A1, R0
+  114:  LHU       V0, 0 (S1)
+  118:  ORI       V0, V0, 1400
+  11C:  BEQ       R0, R0, .o19C
+  120:  SH        V0, 0 (S1)
+        .o124
+  124:  MTC1      R0, F20
+  128:  MFC1      A2, F22
+  12C:  MFC1      A1, F20
+  130:  MFC1      A3, F20
+  134:  JAL       80067900
+  138:  ADDIU     A0, SP, 10
+  13C:  ADDIU     A0, SP, 10
+  140:  ADDIU     S0, S1, 58
+  144:  DADDU     A1, S0, R0
+  148:  JAL       80067600
+  14C:  DADDU     A2, S0, R0
+  150:  MFC1      A1, F28
+  154:  MFC1      A2, F26
+  158:  MFC1      A3, F24
+  15C:  JAL       $Function_8024TREE
+  160:  ADDIU     A0, SP, 10
+  164:  ADDIU     A0, SP, 10
+  168:  DADDU     A1, S0, R0
+  16C:  JAL       80067600
+  170:  DADDU     A2, S0, R0
+  174:  ADDIU     A0, SP, 10
+  178:  NEG.S     F22, F22
+  17C:  MFC1      A1, F20
+  180:  MFC1      A2, F22
+  184:  JAL       80067900
+  188:  DADDU     A3, A1, R0
+  18C:  ADDIU     A0, SP, 10
+  190:  DADDU     A1, S0, R0
+  194:  JAL       80067600
+  198:  DADDU     A2, A1, R0
+        .o19C
+  19C:  LW        RA, 5C (SP)
+  1A0:  LW        S2, 58 (SP)
+  1A4:  LW        S1, 54 (SP)
+  1A8:  LW        S0, 50 (SP)
+  1AC:  LDC1      F28, 80 (SP)
+  1B0:  LDC1      F26, 78 (SP)
+  1B4:  LDC1      F24, 70 (SP)
+  1B8:  LDC1      F22, 68 (SP)
+  1BC:  LDC1      F20, 60 (SP)
+  1C0:  ADDIU     V0, R0, 2
+  1C4:  JR        RA
+  1C8:  ADDIU     SP, SP, 88
+}
+  
+  #new:Function $Function_8024TREE
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SDC1      F20, 18 (SP)
+    8:  MTC1      A1, F20
+    C:  SDC1      F22, 20 (SP)
+   10:  MTC1      A2, F22
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 28 (SP)
+   1C:  MTC1      A3, F24
+   20:  SW        RA, 14 (SP)
+   24:  JAL       800674A0
+   28:  DADDU     S0, A0, R0
+   2C:  MUL.S     F22, F20, F22
+   30:  NOP
+   34:  MUL.S     F20, F20, F24
+   38:  NOP
+   3C:  LIF       F0, 1.0
+   44:  NOP
+   48:  SWC1      F0, 14 (S0)
+   4C:  SWC1      F22, 10 (S0)
+   50:  SWC1      F20, 18 (S0)
+   54:  LW        RA, 14 (SP)
+   58:  LW        S0, 10 (SP)
+   5C:  LDC1      F24, 28 (SP)
+   60:  LDC1      F22, 20 (SP)
+   64:  LDC1      F20, 18 (SP)
+   68:  JR        RA
+   6C:  ADDIU     SP, SP, 30
+}

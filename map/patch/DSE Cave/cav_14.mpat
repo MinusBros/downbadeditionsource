@@ -1,0 +1,281 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000002
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]Wow! This is one big room![BR]
+My house could probably fit[BR]
+in here...[BR]
+[WAIT][NEXT]
+It looks pretty ruined though.[BR]
+What happened here?[BR]
+[WAIT][END]
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
+	Thread
+		Wait 30`
+		Call  802D5FA4  ( 00000000 )
+	EndThread
+Return
+End
+}
+
+
+%just import this because I don't really feel like importing the other stuff
+%#import Pit_AI.mpat
+
+#new:NpcGroupList $NpcGroupList
+{
+00000004 $NpcGroup_BuzzyBeetle1 340D0000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_BuzzyBeetle1
+{
+00000000 $NpcSettings_BuzzyBeetle ~Vec3f:beetle3 % 561 25 47
+00C42D05 $Script_Init_Enemy 00000000 00000000 00000163 
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00330101 00330103 00330104 00330104 00330100 00330100 00330107 00330107
+0033010C 00330105 0033010D 00330100 00330100 00330100 00330100 00330100 
+00000000 00000000 00000000 00000000 % no tattle string
+%
+00000001 $NpcSettings_BuzzyBeetle ~Vec3f:beetle2 % 561 25 47
+00C42D05 00000000 00000000 00000000 00000163 
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00330101 00330103 00330104 00330104 00330100 00330100 00330107 00330107
+0033010C 00330105 0033010D 00330100 00330100 00330100 00330100 00330100 
+00000000 00000000 00000000 00000000 % no tattle string
+%
+00000002 $NpcSettings_BuzzyBeetle ~Vec3f:beetle1 % 561 25 47
+00C42D05 00000000 00000000 00000000 00000163 
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00330101 00330103 00330104 00330104 00330100 00330100 00330107 00330107
+0033010C 00330105 0033010D 00330100 00330100 00330100 00330100 00330100 
+00000000 00000000 00000000 00000000 % no tattle string
+%
+00000003 $NpcSettings_BuzzyBeetle ~Vec3f:beetle4 % 561 25 47
+00C42D05 00000000 00000000 00000000 00000163 
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+00330101 00330103 00330104 00330104 00330100 00330100 00330107 00330107
+0033010C 00330105 0033010D 00330100 00330100 00330100 00330100 00330100 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcSettings $NpcSettings_BuzzyBeetle	%no AI because this is a scripted encounter
+{
+	00000000 00280018 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00190000
+}
+
+#new:Script $Script_Init_Enemy
+{
+    Call     BindNpcDefeat 	( .Npc:Self $Script_Outcome )	%set stuff
+    Call     BindNpcIdle 	( .Npc:Self $Script_Idle )		%listen for player movement
+    Return
+    End
+}
+
+#new:Script $Script_Idle
+{
+	Wait 25`		%ensure entrance flags are correct
+	Label 0
+	Wait 1`
+	If *GF_CAV14_Encounter == .True
+		Return
+	EndIf
+	If *MapVar[5] == 1`
+		Call	GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+		If *GF_CAV14_Encounter == .True
+			Return
+		EndIf
+		If *Var0 < 150`
+			Call     DisablePlayerInput 	( .True )
+			Wait     0000000F 
+			Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0  !=  0000000A			
+				Call     SpeakToPlayer  	( .Npc:Self 00330103 00330101 00000000 $NormalFight ) % time to fight
+			Else
+				Call     SpeakToPlayer  	( .Npc:Self 00330103 00330101 00000000 $SpecialFight ) % time to fight
+			EndIf
+			Call     DisablePlayerInput 	( .False )
+			Call     StartBossBattle 	( .Song:SpecialBattle )
+		EndIf
+	Else
+		Call	GetPlayerPos 		( *Var[0] *Var[1] *Var[2] )
+		If *GF_CAV14_Encounter == .True
+			Return
+		EndIf
+		If *Var0 > -150`
+			Call     DisablePlayerInput 	( .True )
+			Wait     0000000F 
+			Call  GetCurrentPartnerID   ( *Var0 )
+			If  *Var0  !=  0000000A			
+				Call     SpeakToPlayer  	( .Npc:Self 00330103 00330101 00000000 $NormalFight ) % time to fight
+			Else
+				Call     SpeakToPlayer  	( .Npc:Self 00330103 00330101 00000000 $SpecialFight ) % time to fight
+			EndIf
+			Call     DisablePlayerInput 	( .False )
+			Call     StartBossBattle 	( .Song:SpecialBattle )
+		EndIf
+	EndIf
+	Goto 0	
+	Return
+	End
+}
+
+#new:Script $Script_Outcome
+{
+Call GetBattleOutcome (*Var[0])
+Switch *Var[0]
+	Case == 00000000
+		Set 	*GF_CAV14_Encounter 	.True
+		Call     DoNpcDefeat 	( )
+		Call  RemoveNpc ( 00000003 )
+		Call  RemoveNpc ( 00000001 )
+		Call  RemoveNpc ( 00000002 )
+		Call  RemoveNpc ( .Npc:Self )
+EndSwitch
+Return
+End
+}
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:arn_12 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec    $Script_SetMusic 
+If *GF_CAV14_Encounter == .False
+	Call    MakeNpcs    	( 00000001 $NpcGroupList )
+EndIf
+ExecWait $Script_MakeEntities
+%entry 0 = left loading zone
+%entry 1 = right loading zone
+Call     GetEntryID  	( *Var[0] )
+Set *MapVar[5] *Var[0]
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+#new:Script $Script_MakeEntities
+{
+	%Call     MakeItemEntity ( .Item:GoldenShroom ~Vec3d:Shroom1 00000011 *GF_CAV14_Shroom1 )
+	%Call     MakeItemEntity ( .Item:PowerShroom ~Vec3d:Shroom2 00000011 *GF_CAV14_Shroom2 )
+	%Call     MakeItemEntity ( .Item:ShieldShroom ~Vec3d:Shroom3 00000011 *GF_CAV14_Shroom3 )
+	%Call     MakeItemEntity ( .Item:DualShroom ~Vec3d:Shroom4 00000011 *GF_CAV14_Shroom4 )
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftlz 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:rightlz 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_15" 00000003 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_08" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+
+%some more empire lore stuff
+#string $NormalFight
+{
+[STYLE:RIGHT]Hm? Who is this?[BR]
+[WAIT][NEXT]
+You must be the one saving[BR]
+the Star Spirits.[BR]
+[WAIT][NEXT]
+You must be a fool to come[BR]
+to this place... Do you have[BR]
+any idea what they have done[BR]
+to us?[BR]
+[WAIT][NEXT]
+Heh. They will have a hard[BR]
+time saving you from us![WAIT][END]
+}
+
+#string $SpecialFight
+{
+[STYLE:RIGHT]You... YOU![BR]
+[WAIT][NEXT]You've betrayed us when we[BR]
+were at the cusp of victory...[BR]
+Have you come back to taunt[BR]
+us?[BR]
+[WAIT][NEXT]You will pay for your[BR]
+treachery![WAIT][END]
+}

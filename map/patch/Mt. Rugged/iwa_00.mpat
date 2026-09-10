@@ -177,11 +177,12 @@
 
 
 
+
 #string $WhackaAngryString
 {
 [STYLE:RIGHT][PrintRising]Ooooaaaugh!![/fx][BR]
-[Pause 10]I've had it with your whackin'[BR]
-and smackin' old man![BR]
+[Pause 10]I've 'ad it wiv your whackin'[BR]
+and smackin', old man![BR]
 [Wait][Next]
 [PrintRising]It's time for a little payback[BR]
 from ol' Whankha![/fx][WAIT][END]
@@ -236,12 +237,25 @@ from ol' Whankha![/fx][WAIT][END]
 			EndIf
 			Call     SetNpcAnimation	( 00000004 00920001 )
 			Wait     00000005 
-			Call     SpeakToPlayer 		( 00000004 00920005 00920001 00000000 000D002F ) % Whack-a-waaaaaaaaa.... I can't take this abuse!
+			Call  RandInt   ( 3` *Var9 )
+			Switch  *Var9 		%Restore all this dialogue
+				Case == 0
+					Call     SpeakToPlayer 		( 00000004 00920005 00920001 00000000 000D002C )
+				Case == 1
+					Call     SpeakToPlayer 		( 00000004 00920005 00920001 00000000 000D002D )
+				Case == 2
+					Call     SpeakToPlayer 		( 00000004 00920005 00920001 00000000 000D002E )
+				Case == 3
+					Call     SpeakToPlayer 		( 00000004 00920005 00920001 00000000 000D002F )
+			EndSwitch
 			Call     SetNpcAnimation 	( 00000004 00920003 )
 			Wait     0000000F 
 			If       *GB_IWA00_Whacka_HitCount >=  00000008 
 				Call     $Function_80240118 ( )
 			Else
+			EndIf
+			If   *AreaFlag[005] == .False
+				Exec  $WhankhaPartnerQuip 
 			EndIf
 			Call	SetNpcPos   	( 00000004 00000000 FFFFFC18 00000000 )
 			Call	SetNpcPos   	( 00000005 00000000 FFFFFC18 00000000 )
@@ -250,4 +264,40 @@ from ol' Whankha![/fx][WAIT][END]
 			Call	RemoveNpc   	( 00000005 )
 			Return
 			End
+}
+
+
+#new:Script  $WhankhaPartnerQuip
+{
+	Label 0
+	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	Wait  1`
+	If	*Var0 < 950`
+		Goto 0
+	EndIf
+	Set  *AreaFlag[005] .True
+  4CC:  Call  GetCurrentPartnerID   ( *Var6 )
+  4DC:  Switch  *Var6
+  4E8:  	Case  ==  .Partner:Goombario % 1
+				Call  SetPlayerFlagBits ( 000000C0 .True )
+				Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D013D )
+				Wait  80`
+				Call  SetPlayerFlagBits ( 000000C0 .False )
+  514:  	Case  ==  .Partner:Kooper % 2
+  520:  		Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D013E )
+  540:  	Case  ==  .Partner:Bombette % 3
+  54C:  		Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D013F )
+  56C:  	Case  ==  .Partner:Parakarry % 4
+  578:  		Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D0140 )
+  598:  	Case  ==  .Partner:Bow % 9
+  5A4:  		Call  SpeakToPlayer ( .Npc:Partner 00050004 00050001 00000005 000D0141 ) 
+  5C4:  	Case  ==  .Partner:Watt % 6
+  5D0:  		Call  SpeakToPlayer ( .Npc:Partner 00060004 00060001 00000005 000D0142 )
+  5F0:  	Case  ==  .Partner:Sushie % 7
+  5FC:  		Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000D0143 )
+  61C:  	Case  ==  .Partner:Lakilester % 8
+  628:  		Call  SpeakToPlayer ( .Npc:Partner 00080009 00080001 00000005 000D0144 ) 
+  648:  EndSwitch
+	Return
+	End
 }

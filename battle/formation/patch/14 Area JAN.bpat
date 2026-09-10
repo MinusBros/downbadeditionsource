@@ -1,10 +1,23 @@
+
 #import Chompy.bpat
 #import LimeoDino.bpat
 
 @ $LimeoDino 
 {
-[Level]        25`b 
+[Level]        19`b 
 [MaxHP]        12`b 
+}
+
+@	$Script_Init_8021D968_1F {
+	0: 	Call  SetActorScale     ( .Actor:Self *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
+    9:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021E070_1F )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021D9B4_1F )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021DA40_1F )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $LimeoDino 22` )
+		EndIf
+   3C:  Return
+   44:  End
 }
 
 @	$Script_TakeTurn_8021E070_1F {
@@ -99,6 +112,7 @@
 
 @	$JungleFuzzy
 {
+	[Level]        18`b
 	[MaxHP]        12`b
 	[Coins]         2`b
 	[AirLift]      55`b
@@ -123,15 +137,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      45`
-	.Status:Poison     50`
+	.Status:Sleep      50`
+	.Status:Poison      0`
 	.Status:Frozen      0`
-	.Status:Dizzy      30`
+	.Status:Dizzy     100`
 	.Status:Fear        0`
-	.Status:Static     30`
-	.Status:Paralyze   35`
-	.Status:Shrink     35`
-	.Status:Stop       40`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink     80`
+	.Status:Stop       50`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -1`
+	.Status:PoisonTurnMod     0`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod     -1`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -1`
+	.Status:StopTurnMod      -2`
 }
 
 
@@ -170,10 +194,44 @@
 
 @	$SpearGuy
 {
+	[Level]        18`b
 	[MaxHP]        15`b
 	[Coins]         3`b
 	[AirLift]      45`b
 	[Hurricane]    40`b % Bow's "Spook" as well
+}
+
+@	$Script_Init_80218980
+{
+    0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
+   18:  Switch  *Var0
+   24:  	Case  ==  00000000
+   30:  		ExecWait  $Script_SetSpearStance
+   3C:  		Call  SetAnimation  ( .Actor:Self 00000002 00420004 )
+   54:  	Case  ==  00000001
+   60:  		ExecWait  $Script_SetSpearStance
+   6C:  		Call  SetPartEventFlags ( .Actor:Self 00000002 00000010 )
+   84:  		Call  SetAnimation      ( .Actor:Self 00000002 00420003 )
+   9C:  EndSwitch
+   A4:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021BCB4 )
+   B8:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80218E3C )
+   CC:  Call  BindNextTurn      ( .Actor:Self $Script_NextTurn_80218B24 )
+   E0:  Call  SetActorVar       ( .Actor:Self 00000001 00000000 )
+   F8:  Call  GetEncounterState ( *Var0 )
+  108:  Switch  *Var0
+  114:  	Case  ==  00000002
+  120:  	CaseOR  ==  00000004
+  12C:  	CaseOR  ==  00000006
+  138:  		Call  SetPartEventBits  ( .Actor:Self 00000002 00010000 .False )
+  154:  		Call  SetIdleAnimations ( .Actor:Self 00000002 $IdleAnimations_8021860C )
+  16C:  		Call  SetAnimation      ( .Actor:Self 00000002 00420003 )
+  184:  	EndCaseGroup
+  18C:  EndSwitch
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $SpearGuy 21` )
+		EndIf
+  194:  Return
+  19C:  End
 }
 
 
@@ -200,25 +258,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      30`
+	.Status:Sleep       0`
 	.Status:Poison     50`
 	.Status:Frozen      0`
-	.Status:Dizzy      30`
+	.Status:Dizzy       0`
 	.Status:Fear       50`
 	.Status:Static     50`
-	.Status:Paralyze   40`
-	.Status:Shrink     40`
-	.Status:Stop       20`
+	.Status:Paralyze   50`
+	.Status:Shrink     50`
+	.Status:Stop        0`
 	.Status:DefaultTurnMod    0`
-	.Status:SleepTurnMod      0`
+	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
 	.Status:DizzyTurnMod      0`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod   1`
-	.Status:ShrinkTurnMod     0`
-	.Status:StopTurnMod       0`
+	.Status:ParalyzeTurnMod  -1`
+	.Status:ShrinkTurnMod    -1`
+	.Status:StopTurnMod      -4`
 	.Status:End
 }
 
@@ -377,11 +435,23 @@
 
 @	$HurtPlant
 {
-	[Level]        25`b
+	[Level]        19`b
 	[MaxHP]        15`b
 	[Coins]         2`b
 }
 
+
+@	$Script_Init_8021DA98
+{
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021E33C )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021DAE4 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021DCF4 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $HurtPlant 22` )
+		EndIf
+   3C:  Return
+   44:  End
+}
 
 @ $DefenseTable_8021D98C
 {
@@ -403,25 +473,25 @@
 {
 	.Status:Normal      0`
 	.Status:Default     0`
-	.Status:Sleep      55`
-	.Status:Poison     20`
+	.Status:Sleep      80`
+	.Status:Poison      0`
 	.Status:Frozen      0`
-	.Status:Dizzy      20`
+	.Status:Dizzy       0`
 	.Status:Fear        0`
-	.Status:Static     20`
-	.Status:Paralyze   40`
-	.Status:Shrink     25`
-	.Status:Stop       40`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink      0`
+	.Status:Stop       80`
 	.Status:DefaultTurnMod    0`
 	.Status:SleepTurnMod      0`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -2`
+	.Status:DizzyTurnMod     -4`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
-	.Status:ParalyzeTurnMod   -1`
-	.Status:ShrinkTurnMod     -1`
-	.Status:StopTurnMod       -2`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -2`
 	.Status:End
 }
 
@@ -557,11 +627,24 @@
 
 @	$MBush
 {
-	[Level]        30`b
+	[Level]        19`b
 	[MaxHP]        18`b
 	[Coins]         2`b
 	[AirLift]      55`b
 	[Hurricane]    30`b % Bow's "Spook" as well
+}
+
+
+@	$Script_Init_80221988
+{
+    0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_80221F78 )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_802219D4 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80221A74 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $MBush 22` )
+		EndIf
+   3C:  Return
+   44:  End
 }
 
 @	$DefenseTable_8022187C
@@ -576,6 +659,32 @@
 	.Element:Cosmic  3`
 	.Element:Quake  99`
 	.Element:End
+}
+
+@	$StatusTable_80221890
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep      50`
+	.Status:Poison      0`
+	.Status:Frozen      0`
+	.Status:Dizzy      90`
+	.Status:Fear        0`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink     50`
+	.Status:Stop        0`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -2`
+	.Status:PoisonTurnMod    -4`
+	.Status:FrozenTurnMod     0`
+	.Status:DizzyTurnMod     -1`
+	.Status:FearTurnMod       0`
+	.Status:StaticTurnMod     0`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -1`
+	.Status:StopTurnMod      -4`
+	.Status:End
 }
 
 

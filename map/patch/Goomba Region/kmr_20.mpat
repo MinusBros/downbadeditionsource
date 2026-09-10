@@ -138,8 +138,14 @@
   3DC:  End
 }
 
+#import AutoSave.mpat
+
 #new:Script  $MarioWakesUp
 {
+				If  *GB_StoryProgress == .Story:PostGame
+					Call  BringPartnerOut   ( .Partner:Goombario )
+					Wait  5`
+				EndIf
 				Call  DisablePlayerPhysics  ( .True )
 				Call  DisablePlayerInput  ( .True )
 				Call  InterpPlayerYaw   (  180`  0` )
@@ -148,12 +154,22 @@
 				Wait  60`
 				Call  SetPlayerAnimation    ( 00080024 )
 				Wait  60`
-				Call  SpeakToPlayer ( 00000001 00820014 00820004 00000010 000B010E )
+				If  *GB_StoryProgress != .Story:PostGame
+					Call  SpeakToPlayer ( 00000001 00820014 00820004 00000010 000B010E )  %Hey, Bro. You're finally awake
+				Else
+					Exec  $AutoSaveNoMessage
+					Call  SpeakToPlayer ( 00000001 00820014 00820004 00000010 000B013F )  %Hey, Bro. You're finally awake
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000010 000B0140 )  %Shut up Luigi
+					Call  SpeakToPlayer ( 00000001 00820014 00820004 00000010 000B0141 )  %Okay I gotta do laundry, bye
+				EndIf
 				Call  SetNpcFlagBits    ( 00000001 00000040 .True )
 				Call  SetNpcAnimation   ( 00000001 0082000A )
 				Call  NpcMoveTo ( 00000001  63` -58` 25` )
 				Call  SetNpcFlagBits    ( 00000001 00000040 .True )
 				Call  SetNpcAnimation   ( 00000001 00820004 )
+				If  *GB_StoryProgress == .Story:PostGame
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000010 000B0142 )  %We gotta go, Mario
+				EndIf
 				Call  SetPlayerAnimation    ( 00010006 )
 				Wait  4`
 				Call  SetPlayerAnimation    ( 00010007 )
@@ -483,7 +499,7 @@
   30C:  SW        R0, 10 (SP)
   310:  JAL       ~Func:draw_string
   314:  SW        R0, 14 (SP)
-  318:  LI        A0, 202`					%<-- (star piece total)			
+  318:  LI        A0, 210`					%<-- (star piece total)			
   31C:  LI        A1, F4
   320:  LI        A2, 50
   324:  LI        A3, 1
@@ -557,7 +573,7 @@
   430:  LI        A2, 5F
   434:  LI        A3, 1
   %438:  LH        A0, 28 (S6)				%?? ADDIU     A0, R0, 51` % recipe total, was 50`
-		ADDIU     A0, R0, 70` 				% recipe total, was 50`
+		ADDIU     A0, R0, 73` 				% recipe total, was 51`
   43C:  LI        V0, 2
   440:  SW        R0, 10 (SP)
   444:  SW        S0, 14 (SP)

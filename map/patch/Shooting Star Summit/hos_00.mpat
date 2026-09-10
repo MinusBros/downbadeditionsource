@@ -130,11 +130,13 @@
   534:  	Call  GetNpcPos ( .NpcID:Twink_00 *Var0 *Var1 *Var2 )
   550:  	Call  NpcJump0  ( .NpcID:Twink_00 *Var0 *Var1 *Var2  15` )
   570:  EndLoop
-  578:  Call  DisablePartnerAI  ( 00000000 )
-  588:  Call  SetNpcJumpscale   ( .Npc:Partner 00000000 )
-  59C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
-  5B4:  Add   *Var0  00000019
-  5C4:  Call  NpcJump0      ( .Npc:Partner *Var0 *Var1 *Var2  10` )
+		If  *NoGoombariusMode == .False
+	  578:  Call  DisablePartnerAI  ( 00000000 )
+	  588:  Call  SetNpcJumpscale   ( .Npc:Partner 00000000 )
+	  59C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+	  5B4:  Add   *Var0  00000019
+	  5C4:  Call  NpcJump0      ( .Npc:Partner *Var0 *Var1 *Var2  10` )
+		EndIf
   5E4:  Call  SpeakToPlayer ( .NpcID:Twink_00 00200009 00200001 00000000 000A000F ) % Oh...it's...!? You're Mario, aren't you!? Thank th ...
   604:  Wait  4`
   610:  Call  GetNpcPos     ( .NpcID:Twink_00 *Var4 *Var5 *Var6 )
@@ -166,7 +168,7 @@
   804:  Call  ContinueSpeech    ( .NpcID:Twink_00 FFFFFFFF FFFFFFFF 00000200 000A0012 ) % Here, this is it! Take it!
   824:  Call  GetPlayerPos      ( *Var5 *Var3 *Var4 )
   83C:  Add   *Var5  FFFFFFE2
-  84C:  Call  NpcMoveTo ( .NpcID:Twink_00 *Var5 *Var4  15` )
+  84C:  Call  NpcMoveTo ( .NpcID:Twink_00 *Var5 *Var4  10` )
   868:  Kill  *Var9
   874:  Kill  *Var8
   880:  Thread
@@ -214,7 +216,7 @@
   D28:  Call  ShowMessageAtScreenPos    ( 000A0031  320`  0` ) % Here you are!
   D40:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   D58:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
-  D74:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+  D74:  Call  SetCamSpeed   ( .Cam:Default *Fixed[4.0] )
   D88:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
   DA0:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   DB4:  Thread
@@ -233,7 +235,7 @@
   EB0:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   EC4:  EndThread
   ECC:  Exec  $Script_80242BA4 *VarA
-  EDC:  Call  LoadPath  ( 00000043 $VectorList_80242A4C 00000005 .Easing:Linear )
+  EDC:  Call  LoadPath  ( 00000033 $VectorList_80242A4C 00000005 .Easing:Linear )
   EF8:  Label  2
   F04:  Call  GetNextPathPos ( )
   F10:  Call  SetNpcPos ( .NpcID:FlyingMagikoopa_01 *Var1 *Var2 *Var3 )
@@ -280,6 +282,7 @@
  11C0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
  11D4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
  11EC:  Wait  1`
+		Call $ClearFlagCarryOverworldMusicToBattle()
  11F8:  Call  SpeakToPlayer ( .NpcID:FlyingMagikoopa_01 00570009 00570000 00000200 000A0033 ) % What a foolish Star Kid!! I knew that if I followe ...
  1218:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
  1230:  Add   *Var0  FFFFFF06
@@ -320,6 +323,7 @@
 			Call  PlayerJump    ( *Var0 *Var1 *Var2  15` )
 		EndThread
   1A8:  Call  SpeakToPlayer ( .NpcID:Twink_00 00200009 00200001 00000000 000A0035 ) % I'm going to return to Princess Peach's side. I'm  ...
+		Set   *ReturnPipeLock .False
   1C8:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   1E0:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
   1FC:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -396,8 +400,10 @@
   6F0:  EndLoop
   6F8:  Call  SetNpcFlagBits    ( .NpcID:Twink_00 00040000 .False )
   710:  Wait  110`
+		If  *NoGoombariusMode == .False
   71C:  Call  InterpNpcYaw  ( .Npc:Partner  270`  0` )
   734:  Call  PlayerFaceNpc ( .Npc:Partner .False )
+		EndIf
   748:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
   760:  Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
   77C:  Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
@@ -411,7 +417,9 @@
 	  88C:  Call  ResetCam  ( .Cam:Default *Fixed[4.0] )
 			Call  DisablePlayerInput    ( .False )
 			Set   *GB_StoryProgress  .Story:Ch0_TwinkGaveLuckyStar
-	  80C:  Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000A0037 ) % There he goes... back to Bowser's Castle. What a b ...
+			If  *NoGoombariusMode == .False
+				Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000000 000A0037 ) % There he goes... back to Bowser's Castle. What a b ...
+			EndIf
   8A0:  EndThread
   8C4:  Return
   8CC:  End

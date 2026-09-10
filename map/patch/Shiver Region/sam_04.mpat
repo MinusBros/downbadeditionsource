@@ -7,8 +7,6 @@
 #define .NpcID:Penguin_06           06
 #define .Npc:Cody           07
 
-#delete  $Script_80240780
-
 @	$Script_MakeEntities
 {
    [6C]  Call  MakeItemEntity    ( .Item:HustleDrink ~Vec3d:Item802451BC .ItemSpawnMode:Fixed_NeverVanish *GF_SAM04_Item_RepelGel )
@@ -18,7 +16,6 @@
 
 @	$Script_Main
 {
-		
 		Call $ClearFlagCarryOverworldMusicToBattle()
     0:  Set   *GB_WorldLocation  .Location:ShiverSnowfield
    10:  Call  SetSpriteShading  ( .Shading:mim_01 )
@@ -28,7 +25,6 @@
    70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    84:  Call  MakeNpcs  ( .False $NpcGroupList_80245120 )
 		Call  EnableModel   ( ~Model:darkness .False )
-		Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000000 00000008 )
    98:  ExecWait  $Script_MakeEntities
    B0:  Call  PlayEffect        ( ~FX:Snowfall 00000028 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
    F4:  Call  ModifyColliderFlags   ( 00000003 ~Collider:ground 00000008 )
@@ -73,12 +69,26 @@
 				Exec  $CheckPos
 				Exec  $AutoSave 
 				Wait  1`
+				Return
 			EndIf
 		EndIf
+		ExecWait  $Script_80240780
   30C:  Return
   314:  End
 }
 
+
+@	$Script_80240780
+{
+		Switch  *GB_StoryProgress
+			Case  .Story:Ch7_DefeatedJrTroopa  to  .Story:Ch7_StarSpiritRescued
+				Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000001 00000008 )	%Frost Man Stage
+			Default
+				Call  SetMusicTrack ( 00000000 .Song:ShiverSnowfield 00000000 00000008 )	%Wily Marine Stage
+		EndSwitch
+		Return
+		End
+}
 
 
 @	$Script_Init_802442F0
@@ -199,7 +209,7 @@
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
    20:  Exec  ExitWalk
 		Call  ClearAmbientSounds    ( 000000FA )
-   2C:  Call  GotoMap   ( $ASCII_802451F0 00000001 ) % sam_03
+   2C:  Call  GotoMap   ( "sam_19" 00000001 ) % sam_03
    40:  Wait  60`
    4C:  Return
    54:  End

@@ -38,7 +38,7 @@
   1B4:  	Call  SetPlayerFlagBits ( 00200000 .True )
   1C8:  	Call  InterpPlayerYaw   ( 0000005A 00000000 )
   1DC:  	Wait  2`
-  1E8:  	Call  RandInt   ( 00000007 *Var[0] )  %Add more frames to pick from
+  1E8:  	Call  RandInt   ( 11` *Var[0] )  %Add more frames to pick from
   1FC:  	Switch  *Var0
   208:  		Case  ==  0`
   214:  			Call  SetPlayerAnimation    ( 0001000D )
@@ -56,6 +56,14 @@
 					Call  SetPlayerAnimation    ( 00080009 )
 				Case  ==  7`
 					Call  SetPlayerAnimation    ( 00080029 )
+				Case  ==  8`
+					Call  SetPlayerAnimation    ( 0008002D )
+				Case  ==  9`
+					Call  SetPlayerAnimation    ( 00080030 )
+				Case  ==  10`
+					Call  SetPlayerAnimation    ( 00010034 )
+				Case  ==  11`
+					Call  SetPlayerAnimation    ( 00010015 )
   294:  	EndSwitch
   29C:  EndThread
 		Thread
@@ -67,8 +75,26 @@
 		EndThread
   2C0:  Call  ClearAmbientSounds    ( 00000000 )
   2D0:  Thread
-  2D8:  	Wait  105`
-  
+			Wait  105`
+			If   *GB_StoryProgress < .Story:Ch0_ReturnedToToadTown	%Prevent the death warp that plagued 1.0.2
+				Exec $GoToTitle
+				Return
+			EndIf
+
+		Switch  *GB_StoryProgress				%If you're in a Peach section, do a special death warp
+			CaseOR  ==  .Story:Ch1_BeganPeachMission
+			CaseOR  ==  .Story:Ch2_BeganPeachMission
+			CaseOR  ==  .Story:Ch3_BeganPeachMission
+			CaseOR  ==  .Story:Ch4_BeganPeachMission
+			CaseOR  ==  .Story:Ch5_BeganPeachMission
+			CaseOR  ==  .Story:Ch6_BeganPeachMission
+			CaseOR  ==  .Story:Ch7_BeganPeachMission
+				Exec  $PeachWarp
+				Return
+			EndCaseGroup
+		EndSwitch
+
+			
 			If   *IWannaBeTheGuy == .True		%Check if I Wanna Be The Guy mode is on (AKA Hard but no continues)
 				Exec $GoToTitle
 				Return
@@ -78,23 +104,13 @@
 			If  *Flag[05] == .True
 				Return
 			EndIf
+
+			
 			
 			If  *ReturnPipeLock == .True		%If Return Pipe is locked, don't ask to return to Kinoko Town
 				Exec $GoToTitle
 				Return
 			EndIf
-			
-		Switch  *GB_StoryProgress				%If you're in a Peach section, do a special death warp
-			CaseOR  ==  .Story:Ch1_BeganPeachMission
-			CaseOR  ==  .Story:Ch2_BeganPeachMission
-			CaseOR  ==  .Story:Ch3_BeganPeachMission
-			CaseOR  ==  .Story:Ch4_BeganPeachMission
-			CaseOR  ==  .Story:Ch5_BeganPeachMission
-			CaseOR  ==  .Story:Ch6_BeganPeachMission
-				Exec  $PeachWarp
-				Return
-			EndCaseGroup
-		EndSwitch
 		
 		Exec  $GameOverChoice				%If all above checks fail, ask to return to Kinoko Town or go to Title Screen, like in vanilla
   308:  EndThread
@@ -184,51 +200,75 @@
 			End
 }
 
-
+%Only one of these flags should be active ever. 
 #new:Script  $BossCheck
 {
 	Set  *Var0 2`
 	Wait 1`
+	If *CheckFuzzies == .True
+		Set  *Flag[08] .True
+	EndIf
 	If *CheckCoopNotes == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckTutankoopa == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
+	EndIf
+	If *CheckMrTrooper3 == .True
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckTyrant == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckTubbs1 == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckTubbs2 == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
+	EndIf
+	If  *CheckMrTrooper4 == .True
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckShyShogun == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
+	EndIf
+	If *CheckRaphael == .True
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckBowersBrother == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckMoltenPiranha == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
+	EndIf
+	If  *CheckMrTrooper5 == .True
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckLordofThunder == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
+	EndIf
+	If *CheckKoopaKoot == .True
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckBlackCrystalKing == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckPriest == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckXinSui == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If *CheckFinalBower == .True
-		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
+		Set  *Flag[08] .True
 	EndIf
 	If  *EscapeSequence == .True
+		Set  *Flag[08] .True
+	EndIf
+	If *CheckRobotoad == .True
+		Set  *Flag[08] .True
+	EndIf
+	If  *Flag[08] == .True
 		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
 	EndIf
 	If  *Var0 == 0`		
@@ -236,74 +276,97 @@
 		Call  FullyRestoreHPandFP ( )
 		Call  FullyRestoreSP ( )
 		Call  FadeOutMusic  ( 00000000 00000BB8 )
+		Call	$Function_LoadItems ( )
 		Wait  1`
+		If *CheckFuzzies == .True
+			Call  GotoMapSpecial    ( "nok_04" 0 6 )
+			Return
+		EndIf
 		If *CheckCoopNotes == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "trd_10" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "trd_10" 0 6 )
+			Return
 		EndIf
 		If *CheckTutankoopa == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "isk_16" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "isk_16" 0 6 )
+			Return
 		EndIf
-		If *CheckTyrant == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "obk_09" 00000000 00000006 )
+		If *CheckMrTrooper3 == .True
+			Call  GotoMapSpecial    ( "sbk_30" 6 6 )
+			Return
+		EndIf
+		If  *CheckTyrant == .True
+			Call  GotoMapSpecial    ( "obk_09" 0 6 )
+			Return
 		EndIf
 		If *CheckTubbs1 == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "arn_11" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "arn_11" 0 6 )
 			Return
 		EndIf
 		If *CheckTubbs2 == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "arn_07" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "arn_07" 0 6 )
+			Return
+		EndIf
+		If *CheckMrTrooper4 == .True
+			Call  GotoMapSpecial    ( "mim_07" 3 6 )
 			Return
 		EndIf
 		If *CheckShyShogun == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "omo_15" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "omo_15" 0 6 )
+			Return
+		EndIf
+		If *CheckWhiteCody == .True
+			Call  GotoMapSpecial    ( "jan_15" 0 6 )
+			Return
+		EndIf
+		If *CheckRaphael == .True
+			Call  GotoMapSpecial    ( "jan_23" 0 6 )
 			Return
 		EndIf
 		If *CheckBowersBrother == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "kzn_16" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "kzn_16" 0 6 )
 			Return
 		EndIf
 		If *CheckMoltenPiranha == .True
 			Set  *MoltenPiranhaTurn .False
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "kzn_19" 00000001 00000006 )
+			Call  GotoMapSpecial    ( "kzn_19" 1 6 )
+			Return
+		EndIf
+		If *CheckMrTrooper5 == .True		
+			Call  GotoMapSpecial    ( "mac_05" 1 6 )
 			Return
 		EndIf
 		If *CheckLordofThunder == .True
 			Set  *LordofThunderTurn .False
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "flo_21" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "flo_21" 0 6 )
+			Return
+		EndIf
+		If  *CheckKoopaKoot == .True
+			Call    GotoMapSpecial ( "pra_01" 0 6 )
 			Return
 		EndIf
 		If *CheckBlackCrystalKing == .True
 			Set  *CrystalKingTurn .False
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "pra_32" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "pra_32" 0 6 )
 			Return
 		EndIf
 		If *CheckPriest == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "dnj_29" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "dnj_29" 0 6 )
 			Return
 		EndIf
 		If *CheckXinSui == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "dnj_29" 00000000 00000006 )
+			Call  GotoMapSpecial    ( "dnj_29" 0 6 )
 			Return
 		EndIf
-		If *CheckFinalBower == .True
-			Call	$Function_LoadItems ( )
-			Call  GotoMapSpecial    ( "kkj_25" 00000001 00000006 )
+		If *CheckFinalBower == .True		
+			Call  GotoMapSpecial    ( "kkj_25" 1 6 )
 			Return
 		EndIf
 		If *EscapeSequence == .True
-			Call  GotoMapSpecial    ( "kpa_121" 00000001 00000006 )
+			Call  GotoMapSpecial    ( "kpa_121" 1 6 )
+			Return
+		EndIf
+		If *CheckRobotoad == .True
+			Call  GotoMapSpecial    ( "tik_26" 0 6 )
 			Return
 		EndIf
 	EndIf
@@ -340,7 +403,6 @@
 {
 			  2D0:  Thread
 			  2D8:  	Wait  110`	
-			  2FC:  	Wait  100`
 						Call  GotoMapSpecial    ( "kkj_14" 00000001 00000006 )
 			  308:  EndThread
 			  568:  Thread

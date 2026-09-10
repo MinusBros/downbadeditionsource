@@ -1,3 +1,21 @@
+#import EnterViaPipe.mpat
+
+@	$Header
+{
+	[MainScript]  $Script_Main
+	[EntryList]   $EntryList
+	[EntryCount]  3
+	[Background]  80200000
+	[MapTattle]   001900A6
+}
+
+@	$EntryList
+{
+	~Vec4f:Entry0 % -385.0   20.0   10.0   90.0
+	~Vec4f:Entry1 %  385.0    0.0   10.0  270.0
+	~Vec4f:Entry2
+}
+
 @	$Script_802401F0
 {
     0:  Switch  *GB_StoryProgress
@@ -40,9 +58,7 @@
    38:  	Default
 				Call  EnableGroup   ( ~Model:darkness .False )
 		EndSwitch
-		If  *IWannaBeTheGuy == .False
-   90:  	ExecWait  $Script_MakeEntities
-		EndIf
+		ExecWait  $Script_MakeEntities
    9C:  Exec  $Script_80240264
    A8:  Exec  $Script_EnterWalk_80240690
    B4:  Wait  1`
@@ -51,6 +67,61 @@
    D8:  End
 }
 
+@	$Script_MakeEntities
+{
+		If  *IWannaBeTheGuy == .False
+			Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:Entity802404D0 80000000 )
+		EndIf
+		Call  MakeEntity    ( .Entity:BlueWarpPipe ~Vec4d:BluePipe ~Entry:Entry2 $Script_UseBluePipe ~Index:*MIM10_BluePipe 80000000 )
+   24:  Return
+   2C:  End
+}
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "mac_12" 1 )
+	Wait     92` 
+	Return
+	End
+}
+
+@	 $Script_EnterWalk_80240690
+{
+    0:  Call  GetLoadType   ( *Var1 )
+   10:  If  *Var1  ==  00000001
+   20:  	Exec  EnterSavePoint
+   2C:  	Exec  $Script_80240648
+   38:  	Return
+   40:  EndIf
+   48:  Call  GetEntryID    ( *Var0 )
+		Switch  *Var0
+			Case == ~Entry:Entry2
+   70:  		If  *MIM10_BluePipe   ==  .False					
+   80:  			Call  DisablePlayerInput    ( .True )
+   90:  			Call  DisablePlayerPhysics  ( .True )
+   A0:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   B8:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+   D4:  			Call  SetPlayerPos  ( *Var0  -1000` *Var2 )
+   EC:  			Wait  30`
+					Set   *MIM10_BluePipe  .True
+   F8:  			Call  PlaySound ( 0000208E )
+  118:  			Wait  30`
+  124:  			Call  SetPlayerActionState  ( .ActionState:Idle )
+  134:  			Call  SetPlayerPos  ( *Var0 *Var1 *Var2 )
+  14C:  			Call  SetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  168:  			Call  DisablePlayerPhysics  ( .False )
+  178:  			Call  DisablePlayerInput    ( .False )
+  188:  		EndIf
+				Set   *VarA  $Script_80240648
+				Exec  $Script_EnterVerticalPipe
+				Wait  1`	
+			Default
+				Set   *Var0  $Script_80240648
+				Exec  EnterWalk
+		EndSwitch
+   64:  Return
+   6C:  End
+}
 
 
 #new:Script  $DarknessFollow
