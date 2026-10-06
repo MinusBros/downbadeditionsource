@@ -27,16 +27,26 @@ Parallel Launcher is also really good too though, so use that if you don't know 
 Here are my settings:
 
 CPU Core: Dynarec
+
 RSP Plugin: HLE
+
 Framerate: Fullspeed (for no in-game slowdown)
-Resolution: 1080p
+
 LOD Emulation: ON
+
 Framebuffer Emulation: On
+
 Copy Auxiliary Buffers To RDRAM: ON
+
 Don't filter background textures: ON
+
 Use High-Res Full Alpha Channel: ON
 
+=
+
 Rosalie's Mupen GUI has been tested with mostly success and Bizhawk breaks during battles as of 1.1.3. Please don't use Project 64. It doesn't work with Paper Mario hacks.
+
+If you're using RMG, go to Settings > Game > Core and set Overclocking Factor to 20 to eliminate all slowdown in the game.
 
 
 
