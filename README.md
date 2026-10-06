@@ -42,7 +42,7 @@ Don't filter background textures: ON
 
 Use High-Res Full Alpha Channel: ON
 
-=
+====================================================================
 
 Rosalie's Mupen GUI has been tested with mostly success and Bizhawk breaks during battles as of 1.1.3. Please don't use Project 64. It doesn't work with Paper Mario hacks.
 
