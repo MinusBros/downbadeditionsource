@@ -21,6 +21,7 @@ Anyways you can click the release page for the most recent version.
 
 
 All of my testing was done in Retroarch with Mupen64Plus-Next and GLideN64 plugin.
+Parallel Launcher is also really good too though, so use that if you don't know how to set up Retroarch
 =
 
 Here are my settings:
@@ -35,7 +36,7 @@ Copy Auxiliary Buffers To RDRAM: ON
 Don't filter background textures: ON
 Use High-Res Full Alpha Channel: ON
 
-You may use Parallel core if you wish, but crashes can happen, so be mindful if you do decide to use it. Rosalie's Mupen GUI and Bizhawk have been tested with mostly success. Please don't use Project 64. It doesn't work with Paper Mario hacks.
+Rosalie's Mupen GUI has been tested with mostly success and Bizhawk breaks during battles as of 1.1.3. Please don't use Project 64. It doesn't work with Paper Mario hacks.
 
 
 
@@ -48,8 +49,6 @@ harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq4
 Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lobsj5
 
 Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
-
-GreenBean501: https://www.youtube.com/playlist?list=PLqMbi64zLouM5Y5_DVcaSH-coN_Vd8020
 
 
 
