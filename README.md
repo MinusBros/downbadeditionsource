@@ -51,7 +51,7 @@ If you're using RMG, go to Settings > Game > Core and set Overclocking Factor to
 
 
 
-Also if you want to watch my friends play this game, we have some series on my channel
+You can watch my friends playtest this game. We have some series on my channel
 =
 
 harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
@@ -60,7 +60,6 @@ Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lo
 
 Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
 
-
-
-
 Listen to the soundtrack here: https://www.youtube.com/playlist?list=PLuUrVHOy3UjmafCVhM0kh8prgicOW7J7W
+
+Check out the Ultimate DBE Guide: https://docs.google.com/spreadsheets/d/1jC63_PSKgMbsIeybr0nsbq_wrwjk7SBsmVRxWsEYRmM/edit?usp=sharing
