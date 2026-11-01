@@ -25,6 +25,7 @@
 		CaseOR == .Item:SuperShroomCake
 		CaseOR == .Item:UltraShroomCake
 		CaseOR == .Item:DayzeeSyrup %New item
+		CaseOR == .Item:HighMaxCake
 				Add *Var6 10`
 				Set *Var0 AE
 				Set *Var1 FF
@@ -41,69 +42,6 @@
 				If *VarF == 2`
 					Add *DelayedHealTurns 3
 				EndIf
-			Else %if you use another long-term heal while the first one is active
-				%the strength of the effect will be of the stronger one
-				If *Var[B] > *DelayedHealAmount
-					%Step 1: calculate remaining total heal
-					Set *Var[F] *DelayedHealAmount
-					Mul *Var[F] *DelayedHealTurns						
-					%*Var[F] = total heal amount
-					%
-					%Step 2:
-					%set values to the stronger ones						
-					Set *DelayedHealAmount *Var[B]
-					Set *DelayedHealTurns 3  %add the normal healing too
-					Call	 $Function_GetArbitraryByte ( *VarE $ItemCostReductionData[2] )
-					If *VarE == 1`
-						Add *DelayedHealTurns 1
-					EndIf
-					If *VarE == 2`
-						Add *DelayedHealTurns 3
-					EndIf
-					%
-					%Step 3: apply bonus healing
-					%Bonus turns = varF / amount
-					Div *VarF *DelayedHealAmount
-					Add *DelayedHealTurns *VarF
-					If *VarF < 1`
-						Add *DelayedHealTurns 1
-					EndIf
-				Else
-					If *Var[B] == *DelayedHealAmount
-						%equal => amount += (turncount)
-						%Simple
-						Add *DelayedHealTurns 3
-						Call	 $Function_GetArbitraryByte ( *VarE $ItemCostReductionData[2] )
-						If *VarE == 1`
-							Add *DelayedHealTurns 1
-						EndIf
-						If *VarE == 2`
-							Add *DelayedHealTurns 3
-						EndIf
-					Else
-						%Step 1: calculate new heal
-						Set *Var[F] *Var[B]
-						Mul *Var[F] 3
-						Call	 $Function_GetArbitraryByte ( *VarE $ItemCostReductionData[2] )
-						If *VarE == 1`
-							Add *Var[F] *Var[B]
-						EndIf
-						If *VarE == 2`
-							Add *Var[F] *Var[B]
-							Add *Var[F] *Var[B]
-							Add *Var[F] *Var[B]
-						EndIf							
-						%*Var[F] = total heal amount
-						%
-						%Step 2: apply bonus healing
-						%Bonus turns = varF / amount
-						Div *VarF *DelayedHealAmount
-						Add *DelayedHealTurns *VarF
-						If *VarF < 1`
-							Add *DelayedHealTurns 1
-						EndIf
-					EndIf
-				EndIf
 			EndIf			
 			If *DelayedHealTurns > 9`
 				Set *DelayedHealTurns 9`
@@ -114,44 +52,43 @@
 			EndIf
 			Goto 1
 		EndCaseGroup
+		CaseOR == .Item:StrangeLeaf
+		CaseOR == .Item:WeedBrownie
+            Call    GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+            Call    802D75D8      ( *Var0 *Var1 *Var2 *Var6 )
+            Call    GetOwnerID ( *Var0 )
+            Call  InitTargetIterator
+            % inflict status
+                Call  $Function_TryToInflictStatus ( *Var4 .Status:Dizzy 2 )
+                % check if status was inflicted
+                Call  GetStatusFlags ( *Var4 *Var0 )
+                If *Var0 & ~Flags:StatusFlags:Dizzy	
+                    Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+                    Call  $GetActorPointer ( *Var4 *Var3 )
+					Wait  20`
+                EndIf
+		EndCaseGroup
 		Case == .Item:YellowBerry %yellow
 			ExecWait  $ElectrifyMario
 		Case == .Item:BubbleBerry %bubble
 			Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
 			Add   *Var1  00000014
+			Call    $Function_ApplyVanish ( )
 			Call  PlayEffect    ( ~FX:RadialFlowIn:WhiteWaves *Var0 *Var1 *Var2 *Fixed[1.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
 			Call  PlaySoundAtActor  ( .Actor:Player 00000376 )
-			Call	 $Function_GetArbitraryByte ( *VarF $ItemCostReductionData[2] )
-			Switch *VarF
-				Case == 2`
-					Call	$Function_SetBubbleBerry2 ( )	%2		
-				Case == 1`
-					Call	$Function_SetBubbleBerry ( )	%1
-				Default
-					Call	$Function_SetBubbleBerry ( )	%1
-			EndSwitch		
 		Case == .Item:BooLeaf
-			Call	 $Function_GetArbitraryByte ( *VarF $ItemCostReductionData[2] )
-			Switch *VarF
-				Case == 2`
-					Call	$Function_SetBooLeaf2 ( )	%2		
-				Case == 1`
-					Call	$Function_SetBooLeaf ( )	%1
-				Default
-					Call	$Function_SetBooLeaf ( )	%1
-			EndSwitch	
-			Thread
-				Wait  20`
-				Call  SetAnimation  ( .Actor:Player 00000000 00010023 )
-				Wait  20`
-				Call  PlaySoundAtActor      ( .Actor:Player 000020DC )
-				Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
-			EndThread
-			ExecWait  $LoseActionCommand
-		Case == .Item:RedBerry %red
+			ExecWait  $BooLeafEffect
+		Case == .Item:BooTea
+			ExecWait  $BooLeafEffect	
+			Exec    $DefEffect
+			Call    PlayEffect    ( ~FX:StatChange:DefensePlus1 *Var8 *Var9 *Var7  *Fixed[1.5] 60` .False .False .False .False .False .False .False )	
+			Call 	 $Function_SetDefdown 	( FFFFFFFF 00000004 )	%+1 defence, 4 turns
+		CaseOR == .Item:RedBerry %red
+		CaseOR == .Item:FruitPunch
 			Exec  $PowEffect
 			Call    PlayEffect    ( ~FX:StatChange:AttackPlus1 *Var8 *Var9 *Var7 *Fixed[1.5] 60` .False .False .False .False .False .False .False )
 			Call 	 $Function_SetChill 	( FFFFFFFF 00000004 )	%+1 attack, 3 turns
+		EndCaseGroup
 		CaseOR == .Item:HotSauce % 17F
 		CaseOR == .Item:HottestDog % 17F
 		CaseOR == .Item:SpicyPasta  %
@@ -202,14 +139,18 @@
 		Case == .Item:FrozenFries
 			Exec  $DefEffect
 			Call    PlayEffect    ( ~FX:StatChange:DefensePlus2 *Var8 *Var9 *Var7  *Fixed[1.5] 60` .False .False .False .False .False .False .False )	
-			Call 	 $Function_SetDefdown 	( FFFFFFFE 00000002 )	%+2 defence, 1 turn			
+			Call 	 $Function_SetDefdown 	( FFFFFFFE 00000002 )	%+2 defence, 2 turns		
+		Case == .Item:KoopaBun
+			Exec  $DefEffect
+			Call    PlayEffect    ( ~FX:StatChange:DefensePlus3 *Var8 *Var9 *Var7  *Fixed[1.5] 60` .False .False .False .False .False .False .False )	
+			Call 	 $Function_SetDefdown 	( FFFFFFFD 00000001 )	%+3 defence, 1 turn				
 		Case == .Item:RakukajaGem % 180
 			Exec    $DefEffect
 			Call    PlayEffect    ( ~FX:StatChange:DefensePlus3 *Var8 *Var9 *Var7  *Fixed[1.5] 60` .False .False .False .False .False .False .False )		
 			Call 	 $Function_SetDefdown 	( FFFFFFFD 00000003 )	%+3 defence, 3 turns
 		Case == .Item:BowerJuice
 			Call	 $Function_DebuffEffectUnified ( )			
-			Call 	 $Function_SetChill 	( FFFFFFFE 00000003 )
+			Call 	 $Function_SetChill 	( FFFFFFFE 00000004 )
 			Call 	 $Function_SetDefdown 	( FFFFFFFE 00000003 )
 			Call  PlaySoundAtActor  ( .Actor:Player 00003C3 )	
             Call    GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
@@ -220,8 +161,23 @@
 			Sub     *Var3  60`
             Call    PlayEffect    ( ~FX:StatChange:AttackPlus2 *Var0 *Var1 *Var2 *Fixed[1.5] 60` .False .False .False .False .False .False .False )
 			Call    PlayEffect    ( ~FX:StatChange:DefensePlus2 *Var3 *Var1 *Var2 *Fixed[1.5] 60` .False .False .False .False .False .False .False )
-  31C:  	Call     SetAnimation 	( .Actor:Player 00000000 0001001D )
-  334:  	Wait     00000009
+			Call     SetAnimation 	( .Actor:Player 00000000 0001001D )
+			Wait     00000009
+		Case == .Item:HeatRiser
+			Exec  $PowEffect
+			Call    PlayEffect    ( ~FX:StatChange:AttackPlus3 *Var8 *Var9 *Var7 *Fixed[1.5] 60` .False .False .False .False .False .False .False )		
+			Call 	 $Function_SetChill 	( FFFFFFFD 00000004 )	%+3 attack, 3 turns
+			Wait  25`
+			Exec  $DefEffect
+			Call    PlayEffect    ( ~FX:StatChange:DefensePlus3 *Var8 *Var9 *Var7  *Fixed[1.5] 60` .False .False .False .False .False .False .False )	
+			Call 	 $Function_SetDefdown 	( FFFFFFFD 00000003 )	%+3 defence, 3 turns	
+		CaseOR == .Item:BluePepper
+		CaseOR == .Item:SpeedySoup
+			ExecWait   $Script_HustleAnimation
+			Set     *VarF  1`
+			Call  $Function_SetHustle
+			Goto 1
+		EndCaseGroup			
 		Case == .Item:BigStarPoint
 			Call     SetAnimation 	( .Actor:Player 00000000 00030009 )
 			Call  802D72B4 ( 10` )  %Add 10 Star Points
@@ -229,6 +185,7 @@
 				Call  PlaySoundAtActor  ( .Actor:Player 0000215 )  %Star Point noise
 				Wait  1`
 			EndLoop		
+			Call	$Function_SaveItems ( )	%Do this to prevent farming star points
 	%%%%%%%%%%%%%%%%%%%%%%%%
 	%    Endofitemscript   %
 	%%%%%%%%%%%%%%%%%%%%%%%%
@@ -241,6 +198,7 @@
 	End
 }
 
+%By splitting these up into smaller scripts, we can save a lot of memory not copying and pasting 
 
 #export:Script:Battle $GetMarioPos
 {
@@ -257,6 +215,26 @@
 {
 			Add 	*Var6 25`
 			Call 	$Function_StarEffect ( *Var5 *Var6 *Var7 )
+			Return
+			End
+}
+
+#export:Script:Battle  $BooLeafEffect
+{
+			Call    $Function_ApplyVanish ( )
+			Thread
+				Wait  20`
+				Call  SetAnimation  ( .Actor:Player 00000000 00010023 )
+				Wait  20`
+				Call  PlaySoundAtActor      ( .Actor:Player 000020DC )
+				Call  RandInt ( 100` *VarA )
+				If   *VarA == 0`
+					Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+				Else
+					Call  SetAnimation  ( .Actor:Player 00000000 0008002D )
+				EndIf
+			EndThread
+			ExecWait  $LoseActionCommand
 			Return
 			End
 }
@@ -293,14 +271,7 @@
 			Call  MultiplyByActorScale  ( *Var3 )
 			Call  PlayEffect    ( ~FX:SnakingStatic *Var0 *Var1 *Var2 *Var3 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
 			Call  PlaySound     ( 00000379 )
-			Call	 $Function_GetArbitraryByte ( *VarF $ItemCostReductionData[2] )
-			Switch *VarF
-				Case == 2`
-					Call  $Function_ElectrifyMario2 ( )	%4
-				Case == 1`
-					Call  $Function_ElectrifyMario1 ( )	%3
-				Default
-					Call  $Function_ElectrifyMario ( )	%2
+			Call  $Function_ElectrifyMario ( )	%3
 			EndSwitch
 			Return
 			End
@@ -320,6 +291,8 @@
 		CaseOR == .Item:HealthySalad
 		CaseOR == .Item:SpaceFood
 		CaseOR == .Item:FreshJuice
+		CaseOR == .Item:TrialStew
+		CaseOR == .Item:SnowBunny
             ExecWait    $UseItem_StatusItem_SingleTarget
             Set *Var7 .True
         EndCaseGroup
@@ -365,10 +338,7 @@
             ExecWait  $BattleScript_EatItem
         EndIf
     EndIf
-    Call  GetOwnerID ( *Var0 )
-    If *Var0 < .Actor:Enemy0 % Only player team
-        Call  InitTargetIterator
-    EndIf
+    Call  InitTargetIterator
     Call  GetOwnerTarget ( *Var4 .False )
     % check if target is KO'd
     Set *VarF .False
@@ -379,10 +349,7 @@
     Switch *Var9
         Case == .Item:PointSwap % 17B
             If  *VarF  ==  .False
-                Switch *Var4
-                    Case == .Actor:Player
-                        Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
-                EndSwitch
+                Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
             EndIf
             Call    GetActorPos ( *Var4 *Var0 *Var1 *Var2 )
             Sub     *Var0 37` % x
@@ -497,6 +464,7 @@
                 Call    $WriteAddress ( 8010F290 0 *Var1 5 .False ) % new FP
             Wait    15`
             Call    UseBattleCamPreset    ( 00000002 )
+
         CaseOR == .Item:FreshJuice % 1AB
         CaseOR == .Item:HealthySalad % 1AD
         CaseOR == .Item:SpaceFood % 1BE
@@ -509,17 +477,10 @@
                 CaseOR == .Item:FreshJuice % 1AB
                 CaseOR == .Item:HealthySalad % 1AD
                     Call  FXRecoverFP    ( *Var0 *Var1 *Var2 *Var6 )
-                    If *Var4 < .Actor:Enemy0 % Player team
-                        Call  $RecoverFP    ( *Var6 )
-                    EndIf
+                    Call  $RecoverFP    ( *Var6 )
                 EndCaseGroup
                 Case == .Item:SpaceFood % 1BE
-                    Call  FXRecoverHP    ( *Var0 *Var1 *Var2 *Var6 )
-                    If *Var4 >= .Actor:Enemy0
-                        Call    $HealActor ( *Var4 *Var5 )
-                    Else
                         Call    $Heal_PlayerTeam ( *Var4 *Var5 )
-                    EndIf
             EndSwitch
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
             Add   *Var1  00000019
@@ -536,10 +497,10 @@
                 Switch *Var0
                     Case  ==  .Actor:Player
                         Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:ThumbsUp )
-                        Wait  30`
+                        Wait  25`
                         Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
                     Default
-                        Wait  30`
+                        Wait  20`
                 EndSwitch
             EndIf
             Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
@@ -549,8 +510,90 @@
                 Call  InitTargetIterator
             EndIf
             Call  $Function_ClearDebuffs    ( .Actor:Player )
+			Call  $Function_ResetStatus   ( .Actor:Player )
             Wait  20`
 			EndCaseGroup
+        CaseOR == .Item:SnowBunny % 1BD
+            Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+            Call  GetItemPower ( *Var9 *Var5 *Var6 )
+            Add   *Var0  00000000
+            Add   *Var1  00000023
+            Switch *Var9
+                %CaseOR == .Item:IciclePop
+                %CaseOR == .Item:TayceFrappe
+                %    Call  FXRecoverFP    ( *Var0 *Var1 *Var2 *Var6 )
+                %    Call  $RecoverFP    ( *Var6 )
+                %EndCaseGroup
+                Case == .Item:SnowBunny
+                    Call  FXRecoverHP    ( *Var0 *Var1 *Var2 *Var5 )
+                    Call    $Heal_PlayerTeam ( *Var4 *Var5 )
+            EndSwitch
+            Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+            Add   *Var1  00000019
+            Call  802D7520      ( *Var0 *Var1 *Var2 *Var6 )
+            Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+            Add   *Var1  00000014
+            Call  GetOwnerTarget    ( *Var0 .False )
+            Call  GetOwnerID ( *Var1 ) % The actor didn't used the item on himself?
+            If *Var0 != *Var1
+                Call  UseIdleAnimation  ( *Var0 .False )
+            EndIf
+            Call GetStatusFlags ( *Var0 *Var1 )
+            If  *Var1  !&  ~Flags:StatusFlags:Sleep|Frozen|Fear|Paralyze|Dizzy|Stone|Stop % 35D000
+                Switch *Var0
+                    Case  ==  .Actor:Player
+                        Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:ThumbsUp )
+                        Wait  20`
+                        Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+                EndSwitch
+            EndIf
+            Call    GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+            Call    802D75D8      ( *Var0 *Var1 *Var2 *Var6 )
+            Call    GetOwnerID ( *Var0 )
+            Call  InitTargetIterator
+            % inflict status
+            Call  RandInt ( 100` *Var0 )
+            If *Var9 == .Item:SnowBunny
+                Set *Var0 .False
+            EndIf
+            If *Var0 <= 30`
+                Call  $Function_TryToInflictStatus ( *Var4 .Status:Frozen 2 )
+                % check if status was inflicted
+                Call  GetStatusFlags ( *Var4 *Var0 )
+                If *Var0 & ~Flags:StatusFlags:Frozen
+                    Call  GetActorPos   ( *Var4 *Var0 *Var1 *Var2 )
+                    Call  $GetActorPointer ( *Var4 *Var3 )
+                    Call  80271484 % PlayFreezeHitParticleFX
+                EndIf
+            EndIf
+            Wait  15`
+        EndCaseGroup
+			Case == .Item:TrialStew % 1A5
+            ExecWait $ReturnToHomeMario
+            Thread
+                Wait    10`
+				ExecWait $GetMarioPos
+				Set *Var0 16
+				Set *Var1 16
+				Set *Var2 16
+				Call	 $Function_DebuffEffectUnified ( )	
+                Call    PlaySoundAtActor ( *Var4 0224 )
+            EndThread
+            Wait  20`
+            Call    GetOwnerTarget ( *Var4 .False )
+                If *Var4 == .Actor:Player
+                    % player
+                    Call    $WriteAddress ( 8010F292 0 1 .False .False ) % set player HP
+                EndIf
+                Call    FullyRestoreSP
+                Call    $WriteAddress ( 8010F295 0 .False .False .False ) % set FP
+            EndIf
+                If *Var4 == .Actor:Player
+                    Thread
+                        Call    DispatchDamagePlayerEvent ( 0 .Event:Hit )
+                    EndThread
+                EndIf
+            Return
 	EndSwitch
 	ExecWait $ReturnToHomeMario
     Return
@@ -664,9 +707,6 @@
                     Call  UseBattleCamPreset    ( 00000003 )
                     Call  MoveBattleCamOver     ( 0000000F )
                     Call  SetAnimation  ( .Actor:Player 00000000 00010016 )
-                Default % Enemies
-                    Call  UseBattleCamPreset    ( 00000002 )
-                    Call  MoveBattleCamOver     ( 0000000F )
             EndSwitch
             Call  PlaySound ( 000003FA )
             Wait  3`
@@ -843,14 +883,7 @@
             Label  EQ1
             Call  GetOwnerID ( *Var2 )
             If *Var2 >= .Actor:Enemy0 % Enemies
-                % check if partner has been already attacked
-                Call GetOwnerTarget ( *Var0 *Var1 )
-                % Check if Player has a partner available
-            Else % Player team
-                Call  ChooseNextTarget  ( .Iter:Next *Var0 )
-                If  *Var0  !=  FFFFFFFF
-                    Goto  EQ0
-                EndIf
+				Wait  1`
             EndIf
             Call  GetOwnerTarget        ( *Var7 .False )
             Call  GetOwnerID ( *Var4 ) % The actor didn't used the item on himself?
@@ -899,7 +932,7 @@
             Call  UseIdleAnimation  ( *Var3 .False )
         EndIf
         Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:Eat )
-        Wait  45`
+        Wait  40`
         Call  GetOwnerID ( *Var4 ) % The actor isn't healing himself?
         If *Var3 != *Var4
             Call  UseIdleAnimation  ( *Var3 .True )
@@ -936,7 +969,7 @@
             Call  UseIdleAnimation  ( *Var3 .False )
         EndIf
         Call  SetAnimation  ( .Actor:Player 00000000 .PlayerAnim:Drink )
-        Wait  45`
+        Wait  40`
         Call  GetOwnerID ( *Var4 ) % The actor isn't healing himself?
         If *Var3 != *Var4
             Call  UseIdleAnimation  ( *Var3 .True )
@@ -1714,27 +1747,8 @@ ADDIU	V0, R0, 2
 
 
 
-#new:Function:Battle $Function_ElectrifyMario
-{
-    0:  ADDIU     SP, SP, FFE8
-    4:  COPY      V0, A0
-    8:  SW        S0, 10 (SP)
-    C:  LAW       S0, 800DC148
-   14:  LI        A1, B
-   18:  SW        RA, 14 (SP)
-   %1C:  LW        A2, 84 (V0)
-		ORI 	  A2, R0, 2
-   20:  JAL       ~Func:inflict_status
-   24:  COPY      A0, S0
-   28:  SB        R0, 21C (S0)
-   2C:  LW        RA, 14 (SP)
-   30:  LW        S0, 10 (SP)
-   34:  LI        V0, 2
-   38:  JR        RA
-   3C:  ADDIU     SP, SP, 18
-}
 
-#new:Function:Battle $Function_ElectrifyMario1
+#new:Function:Battle $Function_ElectrifyMario
 {
     0:  ADDIU     SP, SP, FFE8
     4:  COPY      V0, A0
@@ -1752,121 +1766,6 @@ ADDIU	V0, R0, 2
    34:  LI        V0, 2
    38:  JR        RA
    3C:  ADDIU     SP, SP, 18
-}
-
-#new:Function:Battle $Function_ElectrifyMario2
-{
-    0:  ADDIU     SP, SP, FFE8
-    4:  COPY      V0, A0
-    8:  SW        S0, 10 (SP)
-    C:  LAW       S0, 800DC148
-   14:  LI        A1, B
-   18:  SW        RA, 14 (SP)
-   %1C:  LW        A2, 84 (V0)
-		ORI 	  A2, R0, 4
-   20:  JAL       ~Func:inflict_status
-   24:  COPY      A0, S0
-   28:  SB        R0, 21C (S0)
-   2C:  LW        RA, 14 (SP)
-   30:  LW        S0, 10 (SP)
-   34:  LI        V0, 2
-   38:  JR        RA
-   3C:  ADDIU     SP, SP, 18
-}
-
-#new:Function:Battle $Function_SetBooLeaf
-{
-    0:  ADDIU     SP, SP, FFE0
-    4:  COPY      V0, A0
-    8:  SW        S0, 10 (SP)
-		LAB		  S0, $EternalCostIncreases
-		ADDI	  S0, S0, 1
-		SAB		  S0, $EternalCostIncreases	
-    C:  LAW       S0, 800DC148
-   14:  LI        A1, E
-   18:  SW        RA, 18 (SP)
-   1C:  SW        S1, 14 (SP)   
-   %20:  LW        A2, 84 (V0)
-		ORI		  A2, R0, 1
-   24:  LW        S1, 1F4 (S0)
-   28:  JAL       ~Func:inflict_status
-   2C:  COPY      A0, S0
-   30:  SB        R0, 21C (S0)
-   34:  LW        V1, 0 (S1)
-   38:  ORI       V1, V1, 100
-   3C:  SW        V1, 0 (S1)
-   40:  LW        RA, 18 (SP)
-   44:  LW        S1, 14 (SP)
-   48:  LW        S0, 10 (SP)
-   4C:  LI        V0, 2
-   50:  JR        RA
-   54:  ADDIU     SP, SP, 20
-}
-
-#new:Function:Battle $Function_SetBooLeaf2
-{
-    0:  ADDIU     SP, SP, FFE0
-    4:  COPY      V0, A0
-    8:  SW        S0, 10 (SP)
-		LAB		  S0, $EternalCostIncreases
-		ADDI	  S0, S0, 2
-		SAB		  S0, $EternalCostIncreases		
-    C:  LAW       S0, 800DC148
-   14:  LI        A1, E
-   18:  SW        RA, 18 (SP)
-   1C:  SW        S1, 14 (SP)
-   %20:  LW        A2, 84 (V0)
-		ORI		  A2, R0, 2
-   24:  LW        S1, 1F4 (S0)
-   28:  JAL       ~Func:inflict_status
-   2C:  COPY      A0, S0
-   30:  SB        R0, 21C (S0)
-   34:  LW        V1, 0 (S1)
-   38:  ORI       V1, V1, 100
-   3C:  SW        V1, 0 (S1)
-   40:  LW        RA, 18 (SP)
-   44:  LW        S1, 14 (SP)
-   48:  LW        S0, 10 (SP)
-   4C:  LI        V0, 2
-   50:  JR        RA
-   54:  ADDIU     SP, SP, 20
-}
-
-#new:Function:Battle $Function_SetBubbleBerry
-{
-    0:  ADDIU     SP, SP, FFE0
-    4:  COPY      V0, A0
-    8:  SW        S0, 10 (SP)
-		LAB		  S0, $EternalCostIncreases
-		ADDI	  S0, S0, 1
-		SAB		  S0, $EternalCostIncreases		
-    C:  LAW       S0, 800DC148
-		%
-		ADDI	A1, R0, 0002
-		SB		A1, 223 (S0) %str
-		SB		A1, 225 (S0) %str
-		ADDIU	A1, R0, 3
-		SB		A1, 224 (S0) %dur
-		SB		A1, 226 (S0) %dur
-		%
-   14:  LI        A1, E
-   18:  SW        RA, 18 (SP)
-   1C:  SW        S1, 14 (SP)
-   %20:  LW        A2, 84 (V0)
-		ORI		  A2, R0, 1
-   24:  LW        S1, 1F4 (S0)
-   28:  JAL       ~Func:inflict_status
-   2C:  COPY      A0, S0
-   30:  SB        R0, 21C (S0)
-   34:  LW        V1, 0 (S1)
-   38:  ORI       V1, V1, 100
-   3C:  SW        V1, 0 (S1)
-   40:  LW        RA, 18 (SP)
-   44:  LW        S1, 14 (SP)
-   48:  LW        S0, 10 (SP)
-   4C:  LI        V0, 2
-   50:  JR        RA
-   54:  ADDIU     SP, SP, 20
 }
 
 #new:Function:Battle $Function_ApplyVanish
@@ -1895,42 +1794,6 @@ ADDIU	V0, R0, 2
    54:  ADDIU     SP, SP, 20
 }
 
-#new:Function:Battle $Function_SetBubbleBerry2
-{
-    0:  ADDIU     SP, SP, FFE0
-    4:  COPY      V0, A0
-    8:  SW        S0, 10 (SP)
-		LAB		  S0, $EternalCostIncreases
-		ADDI	  S0, S0, 2
-		SAB		  S0, $EternalCostIncreases	
-    C:  LAW       S0, 800DC148
-		%
-		ADDI	A1, R0, 0002
-		SB		A1, 223 (S0) %str
-		SB		A1, 225 (S0) %str
-		ADDIU	A1, R0, 3
-		SB		A1, 224 (S0) %dur
-		SB		A1, 226 (S0) %dur
-		%
-   14:  LI        A1, E
-   18:  SW        RA, 18 (SP)
-   1C:  SW        S1, 14 (SP)
-   %20:  LW        A2, 84 (V0)
-		ORI		  A2, R0, 2
-   24:  LW        S1, 1F4 (S0)
-   28:  JAL       ~Func:inflict_status
-   2C:  COPY      A0, S0
-   30:  SB        R0, 21C (S0)
-   34:  LW        V1, 0 (S1)
-   38:  ORI       V1, V1, 100
-   3C:  SW        V1, 0 (S1)
-   40:  LW        RA, 18 (SP)
-   44:  LW        S1, 14 (SP)
-   48:  LW        S0, 10 (SP)
-   4C:  LI        V0, 2
-   50:  JR        RA
-   54:  ADDIU     SP, SP, 20
-}
 
 #new:Function $EnableAutoBlock2
 {
@@ -2049,47 +1912,6 @@ ADDIU	V0, R0, 2
 }
 
 
-#new:Function $Function_AddAtkBoost %( strength )
-{
-PUSH RA, A0, A1, S0, S1, S2
-COPY	S2, A0
-LW		S1, C (A0)
-JAL		~Func:get_variable
-LW		A1, 0 (S1) %get argument 1
-COPY	S0, V0
-%S0 = 1
-LIO		A0, 800DC070
-LW		A0, D8 (A0) %where player actor struct is
-LB		A1, 221 (A0) %str
-ADD		A1, A1, S0
-SB		A1, 221 (A0) %str
-POP RA, A0, A1, S0, S1, S2
-JR	RA
-ADDIU	V0, R0, 2
-}
-
-#new:Function $Function_AddDefBoost %( strength )
-{
-PUSH RA, A0, A1, S0, S1, S2
-COPY	S2, A0
-LW		S1, C (A0)
-JAL		~Func:get_variable
-LW		A1, 0 (S1) %get argument 1
-COPY	S0, V0
-%S0 = 1
-LIO		A0, 800DC070
-LW		A0, D8 (A0) %where player actor struct is
-COPY	A1, S0
-LB		A1, 222 (A0) %str
-ADD		A1, A1, S0
-SB		A1, 222 (A0) %str
-POP RA, A0, A1, S0, S1, S2
-JR	RA
-ADDIU	V0, R0, 2
-}
-
-
-
 %use var0, var1, var2 for color
 %var5, var6, var7 for positions
 #new:Function $Function_DebuffEffectUnified
@@ -2139,15 +1961,6 @@ ADDIU	V0, R0, 2
    80:  JR        RA
 		NOP
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2641,7 +2454,7 @@ ADDIU	V0, R0, 2
   194:  CVT.S.W		F2, F2
   198:  ADD.S		F0, F0, F2
   19C:  LIF			F2, 5.0
-  1A4:  ADDIU		A0, R0, 5		%damage icon (5 -> 3) (aka -1)
+  1A4:  ADDIU		A0, R0, 7		%damage icon (5 -> 3) (aka -1)
   1A8:  ADD.S		F0, F0, F2
   1AC:  MFC1		A1, F4
   1B0:  LIF			F4, 1.0
@@ -2664,17 +2477,11 @@ ADDIU	V0, R0, 2
 
 
 
-
-
-
-
-
 %Derived from SpyGuy.bpat
 
 #new:Script:Battle  $LoseActionCommand
 {
   5AC:  			Exec  $ManageItemMotion
-  5B8:  			Wait  4`
   708:  			Add   *Var1  00000014 
   718:  			Sub   *Var3  00000002 	
   770:  			Thread
@@ -3037,9 +2844,6 @@ ADDIU	V0, R0, 2
   1B4:  JR        RA
   1B8:  ADDIU     SP, SP, 40
 }
-
-
-
 
 
 

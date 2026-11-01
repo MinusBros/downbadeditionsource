@@ -1,0 +1,227 @@
+% This file move everything to have more space for the 99 max BP in the Badge Tab from the Pause Menu.
+
+% Mario Coin - Y Pos
+@Function 13B6EC % 802483AC
+{
+    ADDIU	A2, T2, 002D
+}
+
+% BP and Total BP (Strings) - Y Pos
+@Function 13B72C % 802483EC
+{
+    ADDI	A2, S0, FFDD % -35
+    ADDI	A2, S0, FFDD % -35
+}
+
+% Orange Dots (when the cursor is outside the badge list) - Y Pos
+@Function 13BBB0 % 80248870
+{
+    ADDIU	A2, A2, 0035
+}
+
+% Orange Dots (when the cursor is inside the badge list) - Y Pos
+@Function 13B99C % 8024865C
+{
+    ADDIU	A2, A2, 0035
+}
+
+% Fading Orange Dots
+@Function 13BB0C % 802487CC
+{
+    ADDIU	A2, A2, 0035
+}
+
+% White Dots - Y Pos
+@Function 13B8C8 % 80248588
+{
+    ADDIU	A2, A2, 0035
+}
+
+% "Available:" - Y Pos
+@Function 13B7C0 % 80248480
+{
+    ADDI	A2, S0, FFDA % -38
+}
+
+% Available BP
+@Function 13B7CC % 8024848C
+{
+    ADDI	A2, S0, FFDA % -38
+}
+
+% "All Badges" - Box Data
+@Hook 13BBFC % 802488BC
+{
+    LW	    A2, 00C4 (SP)
+    BEQL	V1, R0, .CurrentList
+    NOP     % ADDIU	A2, A2, 0009 % x pos (when list is active)
+    .CurrentList
+    LW	    T2, 00C8 (SP)
+    ADDIU   V0, R0, 005B % x size
+    SW      V0, 0014 (SP)
+    ADDIU   V0, R0, 0020 % y size
+    SW      V0, 0018 (SP)
+    ADDIU   V0, R0, 0000 % pos z
+    SW      V0, 0010 (SP)
+    ADDIU   V0, R0, 00FF % opacity
+    SW      V0, 001C (SP)
+    ADDIU	A3, T2, 0007 % y pos
+    ADDIU   V0, R0, 0080 % fogRGB
+    SW      V0, 0020 (SP)
+    ADDIU   A0, R0, 0004 % ?
+    LIO     A1, 8026FBD8
+    ADDIU   V0, R0, 0140 % txShiftY
+    SW      V0, 0044 (SP)
+    ADDIU   V0, R0, 00F0 % txShiftX
+    SW      R0, 0024 (SP)
+    SW      R0, 0028 (SP)
+    SW      R0, 002C (SP)
+    SW      R0, 0030 (SP)
+    SW      R0, 0034 (SP)
+    SW      R0, 0038 (SP)
+    SW      R0, 003C (SP)
+    SW      R0, 0040 (SP)
+    SW      V0, 0048 (SP)
+    J       80248940
+    NOP
+}
+
+% "Active Badges" - Box Data
+@Hook 13BCD8 % 80248998
+{
+    LW	    A2, 00C4 (SP)
+    BEQL	V1, S0, .CurrentList
+    ADDIU	A2, A2, 28 % x pos (when list is active)
+    .CurrentList
+    LW	    T3, 00C8 (SP)
+    ADDIU   V0, R0, 0033 % x size
+    SW      V0, 0014 (SP)
+    ADDIU   V0, R0, 0020 % y size
+    SW      V0, 0018 (SP)
+    ADDIU   V0, R0, 0000 % pos z
+    SW      V0, 0010 (SP)
+    ADDIU   V0, R0, 00FF % opacity
+    SW      V0, 001C (SP)
+    ADDIU   A3, T3, 0007 % y pos
+    ADDIU   V0, R0, 0000 % fogRGB
+    SW      V0, 0020 (SP)
+    ADDIU   A0, R0, 0004 % ?
+    LIO     A1, 8026FBD8
+    ADDIU   V0, R0, 0140 % txShiftY
+    SW      V0, 0044 (SP)
+    ADDIU   V0, R0, 00F0 % txShiftX
+    SW      R0, 0024 (SP)
+    SW      R0, 0028 (SP)
+    SW      R0, 002C (SP)
+    SW      R0, 0030 (SP)
+    SW      R0, 0034 (SP)
+    SW      R0, 0038 (SP)
+    SW      R0, 003C (SP)
+    SW      R0, 0040 (SP)
+    SW      V0, 0048 (SP)
+    JAL     ~Func:draw_box
+    SW	    R0, 004C (SP)
+    J       80248A20
+    NOP
+}
+
+#string $String_All
+{
+All[End]
+}
+
+#string $String_On
+{
+On[End]
+}
+
+% Disable "All Badges" (String)
+@Function 13BCCC % 8024898C
+{
+    NOP
+}
+
+% Disable "Active" (String)
+@Function 13BDA4 % 80248A64
+{
+    NOP
+}
+
+% Draw each string for each box
+@Hook 13BDB4 % 80248A74
+{
+    LW	    T2, 00C4 (SP)
+    LW      V1, 0 (S1) % current list / 0 = all , 1 = active badges
+    BNE     V1, R0, .Active
+    NOP
+    LIO     A0, $String_All
+    ADDIU	A1, T2, 0010 % x pos
+    LW	    T3, 00C8 (SP)
+    ADDIU	A2, T3, 000F % y pos
+    ORI     A3, R0, 00FF % opacity
+    BEQ     R0, R0, .DrawString
+    NOP
+    .Active
+    LIO     A0, $String_On
+    ADDIU	A1, T2, 0039 % x pos
+    LW	    T3, 00C8 (SP)
+    ADDIU	A2, T3, 000E % y pos
+    ORI     A3, R0, 00FF % opacity
+    .DrawString
+    SW	    R0, 0010 (SP) % ?
+    JAL     ~Func:draw_string
+    SW      R0, 0014 (SP) % text fx / 0 = none
+    J       80248AAC
+    NOP
+}
+
+% Hand Cursor - Move the cursor horizontally instead of vertically
+@Function 13BE10 % 80248AD0
+{
+    LW	    A1, 0000 (S1)
+    LW	    T2, 00C4 (SP)
+    LW	    T3, 00C8 (SP)
+    ADDIU	A2, T2, 002D
+    SLL	    A1, A1, 5
+    ADDI	A1, A1, FFF3
+    J	    80248BF4
+    ADDU	A1, T3, A1
+}
+
+% Hand Cursor - List Navigation - Change the list if the joystick was moved to the Left or Right, not Up or Down
+@Function 13C5AC % 8024926C
+{
+    LUI	V1, 000C % bit2 and 3 (Left and Right)
+}
+
+
+#new:Function $Function_UpdateBadgeList
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1
+    % Only do it if the player is inside the Activated Badges list
+    LABU    V0, 8027039F
+    BEQ     V0, R0, .End % 0 = All Badges List
+    NOP
+    JAL	    80248D8C % ~Func:UpdateBadgesList
+    ORI     A0 , R0, 1 % update badge list with the activated list
+    .End
+    POP     RA, A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
+}
+
+
+% Display a Zero when the available BP becomes negative
+@Hook 13B7C4 % 80248484
+{
+    % S1 = Amount to display
+    SLTI    T3, S1, 0
+    BNEL    T3, R0, .NegativeBP
+    CLEAR   S1
+    % vanilla code
+    .NegativeBP
+    COPY    A0, S1
+    J       8024848C
+    ADDIU	A1, S2, 0049
+
+}

@@ -56,7 +56,7 @@
 
 @	$MontyMole
 {
-	[Level]        32`b
+	[Level]        29`b
 	[MaxHP]        21`b
 	[Coins]         3`b
 	[Item]         80`b
@@ -73,7 +73,7 @@
    28:  	Call  SetPartScale  ( .Actor:Self 00000001 *Fixed[0.4] *Fixed[0.4] *Fixed[0.4] )
    48:  EndIf
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $MontyMole 37` )
+			Call	$Function_SetLevel	( $MontyMole 34` )
 		EndIf
    50:  Return
    58:  End
@@ -115,7 +115,7 @@
 	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -2`
+	.Status:DizzyTurnMod     -1`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
 	.Status:ParalyzeTurnMod  -4`
@@ -310,7 +310,7 @@
 	.Status:SleepTurnMod     -4`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -2`
+	.Status:DizzyTurnMod     -1`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
 	.Status:ParalyzeTurnMod  -4`
@@ -628,10 +628,10 @@
 		Call  RandInt   ( 100` *Var0 )
 		If  *Var0  > 60`
 			Call  GetActorDefenseBoost  ( .Actor:Self *Var4 )
-			If  *Var4 < 5`
+			If  *Var4 < 2`
 				Call	BoostDefense 	( .Actor:Self 00000001 )
 			Else	
-				Call	BoostAttack 	( .Actor:Self 00000002 )
+				Call	BoostAttack 	( .Actor:Self 00000001 )
 			EndIf
 		Else
 			If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
@@ -695,7 +695,7 @@
 
 #new:Script $ShowMessageSonicBoom
 {
-	Call  ActorSpeak        ( 001F0067 .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %For Jonathan
+	Call  ActorSpeak        ( 001F0067 .Actor:Enemy2 00000001 FFFFFFFF FFFFFFFF ) %For Jonathan
 	Return 
 	End
 }
@@ -836,6 +836,7 @@
   240:  Call  SetActorVar   ( .Actor:Self 00000003 00000064 )
   258:  Call  SetActorVar   ( .Actor:Self 00000004 00000064 )
 		Call     SetActorVar 	( .Actor:Self 00000007 00000000 ) % savestate detection flag
+		Set *GB_EnemyDefense  00000000 %Used to determine if he should buff defense when eating Tuff Puffs.
   270:  Return
   278:  End
 }
@@ -942,7 +943,7 @@
   2F4:  Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
   30C:  Switch  *Var0
   318:  	Case  ==  00000000
-				Set *GB_EnemyDefense  00000000 %Used to determine if he should buff defense when eating Tuff Puffs.
+
 				ExecWait $Script_BodySlam
   324:  		ExecWait  $Script_HealOrSlam
   330:  		Call  SetActorVar   ( .Actor:Self 00000001 00000001 )
@@ -1013,7 +1014,7 @@
  [5220]  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Quake|Unsuperguardable 00000000 00000000 *VarA 00000020 )
 }
 
-%Huff N. Puff will increase his defense by 1 twice every 12 turns.
+%Huff N. Puff will increase his defense by 1 twice per fight, but only if he eats at least 5 puffs
 
 @	$Script_HealOrSlam
 {
@@ -1189,24 +1190,26 @@
   3D0:  Call  SetBattleCamOffsetZ   (  20` )
   3E0:  Call  MoveBattleCamOver (  180` )
   3F0:  Wait  20`
-	If  *GB_EnemyDefense  < 00000002
-		Add *GB_EnemyDefense  00000001
-		Wait  1`
-			    Set        *Var[8]  *Var[0] 
-		Call    SetTargetActor    ( .Actor:Self .Actor:Player )
-		Call    UseBattleCamPreset    ( 0000000E )
-		Call    BattleCamTargetActor    ( .Actor:Self )
-		Call    MoveBattleCamOver        ( 0000000F )
-		Wait    0000000F 
-		Call    GetActorPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
-		Call    GetStatusFlags    ( .Actor:Self *Var[A] )
-		Thread
-			Call    8026BF48    ( 00000001 )
-			Call    BoostDefense     ( .Actor:Self 00000001 )
-			Call    8026BF48    ( 00000000 )
-		EndThread
-			Wait 5`
-    EndIf
+	If  *VarA > 5`
+		If  *GB_EnemyDefense  < 00000002
+			Add *GB_EnemyDefense  00000001
+			Wait  1`
+					Set        *Var[8]  *Var[0] 
+			Call    SetTargetActor    ( .Actor:Self .Actor:Player )
+			Call    UseBattleCamPreset    ( 0000000E )
+			Call    BattleCamTargetActor    ( .Actor:Self )
+			Call    MoveBattleCamOver        ( 0000000F )
+			Wait    0000000F 
+			Call    GetActorPos        ( .Actor:Self *Var[0] *Var[1] *Var[2] )
+			Call    GetStatusFlags    ( .Actor:Self *Var[A] )
+			Thread
+				Call    8026BF48    ( 00000001 )
+				Call    BoostDefense     ( .Actor:Self 00000001 )
+				Call    8026BF48    ( 00000000 )
+			EndThread
+				Wait 5`
+		EndIf
+	EndIf
   A7C:  Call  UseBattleCamPreset    ( 00000002 )
   A8C:  Call  UseIdleAnimation      ( .Actor:Self .True )
   AA0:  Return
@@ -1290,29 +1293,17 @@
   574:  		Return
   57C:  	EndCaseGroup
   584:  EndSwitch
-  58C:  Call  SetAnimation  ( .Actor:Self 00000001 007C000B )
-  5A4:  Call  SetAnimation  ( .Actor:Self 00000002 007C000C )
-  5BC:  Call  SetAnimation  ( .Actor:Self 00000003 007C000D )
   5D4:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
-  5E8:  Call  SetGoalToTarget       ( .Actor:Self )
-  5F8:  Call  AddGoalPos    ( .Actor:Self  0` *Var3  5` )
-  614:  Call  AddGoalPos    ( .Actor:Self  0`  -30`  0` )
-  630:  Call  JumpToGoal    ( .Actor:Self  20` .False .False .False )
-  660:  Wait  1`
+		ExecWait  $BodySlamContinue
+  660:  Wait  2`
   66C:  Call  SetGoalToTarget       ( .Actor:Self )
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000000 00000000 15` 00000020 )
-  58C:  Call  SetAnimation  ( .Actor:Self 00000001 007C000B )
-  5A4:  Call  SetAnimation  ( .Actor:Self 00000002 007C000C )
-  5BC:  Call  SetAnimation  ( .Actor:Self 00000003 007C000D )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 7` 00000020 )
   5D4:  Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.75] )
-  5E8:  Call  SetGoalToTarget       ( .Actor:Self )
-  5F8:  Call  AddGoalPos    ( .Actor:Self  0` *Var3  5` )
-  614:  Call  AddGoalPos    ( .Actor:Self  0`  -30`  0` )
-  630:  Call  JumpToGoal    ( .Actor:Self  20` .False .False .False )
+		ExecWait  $BodySlamContinue
   650:  Call  80269EAC      ( 00000018 )
-  660:  Wait  3`
+  660:  Wait  2`
   66C:  Call  SetGoalToTarget       ( .Actor:Self )
-		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000008 00000000 16` 00000020 )
+		Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000008 00000000 8` 00000020 )
   7D8:  Switch  *Var0
   7E4:  	CaseOR  ==  .HitResult:Hit % 0
   7F0:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -1347,6 +1338,20 @@
   A14:  Call  UseIdleAnimation  ( .Actor:Self .True )
   A28:  Return
   A30:  End
+}
+
+
+#new:Script  $BodySlamContinue
+{
+  58C:  Call  SetAnimation  ( .Actor:Self 00000001 007C000B )
+  5A4:  Call  SetAnimation  ( .Actor:Self 00000002 007C000C )
+  5BC:  Call  SetAnimation  ( .Actor:Self 00000003 007C000D )
+  5E8:  Call  SetGoalToTarget       ( .Actor:Self )
+  5F8:  Call  AddGoalPos    ( .Actor:Self  0` *Var3  5` )
+  614:  Call  AddGoalPos    ( .Actor:Self  0`  -30`  0` )
+  630:  Call  JumpToGoal    ( .Actor:Self  20` .False .False .False )
+		Return
+		End
 }
 
 %Hurricane pierces now.
@@ -1442,6 +1447,7 @@
 
 @	$Script_8021AED8
 {
+		Set   *LordofThunderCrashFailsafe .True
     0:  UseArray  $TuffPuffIDs
     C:  Label  0
    18:  Call  GetBattleFlags    ( *Var0 )
@@ -1507,7 +1513,9 @@
   3AC:  Set   *Var0  00000001
   3BC:  Set   *Var1  007C0007
 		Thread
-			Wait  83`
+			Wait  33`
+			Call  $Function_entity_SaveBlock_save_data ( )	%Save just in case
+			Wait  53`
 			Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000001 00000008 ) %Huff N. Puff Battle end stinger (doesn't work on the regular song for some reason)
 			Wait  155`
 			Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
@@ -1521,6 +1529,7 @@
 %Apparently there is a clone of this script if he dies from fire/explosion
 @	$Script_8021B504
 {
+		Set   *LordofThunderCrashFailsafe .True
     0:  UseArray  $TuffPuffIDs
     C:  Label  0
    18:  Call  GetBattleFlags    ( *Var0 )
@@ -1576,7 +1585,9 @@
   30C:  Set   *Var0  00000001
   31C:  Set   *Var1  007C0026
 		Thread
-			Wait  83`
+			Wait  33`
+			Call  $Function_entity_SaveBlock_save_data ( )	%Save just in case it crashes
+			Wait  53`
 			Call  SetMusicTrack ( 00000000 .Song:LevelUp 00000001 00000008 ) %Huff N. Puff Battle end stinger (doesn't work on the regular song for some reason)
 			Wait  155`
 			Call  SetMusicTrack ( 00000000 .Song:BossLevelUp 00000001 00000008 )  %In case player levels up
@@ -1614,6 +1625,7 @@
 	$Spike 00000006 00000008 00000000 00000000 00000000 00000000
 }
 
+%Pit formation only
 #new:Formation $Formation_06
 {
 	$MontyMole $PitPos1 0000000A 00000000 00000000 00000000 00000000
@@ -1657,29 +1669,29 @@
 
 
 
-%uses var F
-#new:Script $Script_SaveStateCheck
+#new:Function $Function_entity_SaveBlock_save_data
 {
-	Set *VarF 0
-	If *VarF != 0
-		Call	SetActorVar ( .Actor:Self 00000007 00000001 )
-	EndIf
-	Return
-	End
-}
-
-%if mario hp < 0, check save state so that you can't reload a state
-%but also don't check if you're alive so that you don't have to deal with the lag
-#new:Script $Script_SaveStateCheckIfDead
-{
-	Call     GetPlayerHP 	( *VarF )
-	If       *Var[F] >  00000000 
-		Return 
-	EndIf
-	Set *VarF 0
-	If *VarF != 0
-		Call	SetActorVar ( .Actor:Self 00000007 00000001 )
-	EndIf
-	Return
-	End
+    0:  LAW       A0, 800F7B30
+    8:  ADDIU     SP, SP, FFE8
+    C:  SW        RA, 10 (SP)
+   10:  LWC1      F0, 28 (A0)
+   14:  LAW       V1, 8007419C
+   1C:  TRUNC.W.S F2, F0
+   20:  MFC1      V0, F2
+   24:  NOP
+   28:  SH        V0, 160 (V1)
+   2C:  LWC1      F0, 2C (A0)
+   30:  TRUNC.W.S F2, F0
+   34:  MFC1      V0, F2
+   38:  NOP
+   3C:  SH        V0, 162 (V1)
+   40:  LWC1      F0, 30 (A0)
+   44:  LBU       A0, 166 (V1)
+   48:  TRUNC.W.S F2, F0
+   4C:  MFC1      V0, F2
+   50:  JAL       ~Func:fio_save_game
+   54:  SH        V0, 164 (V1)
+   58:  LW        RA, 10 (SP)
+   5C:  JR        RA
+   60:  ADDIU     SP, SP, 18
 }

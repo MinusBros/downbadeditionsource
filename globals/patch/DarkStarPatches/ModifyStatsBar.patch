@@ -16,108 +16,7 @@
 }
 
 
-/%
-	Block of data for box styles
-%/
-/%
-% 000A2D90 --> 801098E0
-#new:Unknown $???_801098E0
-{
-	010000C8 BFA4FF80 8080FF
-	010101FF C880FF80 8080FF
-	010201E8 C44DFFA3 7B00FF
-	000301E2 E1D8FFD9 D0C9FF 
-	0104013D 4ABCFF00 191CFF
-	010501EB E677FF8E 5A25FF	%left side
-	010601EB E677FF8E 6325FF	%right side
-	010401D7 BF74FF84 4632FF 	%For the "Party Member" thing on top of the partner menu
-	010401D7 BF74FF84 4632FF
-	0104018D 8FFFFF2B 4566FF
-	0108018D 8FFFFF2B 4566FF
-	010401AA D080FF47 7B53FF 
-	010801AA D080FF47 7B53FF
-	010401C8 C85AFF8C 8C00FF
-	010801C8 C85AFF8C 8C00FF
-	010401EB E677FF8E 5A25FF 
-	0104018E D4ECFF43 6245FF
-	010401A7 9777FF62 379AFF
-	01070111 971DFF08 370EFF
-	0107016E 6EC8FF0A 0A64FF 
-	010401B5 3C3CFF4C 0A00FF
-	010401AE E3EBFF4C 6E3CFF
-	0003017E 7DD8FFD9 6CC9FF
-	000000
-}
-%/
 
-
-%Try modifying the star power icons directly
-
-/%
-% 00091460 --> 800F7FB0
-#new:Unknown $???_800F7FB0
-{
-	$HudElementScript_80108298 $HudElementScript_801082E8 $HudElementScript_801082C0 $HudElementScript_80108310 $HudElementScript_80108338 $HudElementScript_80108360 $HudElementScript_80108388
-}
-
-%	star icons for star power
-% 0009147C --> 800F7FCC
-#new:IntTable $IntTable_800F7FCC
-{
-	$HudElementScript_801083D8 $HudElementScript_80108428 $HudElementScript_80108400 $HudElementScript_80108450 $HudElementScript_80108478 $HudElementScript_801084A0 $HudElementScript_801084C8
-}
-%/
-
-%Not sure if I need this
-%81564 --> 800E80B4
-/%
-@Hook 82468
-{	
-	%PUSH	RA
-	%JAL		$Function_StarMeter_RemoveBrownOutline
-	%NOP
-	%POP		RA
-	LW        T1, 50 (SP)
-	J		800E8FC0
-	ADDIU     S6, S6, 14
-}
-%/
-%  F04:  LW        T1, 50 (SP)
-%  F08:  ADDIU     S6, S6, 14
-
-%Managed to modify the star energy stuff
-%The bar in the menu looks weird now (blue outline) but oh well
-
-/%
-#new:Function $Function_StarMeter_RemoveBrownOutline
-{
-    % I tried using @Data to nuke everything but star rod
-    % just doesn't do it, I dunno why.
-    %
-    % I even open the rom in a hex editor and poked the data i was trying to patch
-    % and it worked, looks like star rod just doesn't patch it
-    SAW     R0, 80100734 % Bar 1
-    SAW     R0, 80100774 % Bar 3
-    SAW     R0, 801007B4 % Bar 2
-    SAW     R0, 801007F4 % Bar 4
-    SAW     R0, 80100834 % Bar 5
-    SAW     R0, 80100874 % Bar 6
-    SAW     R0, 801008B4 % Bar 7
-    JR      RA
-    RESERVED
-}
-%/
-
-
-%$HudElementScript_80108924
-%Item icon (This is probably loaded always since its next to other stuff loaded always)
-
-%Draw an item counter
-
-%draw an icon
-
-%import stuff for black pits ui bar
-%
 
 #new:Data $CurrentLSIcon
 { 00000000 00000000 }
@@ -154,14 +53,6 @@
 	00000002 0000003C 800FB5A0 800FB7A0
 	00000003 
 	00000000
-	/%
-	SetVisible
-	SetTileSize ( .IconSize:32x32 )
-	Loop
-		SetCI       ( 60` $IntTable_800FB5A0 $IntTable_800FB7A0 )
-	Restart
-	End
-	%/
 }
 
 % Create the Life Shroom, Star and the Coin icons after loading the last icon for the stats menu
@@ -175,13 +66,6 @@
     RESERVED
     LIO     A0, $CurrentLSIcon
     SH      S0, 4 (A0) % save star iconIndex
-	/%
-    % =======
-    % Make Coin Icon
-    LIO     A0, 80407344 % coin's icon script
-    JAL     $CreateIcon
-    RESERVED
-	%/
     POP     RA, A0, A1, A2, A3, V0, V1, S0
     % restore vanilla code
     LIO     V0, 8023F088
@@ -243,10 +127,6 @@
 }
 
 
-/%
-% 00081564 --> 800E80B4
-#new:Function $Function_update_status_menu
-%/
 
 
 % shifts a bit left
@@ -406,23 +286,6 @@ NOP
 @Hook 81E30 % 800E8980
 {
     %======================
-    % Change Life Shroom Size, Pos and render the current Ls icon
-    %======================
-	%This code really doesn't do anything outside of life shroom stuff?
-	/%
-    PUSH    RA, A0, A1, A2, A3, V0, V1, S0
-    % load current Ls
-    LIO     V1, $CurrentLSIcon
-    % The player is in the overworld or inside a battle?
-    LABU    T0, 80074094 % 0 = Overworld / 1=Battle
-    BEQL    T0, R0, .StarIconIndexLoaded
-    LHU     V1, 2 (V1) % Load battle index
-    LHU     V1, 4 (V1) % Load battle index
-    .StarIconIndexLoaded
-    % V1 = star iconIndex (used to know the Ls icon index)
-    POP     RA, A0, A1, A2, A3, V0, V1, S0
-	%/
-    %======================
     % Change Star Size, Pos and render the icon
     %======================
     PUSH    RA, A0, A1, A2, A3, V0, V1, S0
@@ -434,14 +297,6 @@ NOP
     LHU     S0, 4 (A0) % Load battle index
     .StarIconIndexLoaded2
     COPY    A0, S0
-	/%
-    % The player have at least one Star Spirit?
-    LABU    V0, 8010F51E % Star Spirits
-    BEQL    V0, R0, .HideStarIcon
-    ADDI	A1, R0, FFEC % -20`
-    ADDIU	A1, A1, 000A % x
-    .HideStarIcon
-	%/
 	COPY    S0, A0 % save it in s0 too
     ADDI	A1, R0, 009C % x
     JAL     ~Func:set_hud_element_render_pos
@@ -509,6 +364,3 @@ NOP
 	J			800E7E64
 	SW			S2, 28 (SP)
 }
-
-%ADDIU		S6, R0, 3
-%SW			S2, 28 (SP)

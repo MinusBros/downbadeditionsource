@@ -5,6 +5,34 @@
 @Data 91020 {2.3} %walk speed, 800F7B70
 @Data 91024 {4.4} %run speed, 800F7B74
 
+%I was able to speed up Spin Jumps
+@Function E26DE0	%Update Spin Jump
+{
+   [D0]  LIF       F2, 72.0
+  [1E0]  LI        V0, 0
+  [288]  LIF       F2, 90.0
+}
+
+%@Function E26710	%Update Tornado Jump
+
+
+%Change the strings in the menu
+@String 1629B4
+{
+	Scarabs[End]
+}
+@String 1629C0
+{
+	Time Wasted[End]
+}
+@String 1629A0
+{
+	Cash[End]
+}
+
+
+
+
 #export:Data $RandomBattleData
 {
 	00000000
@@ -1364,23 +1392,6 @@ NOP
 	ADDIU V0, R0, 2
 }
 
-#export:Function $Function_SetEscape %sets the "can you run away?" flag (zero = no, non-zero = yes)
-{
-PUSH	RA
-JAL		~Func:get_variable
-LW		A1, 0 (S0) %get argument
-SLTI	V0, V0, 1 %force it to be a boolean value, (but this inverts it too!)
-LUI		A1, 800E %1st half of battle data address (actually 800D)
-LB		A2, C077 (A1) %get the flags
-BEQ		V0, R0, .false 
-ORI		A2, A2, 20  %20 flag
-ANDI	A2, A2, FFDF %everything but the 20 flag (signed value?)
-.false
-SB		A2, C077 (A1) %set the flags
-POP		RA
-JR RA
-ORI V0, R0, 2
-}
 
 
 
@@ -1741,6 +1752,7 @@ ORI     V0, R0, 2
 
 #new:Script:Global $NukeBossChecks
 {
+	Set  *DisableLifeShroomPrompt .False %Disable this too why not
 	Set *CheckGoombaBros .False
 	Set *CheckGoombaKing .False
 	Set *CheckCody .False
@@ -1782,6 +1794,9 @@ ORI     V0, R0, 2
 	Set *CheckPriest .False
 	Set *CheckFinalBower .False
 	Set *CheckRobotoad .False
+	Set *CheckPythonMoles .False
+	Set *CheckPythonMoles .False
+	Set *CheckPacMan .False
 	Return
 	End
 }
@@ -1861,7 +1876,6 @@ ORI     V0, R0, 2
 #export $WriteBitFlag
 #export $ReadBitFlag
 #export $Function_SetLevel
-#export $Function_SetEscape
 #export $DrawBox % by Clover
 #export $NukeBossChecks
 #export $EscapeSequenceShake

@@ -1,0 +1,1624 @@
+/% This file have the drop and hold tables for all enemies in the game.
+
+% I grabbed most data from TTYD, although some enemies have a few
+% changes here and there.
+
+I grabbed TTYD's data from jdaster's Enemy Item/Badge Drop GameFAQs' guide
+
+You can take a look at the file to find out more about it:
+https://gamefaqs.gamespot.com/gamecube/920182-paper-mario-the-thousand-year-door/faqs/63451
+
+% The game uses the same calculation method to spawn or drop items like TTYD.
+% I grabbed all data from jdaster's docs too.
+
+#export:Data $ItemDropTable_Goomba
+{
+                    Hold Weight     Drop Weight
+    itemID              10`s              10`s
+    itemID              0`s              10`s
+    FFFFFFFF
+}
+%/
+
+% Enemies item data from the last battle.
+%
+% Used when trying to drop an item after battle
+%
+% plus Parakarry's new Steal Item move.
+#export:Data $EnemiesItemsBattleData
+{
+    /%
+    % 0x00 - itemTable*
+    % 0x04 - u16 spawnedItemID
+    % 0x06 - u8 enemyType
+         0x01=spawned at the start of the battle
+         0x02=actor most in front (start of the battle)
+    % 0x07 - u8 itemStolen(byteFlag)
+    %/
+    00000000 0000`s 00b 00b % Enemy0
+    00000000 0000`s 00b 00b % Enemy1
+    00000000 0000`s 00b 00b % Enemy2
+    00000000 0000`s 00b 00b % Enemy3
+    00000000 0000`s 00b 00b % Enemy4
+    00000000 0000`s 00b 00b % Enemy5
+    00000000 0000`s 00b 00b % Enemy6
+    00000000 0000`s 00b 00b % Enemy7
+    00000000 0000`s 00b 00b % Enemy8
+    00000000 0000`s 00b 00b % Enemy9
+    00000000 0000`s 00b 00b % Enemy10
+    00000000 0000`s 00b 00b % Enemy11
+    00000000 0000`s 00b 00b % Enemy12
+    00000000 0000`s 00b 00b % Enemy13
+    00000000 0000`s 00b 00b % Enemy14
+    00000000 0000`s 00b 00b % Enemy15
+    00000000 0000`s 00b 00b % Enemy16
+    00000000 0000`s 00b 00b % Enemy17
+    00000000 0000`s 00b 00b % Enemy18
+    00000000 0000`s 00b 00b % Enemy19
+    00000000 0000`s 00b 00b % Enemy20
+    00000000 0000`s 00b 00b % Enemy21
+    00000000 0000`s 00b 00b % Enemy22
+    00000000 0000`s 00b 00b % Enemy23
+    FFFFFFFF FFFFFFFF
+}
+
+% To know the data only from the enemies that started the battle
+%
+% needed when an item will be dropped in the overworld.
+#export:Data $EnemiesItemsBattleData_OriginalFormation
+{
+    00000000 0000`s 00b 00b % Enemy0
+    00000000 0000`s 00b 00b % Enemy1
+    00000000 0000`s 00b 00b % Enemy2
+    00000000 0000`s 00b 00b % Enemy3
+    00000000 0000`s 00b 00b % Enemy4
+    00000000 0000`s 00b 00b % Enemy5
+    00000000 0000`s 00b 00b % Enemy6
+    00000000 0000`s 00b 00b % Enemy7
+    00000000 0000`s 00b 00b % Enemy8
+    00000000 0000`s 00b 00b % Enemy9
+    00000000 0000`s 00b 00b % Enemy10
+    00000000 0000`s 00b 00b % Enemy11
+    00000000 0000`s 00b 00b % Enemy12
+    00000000 0000`s 00b 00b % Enemy13
+    00000000 0000`s 00b 00b % Enemy14
+    00000000 0000`s 00b 00b % Enemy15
+    00000000 0000`s 00b 00b % Enemy16
+    00000000 0000`s 00b 00b % Enemy17
+    00000000 0000`s 00b 00b % Enemy18
+    00000000 0000`s 00b 00b % Enemy19
+    00000000 0000`s 00b 00b % Enemy20
+    00000000 0000`s 00b 00b % Enemy21
+    00000000 0000`s 00b 00b % Enemy22
+    00000000 0000`s 00b 00b % Enemy23
+    FFFFFFFF FFFFFFFF
+}
+
+
+
+
+% From ~Func:create_actor
+%
+% Init Item Data for this actor
+@Hook 194594 % 80265CB4
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S2
+    % Clear ItemData when the actor is initializated
+    %
+    % S1 = ActorDataPointer
+    SW      R0, 4 (S1) % nuke
+    % Check if this actor has a pointer in var3
+    %
+    LBU     S6, 94 (S1) % read ActorVar3(byte1)
+    ORI     V0, R0, 80 % check if starts with `80`
+    BNE     S6, V0, .End
+    NOP
+    % check if the 2nd byte isn't empty
+    LBU     S6, 95 (S1) % read ActorVar3(byte2)
+    BEQ     S6, R0, .End
+    NOP
+    % Var3 is a pointer
+    LW      S6, 94 (S1) % get ActorVar3
+    % save pointer
+    JAL     $get_actor_itemTableData
+    LHU     A0, 192 (S1) % actorID
+    SW      S6, 0 (V0)
+    % battle is being initializated?
+    LAW     A0, 800DC068 % battleStatus
+    ORI     A1, R0, 1 % .BattleState:BeginNormal
+    BNE     A0, A1, .MidBattleEnemy
+    NOP
+    % save pointer in original data too
+    JAL     $get_actor_itemTableData_OriginalFormation
+    LHU     A0, 192 (S1) % actorID
+    SW      S6, 0 (V0)
+    .MidBattleEnemy
+    COPY    S0, S6
+
+    % write item data in enemyItemTableData
+    JAL     $get_actor_itemTableData
+    LHU     A0, 192 (S1) % actorID
+    LW      A0, 94 (S1) % enemy drop table
+    COPY    V1, V0
+    SW      A0, 0 (V1)
+    LW      A0, 0 (S0) % itemID
+    SH      A0, 4 (V1)
+    % battle is being initializated?
+    LAW     A0, 800DC068 % battleStatus
+    ORI     A1, R0, 1 % .BattleState:BeginNormal
+    BNE     A0, A1, .End
+    NOP
+    % It is, write in enemyItemTableData_Original too
+    JAL     $get_actor_itemTableData_OriginalFormation
+    LHU     A0, 192 (S1) % actorID
+    LW      A0, 94 (S1) % enemy drop table
+    SW      A0, 0 (V0)
+    LW      A0, 0 (S0) % itemID
+    SH      A0, 4 (V0)
+    ORI     A0, R0, 1
+    SB      A0, 6 (V0) % enemyType
+    SB      A0, 6 (V1) % enemyType(not original)
+    .End
+    SW      R0, 94 (S1) % nuke ActorVar3
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S2
+    % restore vanilla code
+    LW	    RA, 0034 (SP)
+    J       80265CBC
+    LW	    S6, 0030 (SP)
+}
+
+% A0=actor
+%
+% Get data from `$EnemiesItemsBattleData`
+%
+% *out=V0=itemTableData (returns a zero if wasn't an enemy actor)
+#export:Function $get_actor_itemTableData
+{
+    PUSH    A0, A1, A2 A3, V1
+    LIO     A3, $EnemiesItemsBattleData
+    % check if isn't an enemy actorID
+    SLTIU   A1, A0, 0200 % .Actor:Enemy0
+    BNEL    A1, R0, .End
+    CLEAR   V0
+    ANDI    V0, A0, FDFF % remove 0X00 from the ID (number 2)
+    ORI     A0, R0, 8 % because each data uses 8 bytes
+    MULT    A0, V0
+    MFLO    A0
+    ADDU    V0, A3, A0
+    .End
+    POP     A0, A1, A2 A3, V1
+    JR      RA
+    NOP
+}
+
+% A0=actor
+%
+% Get data from `$EnemiesItemsBattleData_OriginalFormation`
+%
+% *out=V0=itemTableData (returns a zero if wasn't an enemy actor)
+#export:Function $get_actor_itemTableData_OriginalFormation
+{
+    PUSH    A0, A1, A2 A3, V1
+    LIO     A3, $EnemiesItemsBattleData_OriginalFormation
+    % check if isn't an enemy actorID
+    SLTIU   A1, A0, 0200 % .Actor:Enemy0
+    BNEL    A1, R0, .End
+    CLEAR   V0
+    ANDI    V0, A0, FDFF % remove 0X00 from the ID (number 2)
+    ORI     A0, R0, 8 % because each data uses 8 bytes
+    MULT    A0, V0
+    MFLO    A0
+    ADDU    V0, A3, A0
+    .End
+    POP     A0, A1, A2 A3, V1
+    JR      RA
+    NOP
+}
+
+% Returns pointer in V0
+%
+% Get the itemTableData from the actor most in front of the original formation.
+#new:Function $get_actor_most_front_itemTableData
+{
+    PUSH    A0, A1, A2 A3, V1
+    LIO     A3, $EnemiesItemsBattleData_OriginalFormation
+    .Loop
+    LW      A0, 0 (A3)
+    ADDI    A1, R0, -1 % end of the table
+    BEQ     A0, A1, .End
+    COPY    V0, A3
+    LBU     A0, 6 (A3) % enemyType
+    ORI     A1, R0, 2 % Most in front
+    BNE     A0, A1, .Loop
+    ADDIU   A3, A3, 8 % because each data uses 8 bytes
+    .End
+    POP     A0, A1, A2 A3, V1
+    JR      RA
+    NOP
+}
+
+
+% Clear all data from $EnemiesItemsBattleData
+%
+% and $EnemiesItemsBattleData_OriginalFormation
+#export:Function $EnemyItemTable_ClearAllData
+{
+    PUSH    A0, A1, A2, A3, V0, V1
+    LIO     A0, $EnemiesItemsBattleData
+    LIO     A1, $EnemiesItemsBattleData_OriginalFormation
+    .Loop
+    SD      R0, 0 (A0)
+    SD      R0, 0 (A1)
+    ADDIU   A0, A0, 8
+    ADDIU   A1, A1, 8
+    % check if it's the end of the table
+    LW      A2, 0 (A0)
+    ADDI    A3, R0, -1
+    BNE     A2, A3, .Loop
+    NOP
+    .End
+    POP     A0, A1, A2, A3, V0, V1
+    JR      RA
+    NOP
+}
+
+
+
+% Read data from these tables and drop an item after you win a battle
+%
+% The drop data from the .bscr/bpat files aren't readen anymore (only for items)
+% Coins, Hearts or Flowers aren't ignored.
+%
+% ~Func:spawn_drops
+@Hook 800483C4
+{
+    PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S1, S2, S3, S4
+    % get kind of drop to use
+    %
+    % random drop, held drop or nothing
+    JAL     $IsBadgeActivated_Stack
+    ORI     A0, R0, 01B5 % .Item:ItemHog
+    COPY    S0, V0
+    % get percentage for each type
+    ORI     S1, R0, 1
+    ADDU    S1, S1, S0
+    COPY    S2, S1
+    % check if player is inside the pit to use a higher percentage
+    % for "nothing"
+    LABU    A0, 800740AB % areaID
+    ORI     A1, R0, 1C % pit
+    ORI     S3, R0, 2
+    BEQL    A0, A1, .GetKindOfDrop
+    ORI     S3, R0, 3
+    .GetKindOfDrop
+    ADDU    S4, S1, S2
+    ADDU    S4, S1, S3
+    /%
+    S1=randomDrop odds
+    S2=heldDrop odds
+    S3=nothing odds
+    S4=total
+    %/
+    % will be a random drop?
+    JAL     ~Func:rand_int
+    COPY    A0, S4
+    % don't use zero
+    BEQL    V0, R0, .SkipZero_KindOfDrop_Random
+    ORI     V0, R0, 1
+    .SkipZero_KindOfDrop_Random
+    ADDIU   A1, S1, 1
+    SLTU    V1, V0, A1
+    BNE     V1, R0, .DropItem_Random
+    NOP
+    % wasn't a random drop
+    %
+    % will be a held drop?
+    JAL     ~Func:rand_int
+    COPY    A0, S4
+    % don't use zero
+    BEQL    V0, R0, .SkipZero_KindOfDrop_Held
+    ORI     V0, R0, 1
+    .SkipZero_KindOfDrop_Held
+    ADDIU   A1, S2, 1
+    SLTU    V1, V0, A1
+    BNE     V1, R0, .DropItem_Held
+    NOP
+    BEQ     R0, R0, .GetItemHogDrop
+    NOP
+    %===============
+    .DropItem_Random
+    %===============
+    JAL     $get_actor_most_front_itemTableData
+    NOP
+    % check if this actor didn't had any item data
+    LW      A0, 0 (V0)
+    BEQ     A0, R0, .GetItemHogDrop
+    NOP
+    ADDI    A1, R0, -1
+    BEQ     A0, A1, .GetItemHogDrop
+    NOP
+    COPY    S1, V0
+    LW      S1, 0 (V0)
+    COPY    S4, S1
+    % get total drop weight (sum all items drop weights)
+    CLEAR   S2
+    .Loop_Random_TotalWeight
+    LW      A0, 0 (S1) % itemID
+    LHU     A1, 6 (S1) % drop weight
+    ADDIU   S1, S1, 8 % next item
+    ADDI    A2, R0, -1 % end of the table
+    BNEL    A0, A2, .Loop_Random_TotalWeight
+    ADDU    S2, S2, A1
+    COPY    S1, S4
+    .Loop_Random_NextItemData
+    LW      A1, 0 (S1)
+    ADDI    A2, R0, -1 % end of the table
+    BEQ     A2, A1, .GetItemHogDrop
+    NOP
+    % check if this item will be the one to spawn
+    %
+    % S2=Total weight
+    LHU     A2, 6 (S1) % drop weight
+    BEQL    A2, R0, .Loop_Random_NextItemData
+    ADDIU   S1, S1, 8 % read next item
+    ORI     A3, R0, 300`
+    ADDU    A3, A3, S2
+    DIV     A3, A2
+    JAL     ~Func:rand_int
+    MFLO    A0 % weight/(300+allItemsDropWeights)
+    BEQL    V0, R0, .SkipZero_Random
+    ORI     V0, R0, 1
+    .SkipZero_Random
+    ORI     A0, R0, 1
+    BNEL    A0, V0, .Loop_Random_NextItemData
+    ADDIU   S1, S1, 8 % read next item
+    LW      A2, 0 (S1)
+    % A2=item to spawn
+    ADDIU   V1, SP, 40 % current stack size
+    LW      V1, 20 (V1) % restore V1
+    BEQ     R0, R0, .SpawnItem
+    SH      A2, 2 (V1)
+    %===============
+    .DropItem_Held
+    %===============
+    LIO     S1, $EnemiesItemsBattleData_OriginalFormation
+    COPY    S3, S1
+    % check if there's actually any item data from the last battle.
+    LW      A0, 0 (S1)
+    BEQ     A0, R0, .GetItemHogDrop
+    NOP
+    CLEAR   S2
+    % count how many enemy items where at the start of the battle
+    .Loop_Held
+    LW      A0, 0 (S1)
+    ADDIU   S1, S1, 8 % read next actor data
+    BNEL    A0, R0, .Loop_Held
+    ADDIU   S2, S2, 1
+    % S2=amount of items
+    %
+    % get random item from the start
+    COPY    S1, S3
+    JAL     ~Func:rand_int
+    COPY    A0, S2
+    BEQL    V0, R0, .SkipZero_Held
+    ORI     V0, R0, 1
+    .SkipZero_Held
+    ADDI    V0, V0, -1
+    % get item data
+    ORI     A0, R0, 8 % because each actor data have 8 bytes
+    MULT    A0, V0
+    MFLO    A0
+    ADDU    S1, S1, A0
+    % check if item wasn't already stolen by Parakarry
+    LBU     A0, 7 (S1) % stolenByte
+    BNE     A0, R0, .GetItemHogDrop
+    NOP
+    LHU     A2, 4 (S1) % itemID
+    ADDIU   V1, SP, 40 % current stack size
+    LW      V1, 20 (V1) % restore V1
+    BEQ     R0, R0, .SpawnItem
+    SH      A2, 2 (V1)
+    .GetItemHogDrop
+    % Player had any Item Hog badges?
+    BEQ     S0, R0, .End
+    NOP
+    % if the player didn't got any item, item hog
+    % will always try to give one of these 8 items
+    JAL     ~Func:rand_int
+    ORI     A0, R0, 100`
+    SLTIU   V0, V0, 40` % 40% to spwan one of these items
+    BEQ     V0, R0, .End
+    NOP
+    % Spawn one of the 8 items
+    LIO     S0, $ItemHog_ItemTable
+    JAL     ~Func:rand_int
+    ORI     A0, R0, 8
+    BEQL    V0, R0, .SkipZero_Hog
+    ORI     V0, R0, 1
+    .SkipZero_Hog
+    ADDI    V0, V0, -1
+    ORI     A0, R0, 4
+    MULT    V0, A0
+    MFLO    V0
+    ADDU    S0, S0, V0
+    LW      A2, 0 (S0) % get itemHog item to spawn
+    ADDIU   V1, SP, 40 % current stack size
+    LW      V1, 20 (V1) % restore V1
+    BEQ     R0, R0, .SpawnItem
+    SH      A2, 2 (V1)
+    .End
+    JAL     $EnemyItemTable_ClearAllData
+    NOP
+    % skip this item
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S1, S2, S3, S4
+    J       80048550
+    COPY    S2, FP
+    .SpawnItem
+    JAL     $EnemyItemTable_ClearAllData
+    NOP
+    % spawn item
+    POP     RA, A0, A1, A2, A3, V0, V1, S0, S1, S2, S3, S4
+    J       800483D0
+    COPY    S2, FP
+}
+
+#new:Data $ItemHog_ItemTable
+{
+    .Item:DriedShroom
+    .Item:DriedShroom
+    .Item:DriedShroom
+    .Item:Mushroom
+    .Item:HoneySyrup
+    .Item:FireFlower
+    .Item:FrightJar
+    .Item:POWBlock
+    .Item:VoltShroom
+    .Item:TastyTonic
+}
+
+%====================
+%                    |
+%     DROP TABLES    |
+%                    |
+%====================
+
+%The left values are unused for now since enemies don't carry items in DBE... yet
+
+%=================================
+% 00 Area KMR
+%=================================
+
+#export:Data $ItemDropTable_Goomba
+{
+	.Item:Goomnut       0`s  20`s
+    .Item:DriedShroom   0`s 20`s
+    .Item:FireFlower    0`s 20`s
+    .Item:TastyTonic    0`s   10`s
+    .Item:SleepySheep   0`s   10`s
+    .Item:TarundaGem    0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Paragoomba
+{
+	.Item:Goomnut       0`s  20`s
+    .Item:Mushroom      0`s 10`s
+    .Item:HoneySyrup    0`s   10`s
+    .Item:FireFlower    0`s   10`s
+    .Item:SleepySheep   0`s   10`s
+    .Item:RuinPowder    0`s   4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_SpikedGoomba
+{
+	.Item:Goomnut       0`s  20`s
+    .Item:FireFlower    0`s 20`s
+    .Item:Mushroom      0`s   10`s
+    .Item:HoneySyrup    0`s   10`s
+    .Item:SleepySheep   0`s   10`s
+    .Item:TarukajaGem   0`s   2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_SuperGoomba
+{
+	.Item:Goomnut       0`s  20`s
+    .Item:SuperShroom   0`s 20`s
+    .Item:FireFlower    0`s 20`s
+    .Item:SleepySheep   0`s 10`s
+    .Item:TarundaGem    0`s   2s
+    FFFFFFFF
+}
+
+%=================================
+% 04 Area HOS
+%=================================
+
+#export:Data $ItemDropTable_Ember
+{
+	.Item:HotSauce      0`s   30`s
+    .Item:FireFlower    0`s   30`s
+    .Item:DizzyDial     0`s   20`s
+    .Item:SuperShroom   0`s   10`s
+    .Item:MapleSyrup    0`s   10`s
+    .Item:TarukajaGem   0`s   10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Magikoopa
+{
+    .Item:StopWatch     0`s 40`s
+    .Item:ShootingStar  0`s 20`s
+    .Item:Mystery       0`s   20`s
+    .Item:UltraShroom   0`s   10`s
+    .Item:JamminJelly    0`s   10`s
+	.Item:BowerJuice     0`s   10`s
+    FFFFFFFF
+}
+
+
+
+#export:Data $ItemDropTable_HeartthrobCleft
+{
+    .Item:EarthQuake    0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:TarundaGem    0`s  10`s
+    .Item:StopWatch     0`s  10`s
+	.Item:ShootingStar  0`s  10`s
+	.Item:SpaceFood     0`s   10`s
+	.Item:StarCake      0`s   2s
+	.Item:HustleDrink   0`s   1s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_LovezeeDayzee
+{
+    .Item:DayzeeTear    0`s  60`s
+    .Item:MapleSyrup    0`s 20`s
+    .Item:ThunderBolt   0`s 10`s
+    .Item:PointSwap     0`s  10`s
+	.Item:FrightJar     0`s  10`s
+	.Item:ShootingStar  0`s  10`s
+	.Item:SpaceFood     0`s   10`s
+	.Item:StarCake      0`s   2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_RaidenPiranha
+{
+    .Item:ThunderBolt    0`s 40`s
+    .Item:MapleSyrup     0`s 20`s
+	.Item:ThunderRage    0`s  10`s
+    .Item:PointSwap      0`s  10`s
+	.Item:VoltShroom     0`s  10`s
+	.Item:ElectroPop     0`s  10`s
+	.Item:SpaceFood     0`s   10`s
+	.Item:StrangeLeaf    0`s  2s
+    FFFFFFFF
+}
+
+
+
+#export:Data $ItemDropTable_DivineMessenger
+{
+	.Item:ShootingStar   0`s  20`s
+	.Item:TarukajaGem    0`s  10`s
+	.Item:RakukajaGem    0`s  10`s
+	.Item:DekajaGem      0`s  10`s
+	.Item:SpaceFood     0`s   10`s
+	.Item:StarCake       0`s  2s
+    FFFFFFFF
+}
+
+%=================================
+% 05 Area NOK
+%=================================
+
+#export:Data $ItemDropTable_KoopaTroopa
+{
+    .Item:POWBlock      0`s 40`s
+	.Item:KoopaLeaf     0`s 30`s
+    .Item:Mushroom      0`s  10`s
+    .Item:HoneySyrup    0`s  10`s
+    .Item:SleepySheep   0`s  10`s
+    .Item:RakukajaGem   0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Paratroopa
+{
+    .Item:POWBlock      0`s  40`s
+	.Item:KoopaLeaf     0`s  20`s
+    .Item:Mushroom      0`s  10`s
+    .Item:HoneySyrup    0`s   10`s
+    .Item:RuinPowder    0`s  10`s
+    .Item:RakukajaGem   0`s  1`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Fuzzy
+{
+    .Item:HPSucker      0`s  20`s
+    .Item:Mushroom      0`s  10`s
+    .Item:HoneySyrup    0`s   10`s
+    .Item:FireFlower    0`s  10`s
+    .Item:SleepySheep   0`s  10`s
+    FFFFFFFF
+}
+
+%=================================
+% 06 Area NOK
+%=================================
+
+#export:Data $ItemDropTable_Bobomb
+{
+    .Item:DizzyDial     0`s  40`s
+    .Item:PointSwap     0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:SnowmanDoll   0`s  10`s
+	.Item:FireFlower    0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_BillBlaster
+{
+    .Item:Mushroom      0`s  10`s
+    .Item:HoneySyrup    0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_BombshellKoopa
+{
+    .Item:POWBlock      0`s  40`s
+    .Item:Mushroom      0`s   10`s
+    .Item:FireFlower    0`s   10`s
+    .Item:SleepySheep   0`s   10`s
+	.Item:KoopaLeaf     0`s   10`s
+    .Item:RakukajaGem   0`s    2s
+    FFFFFFFF
+}
+
+%=================================
+% 09 Area IWA
+%=================================
+
+#export:Data $ItemDropTable_Cleft
+{
+    .Item:EarthQuake    0`s 20`s
+    .Item:Mushroom      0`s 10`s
+    .Item:HoneySyrup    0`s  10`s
+    .Item:TarundaGem    0`s  2s
+    .Item:TarukajaGem   0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_MontyMole
+{
+    .Item:HoneySyrup    0`s  20`s
+    .Item:Mushroom      0`s  10`s
+	.Item:Horsetail     0`s  2s
+    FFFFFFFF
+}
+
+%=================================
+% 0A Area SBK
+%=================================
+
+#export:Data $ItemDropTable_Pokey
+{
+    .Item:DriedFruit    0`s  40`s
+    .Item:ThunderBolt   0`s  20`s
+    .Item:Mushroom      0`s  10`s
+    .Item:HoneySyrup    0`s   10`s
+    .Item:RuinPowder    0`s  10`s
+    .Item:TarundaGem    0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Bandit
+{
+    .Item:FrightJar     0`s  30`s
+    .Item:SuperShroom   0`s 10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:SleepySheep   0`s 20`s
+    .Item:GoldBar       0`s  2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_Flubba
+{
+	.Item:DriedFruit     0`s  20`s
+    .Item:PowerSteak     0`s  20`s
+    .Item:EarthQuake     0`s  10`s
+    .Item:TarukajaGem    0`s    2s
+    FFFFFFFF
+}
+
+%=================================
+% 0B Area SBK Part 1
+%=================================
+
+#export:Data $ItemDropTable_PokeyMummy
+{
+    .Item:TastyTonic     0`s  30`s
+    .Item:LifeShroom     0`s  10`s
+    .Item:EarthQuake     0`s  10`s
+    .Item:HPSucker       0`s  10`s
+    .Item:RakundaGem     0`s     2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Swooper
+{
+    .Item:HPSucker      0`s 30`s
+	.Item:SuperSoda     0`s 10`s
+	.Item:DustyHammer   0`s  4s
+    .Item:ShroomCake    0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_BuzzyBeetle
+{
+    .Item:EarthQuake     0`s  10`s
+	.Item:Egg      		 0`s  10`s
+	.Item:Lemon    		 0`s     4s
+	.Item:Lime    		 0`s     4s
+    .Item:TarukajaGem    0`s     2s
+    .Item:TarundaGem     0`s     2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_StoneChomp
+{
+	.Item:PowerSteak     0`s   50`s
+    .Item:SuperShroom    0`s   20`s
+    .Item:MapleSyrup     0`s   20`s
+    .Item:TarukajaGem    0`s   10`s
+    FFFFFFFF
+}
+
+%=================================
+% 0D Area MIM
+%=================================
+
+#export:Data $ItemDropTable_ForestFuzzy
+{
+    .Item:InsecticideHerb    0`s  30`s
+    .Item:SuperShroom    0`s  10`s
+    .Item:MapleSyrup     0`s  10`s
+    .Item:StopWatch      0`s  10`s
+	.Item:Mystery        0`s   10`s	
+    .Item:RepelGel       0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_PiranhaPlant
+{
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:DizzyDial     0`s  10`s
+	.Item:HoneySyrup    0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Bzzap
+{
+	.Item:HoneySyrup    0`s 40`s
+    .Item:InsecticideHerb   0`s  20`s
+    .Item:ThunderRage    0`s 20`s
+    .Item:SuperShroom    0`s  10`s
+    .Item:MapleSyrup     0`s  10`s
+    .Item:RuinPowder     0`s  10`s
+    .Item:RakundaGem        2s  2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_ForestGuy
+{
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s   10`s
+    .Item:DizzyDial     0`s  10`s
+	.Item:Apple         0`s  10`s
+	.Item:FireFlower    0`s  10`s
+	.Item:FreshJuice    0`s  10`s
+	.Item:PeachyPeach   0`s  10`s
+    FFFFFFFF
+}
+
+%=================================
+% 0E Area ARN
+%=================================
+
+#export:Data $ItemDropTable_HyperGoomba
+{
+	.Item:NuttyCake     0`s  10`s
+    .Item:LifeShroom    0`s  10`s
+    .Item:TastyTonic    0`s  10`s
+    .Item:SnowmanDoll   0`s  10`s
+    .Item:RepelGel      0`s    2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_HyperParagoomba
+{
+    .Item:DizzyDial     0`s 20`s
+    .Item:LifeShroom    0`s  10`s
+    .Item:TastyTonic    0`s  10`s
+    .Item:RepelGel      0`s 10`s
+	.Item:NuttyCake     0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_HyperCleft
+{
+    .Item:EarthQuake     0`s 30`s
+    .Item:SuperShroom    0`s 10`s
+    .Item:MapleSyrup     0`s  10`s
+    .Item:TarundaGem     0`s  2s
+    .Item:RepelGel       0`s 2s
+	.Item:DriedFruit     0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_DriedBlooper
+{
+    .Item:DriedShroom    0`s 30`s
+    .Item:HPSucker       0`s 20`s
+	.Item:DriedSyrup     0`s 20`s
+	.Item:InkySauce      0`s 10`s
+	.Item:DriedFruit     0`s  2s
+	.Item:PeachyPeach    0`s  2s
+    FFFFFFFF
+}
+
+%=================================
+% 0F Area DGB
+%=================================
+
+#export:Data $ItemDropTable_Clubba
+{
+    .Item:EarthQuake    0`s  10`s
+    .Item:RepelGel      0`s  10`s
+	.Item:PowerSteak    0`s   10`s
+    .Item:TarukajaGem   0`s  2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_LimeoDino
+{
+    .Item:DustyHammer   0`s  20`s
+    .Item:EarthQuake    0`s  10`s
+	.Item:BlandMeal     0`s   4s
+	.Item:PowerSteak    0`s   2s
+	.Item:BluePepper    0`s   1s
+    FFFFFFFF
+}
+
+%=================================
+% 10 Area OMO
+%=================================
+
+#export:Data $ItemDropTable_ShyGuy
+{
+    .Item:PointSwap     0`s  30`s
+    .Item:SuperShroom   0`s  20`s
+    .Item:MapleSyrup    0`s  20`s
+    .Item:ThunderBolt   0`s  20`s
+    .Item:FrightJar     0`s  20`s
+	.Item:LimeCandy     0`s   2s
+	.Item:LemonCandy    0`s   2s
+	.Item:HoneyCandy    0`s   2s
+	.Item:JellyPop      0`s   2s
+	.Item:CocoPop       0`s   2s
+	.Item:FirePop       0`s   2s
+	.Item:ElectroPop    0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_SkyGuy
+{
+    .Item:EarthQuake    0`s 10`s
+	.Item:ThunderBolt   0`s  4s
+    .Item:TarukajaGem   0`s  2s
+    .Item:TarundaGem    0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_MediGuy
+{
+    .Item:StopWatch     0`s   40`s
+    .Item:ShootingStar  0`s   20`s
+    .Item:Mystery       0`s   20`s
+    .Item:SuperShroom   0`s   10`s
+    .Item:MapleSyrup    0`s   10`s
+	.Item:Egg           0`s   4s
+	.Item:OmeletteMeal  0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_GrooveGuy
+{
+    .Item:FireFlower    0`s 20`s
+    .Item:RuinPowder    0`s 20`s
+    .Item:ShroomCake    0`s 10`s
+	.Item:Spaghetti     0`s 10`s
+    .Item:TarundaGem    0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_SpyGuy
+{
+    .Item:ShroomCake    0`s 10`s
+    .Item:EarthQuake    0`s 10`s
+    .Item:TarukajaGem   0`s   2s
+    .Item:RepelGel      0`s   2s
+	.Item:EggMissile    0`s   2s
+	.Item:CoconutBomb   0`s   2s
+	.Item:PleaseComeBack 0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_PyroGuy
+{
+    .Item:FireFlower    0`s 30`s
+    .Item:ShroomCake    0`s 20`s
+    .Item:HotSauce      0`s 20`s
+	.Item:BluePepper    0`s   1s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_GreedyBandit
+{
+    .Item:ShroomCake    0`s  20`s
+    .Item:FrightJar     0`s  20`s
+    .Item:GoldBar       0`s   4s
+    FFFFFFFF
+}
+
+%=================================
+% 12 Area OMO3
+%=================================
+
+#export:Data $ItemDropTable_HammerBros
+{
+    .Item:DustyHammer   0`s  30`s
+    .Item:ThunderRage   0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:TarundaGem    0`s  10`s
+    .Item:TarukajaGem   0`s  10`s
+	.Item:YummyMeal     0`s  10`s
+	.Item:BluePepper    0`s   1s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Koopatrol
+{
+	.Item:BowerJuice    0`s  30`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:RakukajaGem   0`s  10`s
+	.Item:YummyMeal     0`s  10`s
+    .Item:RepelGel      0`s   4s
+    FFFFFFFF
+}
+
+%=================================
+% 14 Area JAN
+%=================================
+
+#export:Data $ItemDropTable_SpearGuy
+{
+	.Item:KeelMango     0`s  40`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:FireFlower    0`s  10`s
+    .Item:StopWatch     0`s  10`s
+    .Item:DizzyDial     0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_JungleFuzzy
+{
+    .Item:InsecticideHerb    0`s  30`s
+    .Item:SleepySheep   0`s 30`s
+	.Item:HPSucker      0`s  20`s
+    .Item:ShroomCake    0`s  10`s
+    .Item:RuinPowder    0`s  10`s
+	.Item:SpecialShake  0`s   4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_SpikeTop
+{
+    .Item:ShroomCake    0`s 20`s
+    .Item:EarthQuake    0`s 10`s
+    .Item:TarukajaGem   0`s  2s
+    .Item:RepelGel      0`s  2s
+	.Item:BigCookie     0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_HurtPlant
+{
+	.Item:TastyTonic    0`s 20`s
+    .Item:MapleSyrup    0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+	.Item:StinkyHerb    0`s   10`s
+	.Item:YoshiCookie   0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_MBush
+{
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:StopWatch     0`s  10`s
+	.Item:StinkyHerb    0`s   10`s
+    .Item:RepelGel      0`s  2s
+	.Item:YoshiCookie   0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Chompy
+{
+    .Item:PowerSteak     0`s  40`s
+    .Item:SleepySheep    0`s  20`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_SpinelDino
+{
+    .Item:EarthQuake   0`s  20`s
+    .Item:DustyHammer  0`s  10`s
+	.Item:CathyLunch    0`s   4s
+	.Item:PowerSteak   0`s   4s
+    FFFFFFFF
+}
+
+%=================================
+% 15 Area JAN2
+%=================================
+
+#export:Data $ItemDropTable_PutridPiranha
+{
+    .Item:MapleSyrup    0`s  20`s
+	.Item:RuinPowder    0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+	.Item:YoshiCookie   0`s     2s
+    FFFFFFFF
+}
+
+%=================================
+% 16 Area KZN
+%=================================
+
+#export:Data $ItemDropTable_LavaBubble
+{
+    .Item:FireFlower    0`s  30`s
+    .Item:HPSucker      0`s  20`s
+	.Item:HotSauce      0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:TarukajaGem   0`s     2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_LazyBones
+{
+	.Item:CocoaBean      0`s   20`s
+    .Item:MapleSuper     0`s   10`s
+    .Item:TarukajaGem    0`s      4s
+	.Item:SpecialShake   0`s      4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_GraniteChomp
+{
+    .Item:Cake   		0`s   50`s
+    .Item:TarukajaGem   0`s   50`s
+    .Item:RakukajaGem   0`s   50`s
+    FFFFFFFF
+}
+
+%=================================
+% 18 Area FLO
+%=================================
+
+#export:Data $ItemDropTable_Lakitu
+{
+    .Item:ThunderRage   0`s  20`s
+    .Item:VoltShroom    0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:DizzyDial     0`s  10`s
+	.Item:DekajaGem     0`s     4s
+	.Item:StinkyHerb    0`s     4s
+	.Item:HustleDrink    0`s   1s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Spiny
+{
+    .Item:ShroomCake    0`s 20`s
+    .Item:EarthQuake    0`s 10`s
+    .Item:TarukajaGem    4s   4s
+    .Item:TarundaGem     4s   4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_RuffPuff
+{
+    .Item:ThunderRage   0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:RuinPowder    0`s  10`s
+	.Item:ElectroPop    0`s  10`s
+    .Item:RakundaGem    0`s     4s
+	.Item:DekajaGem     0`s     4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_CrazeeDayzee
+{
+	.Item:DayzeeTear    0`s  60`s
+    .Item:SuperShroom   0`s  20`s
+    .Item:MapleSyrup    0`s  20`s
+    .Item:ThunderBolt   0`s  20`s
+    .Item:PointSwap     0`s   30`s
+    .Item:FrightJar     0`s   20`s
+	.Item:PeachSyrup    0`s     4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Bzzolt
+{
+    .Item:MapleSyrup    0`s 30`s
+	.Item:HoneySyrup    0`s 20`s
+    .Item:ThunderRage   0`s 20`s
+    .Item:InsecticideHerb   0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:RuinPowder    0`s  10`s
+	.Item:VoltShroom    0`s  10`s
+	.Item:ElectroPop    0`s  10`s
+    .Item:RakundaGem    0`s  2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_AmazyDayzee
+{
+    .Item:UltraShroom   0`s 60`s
+    .Item:JamminJelly   0`s 60`s
+    .Item:PointSwap     0`s 30`s
+    .Item:ShootingStar  0`s 20`s
+    .Item:Mystery       0`s  20`s
+	.Item:HustleDrink    0`s   1s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_BlackOpGuy
+{
+    .Item:EggMissile     0`s  10`s
+    .Item:CoconutBomb    0`s  10`s
+    .Item:Mystery        0`s  10`s
+    .Item:KookyCookie    0`s  10`s
+	.Item:SpecialShake   0`s     4s
+	.Item:BoiledEgg      0`s     4s
+	.Item:RepelGel       0`s   1s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_PythonMole
+{
+    .Item:RuinPowder    0`s  20`s
+    .Item:Pebble        0`s  10`s
+	.Item:RoastBump     0`s  2s
+	.Item:SpaceFood     0`s  2s
+    FFFFFFFF
+}
+
+%=================================
+% 1A Area TIK
+%=================================
+
+#export:Data $ItemDropTable_DarkKoopa
+{
+	.Item:KoopaTea      0`s  30`s
+    .Item:SnowmanDoll   0`s  20`s
+	.Item:POWBlock      0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+	.Item:PleaseComeBack 0`s  10`s
+	.Item:KoopaBun       0`s  10`s
+    .Item:RakukajaGem   0`s 2`s
+    .Item:RakundaGem    0`s 2`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_DarkParatroopa
+{
+    .Item:FireFlower    0`s 40`s
+    .Item:KoopaTea      0`s  30`s
+    .Item:SuperShroom   0`s 20`s
+    .Item:DizzyDial     0`s 20`s
+	.Item:POWBlock      0`s  20`s
+    .Item:MapleSyrup    0`s  10`s
+	.Item:PleaseComeBack 0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Gloomba
+{
+    .Item:FireFlower    0`s 40`s
+    .Item:SuperShroom   0`s 20`s
+    .Item:VoltShroom    0`s 20`s
+    .Item:MapleSyrup    0`s 10`s
+    .Item:RuinPowder    0`s 10`s
+	.Item:NuttyCake     0`s 10`s
+	.Item:FrozenFries   0`s 10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_SpikedGloomba
+{
+    .Item:FireFlower    0`s 40`s
+    .Item:SuperShroom   0`s 20`s
+    .Item:HPSucker   	0`s 20`s
+    .Item:MapleSyrup    0`s 10`s
+    .Item:DizzyDial     0`s 10`s
+	.Item:NuttyCake     0`s 10`s
+	.Item:StrangeCake   0`s 10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Paragloomba
+{
+    .Item:FireFlower    0`s 40`s
+    .Item:SuperShroom   0`s 20`s
+    .Item:RuinPowder    0`s 20`s
+    .Item:MapleSyrup    0`s  10`s
+	.Item:NuttyCake     0`s  10`s
+	.Item:StrangeCake   0`s  10`s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_BlackBeetle
+{
+    .Item:EarthQuake    0`s  10`s
+	.Item:BoiledEgg     0`s  10`s
+	.Item:KoopaBun      0`s  4s
+	.Item:CocoaBean     0`s  4s
+    .Item:RakukajaGem   0`s  2s
+    .Item:RakundaGem    0`s  2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_MidnightSpiny
+{
+    .Item:ShroomCake    0`s  20`s
+    .Item:EarthQuake    0`s  10`s
+    .Item:RakukajaGem   0`s  4s
+    .Item:RakundaGem    0`s   4s
+	.Item:DekajaGem     0`s   4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Spinia
+{
+	.Item:FrightJar     0`s  20`s
+    .Item:SuperShroom   0`s 10`s
+    .Item:MapleSyrup    0`s  10`s
+	.Item:ThunderBolt   0`s  10`s
+	.Item:SleepySheep   0`s  10`s
+	.Item:GoldBar       0`s   2s
+	.Item:DekajaGem     0`s   2s
+    FFFFFFFF
+}
+
+%=================================
+% 1C Area TIK3
+%=================================
+
+#export:Data $ItemDropTable_Swoopula
+{
+    .Item:DizzyDial     0`s  30`s
+	.Item:HPSucker      0`s  30`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:SnowmanDoll   0`s  10`s
+    .Item:RepelGel      0`s  10`s
+	.Item:DustyHammer   0`s   4s
+	.Item:KeelMango     0`s   4s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_Boo
+{
+    .Item:Apple  		 0`s  20`s
+	.Item:StrangeCake    0`s  10`s
+	.Item:DizzyDial 	 0`s  10`s
+	.Item:BooLeaf   	 0`s  10`s
+	.Item:RepelGel   	 0`s  10`s
+	.Item:ApplePie   	 0`s  10`s
+	.Item:HPSucker   	 0`s  10`s
+	.Item:TarundaGem 	 0`s     4s
+    FFFFFFFF
+}
+
+%=================================
+% 1D Area SAM
+%=================================
+
+#export:Data $ItemDropTable_Duplighost
+{
+    .Item:SnowmanDoll    0`s  20`s
+    .Item:SuperShroom    0`s  10`s
+    .Item:MapleSyrup     0`s  10`s
+    .Item:RuinPowder     0`s  10`s
+	.Item:RepelGel       0`s  10`s
+	.Item:CoconutBomb    0`s  10`s
+	.Item:EggMissile     0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Gulpit
+{
+	.Item:Pebble        0`s  40`s
+    .Item:EarthQuake    0`s  30`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:TarundaGem    0`s  10`s
+    .Item:StopWatch     0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_FrostPiranha
+{
+	.Item:SnowmanDoll   0`s  30`s
+    .Item:MapleSyrup    0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+	.Item:FruitParfait  0`s  10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_FreezeeDayzee
+{
+    .Item:DayzeeTear     0`s  60`s
+    .Item:MapleSyrup     0`s  20`s
+    .Item:SnowmanDoll    0`s  10`s
+    .Item:PointSwap      0`s  10`s
+	.Item:FrightJar      0`s  10`s
+	.Item:SpecialShake   0`s  10`s
+	.Item:StarCake       0`s     2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_WhiteClubba
+{
+    .Item:ThunderRage    0`s 40`s
+    .Item:SuperShroom    0`s 20`s
+    .Item:MapleSyrup     0`s 20`s
+    .Item:StopWatch      0`s 20`s
+    .Item:RepelGel       0`s 20`s
+	.Item:FirePop        0`s   2s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_IceBubble
+{
+	.Item:SnowmanDoll     0`s  10`s
+	.Item:HealthyJuice    0`s  10`s
+	.Item:FireFlower      0`s  10`s
+	.Item:Mistake         0`s  10`s
+	.Item:BluePepper         0`s  1s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_Blizzar
+{
+	.Item:SnowmanDoll     0`s   30`s
+	.Item:TarukajaGem     0`s   20`s
+	.Item:BigCookie       0`s   10`s
+    FFFFFFFF
+}
+
+
+
+#export:Data $ItemDropTable_Prismasaurus
+{
+	.Item:PowerSteak     0`s  20`s
+	.Item:PotatoSalad    0`s  20`s
+	.Item:HoneySuper     0`s  10`s
+	.Item:MapleShroom    0`s  10`s
+	.Item:Mystery        0`s  10`s
+	.Item:StarCake       2s     2s
+    FFFFFFFF
+}
+
+
+
+#export:Data $ItemDropTable_TourmalineWalker
+{
+	.Item:PotatoSalad   0`s  20`s
+	.Item:PeachSyrup    0`s  10`s
+	.Item:FreshJuice    0`s  10`s
+	.Item:RuinPowder    0`s  10`s
+	.Item:CoconutBomb   0`s  10`s
+	.Item:EggMissile    0`s  10`s
+	.Item:LifeShroom    0`s  10`s
+	.Item:DeluxeFeast   0`s     2s
+    FFFFFFFF
+}
+
+
+
+
+
+
+%=================================
+% 3C Yokubou No Naizou
+%=================================
+
+#export:Data $ItemDropTable_BombBoo
+{
+	.Item:StrangeCake   0`s  10`s
+	.Item:ThunderRage   0`s  10`s
+	.Item:TarukajaGem   0`s  10`s
+	.Item:BooLeaf       0`s  10`s
+	.Item:RepelGel      0`s  10`s
+	.Item:ApplePie      0`s  10`s
+	.Item:HPSucker      0`s  10`s
+	.Item:CoconutBomb   0`s  10`s
+	.Item:EggMissile    0`s  10`s
+	.Item:RakukajaGem   0`s     4s
+	.Item:DekajaGem     0`s     4s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_GraveRobber
+{
+	.Item:ChocoCake     0`s  20`s
+	.Item:UltraShroom   0`s  10`s
+	.Item:SnowmanDoll   0`s  10`s
+	.Item:StopWatch     0`s  10`s
+	.Item:Mystery       0`s  10`s
+	.Item:GoldBar       0`s  10`s
+	.Item:GoldBarX3     0`s     4s
+	.Item:RoastBump     0`s     2s
+    FFFFFFFF
+}
+
+
+
+#export:Data $ItemDropTable_BochiPokey
+{
+	.Item:EarthQuake    0`s  20`s
+	.Item:JamminJelly   0`s  10`s
+	.Item:DekajaGem     0`s  10`s
+	.Item:RakukajaGem   0`s  10`s
+	.Item:PeachSyrup    0`s     4s
+	.Item:PointSwap     0`s     2s
+	.Item:DriedBouquet  0`s     2s
+    FFFFFFFF
+}
+
+
+
+#export:Data $ItemDropTable_AiOnibi
+{
+	.Item:HotSauce    0`s  10`s
+	.Item:HotDog      0`s  10`s
+	.Item:HottestDog  0`s     4s
+	.Item:VoltShroom  0`s  10`s
+	.Item:LoveEgg 	  0`s     4s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_Scuttlebug
+{
+	.Item:InsecticideHerb  0`s  30`s
+	.Item:Pebble           0`s  20`s
+	.Item:HoneyUltra       0`s  10`s
+	.Item:JellyShroom1     0`s  10`s
+	.Item:SleepySheep      0`s  10`s
+	.Item:ThunderBolt      0`s     4s
+	.Item:DriedBouquet     0`s     2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_KaosuBristle
+{
+	.Item:SuperShroom  0`s  20`s
+	.Item:MapleSyrup   0`s  20`s
+	.Item:StopWatch    0`s  10`s
+	.Item:DustyHammer  0`s  10`s
+	.Item:Lemon        0`s     4s
+	.Item:Lime         0`s     4s
+	.Item:HustleDrink  0`s  1s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_NovaBones
+{
+    .Item:DizzyDial     0`s  40`s
+    .Item:PointSwap     0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:SnowmanDoll   0`s  10`s
+	.Item:HotDog        0`s  10`s
+	.Item:ThunderBolt   0`s  10`s
+    FFFFFFFF
+}
+
+
+%=================================
+% 22 Area KPA
+%=================================
+
+
+#export:Data $ItemDropTable_AtomicBomb
+{
+	.Item:UltraShroom  0`s  20`s
+	.Item:JamminJelly  0`s  20`s
+	.Item:FireFlower   0`s  10`s
+	.Item:StopWatch    0`s  10`s
+	.Item:DizzyDial    0`s  10`s
+	.Item:RakukajaGem  0`s  10`s
+	.Item:FirePop      0`s     4s
+	.Item:ElectroPop   0`s     4s
+	.Item:DeluxeFeast  0`s     2s
+    FFFFFFFF
+}
+
+
+#export:Data $ItemDropTable_BonyBeetle
+{
+    .Item:LifeShroom    0`s 20`s
+    .Item:MapleSyrup    0`s 20`s
+    .Item:ThunderRage   0`s 20`s
+    .Item:StopWatch     0`s 20`s
+	.Item:RakundaGem    0`s 10`s
+    .Item:RepelGel      0`s 10`s
+    FFFFFFFF
+}
+
+#export:Data $ItemDropTable_DryBones
+{
+    .Item:DizzyDial     0`s  40`s
+    .Item:PointSwap     0`s  20`s
+    .Item:SuperShroom   0`s  10`s
+    .Item:MapleSyrup    0`s  10`s
+    .Item:SnowmanDoll   0`s  10`s
+	.Item:HotDog        0`s  10`s
+    FFFFFFFF
+}
+
+%=================================
+% 25 Area KPA4
+%=================================
+
+#export:Data $ItemDropTable_BombshellBlaster
+{
+	.Item:GoldBar      0`s  20`s
+    .Item:SuperShroom  0`s  10`s
+    .Item:MapleSyrup   0`s  10`s
+	.Item:GoldBarX3    0`s     4s
+    FFFFFFFF
+}
+
+
