@@ -21,26 +21,37 @@ Anyways you can click the release page for the most recent version.
 
 
 All of my testing was done in Retroarch with Mupen64Plus-Next and GLideN64 plugin.
+Parallel Launcher is also really good too though, so use that if you don't know how to set up Retroarch
 =
 
 Here are my settings:
 
 CPU Core: Dynarec
+
 RSP Plugin: HLE
+
 Framerate: Fullspeed (for no in-game slowdown)
-Resolution: 1080p
+
 LOD Emulation: ON
+
 Framebuffer Emulation: On
+
 Copy Auxiliary Buffers To RDRAM: ON
+
 Don't filter background textures: ON
+
 Use High-Res Full Alpha Channel: ON
 
-You may use Parallel core if you wish, but crashes can happen, so be mindful if you do decide to use it. Rosalie's Mupen GUI and Bizhawk have been tested with mostly success. Please don't use Project 64. It doesn't work with Paper Mario hacks.
+====================================================================
+
+Rosalie's Mupen GUI has been tested with mostly success and Bizhawk breaks during battles as of 1.1.3. Please don't use Project 64. It doesn't work with Paper Mario hacks.
+
+If you're using RMG, go to Settings > Game > Core and set Overclocking Factor to 20 to eliminate all slowdown in the game.
 
 
 
 
-Also if you want to watch my friends play this game, we have some series on my channel
+You can watch my friends playtest this game. We have some series on my channel
 =
 
 harder_dk: https://www.youtube.com/playlist?list=PLqMbi64zLouM7gIkNUAqC9REhGqzq42jG
@@ -49,9 +60,6 @@ Luke Yorke: https://www.youtube.com/playlist?list=PLqMbi64zLouP69Y24bqjV6C2io_lo
 
 Sousuke: https://www.youtube.com/playlist?list=PLqMbi64zLouOcCxGxobu3qddhqOOxOIOE
 
-GreenBean501: https://www.youtube.com/playlist?list=PLqMbi64zLouM5Y5_DVcaSH-coN_Vd8020
-
-
-
-
 Listen to the soundtrack here: https://www.youtube.com/playlist?list=PLuUrVHOy3UjmafCVhM0kh8prgicOW7J7W
+
+Check out the Ultimate DBE Guide: https://docs.google.com/spreadsheets/d/1jC63_PSKgMbsIeybr0nsbq_wrwjk7SBsmVRxWsEYRmM/edit?usp=sharing
