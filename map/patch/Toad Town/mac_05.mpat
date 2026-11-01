@@ -354,8 +354,37 @@
 }
 
 
+%Let's give Simon the problem bubble, cuz a lot of players seem to miss this part
+@	$Script_Init_8024E1D0
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024D70C )
+   14:  Set   *AreaFlag[03D]  .False
+   24:  Set   *AreaFlag[03E]  .False
+   34:  If  *GF_MAC05_Met_Simon  ==  .True
+   44:  	Set   *AreaFlag[03E]  .True
+   54:  EndIf
+		If  *GB_StoryProgress  >=  .Story:Ch2_BeganPeachMission
+			If  *GF_MAC05_SimonGotMelody == .False
+				Exec  $SimonProblem
+			EndIf
+		EndIf
+   5C:  Return
+   64:  End
+}
 
 
+#new:Script  $SimonProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:ArtistToad_10 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *GF_MAC05_SimonGotMelody == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
 
 @	$Script_Interact_8024D70C
 {
@@ -563,7 +592,23 @@
 		Else
 			Call  SpeakToPlayer ( .Npc:Self 00830D04 00830D01 00000000 000700C8 )
 		EndIf
-		Call  ShowChoice    ( 001E000D ) % Yes No
+		Call  RandInt       ( 6` *VarA )	%Randomized choices
+		Switch  *VarA
+			Case == 0`
+				Call  ShowChoice    ( 001E000C ) % Yes No
+			Case == 1`
+				Call  ShowChoice    ( 001E000D ) % Yes No
+			Case == 2`
+				Call  ShowChoice    ( 001E0010 ) % Yes No
+			Case == 3`
+				Call  ShowChoice    ( 001E0011 ) % Yes No
+			Case == 4`
+				Call  ShowChoice    ( 001E0013 ) % Yes No
+			Case == 5`
+				Call  ShowChoice    ( 001E0014 ) % Yes No
+			Case == 6`
+				Call  ShowChoice    ( 001E002B ) % Yes No
+		EndSwitch
 		If  *Var0 == 1`
 			Call  CloseMessage ( )
 			Call  SpeakToPlayer ( .Npc:Self 00830D04 00830D01 00000000 000700C6 )
@@ -624,7 +669,10 @@
 		Set  *MapFlag[05] .True
 		Call  StopSound ( 80000058 )
 		Call  PlaySoundWithVolume   ( 278 105` )
-		Call  PushSong      ( .Song:DeepJungle 1` )  %Story time music
+		If   *MapFlag[07] == .False
+			Set  *MapFlag[07] .True
+			Call  PushSong      ( .Song:DeepJungle 1` )  %Story time music
+		EndIf
 		Call  AdjustCam     ( .Cam:Default *Fixed[4.0] *Fixed[0.0] *Fixed[270.0] *Fixed[18.0] *Fixed[-9.0] )
 		Thread
 			SetF	*Var0 *Fixed[15.0] % speed
@@ -676,6 +724,7 @@
 			Call  CloseMessage ( )
 			Call  ResetCam  ( .Cam:Default *Fixed[3.0] )
 			Set  *MapFlag[05] .False
+			Set  *MapFlag[07] .False
 			Call  PopSong   ( )
 			Call  StopSound     ( 278 )
 			Call  PlaySound ( 80000058 )

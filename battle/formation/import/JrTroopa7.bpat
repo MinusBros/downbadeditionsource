@@ -46,9 +46,8 @@
 }
 
 
-%Immune to all except Goombarius's Gun.
-%Well you could also use Bombette, but
-%he'll notice if you have her out.
+%Goombarius will be the only partner available for this fight.
+%If anyone else is out, Mr. Trooper shoots Mario for 99 damage and kills him
 
 #new:DefenseTable $DefenseTable_JrTroopa7 {
 .Element:Normal 99`
@@ -59,9 +58,11 @@
 .Element:Magic  3`
 .Element:Cosmic 3`
 .Element:Blast  3`
+.Element:Jump   1`
 .Element:End
 }
 
+%Scrapped
 %This defense table is only set if
 %Goombarius happens to not be at
 %Ultra Rank.
@@ -211,13 +212,6 @@
   490:  	Add   *Var1  0000003C 
   4A0:  	Add   *Var2  0000000C 
   4B0:  	Call  PlayEffect    ( ~FX:RainbowShimmer *Var0 *Var1 *Var2 00000069 00000078 00000025 0000003C 00000000 00000000 00000000 00000000 00000000 )
-   1C:  Call  GetActorLevel     ( .Actor:Partner *Var0 )
-   30:  Switch  *Var0
-   3C:  	Case  ==  00000000
-   48:  		Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_Oops )
-   68:  	Case  ==  00000001
-   74:  		Call  SetDefenseTable   ( .Actor:Self 00000001 $DefenseTable_Oops )
-   C0:  EndSwitch
 		Wait  60`
    A0:  			Call  UseBattleCamPreset    ( 0000000E )
    B0:  			Call  BattleCamTargetActor  ( .Actor:Self )
@@ -231,9 +225,6 @@
   174:  			Call  UseIdleAnimation  ( .Actor:Partner .False )
   188:  			Call  SetAnimation      ( .Actor:Partner 00000001 000D0004 )
   1A0:  			Call  ActorSpeak        ( 001300C8 .Actor:Partner 00000001 0009000F 000D0001 ) % I have a gun
-					Call $Function_GetPlayerMaxHP       ( *Var8 )
-					Div  *Var8 6` 
-					Sub  *Var8 1`
 					Call  UseIdleAnimation  ( .Actor:Partner .True )
 					Call  SetBattleFlagBits2    ( 00000002 .True )
 		Return
@@ -257,9 +248,12 @@
 		Sub   *Var0  0000001E
   7A2:  Call  PlayEffect    ( ~FX:Explosion1 *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
 		Wait  6`
+		Call  $Function_GetPlayerMaxHP ( *VarE )
+		Div   *VarE 8`
 		Call  PlaySoundAtActor  ( .Actor:Self 00002010 )
 		Call  SetGoalToTarget   ( .Actor:Self )
   488:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:Blast|NoContact|Unblockable 00000000 00000000 *VarE 00000070 )
+		Call  $RecoverFP    ( 9` )
   850:  Wait  20`
   A54:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   A68:  Call  UseIdleAnimation  ( .Actor:Self .True )

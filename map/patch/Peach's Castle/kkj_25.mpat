@@ -17,18 +17,13 @@
 #define .NpcID:Twink_18             12
 #define .NpcID:StarRod_19           13
 
+#define .NpcID:KentCKoopa_07        17
+#define .NpcID:KentCKoopa_08        18
+
 #import SwapToGoombarius.mpat
 
-@	$Script_80245AF0
-{
-  [264]  Wait  5`
-  [314]  Wait  5`
-}
 
-@	$Script_80245784
-{
-  [1DC]  Call  SetNpcJumpscale   ( .NpcID:WorldBowser_00 *Fixed[2.0] )
-}
+
 
 @	$Script_Main
 {
@@ -85,12 +80,67 @@
   2C4:  End
 }
 
+
+
+@	$Script_EnterDoubleDoor_80241060
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		If  *GF_KKJ25_Visited  ==  .False
+   38:  			Call  DisablePlayerInput    ( .True )
+   48:  			Call  SetPlayerPos  (  -645`  0`  0` )
+   60:  			Call  GetCurrentPartner     ( *Var0 )
+   70:  			If  *Var0  ==  00000000
+   80:  				Call  DisablePartnerAI  ( 00000000 )
+   90:  				Call  SetNpcPos ( .Npc:Partner  -660`  0`  0` )
+   AC:  				Wait  1`
+   B8:  				Call  EnablePartnerAI ( )
+   C4:  			EndIf
+   CC:  			Wait  150`
+   D8:  			Call  PlaySoundAtCollider   ( ~Collider:ttw .Sound:LargeDoorOpen 00000000 )
+   F0:  			Call  MakeLerp  ( 00000000 00000050 0000000A .Easing:Linear )
+  10C:  			Loop
+  118:  				Call  UpdateLerp ( )
+  124:  				Call  RotateModel   ( ~Model:o84 *Var0 00000000 FFFFFFFF 00000000 )
+  144:  				Call  RotateModel   ( ~Model:o85 *Var0 00000000 00000001 00000000 )
+  164:  				Wait  1`
+  170:  				If  *Var1  ==  00000000
+  180:  					BreakLoop
+  188:  				EndIf
+  190:  			EndLoop
+  198:  			Call  SetPlayerPos      (  -605`  0`  0` )
+  1B0:  			Call  DisablePlayerInput    ( .False )
+  1C0:  			Call  SetZoneEnabled    ( ~Zone:o15 .False )
+  1D4:  			Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+  1E8:  			Set   *GF_KKJ25_Visited  .True
+  1F8:  		Else
+  200:  			Call  SetZoneEnabled    ( ~Zone:o15 .False )
+  214:  			Call  ResetCam  ( .Cam:Default *Fixed[90.0] )
+  228:  		EndIf
+  230:  		Set   *Var0  00000000
+  240:  		Set   *Var2  ~Model:o84
+  250:  		Set   *Var3  ~Model:o85
+  260:  		ExecWait  EnterDoubleDoor
+  26C:  		Exec  $Script_80241034
+				If  *KKJ25_Defeated_KentC == .True
+					Exec  $Script_80245AF0	%Bower boss trigger
+				EndIf
+  284:  	Case  ==  00000001
+  290:  		Exec  $Script_80248998
+  29C:  	Case  ==  00000002
+  2A8:  		Exec  $Script_8024B254
+  2B4:  EndSwitch
+  2BC:  Return
+  2C4:  End
+}
+
 #new:Script $Script_CheckPos
 {
 	Label 1
 	Wait  1`
-	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
-	If *Var1  < -150`
+	Call  GetPlayerPos  ( *Var7 *Var8 *Var9 )
+	If *Var8  < -150`
 		Call  DisablePlayerInput    ( .True )
 		Call  DisablePartnerAI      ( 00000000 )
 		Call  SetPlayerAnimation    ( 00080013 )
@@ -100,6 +150,7 @@
 		Wait  100`
 		Return
 	EndIf
+	Wait  1`
 	Goto  1
 	Return
 	End
@@ -111,9 +162,87 @@
 	00800027 FFFFFFFF
 }
 
+
+@	$Script_80245AF0
+{
+    0:  Label  0
+    C:  Call  $Function_80240080    ( *Var0 )
+   1C:  If  *Var0  !=  0000000B
+   2C:  	Wait  1`
+   38:  	Goto  0
+   44:  EndIf
+   4C:  Thread
+   54:  	Wait  1`
+   60:  	Call  DisablePlayerInput    ( .True )
+   70:  	Call  PlayerFaceNpc ( .NpcID:WorldBowser_00 .False )
+   84:  	Call  GetCurrentPartner     ( *Var0 )
+   94:  	Call  GetCurrentPartnerID   ( *Var1 )
+   A4:  	If  *Var1  ==  .Partner:Bombette % 3
+   B4:  		If  *Var0  !=  00000000
+   C4:  			Goto  1
+   D0:  		EndIf
+   D8:  	EndIf
+   E0:  	If  *Var0  !=  00000000
+   F0:  		Call  GetCurrentPartnerID   ( *Var1 )
+  100:  		If  *Var1  !=  .Partner:Lakilester % 8
+  110:  			Call  WaitForPlayerTouchingFloor ( )
+  11C:  		EndIf
+  124:  		Call  802D2B6C ( )
+  130:  		Wait  5`
+  13C:  	EndIf
+  144:  	Call  GetNpcPos ( .Npc:Partner *Var0 *Var1 *Var2 )
+  160:  	If  *Var0  <  00000014
+  170:  		Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+  188:  		If  *Var5  <  00000000
+  198:  			Add   *Var5  00000019
+  1A8:  		Else
+  1B0:  			Add   *Var5  FFFFFFE7
+  1C0:  		EndIf
+  1C8:  		Add   *Var3  FFFFFFF6
+  1D8:  		Call  DisablePartnerAI  ( 00000000 )
+  1E8:  		Call  SetNpcJumpscale   ( .Npc:Partner *Fixed[0.8] )
+  1FC:  		Call  NpcJump0  ( .Npc:Partner *Var3 *Var1 *Var5  12` )
+  21C:  		Call  EnablePartnerAI ( )
+  228:  	EndIf
+  230:  	Label  1
+  23C:  EndThread
+		Exec  $SkipToPhase2
+  244:  Call  SpeakToPlayer ( .NpcID:WorldBowser_00 00800006 00800002 00000000 0013007C ) % Gwaaa ha ha ha ha!! Welcome to your nightmare!
+  264:  Wait  5`
+  270:  Call  UseSettingsFrom   ( .Cam:Default  350`  0`  0` )
+  28C:  Call  SetPanTarget  ( .Cam:Default  350`  0`  0` )
+  2A8:  Call  SetCamDistance    ( .Cam:Default  450` )
+  2BC:  Call  SetCamPitch   ( .Cam:Default *Fixed[17.0] *Fixed[-7.0] )
+  2D4:  Call  SetCamSpeed   ( .Cam:Default *Fixed[8.0] )
+  2E8:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  300:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  314:  Wait  5`
+  320:  Call  SpeakToPlayer ( .NpcID:WorldBowser_00 00800006 00800002 00000000 0013007D ) % You should thank me, Mario. Since you've been my r ...
+  340:  ExecWait  $Script_80245784
+  34C:  Call  UseSettingsFrom   ( .Cam:Default  -150`  0`  0` )
+  368:  Call  SetPanTarget  ( .Cam:Default  -150`  0`  100` )
+  384:  Call  SetCamDistance    ( .Cam:Default  250` )
+  398:  Call  SetCamPitch   ( .Cam:Default *Fixed[26.0] *Fixed[-18.0] )
+  3B0:  Call  SetCamPosA    ( .Cam:Default  -480`  -480` )
+  3C8:  Call  SetCamPosB    ( .Cam:Default  0`  480` )
+  3E0:  Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+  3F4:  Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  40C:  Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  420:  Return
+  428:  End
+}
+
+%Speed this up a tiny bit
+@	$Script_80245784
+{
+    [8]  	Wait  15`
+   [A4]  	Wait  25`
+  [1DC]  Call  SetNpcJumpscale   ( .NpcID:WorldBowser_00 *Fixed[4.0] )
+  [1F0]  Call  NpcJump0  ( .NpcID:WorldBowser_00  300`  0`  0`  10` )
+}
+
 @	$Script_802463F4
 {
-		Kill  $Script_CheckPos
     0:  Set   *AreaFlag[01A]  .False
    10:  Wait  4`
    1C:  Call  UseSettingsFrom   ( .Cam:Default  -150`  0`  0` )
@@ -1222,7 +1351,287 @@
 }
 
 
+%Npcs before Phase 1 of the final battle
+@	$NpcGroupList_80242854
+{
+	00000001 $NpcGroup_80241EA4 23030000
+	00000001 $NpcGroup_80242094 00000000
+	00000002 $NpcGroup_80242284 26000000
+	00000001 $NpcGroup_80242664 00000000
+	00000002 $KentC 			05180006
+	00000000 00000000 00000000
+}
 
+
+#new:NpcGroup $KentC
+{
+	.NpcID:KentCKoopa_07 $NpcSettings_80242A14 ~Vec3f:NPC_KentCKoopa_07 % -164 0 -37
+	00B44D04 $Script_Init_80245794 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_KentCKoopa_07
+	~AnimationTable:NPC_KentCKoopa_07 % .Sprite:KentCKoopa
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $KentC[1F0]
+	.NpcID:KentCKoopa_08 $NpcSettings_80242A14 ~Vec3f:NPC_KentCKoopa_08 % -164 0 -37
+	00F00D05 $Script_Init_80245808 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_KentCKoopa_08
+	~AnimationTable:NPC_KentCKoopa_08 % .Sprite:KentCKoopa
+	00000000 00000000 00000000 001A0082 % This is Kent C. Koopa. He's... pretty large and gr ...
+}
+
+#new:NpcSettings $NpcSettings_80242A14
+{
+	00000000 00440050 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 00630000
+}
+
+#new:Script $Script_Init_80245794
+{
+		If  *KKJ25_Defeated_KentC == .True
+			Call  RemoveNpc ( .Npc:Self )
+		EndIf
+		Call  BindNpcIdle       ( .Npc:Self $Script_Idle_802440BC )
+   14:  Call  BindNpcDefeat     ( .Npc:Self $Script_Defeat_80244CE8 )
+   28:  Call  EnableNpcShadow   ( .Npc:Self .False )
+   3C:  Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+		Call  GetEntryID        ( *AreaByte[2] )
+   64:  Return
+   6C:  End
+}
+
+#new:Script $Script_Init_80245808
+{
+		If  *KKJ25_Defeated_KentC == .True
+			Call  RemoveNpc ( .Npc:Self )
+		EndIf
+    0:  Call  BindNpcDefeat     ( .Npc:Self $Script_Defeat_80244D14 )
+   14:  Call  SetNpcFlagBits    ( .Npc:Self 00000100 .True )
+   2C:  Call  GetEntryID        ( *Var3 )
+   3C:  If  *Var3  ==  ~Entry:Entry0
+   4C:  	Call  SetNpcYaw ( .Npc:Self  270` )
+   60:  Else
+   68:  	Call  SetNpcYaw ( .Npc:Self  90` )
+   7C:  EndIf
+   84:  Return
+   8C:  End
+}
+
+
+%Since there's only one direction to enter this room, we don't need the extra Kent C. stuff
+#new:Script $Script_Idle_802440BC
+{
+    0:  Label  1
+    C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  If  *AreaByte[2]  ==  00000000
+   34:  	If  *Var0  >=  FFFFFEFC
+   44:  		Goto  A
+   50:  	Else
+   58:  		Goto  2
+   64:  	EndIf
+   6C:  Else
+   74:  	If  *Var0  <=  FFFFFFC9
+   84:  		Goto  A
+   90:  	Else
+   98:  		Goto  2
+   A4:  	EndIf
+   AC:  EndIf
+   B4:  Label  2
+   C0:  Wait  1`
+   CC:  Goto  1
+   D8:  Label  A
+   E4:  Call  DisablePlayerInput    ( .True )
+   F4:  Call  802D2B6C ( )
+  11C:  Call  SpeakToPlayer ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 000C012C ) % Hey, you in the hat! Wait!
+  13C:  If  *AreaByte[2]  ==  00000000
+  14C:  	Set   *Var0  00000014
+  15C:  Else
+  164:  	Set   *Var0  FFFFFFEC
+  174:  EndIf
+  17C:  Call  AdjustCam     ( .Cam:Default *Fixed[5.0] *Var0 *Fixed[275.0] *Fixed[17.5] *Fixed[-12.0] )
+  1A0:  Call  SpeakToPlayer ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 00130110 ) % It's fine weather, isn't it? My name is Kent C. Ko ...
+  1C0:  Label  F
+  1CC:  Call  ShowCoinCounter   ( .True )
+  1DC:  Call  ShowChoice    ( 001E0045 ) % Pay Don't pay Fight
+  1EC:  If  *Var0  ==  00000000
+  1FC:  	Goto  1E
+  208:  EndIf
+  210:  If  *Var0  ==  00000001
+  220:  	Goto  32
+  22C:  EndIf
+  234:  If  *AreaByte[2]  ==  00000000
+  244:  	Set   *Var0  00000014
+  254:  Else
+  25C:  	Set   *Var0  FFFFFFEC
+  26C:  EndIf
+  274:  Call  ShowCoinCounter   ( .False )
+  284:  Call  ContinueSpeech    ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 00130113 ) % You want to fight? You're nuts! Look at me! I'll c ...
+  2A4:  Call  ShowCoinCounter   ( .True )
+  2B4:  Call  ShowChoice        ( 001E0045 ) % Pay Don't pay Fight
+  2C4:  If  *Var0  ==  00000000
+  2D4:  	Goto  1E
+  2E0:  EndIf
+  2E8:  If  *Var0  ==  00000001
+  2F8:  	Goto  32
+  304:  EndIf
+  30C:  Call  ShowCoinCounter   ( .False )
+  31C:  Label  14
+  328:  Call  ContinueSpeech    ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 00130114 ) % Well, I have no choice... I warned you, though. Th ...
+  348:  Call  StartBossBattle   ( .Song:RadioHotHits )
+  358:  If  *AreaByte[2]  ==  00000000
+  368:  	Set   *Var0  00000014
+  378:  Else
+  380:  	Set   *Var0  FFFFFFEC
+  390:  EndIf
+		 Call  SpeakToPlayer     ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 00130115 ) % Wow. You must be really strong. I mean, beating a  ...
+		Set  *MapFlag[0C]  .True
+		ExecWait  $KentCLeaves
+  4D8:  Goto  64
+  4E4:  Label  1E
+  4F0:  Call  $Function_80241F08 ( )
+  4FC:  If  *Var0  ==  00000001
+  50C:  	Goto  28
+  518:  EndIf
+  520:  Call  CloseMessage ( )
+  52C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  544:  If  *AreaByte[2]  ==  00000000
+  554:  	Set   *Var0  FFFFFF29
+  564:  Else
+  56C:  	Set   *Var0  FFFFFF9C
+  57C:  EndIf
+  584:  Call  SetNpcAnimation   ( .NpcID:KentCKoopa_08 00470003 )
+  598:  Call  NpcMoveTo ( .NpcID:KentCKoopa_08 *Var0 *Var2  20` )
+  5B4:  Call  SetNpcAnimation   ( .NpcID:KentCKoopa_08 00470001 )
+  5C8:  Call  $Function_80241F30 ( )
+  5D4:  Call  ShowCoinCounter   ( .False )
+  5E4:  Call  SpeakToPlayer     ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 00130111 ) % Good doing business with you! Oh, the jingle of co ...
+		ExecWait  $KentCLeaves
+  734:  Goto  64
+  740:  Label  28
+  74C:  Call  ShowCoinCounter       ( .False )
+  75C:  Call  ContinueSpeech        ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 000C012F ) % Oh, you don't have any coins? Then you can't go th ...
+  77C:  Call  ResetCam      ( .Cam:Default *Fixed[5.0] )
+  79C:  Wait  10`
+  7A8:  Call  DisablePlayerInput    ( .False )
+  7B8:  Label  29
+  7C4:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  7DC:  If  *AreaByte[2]  ==  00000000
+  7EC:  	If  *Var0  >=  FFFFFF01
+  7FC:  		Set   *Var3  FFFFFF00
+  80C:  		Goto  2B
+  818:  	Else
+  820:  		Goto  2A
+  82C:  	EndIf
+  834:  Else
+  83C:  	If  *Var0  <=  FFFFFFC4
+  84C:  		Set   *Var3  FFFFFFC5
+  85C:  		Goto  2B
+  868:  	Else
+  870:  		Goto  2A
+  87C:  	EndIf
+  884:  EndIf
+  88C:  Label  2A
+  898:  Wait  1`
+  8A4:  Goto  29
+  8B0:  Label  2B
+  8BC:  Call  DisablePlayerInput    ( .True )
+  8CC:  Call  802D2B6C ( )
+  8D8:  Call  SetPlayerPos      ( *Var3 *Var1 *Var2 )
+  8F0:  Call  SpeakToPlayer     ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 000C0130 ) % Bring some coins next time.
+  910:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  928:  Call  SetPlayerPos      ( *Var3 *Var1 *Var2 )
+  940:  Call  DisablePlayerInput    ( .False )
+  950:  Goto  29
+  95C:  Label  32
+  968:  Call  ShowCoinCounter   ( .False )
+  978:  Call  ContinueSpeech    ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 00130112 ) % Then you can't go through here. Tough luck. Take o ...
+  998:  Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+  9B8:  Wait  10`
+  9C4:  Call  DisablePlayerInput    ( .False )
+  9D4:  Label  33
+  9E0:  Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  9F8:  If  *AreaByte[2]  ==  00000000
+  A08:  	If  *Var0  >=  FFFFFF01
+  A18:  		Set   *Var3  FFFFFF00
+  A28:  		Goto  35
+  A34:  	Else
+  A3C:  		Goto  34
+  A48:  	EndIf
+  A50:  Else
+  A58:  	If  *Var0  <=  FFFFFFC4
+  A68:  		Set   *Var3  FFFFFFC5
+  A78:  		Goto  35
+  A84:  	Else
+  A8C:  		Goto  34
+  A98:  	EndIf
+  AA0:  EndIf
+  AA8:  Label  34
+  AB4:  Wait  1`
+  AC0:  Goto  33
+  ACC:  Label  35
+  AD8:  Call  DisablePlayerInput    ( .True )
+  AE8:  Call  802D2B6C ( )
+  B10:  Call  SetPlayerPos  ( *Var3 *Var1 *Var2 )
+  B28:  Call  SpeakToPlayer ( .NpcID:KentCKoopa_08 00470002 00470001 00000000 000C0132 ) % Oh, you changed your mind, and now you'll pay the  ...
+  B48:  If  *AreaByte[2]  ==  00000000
+  B58:  	Set   *Var0  00000014
+  B68:  Else
+  B70:  	Set   *Var0  FFFFFFEC
+  B80:  EndIf
+  B88:  Call  AdjustCam     ( .Cam:Default *Fixed[5.0] *Var0 *Fixed[275.0] *Fixed[17.5] *Fixed[-12.0] )
+  BAC:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  BC4:  Call  SetPlayerPos  ( *Var3 *Var1 *Var2 )
+  BDC:  Goto  F
+  BE8:  Label  64
+  C00:  Wait  10`
+  C0C:  Call  DisablePlayerInput    ( .False )
+		Return
+		End
+}
+
+#new:Script  $KentCLeaves
+{
+  3B8:  Call  SetNpcAnimation   ( .NpcID:KentCKoopa_08 00470001 )
+		Call  NpcFacePlayer     ( .NpcID:KentCKoopa_08 00000001 )
+		Call  GetNpcPos ( .NpcID:KentCKoopa_08 *Var0 *Var1 *Var2 )
+		Add  *Var1  36`
+		Sub  *Var0  1`
+		Call  NpcFlyTo  ( .NpcID:KentCKoopa_08 *Var0 *Var1 *Var2  35`  0` .Easing:Linear )
+		If   *MapFlag[0C]  == .False
+			Sub  *Var0  84`
+		Else
+			Sub  *Var0  132`
+		EndIf
+		Call  NpcFlyTo  ( .NpcID:KentCKoopa_08 *Var0 *Var1 *Var2  40`  0` .Easing:Linear )
+		Sub  *Var1  36`
+		Call  NpcFlyTo  ( .NpcID:KentCKoopa_08 *Var0 *Var1 *Var2  35`  0` .Easing:Linear )
+		Call  SetNpcAnimation   ( .NpcID:KentCKoopa_08 00470004 )
+		Call  NpcMoveTo ( .NpcID:KentCKoopa_08 -424` *Var2  20` )
+  48C:  Call  SetNpcPos ( .NpcID:KentCKoopa_08  0`  -1000`  0` )
+  4A8:  Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+  4C4:  Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
+		Set   *KKJ25_Defeated_KentC  .True
+		Exec  $Script_80245AF0	%Bower boss trigger
+		Return
+		End
+}
+
+
+#new:Script $Script_Defeat_80244CE8
+{
+    0:  Set   *KKJ25_Defeated_KentC  .True
+   10:  Call  ClearDefeatedEnemies ( )
+   1C:  Return
+   24:  End
+}
+
+#new:Script	$Script_Defeat_80244D14
+{
+    0:  Call  ClearDefeatedEnemies ( )
+    C:  Return
+   14:  End
+}
 
 @	$NpcGroupList_802455F4
 {
@@ -1232,4 +1641,52 @@
 	00000001 $NpcGroup_80245214 00000000
 	00000001 $NpcGroup_80245404 3B00FFFF %Screw it, just give the Star Rod the battle instead
 	00000000 00000000 00000000
+}
+
+
+#new:Function $Function_80241F30
+{
+    0:  LA        V1, 8010F290
+    8:  LHU       V0, C (V1)
+    C:  ADDIU     V0, V0, -999`
+   10:  SH        V0, C (V1)
+   14:  JR        RA
+   18:  LI        V0, 2
+}
+
+#new:Function $Function_80241F08
+{
+    0:  LAH       V0, 8010F29C
+    8:  SLTI      V0, V0, 999`
+    C:  BNE       V0, R0, .o1C
+   10:  LI        V0, 1
+   14:  BEQ       R0, R0, .o20
+   18:  SW        R0, 84 (A0)
+        .o1C
+   1C:  SW        V0, 84 (A0)
+        .o20
+   20:  JR        RA
+   24:  LI        V0, 2
+}
+
+
+#new:Script $SkipToPhase2
+{
+		Call  $SkipCutscene ( )
+		Set  *SkippedFinalBowerPhase1 .True
+   F8:  Call  GotoMap   ( "kkj_25" 1 ) % hos_02
+  10C:  Wait  100`
+		Return
+		End
+}
+
+
+#new:Function $SkipCutscene
+{
+    0:  LAW       V0, 8007419C
+    8:  LW        V0, 10 (V0)
+    C:  ANDI      V0, V0, 1000
+   10:  SLTU      V0, R0, V0
+   14:  JR        RA
+   18:  SLL       V0, V0, 1
 }

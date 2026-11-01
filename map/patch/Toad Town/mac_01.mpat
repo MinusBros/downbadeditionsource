@@ -36,10 +36,29 @@
 #import AutoSave.mpat
 
 
+@	$EntryList
+{
+	~Vec4f:Entry0 % -600.0    0.0    0.0   90.0
+	~Vec4f:Entry1 %  600.0    0.0    0.0  270.0
+	~Vec4f:Entry2 %    0.0    0.0 -570.0  180.0
+	~Vec4f:Entry3 %    0.0    0.0  600.0    0.0
+	~Vec4f:Entry4 % -400.0    0.0    0.0   90.0
+	~Vec4f:Entry5 %  264.0   27.0  350.0  180.0
+	~Vec4f:Entry6
+}
 
+@	$Header
+{
+	[EntryCount]  7
+}
 
 @	$Script_Main
 {
+		Call  GetEntryID    ( *Var0 )
+		If  *Var0 == ~Entry:Entry4
+			Set  *MapFlag[03] .True
+			Exec  $Script_80255FEC
+		EndIf
 		Set   *Byte_Settings_BGM  1`
 		Set   *Byte_Settings_BGM2 1`
 		Call $ClearFlagCarryOverworldMusicToBattle()
@@ -63,7 +82,6 @@
 			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 				Exec  $DarknessFollow
    88:  	Default
-				Exec  $CheckLip
 				Call  EnableGroup   ( ~Model:darkness .False )
    9C:  EndSwitch
    84:  Set   *AreaFlag[00E]  .False
@@ -106,8 +124,8 @@
   294:  Exec  $Script_MakeEntities
   2A0:  Exec  $Script_80247D18
   2AC:  Exec  $Script_80248818
-  2B8:  Exec  $Script_80248428
-  2C4:  Exec  $Script_80246770
+		Exec  $Script_80248428	
+		Exec  $Script_80246770	%Set up Music
   2D0:  Call  UseDoorSounds ( .DoorSounds:Large )
   2E0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
   2F0:  Exec  $Script_EnterWalk_80246C94
@@ -300,8 +318,10 @@
   1C0:  		Set   *Var0  00030089
   1D0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
   1DC:  		Set   *Var0  0003008A
-  1EC:  	Case  <  .Story:Epilogue % 60
+  1EC:  	Case  <  .Story:PostGame % 60
   1F8:  		Set   *Var0  0003008B
+  1EC:  	Case  <  .Story:Epilogue % 60
+  1F8:  		Set   *Var0  0003010E		%Post-game dialogue
   208:  	Case  >=  .Story:Epilogue % 60
   214:  		Set   *Var0  00010046
   224:  EndSwitch
@@ -511,9 +531,9 @@
   1E0:  	Case  <  .Story:Ch7_StarSpritDeparted % 59
   1EC:  		Set   *Var0  000300C9
 			Case  <  .Story:PostGame
-				Set   *Var0  000300CA
+				Set   *Var0  000300CA		
   1FC:  	Case  <  .Story:Epilogue % 60
-  208:  		Set   *Var0  000300CA
+  208:  		Set   *Var0  0003011C		%Post-game dialogue
   218:  	Case  >=  .Story:Epilogue % 60
   224:  		Set   *Var0  0001004C
   234:  EndSwitch
@@ -926,29 +946,65 @@
 
 @	$Script_80246770
 {
-    0:  Switch  *GB_StoryProgress
-   34:  	Case  ==  .Story:Epilogue % 60
-				If  *GF_EnclosureFlag == .False
-   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
-				Else
-					Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
-				EndIf
-			Case  .Story:Intro  to  .Story:Ch2_BeganPeachMission
-				Call  SetMusicTrack ( 00000000 .Song:BulletBillAssault 00000001 00000008 )  %Play the prototype Kinoko Town song
-			Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
-				If  *GF_OMO04_Chest_StoreroomKey == .True
-					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )  %Update to alt version if key has been collected
-				Else
-					Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000002 00000008 )
-				EndIf
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
-   88:  	Default
-   90:  		Exec  $Script_802488A8
-   9C:  EndSwitch	
-		Call $ClearFlagCarryOverworldMusicToBattle()
+		If *MapFlag[03] == .True	
+			Set  *MapFlag[03] .False
+			Wait  30`
+			Switch  *GB_StoryProgress
+				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Default
+					Call  SetMusicTrack ( 00000000 000000A1 00000001 00000008 )	%Rowf's music
+			EndSwitch
+			Return
+		EndIf
+		0:  Switch  *GB_StoryProgress
+	   34:  	Case  ==  .Story:Epilogue % 60
+					If  *GF_EnclosureFlag == .False
+	   40:  			Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000000 00000008 )
+					Else
+						Call  SetMusicTrack ( 00000000 .Song:PeachsCastleParty 00000001 00000008 )
+					EndIf
+				Case  .Story:Intro  to  .Story:Ch2_BeganPeachMission
+					Call  SetMusicTrack ( 00000000 .Song:BulletBillAssault 00000001 00000008 )  %Play the prototype Kinoko Town song
+				Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+					If  *GF_OMO04_Chest_StoreroomKey == .True
+						Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )  %Update to alt version if key has been collected
+					Else
+						Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000002 00000008 )
+					EndIf
+				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+					Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+	   88:  	Default
+	   90:  		Exec  $Script_802488A8
+	   9C:  EndSwitch	
+			Call $ClearFlagCarryOverworldMusicToBattle()
    A4:  Return
    AC:  End
+}
+
+%This one is for Donlon only?
+@	$Script_80246850
+{
+		
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
+   1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
+   38:  	Default
+   40:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+   5C:  		Wait  20`
+   68:  		Call  802D5EE0      ( 00000000 )
+   78:  		Call  802D5F28      ( 00000000 00000002 00000002 )
+   90:  EndSwitch
+   98:  Return
+   A0:  End
+}
+
+@	$Script_802488A8
+{
+    0:  Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
+   B4:  Return
+   BC:  End
 }
 
 
@@ -977,23 +1033,6 @@
    28:  End
 }
 
-
-@	$Script_80246850
-{
-    0:  Switch  *GB_StoryProgress
-    C:  	Case  .Story:Ch3_StarSpritDeparted  to  .Story:Ch4_StarSpiritRescued % FFFFFFF3 to 5
-   1C:  		Call  SetMusicTrack ( 00000000 .Song:ShyGuyInvasion 00000000 00000008 )
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-				Call  SetMusicTrack ( 00000000 .Song:PeachWishes 00000000 00000008 ) % New song for dark Kinoko Town
-   38:  	Default
-   40:  		Call  SetMusicTrack ( 00000000 .Song:ToadTown 00000000 00000008 )
-   5C:  		Wait  20`
-   68:  		Call  802D5EE0      ( 00000000 )
-   78:  		Call  802D5F28      ( 00000000 00000002 00000002 )
-   90:  EndSwitch
-   98:  Return
-   A0:  End
-}
 
 
 @	$Script_EnterWalk_80246C94
@@ -1028,8 +1067,11 @@
   1C4:  		Call  ModifyColliderFlags   ( 00000001 ~Collider:deilitn 7FFFFE00 )
   1DC:  		Call  DisablePlayerInput    ( .False )
   1EC:  	Case  ==  ~Entry:Entry4
-  1F8:  		Exec  $Script_80261880
+				Call  SetMusicTrack ( 00000000 000000A1 00000001 00000008 )	%Rowf's music
+				Call  PlaySound ( 3FD )
+				Exec  $Script_80246BD8
   204:  	Case  ==  ~Entry:Entry5
+				Exec  $SetUpShopMusic1
   210:  		ExecWait  $Script_8025A004
   21C:  		Exec  $Script_80246BD8
   228:  	Default
@@ -1038,6 +1080,56 @@
   24C:  EndSwitch
   254:  Return
   25C:  End
+}
+
+@	$Script_80246BD8
+{
+    0:  Bind  $Script_ExitWalk_80246950 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  Bind  $Script_80246A88 .Trigger:WallPressA ~Collider:deilitn 00000001 00000000
+   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
+   48:  	Return
+   50:  EndIf
+   58:  Bind  $Script_ExitWalk_802469AC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
+   74:  Bind  $Script_ExitWalk_80246B7C .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
+   90:  Bind  $Script_80259AD0 .Trigger:WallPressA ~Collider:deilitf 00000001 00000000
+    0:  Switch  *GB_StoryProgress
+			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Return
+		EndSwitch	
+		Bind  $SetUpShopMusic1 .Trigger:FloorTouch ~Collider:liptrigger 00000001 00000000
+		Bind  $SetUpShopMusic2 .Trigger:FloorTouch ~Collider:disableliptrigger 00000001 00000000		
+   AC:  Return
+   B4:  End
+}
+
+
+#new:Script   $SetUpShopMusic1
+{
+	If  *GB_StoryProgress  ==  .Story:Epilogue
+		Return
+	EndIf
+	If  *LipState  ==  0`
+		Set   *LipState  1`
+		Call  SetMusicTrack ( 00000000 .Song:KoopaVillage 00000001 00000008 )	%This is actually Lip's Theme
+		Wait  2`
+	EndIf
+	Return
+	End
+}
+
+#new:Script 	$SetUpShopMusic2
+{
+	If  *GB_StoryProgress  ==  .Story:Epilogue
+		Return
+	EndIf
+	%Turn off music
+	If  *LipState  ==  1`
+		Set  *LipState  0`
+		ExecWait  $Script_80246770
+		Wait  2`
+	EndIf
+	Return
+	End
 }
 
 
@@ -1111,20 +1203,6 @@
 
 
 
-@	$Script_80246BD8
-{
-    0:  Bind  $Script_ExitWalk_80246950 .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
-   1C:  Bind  $Script_80246A88 .Trigger:WallPressA ~Collider:deilitn 00000001 00000000
-   38:  If  *GB_StoryProgress  >=  .Story:Epilogue % 60
-   48:  	Return
-   50:  EndIf
-   58:  Bind  $Script_ExitWalk_802469AC .Trigger:FloorAbove ~Collider:deilie 00000001 00000000
-   74:  Bind  $Script_ExitWalk_80246B7C .Trigger:FloorAbove ~Collider:deilis 00000001 00000000
-   90:  Bind  $Script_80259AD0 .Trigger:WallPressA ~Collider:deilitf 00000001 00000000
-   AC:  Return
-   B4:  End
-}
-
 
 @	$Script_ToggleVis_8024775C
 {
@@ -1134,9 +1212,10 @@
 				Switch  *GB_StoryProgress
 					Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
 					Default
-						If *ShopState == 00000000
+						If *ShopState == 0
 							Thread
 								Wait  40`
+								Set *MapFlag[03] .False	
 								Set *ShopState 00000001
 								Call  PushSong      ( .Song:CandyCanes 00000001 )  %Launch Base theme for Post Office
 							EndThread
@@ -1144,63 +1223,18 @@
 				EndSwitch
    2C:  		ExecWait  $Script_80257844
    38:  	Case  ==  00000003
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
-				EndIf	
-   44:  		Call  SetGroupEnabled   ( ~Model:yubin_in 00000000 )
+				If  *MapFlag[03] == .False		
+					If *ShopState == 1
+						Set *ShopState 0
+						Call  PopSong ( )
+					EndIf	
+				EndIf
+				Call  SetGroupEnabled   ( ~Model:yubin_in 00000000 )
    58:  EndSwitch
    60:  Return
    68:  End
 }
 
-
-#new:Script  $CheckLip
-{
-	If  *GB_StoryProgress  ==  .Story:Epilogue
-		Return
-	EndIf
-	Label 1
-	Wait  2`
-	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )	
-	If  *Var0 > 60`
-		If  *Var1 > 9`
-			If  *Var2 > 107`
-				If  *LipState  ==  0`
-					Wait  2`
-					Set   *LipState  1`
-					Call  PushSong      ( .Song:KoopaVillage 00000001 ) %This is actually Lip's Theme
-					Wait  2`
-				EndIf
-				Goto  1
-			EndIf
-		EndIf
-	EndIf
-	%Ignore script is Mario is going through the door
-	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )	
-	If  *Var0 == 0`
-		If  *Var1 == -500`
-			If  *Var2 == 0`
-				Goto  1
-			EndIf
-		EndIf
-	EndIf
-	%Turn off music
-	If  *LipState  ==  1`
-		Set  *LipState  0`
-		Call  GetEntryID    ( *Var0 )
-		Switch  *Var0
-			Case  ==  ~Entry:Entry5
-				ExecWait  $Script_80246770
-			Default
-				Call  PopSong ( )
-		EndSwitch
-		Wait  2`
-	EndIf
-	Goto  1
-	Return
-	End
-}
 
 
 @	$Script_80259AD0
@@ -1386,8 +1420,27 @@
 			If    *RowfBadgeFragmentHint == .False
 				Exec $RowfProblem
 				Call  SetNpcCollisionSize   ( .Npc:Self  58`  32` ) %It's height and then width. I need to remember that
+				Goto AfterRowfChecks
 			EndIf
 		EndIf
+		If  *PiecesofHeart >= 4`
+				Exec $RowfProblem
+				Call  SetNpcCollisionSize   ( .Npc:Self  58`  32` ) %It's height and then width. I need to remember that
+				Goto AfterRowfChecks
+		EndIf
+		If  *SourcesofPower >= 4`
+				Exec $RowfProblem
+				Call  SetNpcCollisionSize   ( .Npc:Self  58`  32` ) %It's height and then width. I need to remember that
+				Goto AfterRowfChecks
+		EndIf
+		If  *AntiGuyChestNew == .True
+			If  *GotDoubleDipFromRowf == .False
+				Exec $RowfProblem
+				Call  SetNpcCollisionSize   ( .Npc:Self  58`  32` ) %It's height and then width. I need to remember that
+				Goto AfterRowfChecks
+			EndIf
+		EndIf
+		Label AfterRowfChecks
     0:  Set   *MapVar[D]  00000000
    10:  Set   *MapVar[E]  00000000
    20:  Set   *AreaFlag[040]  .False
@@ -1422,6 +1475,7 @@
   244:  Call  SetModelCustomGfx     ( ~Model:ju_1 00000000 FFFFFFFF )
   25C:  If  *AreaFlag[040]  ==  .True
   26C:  	Bind  $Script_80255F60 .Trigger:FloorTouch ~Collider:roten 00000001 00000000
+			Bind  $RestockBadges .Trigger:WallHammer ~Collider:roten 00000001 00000000
   288:  	Bind  $Script_80255FEC .Trigger:FloorTouch ~Collider:o444 00000001 00000000
   2A4:  	Call  SetNpcJumpscale   ( 00000001 00000001 )
   2B8:  EndIf
@@ -1459,7 +1513,8 @@
 			Loop
 				Call  ShowEmote ( 00000001 .Emote:Frustration  1`  60` .True  0`  60`  0`  0` )
 				Wait  60`
-				If  *RowfBadgeFragmentHint == .True
+				If  *MapFlag[21] == .True
+					Set  *MapFlag[21] .False
 					BreakLoop
 				EndIf
 			EndLoop
@@ -1492,6 +1547,7 @@
 					Set  *HavePieceofHeart .False
 					Set  *PiecesofHeart 0`		%Idk if it can underflow, but we're setting it to 0 anyway
 				EndIf
+				Set  *MapFlag[21] .True
 				ExecWait  $RowfFadeOut
 				Set   *Var0  .Item:HPPlusC		%HPPlusC is gotten here now
 				Set   *Var1  00000002
@@ -1502,6 +1558,12 @@
 				If  *PieceofHeartTutorial == .False
 					Set  *PieceofHeartTutorial .True
 					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030114 )
+				Else
+					Call  SetMessageValue   ( *PiecesofHeart 5 )
+					Set   *Var4	4`
+					Sub   *Var4  *PiecesofHeart 
+					Call  SetMessageValue   ( *Var4 6 )
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 0003011A )
 				EndIf
 			EndIf
 		EndIf
@@ -1526,6 +1588,7 @@
 					Set  *HaveSourceofPower .False
 					Set  *SourcesofPower 0`		%Idk if it can underflow, but we're setting it to 0 anyway
 				EndIf
+				Set  *MapFlag[21] .True
 				ExecWait  $RowfFadeOut
 				Set   *Var0  .Item:PowerPlusB		%PowerPlusB is gotten here now
 				Set   *Var1  00000002
@@ -1536,6 +1599,12 @@
 				If  *SourceofPowerTutorial == .False
 					Set  *SourceofPowerTutorial .True
 					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030115 )
+				Else
+					Call  SetMessageValue   ( *SourcesofPower 5 )
+					Set   *Var4  4`
+					Sub   *Var4  *SourcesofPower 
+					Call  SetMessageValue   ( *Var4 6 )
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 0003011B )
 				EndIf
 			EndIf
 		EndIf
@@ -1549,10 +1618,12 @@
 			Goto EndRowfChecks
 		EndIf
 			Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030118 )	%You have Single Dip.
+			Set  *MapFlag[21] .True
 			ExecWait  $RowfFadeOut
 			Set   *Var0  .Item:DoubleDip		%Double Dip is gotten here now
 			Set   *Var1  00000002
 			Call  ShowGotItem   ( *Var0 .True 00000000 )
+			Call  RemoveBadge   ( .Item:SingleDip )
 			Call  RemoveBadge   ( .Item:DoubleDip )  %Just so players don't get two Double Dips
 			Call  AddBadge  ( .Item:DoubleDip *Var0 )	
 			Set  *GotDoubleDipFromRowf .True
@@ -1593,6 +1664,68 @@
 				Return
 			EndIf
 		EndIf
+
+		If  *RowfBadgeFragmentHint == .True
+			Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 0003011E )
+			Call  ShowChoice    ( 001E0060 )	
+			Call  CloseMessage ( )
+			Switch *Var0
+				Case == 0`	%Restock
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 00030123 )	%Let's see what I have
+					ExecWait $RestockBadges
+					Return
+				Case == 1`	%Badge fragments check
+					ExecWait  $CheckForBadgeFragments
+					Call  SpeakToPlayer ( 00000001 00A70007 00A70006 00000000 0003011F )	%That's it
+				Case == 2`
+					ExecWait $RowfChatting
+			EndSwitch
+		Else
+			ExecWait $RowfChatting
+		EndIf
+  15C:  Return
+  164:  End
+}
+
+#new:Script  $RestockBadges
+{
+					Set  *GF_MAC01_RowfBadgesChosen .False
+					Set   *MapFlag[02] .True
+					Set   *MapFlag[0B]  .False
+					Call  GotoMap    ( "mac_01" 00000004 )
+					Wait  100`
+					Return
+					End
+}
+
+
+%Moved his talking down here as an option you can pick
+#new:Script $RowfChatting
+{
+		If  *GB_StoryProgress  ==  .Story:PostGame
+			If  *RowfDepartureExplanation == .False
+				Set *RowfDepartureExplanation .True
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030120 )	%Post-game dialogue
+			Else
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030121 )	%Post-game dialogue
+			EndIf
+			Return
+		EndIf
+		%Changing Rowf's dialogue to work based on story progress. It also means I get to write more dialogue for him, which I like
+		Switch  *GB_StoryProgress
+			Case <	.Story:Ch2_StarSpritDeparted
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030004 )
+			Case <	.Story:Ch3_StarSpritDeparted
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030003 )
+			Case  <	.Story:Ch4_StarSpritDeparted
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030122 )	%Annoyed at Shy Guys
+			Case  <	.Story:Ch6_ArrivedAtFlowerFields
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030124 )
+			Case  < .Story:Ch7_StarSpritDeparted
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030125 )
+			Case  < .Story:PostGame
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030126 )
+		EndSwitch
     0:  Set   *Var0  *GF_MAC01_RowfBadgeAvailableA
    10:  Add   *Var0  *GF_MAC01_RowfBadgeAvailableB
    20:  Add   *Var0  *GF_MAC01_RowfBadgeAvailableC
@@ -1607,19 +1740,49 @@
    9C:  			Set   *Var1  00030005
    AC:  		EndIf
    B4:  	EndIf
-   BC:  	Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 *Var1 ) % variable string ID
-			ExecWait  $CheckForBadgeFragments
+			If  *Var1  == 00030005
+				If  *RowfThanksForShopping == .False
+					Set  *RowfThanksForShopping .True
+					Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 *Var1 ) % He can only say each of these messages once per playthrough
+				EndIf
+			Else
+				If  *RowfBoughtEverything == .False
+					Set  *RowfBoughtEverything .True
+					Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 *Var1 ) % He can only say each of these messages once per playthrough
+				EndIf				
+			EndIf
    DC:  	Return
    E4:  EndIf
-   EC:  If  *GF_MAC01_Met_Rowf_Late  ==  .False
-   FC:  	Set   *GF_MAC01_Met_Rowf_Late  .True
-  10C:  	Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030003 ) % Hey! Welcome, buddy! Well, we got it open! What do ...
-  12C:  Else
-  134:  	Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030004 ) % Hey, bud! How ya been? Take a look around. I wanna ...
-  154:  EndIf
-		ExecWait  $CheckForBadgeFragments
-  15C:  Return
-  164:  End
+		Return
+		End
+}
+
+
+@	$Script_Interact_80254860
+{
+   40:  Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030008 ) % Sorry, bud. I had to close up shop. Some idiot Shy ...
+   60:  Set   *Var0  $???_80254858
+   70:  Set   *Var1  00000001
+   80:  ExecWait  $Script_8024DA90
+   8C:  Switch  *Var0
+   98:  	Case  ==  00000000
+   A4:  	Case  ==  FFFFFFFF
+   B0:  		Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 0003000B ) % Hey! That wasn't my Calculator? It looked just lik ...
+   D0:  	Default
+   D8:  		Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 00030009 ) % Hey, buddy! Isn't that my Calculator?! You're tell ...
+   F8:  		Wait  10`
+  104:  		Set   *Var0  0000011E
+  114:  		Set   *Var3  00000002
+  124:  		ExecWait  $Script_80248C34
+  130:  		Call  AddBadge      ( *Var0 *Var1 )
+  144:  		Set   *GF_MAC01_CalculatorReturned  .True
+  154:  		Wait  10`
+  160:  		Call  SpeakToPlayer ( 00000002 00A70004 00A70001 00000000 00030011 ) % Dad says we would've gone out of business if we ha ...
+				Call  SpeakToPlayer ( 00000001 00A70004 00A70005 00000000 0003000A ) % Thanks to you I can finally open my shop again. I' ...
+				ExecWait $RestockBadges
+  180:  EndSwitch
+  188:  Return
+  190:  End
 }
 
 
@@ -1638,7 +1801,7 @@
 
 % When the number of badges in the table is changed,
 % be sure to update this number! Maximum is 40 (64`).
-#define .NumRowfBadges 22`
+#define .NumRowfBadges 23`
 
 %FFFFFF80 == After Chapter 1
 %FFFFFFCB == After Chapter 2
@@ -1657,37 +1820,41 @@
  FFFFFFCB	.Item:Multibounce    100`    0024005E % 
  FFFFFFCB	.Item:DizzyStomp     125`    0023005D % Group Focus is swapped for Dizzy Stomp.
  FFFFFFCB	.Item:MedicineMan    200`    0023011C % Medicine Man added.
- FFFFFFF3	.Item:DamageDodgeA   175`    00240075 % Damage Dodge gotten way earlier
+ FFFFFFF3	.Item:DamageDodgeA   175`    00240075 % Damage Dodge gotten a little earlier
  FFFFFFF3	.Item:JumpCharge     150`    0024005A %
- FFFFFFF3	.Item:ShellCrack     250`    00230163 % Stop Smash added (now called Clock-Out Clash)
+ FFFFFFF3	.Item:ClockOutClash  250`    00230163 % Stop Smash added (now called Clock-Out Clash)
  00000007	.Item:DDownJump      300`    00230060 % D-Down Jump is here now (replacing Tatsujin)
  00000007	.Item:PityFlower     200`    0023011B % Pity Flower added.
  00000007	.Item:SSmashChg      275`    00240065 % 
  00000029   .Item:TornadoJump_1  300`    00230115 % Tornado Jump added.
- 00000029   .Item:SuperSmash     400`	 00230067 % Multi-Smash added.
+ 00000029   .Item:Eekhammer      400`	 00230067 % Multi-Smash /Eekhammer added.
  00000029   .Item:MegaHPDrain    250`	 00230114 % Mega HP Drain added.
+ 00000029   .Item:PityStar       275`	 00230175 % Pity Star added.
  0000003B	.Item:MegaQuake      450`    0024006C %
  0000003B	.Item:Hanatatsu      450`    00230155 % New Hanatatsu Badge.
  0000003B	.Item:FPPlusC        250`    00240072 % 
  00000059	.Item:AllorNothing   450`    00240093 % 
- 00000059	.Item:ShrinkSmash    500`    0023011D % Recoil Throw added.
- 00000059	.Item:AutoJump       500`    0023015F % Space Jump added.
+ 00000059	.Item:RecoilThrow    500`    0023011D % Recoil Throw added.
+ 00000059	.Item:SpaceJump      500`    0023015F % Space Jump added.
 }
 
 
 
-%Start shop music
+%Start Rowf shop music
 
 @	 $Script_8025573C
 {
-		Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-			Default
-				If *ShopState == 00000000
-					Set *ShopState 00000001
-					Call  PushSong      ( 000000A1 00000001 )
-				EndIf		
-		EndSwitch
+		Call  GetEntryID    ( *Var0 )
+		If  *MapFlag[03] == .False
+			Switch  *GB_StoryProgress
+				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Default
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Call  SetMusicTrack ( 00000000 000000A1 00000001 00000008 )	%Rowf's music
+					EndIf		
+			EndSwitch
+		EndIf
     0:  Set   *MapFlag[0B]  .True
    10:  Call  SetNpcYaw ( 00000001  270` )
    24:  Thread
@@ -1754,18 +1921,21 @@
 }
 
 
-%Stop music and auto save when leaving
+%Stop music and auto save when leaving Rowf's
 
 @	$Script_80255B30
 {
-		Switch  *GB_StoryProgress
-			Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
-			Default
-				If *ShopState == 00000001
-					Set *ShopState 00000000
-					Call  PopSong ( )
-				EndIf		
-		EndSwitch
+		If  *MapFlag[02] == .False
+			Switch  *GB_StoryProgress
+				Case  .Story:Ch7_StarSpritDeparted  to  .Story:Ch8_ReachedPeachsCastle
+				Default
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+					EndIf	
+					Set  *MapFlag[03] .False
+					ExecWait  $Script_80246770
+			EndSwitch
+		EndIf
 		Exec  $AutoSave
     0:  Set   *MapFlag[0B]  .False
    10:  If  *GF_MAC01_RowfBadgeAvailableA  ==  .False
@@ -2169,34 +2339,39 @@
 
 @	$Script_8024F27C
 {
+		
 		If   *IWannaBeTheGuy == .True
+			Call  DisablePlayerInput    ( .True )
+			Set  *PlayerSkin 3`
 			Call  SpeakToPlayer     ( 00000000 00A50006 00A50006 00000000 000300FA )  %No difficulty change
+			Call  DisablePlayerInput    ( .False )
 			Return
+		Else
+			If  *SuperguardlessMode == .True
+				Call  DisablePlayerInput    ( .True )
+				Set  *PlayerSkin 4`
+				Call  SpeakToPlayer     ( 00000000 00A50006 00A50006 00000000 000300FA )  %No difficulty change
+				Call  DisablePlayerInput    ( .False )
+				Return
+			EndIf
 		EndIf
 		Call  DisablePlayerInput    ( .True )
    10:  Call  SpeakToPlayer     ( 00000000 00A50004 00A50001 00000000 00030036 ) % Ah, Mario. Do you want me to predict the path you  ...
-		Set     *Var1 *Var0
-		Switch *Var1
-        Case == 0 % Difficulty
-			Switch *Byte_Settings_Difficulty
-					Case == 0
-						Set *Var0 $String_Easy
-					Case == 1
-						Set *Var0 $String_Normal
-					Case == 2
-						Set *Var0 $String_Hard
-			EndSwitch
-				Call    SetMessageString ( *Var0 0 )
-				%Call    SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000000 $String_Settings_Difficulty )
 				Call    ShowChoice ( $String_Choice_Settings_Difficulty )
-				If *Var0 != 3 % Cancel
-					Set     *Byte_Settings_Difficulty *Var0
-					%Return
-				Else 
-					Call  CloseMessage
-					Goto 69
-				EndIf
-		EndSwitch
+				Switch  *Var0 
+					Case == 0`
+						Set     *Byte_Settings_Difficulty *Var0
+						Set  *PlayerSkin 1`
+					Case == 1`
+						Set     *Byte_Settings_Difficulty *Var0
+						Set  *PlayerSkin 0`
+					Case == 2`
+						Set     *Byte_Settings_Difficulty *Var0
+						Set  *PlayerSkin 2`
+					Case == 3`
+						Call  CloseMessage
+						Goto 69
+				EndSwitch
   13C:  Call  ContinueSpeech    ( 00000000 00A50004 00A50001 00000000 00030037 ) % Excellent. Now relax while I read what your future ...
   15C:  Call  SetNpcAnimation   ( 00000000 00A50008 )
   170:  Wait  6`
@@ -2258,10 +2433,9 @@
 					
    C4:  			Call  SetNpcFlagBits    ( 00000000 00000100 .True )
    DC:  			Call  SetNpcAnimation   ( 00000000 00A50002 )
-   F0:  			Call  SetNpcSpeed       ( 00000000 *Fixed[4.0] )
+   F0:  			Call  SetNpcSpeed       ( 00000000 *Fixed[5.0] )
   104:  			Call  NpcMoveTo ( 00000000  -350`  -280`  0` )
   120:  			Call  NpcMoveTo ( 00000000  -230`  -270`  0` )
-					Thread
   13C:  			Call  SetNpcAnimation   ( 00000000 00A50001 )
   150:  			Call  SetNpcFlagBits    ( 00000000 00000100 .False )
   168:  			Call  PlaySoundAtCollider   ( ~Collider:deilitud .Sound:BasicDoorOpen 00000000 )
@@ -2291,7 +2465,6 @@
   308:  			Call  SetNpcPos ( .Npc:Self  -150`  10`  -160` )
   324:  			Call  SetNpcYaw ( 00000000  90` )
   338:  			Exec  $Script_80250D14
-					EndThread
   344:  		EndIf
   34C:  	Case  <  .Story:Ch1_MerlinRevealedKoopaBros % FFFFFF9C
   358:  		Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 00030028 ) % Are these the strange Toads you were talking about ...
@@ -2335,13 +2508,13 @@
   608:  			EndThread
   610:  			Call  SetNpcFlagBits    ( 00000000 00000100 .True )
   628:  			Call  SetNpcAnimation   ( 00000000 00A50002 )
-  63C:  			Call  SetNpcSpeed       ( 00000000 *Fixed[3.0] )
+  63C:  			Call  SetNpcSpeed       ( 00000000 *Fixed[5.0] )
   650:  			Call  NpcMoveTo ( 00000000  -170`  -225`  0` )
   66C:  			Call  SetNpcAnimation   ( 00000000 00A50001 )
   680:  			Call  SetGroupEnabled   ( ~Model:dr_in 00000001 )
   694:  			ExecWait  $Script_8024E740
   6A0:  			Call  SetNpcAnimation   ( 00000000 00A50002 )
-  6B4:  			Call  SetNpcSpeed       ( 00000000 *Fixed[3.0] )
+  6B4:  			Call  SetNpcSpeed       ( 00000000 *Fixed[6.0] )
   6C8:  			Call  NpcMoveTo ( 00000000  -265`  -300`  0` )
   6E4:  			Call  SetNpcAnimation   ( 00000000 00A50001 )
   6F8:  			ExecWait  $Script_8024E7F0
@@ -2367,22 +2540,35 @@
 					If    *Var5 > 25`
 						Call  SpeakToPlayer     ( 00000000 00A5000D 00A5000C 00000000 0003003A ) % Ah, Mario. Do you want me to predict the path you  ...
 					Else
+						If  *GB_StoryProgress  >=  .Story:Ch7_GotSnowmanScarf		
+							If  *DonlonCommentsOnDonle == .False
+								Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003011D ) %Donlon comments on Donle for a small portion of the game
+								Set  *DonlonCommentsOnDonle .True
+								Goto  CheckDonlon
+								Return
+							EndIf
+						EndIf
+						If  *GB_StoryProgress  >=  .Story:PostGame
+							Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % Are you doing well, Mario?
+							Goto  CheckDonlon
+							Return
+						EndIf
 						If    *DonlonNeedsNinjigo == .False
-							Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % If you want me to predict your future, talk to me  ...
+							Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % Are you doing well, Mario?
 						Else
 							Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 000300F7 )
 						EndIf
-  87C:  				
   89C:  			EndIf
 					EndIf
   8A4:  		EndIf
   8AC:  	Default
 					If    *DonlonNeedsNinjigo == .False
-						Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % If you want me to predict your future, talk to me  ...
+						Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 0003003B ) % Are you doing well, Mario?
 					Else
 						Call  SpeakToPlayer ( .Npc:Self 00A50004 00A50001 00000010 000300F7 )
 					EndIf
   8D4:  EndSwitch
+		Label  CheckDonlon
   8DC:  ExecWait  $Script_8024E1F4
   8E8:  ExecWait  $Script_8024E244
   8F4:  If  *VarC  !=  00000000
@@ -2751,6 +2937,21 @@ journey is on [SaveColor][Color:07][Var 0][RestoreColor]
 }
 
 
+
+%Do this precaution
+@	$Script_ExitWalk_80246B7C
+{
+		Set *ShopState 00000000
+		Set   *MerlonState  0`
+		Set   *LipState  0`		
+    0:  SetGroup  0000001B
+    C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry3 )
+   20:  Exec  ExitWalk
+   2C:  Call  GotoMap   ( $ASCII_802626D8 00000002 ) % mac_02
+   40:  Wait  100`
+   4C:  Return
+   54:  End
+}
 
 
 % ====================================================

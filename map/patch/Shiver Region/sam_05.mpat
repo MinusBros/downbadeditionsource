@@ -108,6 +108,14 @@
    74:  Call  802D2B6C ( )
    80:  Call  SetMusicTrack ( 00000000 .Song:MonstarTheme 00000000 00000008 )
    9C:  Call  ShowMessageAtScreenPos    ( 001200E0  160`  40` ) % Boooooaaaaahhhh!!
+		%Copied this from mim_10
+   2C:  Call  $Function_80240030 ( )
+   38:  Thread
+   40:  	Call  $Function_802400EC ( )
+   4C:  EndThread
+   54:  Thread
+   5C:  	Call  $Function_80240148 ( )
+   68:  EndThread
    B4:  Call  SetNpcAnimation       ( .Npc:Self 007E0001 )
    C8:  Call  SetNpcPos     ( .NpcID:Monstar_06  635`  200`  0` )
    E4:  Call  NpcMoveTo     ( .NpcID:Monstar_06  615`  0`  10` )
@@ -292,4 +300,83 @@
     0.0 % chase radius
     0.0
     0`
+}
+
+
+
+#new:Function $Function_80240030
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       ~Func:enable_world_fog
+    C:  NOP
+   10:  LI        A0, 10
+   14:  COPY      A1, A0
+   18:  COPY      A2, A0
+   1C:  JAL       ~Func:set_world_fog_color
+   20:  LI        A3, FF
+   24:  LA        V0, 800B1D80
+   2C:  LI        V1, 14
+   30:  SH        V1, 2C (V0)
+   34:  SH        V1, 2E (V0)
+   38:  LI        V1, 1C
+   3C:  SH        V1, 30 (V0)
+   40:  LW        RA, 10 (SP)
+   44:  LI        V0, 2
+   48:  JR        RA
+   4C:  ADDIU     SP, SP, 18
+}
+
+
+#new:Function $Function_802400EC
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        S0, 10 (SP)
+    8:  CLEAR     S0
+    C:  BEQ       A1, R0, .o1C
+   10:  SW        RA, 14 (SP)
+   14:  LI        V0, 424
+   18:  SW        V0, 74 (A0)
+        .o1C
+   1C:  LW        V0, 74 (A0)
+   20:  ADDIU     V0, V0, FFFF
+   24:  SW        V0, 74 (A0)
+   28:  SLTI      V0, V0, 3E9
+   2C:  BEQ       V0, R0, .o3C
+   30:  LI        V0, 3E8
+   34:  SW        V0, 74 (A0)
+   38:  LI        S0, 2
+        .o3C
+   3C:  LW        A1, 74 (A0)
+   40:  JAL       ~Func:set_world_fog_dist
+   44:  LI        A0, 3DE
+   48:  COPY      V0, S0
+   4C:  LW        RA, 14 (SP)
+   50:  LW        S0, 10 (SP)
+   54:  JR        RA
+   58:  ADDIU     SP, SP, 18
+}
+
+
+#new:Function $Function_80240148
+{
+    0:  BEQ       A1, R0, .oC
+    4:  CLEAR     A2
+    8:  SW        R0, 74 (A0)
+        .oC
+    C:  LW        V0, 74 (A0)
+   10:  ADDIU     V0, V0, 4
+   14:  SW        V0, 74 (A0)
+   18:  SLTI      V0, V0, F0
+   1C:  BNE       V0, R0, .o30
+   20:  NOP
+   24:  LI        V0, F0
+   28:  SW        V0, 74 (A0)
+   2C:  LI        A2, 2
+        .o30
+   30:  LAW       V1, 8007419C
+   38:  LHU       V0, 76 (A0)
+   3C:  SH        V0, 15C (V1)
+   40:  JR        RA
+   44:  COPY      V0, A2
 }

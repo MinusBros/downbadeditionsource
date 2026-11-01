@@ -1,22 +1,22 @@
 %imported from pro mode
+%New High Boo enemy. Uses the palette that Igor now uses in Boo's Shop
 
-
-#define .AnimStopDB	00F00000
-#define .AnimIdleDB	00F00001
-#define .AnimRunDB	00F00003
-#define .AnimPainDB	00F00006
-#define .AnimHideDB	00F00007
-#define .AnimSpookDB	00F00008
-#define .AnimDizzyDB	00F00009
-#define .AnimDeadDB	00F00012 %unused?
-#define .AnimSleepDB  00F00012 %new (but it's literally just a still frame)
+#define .AnimStopDB	00950300
+#define .AnimIdleDB	00950301
+#define .AnimRunDB	00950303
+#define .AnimPainDB	00950306
+#define .AnimHideDB	00950307
+#define .AnimSpookDB	00950308
+#define .AnimDizzyDB	00950309
+#define .AnimDeadDB	00950312 %unused?
+#define .AnimSleepDB  00950312 %new (but it's literally just a still frame)
 
 
 %Renamed to High Boo since DarkBoo.bpat is already a thing
 #new:Actor $HighBoo
 {
 % stats
-[Index]        5Cb %one of the unused master IDs 
+[Index]        01b 
 [Level]        30`b %pretty strong
 [MaxHP]        20`b 
 [Coins]         2`b 
@@ -138,11 +138,24 @@
 	Add  *Var[1]  10` 
 	Call	ForceHomePos	( .Actor:Self *Var[0] *Var[1] *Var[2] )
 	Call	HPBarToHome		( .Actor:Self )
+		Call     RandInt     	( 4` *Var7 )
+		Switch  *Var7
+			Case == 1`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.9] *Fixed[0.9] *Fixed[0.9] )
+			Case == 2`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.95] *Fixed[0.95] *Fixed[0.95] )
+			Case == 3`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.05] *Fixed[1.05] *Fixed[1.05] )
+			Case == 4`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.1] *Fixed[1.1] *Fixed[1.1] )
+		EndSwitch
 	   % 100% chance to spawn with invisible status
 	%Call	RandInt	 ( 100` *Var[0] )
 	%If	*Var[0] > 75`
 		Call	$Function_Vanish_HighBoo ( 1 )
 	%EndIf
+		Call  $Function_SetName_C ( 1 002900D4 )
+		Call  $Function_SetTattle_C ( 1 001C00F3 )	
 	Return
 	End
 }

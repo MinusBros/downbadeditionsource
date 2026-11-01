@@ -1,3 +1,5 @@
+%Green station
+
 #define .NpcID:TrainStationToad_00  00
 #define .NpcID:TrainStationToad_01  01
 #define .NpcID:ShyGuy_02            02
@@ -101,10 +103,6 @@
 }
 
 
-@	$Script_ExitWalk_80240F20
-{
-   [40]  Wait  70`
-}
 
 
 @	$Script_Main
@@ -409,7 +407,99 @@
 	00000000 00000000 00000000 001A00B8 % He's an employee of the Toy Box station. The emplo ...
 }
 
+#import KeyItemPopUp.mpat
 
+%Green station master
+@	$Script_Init_802478FC
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80247758 )
+		If    *GB_StoryProgress >= .Story:Ch4_DefeatedGeneralGuy
+			If  *GreenStationMasterCompleted == .False
+				Exec  $GreenStationMasterProblem
+			EndIf
+		EndIf
+   14:  Return
+   1C:  End
+}
+
+#new:Script  $GreenStationMasterProblem
+{
+		Wait  10`
+		Loop
+			Call  ShowEmote ( .NpcID:TrainStationToad_01 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *GreenStationMasterCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
+%Let's redo this whole guy's script to say more of his dialogue at once
+%Also we're giving him a quest
+@	$Script_Interact_80247758
+{
+		If  *GreenStationMasterCompleted == .False
+				If  *GreenStationMasterAsked == .False
+					Set  *GreenStationMasterAsked .True
+					Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A4 )
+					If  *GF_DRO01_Gift_RedJar == .False
+						Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A5 )
+					EndIf
+					Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A6 )
+				EndIf
+				Call  FindKeyItem   ( .Item:KootRedJar *Var1 )
+				If    *Var1 != FFFFFFFF
+					Set   *Var0  $???_CheckRedJar
+					Set   *Var1  00000005
+					ExecWait $Script_CheckForKeyItem	
+					Switch *Var0
+						Case   == FFFFFFFF  %If you refuse to give the key item, say a funny line
+							Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A8  )
+						Default			%If you give him the key item
+							Set  *GreenStationMasterCompleted .True
+							Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A7  )
+							Set   *Var0  1BC
+							Set   *Var1  2
+							Call  ShowGotItem   ( *Var0 .True 00000000 )
+							If  *HavePieceofHeart == .False
+								Set  *HavePieceofHeart .True
+								Call  AddBadge  ( .Item:PieceOfHeart *Var0 )
+							EndIf
+							Add *PiecesofHeart 1`
+							If  *PiecesofHeart > 1`
+								Call  SetMessageValue   ( *PiecesofHeart 5 )
+								Call  ShowMessageAtScreenPos    ( 001F00E9  160`  40` ) %You now have X pieces of heart
+							EndIf
+							ExecWait  $ProblemSolved
+						EndSwitch
+					Else
+							Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A5 )	%If you don't have the key item, say the message again
+							Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F00A6 )		
+				EndIf
+				Return
+		EndIf	
+		
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch4_SolvedColorPuzzle % 0
+   E4:  			Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F002E ) % That Memo you have is written in Shy Guy language. ...
+					Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F002B ) % That Memo you have is written in Shy Guy language. ...
+  138:  	Case  <  .Story:Ch4_DefeatedGeneralGuy % 4
+				Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F002D ) % We can go to Red Station now! Great! Feel free to  ...
+  144:  		Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F002F ) % It looks like the Shy Guys are really robbing Toad ...
+  164:  	Default
+  16C:  		Call  SpeakToPlayer ( .Npc:Self 008C0304 008C0301 00000000 000F0030 ) % I'm sure the Shy Guys are going to knock it off fo ...
+  18C:  EndSwitch
+  194:  Return
+  19C:  End
+}
+
+
+#new:Unknown $???_CheckRedJar
+{
+	.Item:KootRedJar 00000000
+}
 
 @	$NpcGroupList_802486DC
 {

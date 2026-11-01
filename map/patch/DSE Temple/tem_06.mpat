@@ -1,0 +1,147 @@
+% Auto-generated script for tem_03
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 2
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This place has a lot of[BR]
+red and blue blocks but[BR]
+not a lot of switches.[BR]
+[WAIT][NEXT]
+It looks like you'll need[BR]
+to hit them from far away.[BR]
+[WAIT][END]
+}
+
+%set up the blocks
+#import SwitchBlocks.mpat
+
+#new:Script $Script_SetupSwitchBlocks
+{
+	%										Models and colliders for blue platforms (and low opacity red platforms)
+	Set *Var[A] ~Model:blueactive 			%model ID (group)
+	Set *Var[B] ~Collider:blueplatforms 		%collider ID
+	Set *Var[C] .True	 
+	Exec $Script_SwitchBlocks
+	%										Models and colliders for red platforms (and low opacity blue platforms)
+	Set *Var[A] ~Model:redactive 			%model ID (group)
+	Set *Var[B] ~Collider:redplatforms 		%collider ID
+	Set *Var[C] .False	 
+	Exec $Script_SwitchBlocks				%hopefully having the same script twice works correctly
+	Return
+	End
+}
+
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+}
+
+
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	ExecWait $Script_SetupSwitchBlocks
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch1 80000000 )
+	Call  AssignAreaFlag    ( 00000004 )
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch2 80000000 )
+	Call  AssignAreaFlag    ( 00000004 )
+	Bind  $Script_SwitchTrigger_Simple .Trigger:AreaFlagSet *AreaFlag[004] 00000001 00000000
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call  GetEntryID    ( *Var[0] )
+	Switch  *Var[0]
+		CaseOR  ==  ~Entry:Entry1
+		CaseOR  ==  ~Entry:Entry0
+			Set   *Var[0] $Script_CreateExitTriggers
+			Exec  EnterWalk
+		EndCaseGroup
+		Default
+			Exec  $Script_CreateExitTriggers
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry1 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_14" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_02" ~Entry:tem_02:Entry4 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit1 .Trigger:FloorAbove ~Collider:gateLZ 00000001 00000000
+	Bind  $Script_Exit0 .Trigger:FloorAbove ~Collider:hubLZ 00000001 00000000
+	Return
+	End
+}
+

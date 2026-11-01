@@ -1,0 +1,244 @@
+%This is used for making special blocks that work like red/blue switch blocks in other mario games
+
+%Required: Define *RBSwitchState somewhere (as a GameFlag)
+
+%Put the setup script in the main script of your map
+
+%create multiple scripts if you have both blue and red blocks
+%copy this and change the values
+/%
+#new:Script $Script_SetupSwitchBlocks
+{
+	Set *Var[A] 00000000 %model ID (group)
+	Set *Var[B] 00000000 %collider ID (group)
+	Set *Var[C] .True	 %false = red, true = blue
+	Exec $Script_SwitchBlocks
+	Return
+	End
+}
+%/
+
+%more complicated version / example for both red and blue blocks
+/%
+#new:Script $Script_SetupSwitchBlocks
+{
+	%										Models and colliders for blue platforms (and low opacity red platforms)
+	Set *Var[A] ~Model:blueactive 			%model ID (group)
+	Set *Var[B] ~Collider:blueplatform 		%collider ID
+	Set *Var[C] .True	 
+	Exec $Script_SwitchBlocks
+	%										Models and colliders for red platforms (and low opacity blue platforms)
+	Set *Var[A] ~Model:redactive 			%model ID (group)
+	Set *Var[B] ~Collider:redplatform 		%collider ID
+	Set *Var[C] .False	 
+	Exec $Script_SwitchBlocks				%hopefully having the same script twice works correctly
+	Return
+	End
+}
+%/
+
+
+
+
+
+
+
+
+
+
+%Simpler versions of switch scripts (no switch movement)
+
+%Copy this and call it in the main script
+%You could replace area flags with other indices but make sure you get all of them
+/%
+#new:Script $Script_SetupSwitch
+{  
+   Call  MakeEntity        ( .Entity:RedSwitch ~Vec4d:SwitchPosition 80000000 )
+   Call  AssignAreaFlag    ( 00000004 )															%area flag 4
+   Bind  $Script_SwitchTrigger_Simple .Trigger:AreaFlagSet *AreaFlag[004] 00000001 00000000
+   Return
+   End
+}
+%/
+
+#new:Script $Script_SwitchTrigger_Simple
+{
+	If (*RBSwitchState == .True)		
+		Set *RBSwitchState .False
+	Else
+		Set *RBSwitchState .True
+	EndIf
+	Set *AreaFlag[004] .False			%Otherwise this script would run every frame after you hit the switch
+	Return
+	End
+}
+
+
+%scrapped: switches that can change color (when you hit the switch, the other color switch would come up and the original would disappear, making it look like it changed color)
+%	Problem with that is that blue switches disappear on hit I think while red ones do not
+
+%Switch setup script
+%You could replace area flags with other indices
+/%
+#new:Script $Script_SetupSwitch
+{  
+   Call  MakeEntity        ( .Entity:RedSwitch ~Vec4d:SwitchPosition 80000000 )
+   Set   *MapVar[0]  *Var0		%can change this to use other mapvars, but you have to modify the switchtrigger code
+   Call  AssignAreaFlag    ( 00000004 )
+   Call  MakeEntity        ( .Entity:BlueSwitch ~Vec4d:BelowSwitchPosition 80000000 )
+   Set   *MapVar[1]  *Var0		
+   Call  AssignAreaFlag    ( 00000004 )
+   Bind  $Script_SwitchTrigger .Trigger:AreaFlagSet *AreaFlag[004] 00000001 00000000
+   Return
+   End
+}
+%/
+
+%copy this script over too
+%you'll probably need to rewrite it to have the right positions
+/%
+#new:Script $Script_SwitchTrigger
+{
+	If (*RBSwitchState == .True)		
+		Set *RBSwitchState .False
+		Call $Function_MoveEntity ( *MapVar0 ~Vec3d:SwitchPosition )
+		Call $Function_MoveEntity ( *MapVar1 ~Vec3d:BelowSwitchPosition )
+	Else
+		Set *RBSwitchState .True
+		Call $Function_MoveEntity ( *MapVar1 ~Vec3d:SwitchPosition )
+		Call $Function_MoveEntity ( *MapVar0 ~Vec3d:BelowSwitchPosition )
+	EndIf
+	Set *AreaFlag[004] .False
+	Return
+	End
+}
+%/
+
+
+
+
+#new:Script $Script_SwitchBlocks
+{
+	Label 0 %block is visible
+	Set *Var0 *RBSwitchState
+	If *Var[0] != *Var[C]
+		%become invisible
+		Call     EnableGroup 	( *Var[A] .False )
+		Call     ModifyColliderFlags 	( 00000000 *Var[B] 7FFFFE00 )
+		Goto 1
+	EndIf
+	Wait 1
+	Goto 0
+	Label 1 %block is invisible
+	Set *Var0 *RBSwitchState
+	If *Var[0] == *Var[C]
+		%become visible
+		Call     EnableGroup 	( *Var[A] .True )
+		Call     ModifyColliderFlags 	( 00000001 *Var[B] 7FFFFE00 )
+		Goto 0
+	EndIf
+	Wait 1
+	Goto 1
+	Return
+	End
+}
+
+%functions imported from sam_07 (the map with the green switch on a sheet of ice)
+
+#new:Function $Function_GetEntityPosition	%arg 0 = entity ID, args 1,2,3 = (out) x,y,z
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S2, 18 (SP)
+    8:  COPY      S2, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S1, 14 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, C (S2)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  JAL       ~Func:get_entity_by_index
+   2C:  COPY      A0, V0
+   30:  LW        A1, 0 (S0)
+   34:  ADDIU     S0, S0, 4
+   38:  COPY      S1, V0
+   3C:  LWC1      F0, 48 (S1)
+   40:  TRUNC.W.S F2, F0
+   44:  MFC1      A2, F2
+   48:  JAL       ~Func:set_variable
+   4C:  COPY      A0, S2
+   50:  LW        A1, 0 (S0)
+   54:  ADDIU     S0, S0, 4
+   58:  LWC1      F0, 4C (S1)
+   5C:  TRUNC.W.S F2, F0
+   60:  MFC1      A2, F2
+   64:  JAL       ~Func:set_variable
+   68:  COPY      A0, S2
+   6C:  LWC1      F0, 50 (S1)
+   70:  LW        A1, 0 (S0)
+   74:  TRUNC.W.S F2, F0
+   78:  MFC1      A2, F2
+   7C:  JAL       ~Func:set_variable
+   80:  COPY      A0, S2
+   84:  LW        RA, 1C (SP)
+   88:  LW        S2, 18 (SP)
+   8C:  LW        S1, 14 (SP)
+   90:  LW        S0, 10 (SP)
+   94:  LI        V0, 2
+   98:  JR        RA
+   9C:  ADDIU     SP, SP, 20
+}
+
+#new:Function $Function_MoveEntity 	%arg 0 = entity ID, args 1,2,3 = x,y,z
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 30 (SP)
+   1C:  SDC1      F22, 28 (SP)
+   20:  SDC1      F20, 20 (SP)
+   24:  LW        S0, C (S1)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  COPY      A0, S1
+   40:  JAL       ~Func:get_variable
+   44:  COPY      S2, V0
+   48:  LW        A1, 0 (S0)
+   4C:  ADDIU     S0, S0, 4
+   50:  MTC1      V0, F24
+   54:  NOP
+   58:  CVT.S.W   F24, F24
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      A0, S1
+   64:  LW        A1, 0 (S0)
+   68:  MTC1      V0, F22
+   6C:  NOP
+   70:  CVT.S.W   F22, F22
+   74:  JAL       ~Func:get_variable
+   78:  COPY      A0, S1
+   7C:  MTC1      V0, F20
+   80:  NOP
+   84:  CVT.S.W   F20, F20
+   88:  JAL       ~Func:get_entity_by_index
+   8C:  COPY      A0, S2
+   90:  COPY      V1, V0
+   94:  SWC1      F24, 48 (V1)
+   98:  SWC1      F22, 4C (V1)
+   9C:  SWC1      F20, 50 (V1)
+   A0:  LW        RA, 1C (SP)
+   A4:  LW        S2, 18 (SP)
+   A8:  LW        S1, 14 (SP)
+   AC:  LW        S0, 10 (SP)
+   B0:  LDC1      F24, 30 (SP)
+   B4:  LDC1      F22, 28 (SP)
+   B8:  LDC1      F20, 20 (SP)
+   BC:  LI        V0, 2
+   C0:  JR        RA
+   C4:  ADDIU     SP, SP, 38
+}

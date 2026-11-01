@@ -26,7 +26,7 @@
 	.Status:SleepTurnMod     -2`
 	.Status:PoisonTurnMod     0`
 	.Status:FrozenTurnMod     0`
-	.Status:DizzyTurnMod     -2`
+	.Status:DizzyTurnMod     -1`
 	.Status:FearTurnMod       0`
 	.Status:StaticTurnMod     0`
 	.Status:ParalyzeTurnMod  -2`
@@ -94,43 +94,7 @@
 }
 
 
-
-
-
-%Every now and then, Fuzzipede will heal
-%for 7 HP instead of 5.
-
-#new:Script $Script_BigHeal
-{
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
-   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
-   28:  Call  UseBattleCamPreset    ( 0000000E )
-   38:  Call  BattleCamTargetActor  ( .Actor:Self )
-   48:  Call  MoveBattleCamOver (  20` )
-   58:  Wait  7`
-   64:  Call  SetAnimation      ( .Actor:Self 00000001 00410012 )
-   7C:  Wait  12`
-   88:  Call  SetAnimation      ( .Actor:Self 00000001 00410004 )
-   A0:  Thread
-   A8:  	Wait  5`
-   B4:  	Call  PlaySoundAtActor  ( .Actor:Self 0000206D )
-   C8:  	Call  PlaySoundAtActor  ( .Actor:Self 00000214 )
-   DC:  	Wait  16`
-   E8:  	Call  PlaySoundAtActor  ( .Actor:Self 0000025C )
-   FC:  EndThread
-  104:  Thread
-  10C:  	Call  8026BF48  ( 00000001 )
-  11C:  	Call  HealActor ( .Actor:Self 00000007 .False )
-  134:  	Call  8026BF48  ( 00000000 )
-  144:  EndThread
-  158:  Call  UseBattleCamPreset    ( 00000002 )
-  168:  Call  EnableIdleScript      ( .Actor:Self 00000001 )
-  17C:  Call  UseIdleAnimation      ( .Actor:Self .True )
-  190:  Return
-  198:  End
-}
-
-%Randomly roll between 4 and 5 HP.
+%Randomly roll between 3 and 7 HP
 
 @	 $Script_8021C004
 {
@@ -152,13 +116,9 @@
    FC:  EndThread
   104:  Thread
   10C:  	Call  8026BF48  ( 00000001 )
-   EC:  Call  RandInt   ( 000003E8 *Var0 )
-  100:  If  *Var0  <  000001F4
-			Call  HealActor ( .Actor:Self 00000005 .False )
-		Else
-			Call  HealActor ( .Actor:Self 00000004 .False )
-  11C:  EndIf
-  11C:  	
+   EC:  	Call  RandInt   ( 4` *Var6 )
+			Add   *Var6  3`
+			Call  HealActor ( .Actor:Self *Var6 .False )  	
   134:  	Call  8026BF48  ( 00000000 )
   144:  EndThread
   14C:  Call  WaitForBuffDone ( )
@@ -180,23 +140,6 @@
 				ExecWait  $WattageTattle
 			EndIf
 		EndIf
-    0:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
-   18:  Switch  *Var0
-   24:  	CaseOR  ==  00000000
-   30:  	CaseOR  ==  00000003
-   3C:  		Call  GetActorHP    ( .Actor:Self *Var0 )
-   50:  		Call  GetEnemyMaxHP ( .Actor:Self *Var1 )
-   64:  		Mul   *Var0  00000064
-   74:  		Div   *Var0  *Var1
-   84:  		If  *Var0  <=  00000034
-   94:  			Call  RandInt   ( 000003E8 *Var0 )
-   A8:  			If  *Var0  <  000001F4
-   B8:  				ExecWait  $Script_BigHeal
-   C4:  				Return
-   CC:  			EndIf
-   D4:  		EndIf
-   DC:  	EndCaseGroup
-   E4:  EndSwitch
    EC:  Call  RandInt   ( 000003E8 *Var0 )
   100:  If  *Var0  <  000001F4
   110:  	ExecWait  $Script_8021A6D8
@@ -205,7 +148,7 @@
   124:  	Call  $Function_802184F8    ( *Var0 )
   134:  	If  *Var0  ==  00000000
   144:  		ExecWait  $Script_8021B22C
-  145:			ExecWait  $Script_BigHeal
+  145:			ExecWait  $Script_8021C004
   150:  	Else
   158:  		ExecWait  $Script_8021A6D8
   159:  		ExecWait  $Script_8021C004

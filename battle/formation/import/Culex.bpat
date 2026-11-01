@@ -2,8 +2,8 @@
 
 #new:Actor $Culex {
 % stats
-[Index]        39b 
-[Level]       140`b 
+[Index]        FBb 
+[Level]       250`b 
 [MaxHP]       240`b 
 [Coins]         0`b 
 [Flags]       00000000 
@@ -42,25 +42,25 @@
 #new:StatusTable $StatusTable_Culex {
 .Status:Normal      0`
 .Status:Default     0`
-.Status:Sleep       5`
+.Status:Sleep       0`
 .Status:Poison      0`
 .Status:Frozen      0`
-.Status:Dizzy       5`
+.Status:Dizzy       0`
 .Status:Fear        0`
 .Status:Static      0`
-.Status:Paralyze    5`
-.Status:Shrink      5`
-.Status:Stop        5`
+.Status:Paralyze    0`
+.Status:Shrink      0`
+.Status:Stop        0`
 .Status:DefaultTurnMod    0`
-.Status:SleepTurnMod      0`
-.Status:PoisonTurnMod     0`
-.Status:FrozenTurnMod     0`
-.Status:DizzyTurnMod      0`
-.Status:FearTurnMod       0`
-.Status:StaticTurnMod     0`
-.Status:ParalyzeTurnMod   0`
-.Status:ShrinkTurnMod     0`
-.Status:StopTurnMod       0`
+.Status:SleepTurnMod     -4`
+.Status:PoisonTurnMod    -4`
+.Status:FrozenTurnMod    -4`
+.Status:DizzyTurnMod     -4`
+.Status:FearTurnMod      -4`
+.Status:StaticTurnMod    -4`
+.Status:ParalyzeTurnMod  -4`
+.Status:ShrinkTurnMod    -4`
+.Status:StopTurnMod      -4`
 .Status:End
 }
 
@@ -74,11 +74,13 @@
    30:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
    48:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
    60:  Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+		Call  SetActorScale     ( .Actor:Self *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_Culex )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_Culex )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_Culex )
 		Call  SetPartAlpha  ( .Actor:Self 1` 0` )
 		Call  BindNextTurn  ( .Actor:Self $StartofBattle )
+		Call     SetMusicTrack 	( 00000000 .Song:RadioGoldenOldies 00000000 00000008 )
    3C:  Return
    44:  End
 }
@@ -107,12 +109,13 @@
    68:  		If  *Var0  !&  00000001 
    78:  			ConstOR  *Var0 00000001 
    88:  			Call  SetActorVar       ( .Actor:Self 00000002 *Var0 )
-		   B8:  	Loop  17` 
-		   C4:  		Add   *Var0  15` 
+					Set  *Var0 0`
+		   B8:  	Loop  51` 
+		   C4:  		Add   *Var0  5` 
 		   D4:  		Call  SetPartAlpha  ( .Actor:Self 00000001 *Var0 )
 		   EC:  		Wait  1`
 		   F8:  	EndLoop
-					
+					Call  ActorSpeak        ( 0008004B .Actor:Self 00000001 FFFFFFFF FFFFFFFF )
   108:  		EndIf
   110:  	Case  ==  0000000C 
   11C:  	Case  ==  0000000B 
@@ -149,7 +152,7 @@
   118:  		ExecWait  DoBurnHit 
   124:  		SetConst  *Var0  00000001 
   134:  		SetConst  *Var1  00EE0000 
-  144:  		ExecWait  DoDeath 
+  144:  		ExecWait  $DeathCulex
   150:  		Return
   158:  	Case  ==  .Event:SpinSmashHit % B
   164:  		SetConst  *Var0  00000001 
@@ -161,7 +164,7 @@
   1BC:  		ExecWait  DoSpinSmashHit 
   1C8:  		SetConst  *Var0  00000001 
   1D8:  		SetConst  *Var1  00EE0000 
-  1E8:  		ExecWait  DoDeath 
+  1E8:  		ExecWait  $DeathCulex
   1F4:  		Return
   1FC:  	Case  ==  .Event:ShockHit % 2F
   208:  		SetConst  *Var0  00000001 
@@ -173,7 +176,7 @@
   280:  		ExecWait  DoShockHit 
   28C:  		SetConst  *Var0  00000001 
   29C:  		SetConst  *Var1  00EE0000 
-  2AC:  		ExecWait  DoDeath 
+  2AC:  		ExecWait  $DeathCulex
   2B8:  		Return
   2C0:  	CaseOR  ==  00000017 % 17
   2CC:  	CaseOR  ==  .Event:Immune % 19
@@ -189,7 +192,7 @@
   350:  		Wait  10`
   35C:  		SetConst  *Var0  00000001 
   36C:  		SetConst  *Var1  00EE0000 
-  37C:  		ExecWait  DoDeath 
+  37C:  		ExecWait  $DeathCulex
   388:  		Return
   390:  	Case  ==  .Event:RecoverStatus % 31
   39C:  		SetConst  *Var0  00000001 
@@ -235,4 +238,72 @@
   4B4:  Call  UseIdleAnimation  ( .Actor:Self .True )
   4C8:  Return
   4D0:  End
+}
+
+#new:Script  $DeathCulex
+{
+	ChildThread
+  378:  Loop
+  384:  	Call  SetActorDispOffset    ( .Actor:Self 00000001 00000000 00000000 )
+  3A0:  	Wait  1`
+  3AC:  	Call  SetActorDispOffset    ( .Actor:Self FFFFFFFF 00000000 00000000 )
+  3C8:  	Wait  1`
+  3D4:  EndLoop
+    EndChildThread
+	Call  SetAnimation      ( .Actor:Self 00000001 00EE0004 )
+	Call  PlaySoundAtActor  ( .Actor:Self 201A )
+  1E8:  	Thread
+  1F0:  		Call     ShakeCam    	( 00000001 00000000 00000005 *Fixed[1.5] )
+  20C:  	EndThread
+	Wait  20`
+	Call  SetAnimation      ( .Actor:Self 00000001 00EE0003 )	%Evaporating sprite
+	Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[0.75] )
+	Thread
+		Call  PlaySoundAtActor  ( .Actor:Self 365 )
+		Wait  20`
+		Call  PlaySoundAtActor  ( .Actor:Self 35C )
+	EndThread
+	Call  PlaySoundAtActor  ( .Actor:Self 33 )
+	Wait  136`
+	Call  StopSound	( 33 )
+	Wait  1`
+	Call  SetActorFlagBits  ( .Actor:Self 00660000 .True ) 
+	Return
+	End
+}
+
+
+
+#new:DefenseTable $DefenseTable_FireCrystal {
+.Element:Normal  0
+.Element:Fire   99`
+.Element:Blast  99`
+.Element:Water  -2`
+.Element:Ice    -2`
+.Element:End
+}
+
+
+#new:DefenseTable $DefenseTable_WaterCrystal {
+.Element:Normal  1
+.Element:Fire   -2`
+.Element:Blast  -2`
+.Element:Water  99`
+.Element:Ice    99`
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_EarthCrystal {
+.Element:Normal  1
+.Element:Shock  -2`
+.Element:Jump   99`
+.Element:Quake  99`
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_WindCrystal {
+.Element:Normal  0`
+.Element:Jump   -1`
+.Element:Shock  99`
+.Element:End
 }

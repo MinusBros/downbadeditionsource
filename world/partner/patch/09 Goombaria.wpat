@@ -1,0 +1,815 @@
+%patch everything
+
+% Script File: 09 Goombaria.wscr
+% Decoded from: 324F10 to 325070 (09 Goombaria)
+
+/%
+@ $Function_Init
+{
+    0:  LI        V0, 18
+    4:  SH        V0, A8 (A0)
+    8:  LI        V0, 14
+    C:  JR        RA
+   10:  SH        V0, A6 (A0)
+}
+%/
+
+@ $Function_802BD114
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  BEQ       A1, R0, .o1C
+   10:  LW        S0, 14C (A0)
+   14:  JAL       ~Func:partner_init_get_out
+   18:  COPY      A0, S0
+        .o1C
+   1C:  JAL       ~Func:partner_get_out
+   20:  COPY      A0, S0
+		SAW       R0, $EffectPointer				%Fixes a rare crash?
+   24:  LW        RA, 14 (SP)
+   28:  LW        S0, 10 (SP)
+   2C:  SLTU      V0, R0, V0
+   30:  JR        RA
+   34:  ADDIU     SP, SP, 18
+}
+
+@ $Function_802BD14C
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  LA        S1, 8010F290
+   10:  SW        RA, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, 14C (A0)
+   1C:  BEQ       A1, R0, .o2C
+   20:  COPY      A0, S0
+   24:  JAL       ~Func:partner_walking_enable
+   28:  LI        A1, 1
+        .o2C
+   2C:  JAL       ~Func:partner_walking_update_player_tracking
+   30:  COPY      A0, S0
+   34:  JAL       ~Func:partner_walking_update_motion
+   38:  COPY      A0, S0
+   3C:  LW        V0, 31C (S1)
+   40:  ADDIU     V0, V0, 1
+   44:  SW        V0, 31C (S1)
+   48:  LW        RA, 18 (SP)
+   4C:  LW        S1, 14 (SP)
+   50:  LW        S0, 10 (SP)
+   54:  CLEAR     V0
+   58:  JR        RA
+   5C:  ADDIU     SP, SP, 20
+}
+
+/%
+@ $Function_802BD1AC
+{
+    0:  JR        RA
+    4:  LI        V0, 2
+}
+%/
+
+@ $Function_802BD1B4
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 14 (SP)
+    8:  SW        S0, 10 (SP)
+    C:  BEQ       A1, R0, .o1C
+   10:  LW        S0, 14C (A0)
+   14:  JAL       ~Func:partner_init_put_away
+   18:  COPY      A0, S0
+        .o1C
+   1C:  JAL       ~Func:partner_put_away
+   20:  COPY      A0, S0
+   24:  LW        RA, 14 (SP)
+   28:  LW        S0, 10 (SP)
+   2C:  SLTU      V0, R0, V0
+   30:  JR        RA
+   34:  ADDIU     SP, SP, 18
+}
+
+@ $Script_TakeOut
+{
+    0:  Call  $Function_802BD114 ( )
+    C:  Return
+   14:  End
+}
+
+@ $Script_UseAbility
+{
+    0:  Call  $Function_802BD14C ( )
+    C:  Return
+   14:  End
+}
+
+@ $Script_Update
+{
+    0:  Call  $Function_802BD1AC ( )
+    C:  Return
+   14:  End
+}
+
+@ $Script_PutAway
+{
+    0:  Call  $Function_802BD1B4 ( )
+    C:  Return
+   14:  End
+}
+
+
+
+
+
+%copy the twink code
+%its surprisingly simple (mostly prewritten functions)
+
+%uses global pointer $MagicBlastBool
+%also assumes pit is area 29 (0x1D) and temple is area 30 (0x1E)
+%global patch
+/%
+#export:Data $MagicBlastBool
+{
+	00000000
+}
+
+@Hook 1C938
+{
+	%Hard code this to fail when in the pit (pit floor != 0)
+	LAB		V0, 800DBD75			%Pit floor
+	BNE		V0, R0, .end
+	ORI		V0, R0, 0
+	LAW 	V0, $MagicBlastBool
+	.end
+	J		80041540
+	NOP
+}
+%/
+
+
+@ $Function_Init
+{
+    0:  LI        V0, 14
+    4:  SH        V0, A8 (A0)
+		SAW 	  R0, $IsCasting
+		SAW		  R0, $MagicBlastBool
+    8:  JR        RA
+    C:  SH        V0, A6 (A0)
+}
+
+@ $Function_802BD14C
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  LA        S1, 8010F290
+   10:  SW        RA, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, 14C (A0)
+   1C:  BEQ       A1, R0, .o2C
+   20:  COPY      A0, S0
+   24:  JAL       ~Func:partner_flying_enable
+   28:  LI        A1, 1
+        .o2C
+   2C:  JAL       ~Func:partner_flying_update_player_tracking
+   30:  COPY      A0, S0
+   34:  JAL       ~Func:partner_flying_update_motion
+   38:  COPY      A0, S0
+   3C:  LW        V0, 320 (S1)
+   40:  ADDIU     V0, V0, 1
+   44:  SW        V0, 320 (S1)
+   48:  LW        RA, 18 (SP)
+   4C:  LW        S1, 14 (SP)
+   50:  LW        S0, 10 (SP)
+   54:  CLEAR     V0
+   58:  JR        RA
+   5C:  ADDIU     SP, SP, 20
+}
+
+
+
+%not sure what this does, but it clears player tracking some time
+%it's in all the partner abilities I think
+#new:Function $Function_MoveReset
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  LA        A1, 8010C954
+    C:  SW        RA, 10 (SP)
+   10:  LW        V0, 0 (A1)
+   14:  BEQ       V0, R0, .o38
+   18:  NOP
+   1C:  LAW       V1, $???_ResetByte
+   24:  LW        V0, 8 (V1)
+   28:  SW        R0, 0 (A1)
+   2C:  SW        V0, 0 (A0)
+   30:  JAL       ~Func:partner_clear_player_tracking
+   34:  SW        R0, 4 (V1)
+        .o38
+   38:  LW        RA, 10 (SP)
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
+
+#new:Unknown $???_ResetByte
+{
+	$???_PointerDestination %$End[20]
+}
+
+%these "end" things are overwriting my code and crashing things :(
+#new:Unknown $???_PointerDestination
+{
+	00000000
+}
+
+
+
+%This is the actual ability function (pretty sure that star rod switched the names)
+
+
+%try to do this with scripting?
+/%
+@ $Script_Update
+{
+    0:  Call  $Function_802BD1AC ( )
+    C:  Return
+   14:  End
+}
+%/
+
+
+%Current problems
+%	Need to figure out how to reset state back to normal correctly (Current version only lets you cast once and never again)
+%	Fix position oddities
+%	Make her go to mario's position and rotation to make aiming easier / not terrible
+
+
+%mostly using bombettes function for reference here
+@ $Function_802BD1AC
+{
+	%push stuff
+	PUSH	RA, S0, S1, S2, S3, S4, S5, S6
+	%get some addresses for later
+	COPY      S2, A0
+	COPY      S6, A0
+	LW        S1, 14C (S2)
+	LA        S3, 8010EFC8
+	LA        S4, 8015A550
+	LA        S5, 8010EBB0
+	%are you allowed to use the ability right now?
+	LAB       V0, 800B0F18
+	BNE       V0, R0, .return	%return with value 0?
+	CLEAR     V0
+	%this weird function is in all the ability functions, it resets some movement stuff?
+	BEQ       A1, R0, .skipmovereset
+	NOP
+	JAL       $Function_MoveReset
+	COPY      A0, S1
+	LI        V0, 0					%Initial state = 0
+	SW        V0, 70 (S2)
+    .skipmovereset
+	LW        V1, 70 (S2)	
+	%check state
+	.statecheck
+	BEQ       V1, R0, .gotomario	%state 0
+	LI        V0, 1
+	BEQ       V1, V0, .chargeenergy	%state 1
+	LI        V0, 2
+	BEQ       V1, V0, .shootmagic	%state 2
+	LI        V0, 3
+	BEQ       V1, V0, .spellout	%state 3
+	LI        V0, 4
+	BEQ       R0, R0, .reset		%state 4+
+	NOP
+	%go to mario
+	.gotomario
+	LB        V0, 15 (S3)
+	BNE       V0, R0, .return
+	LI        V0, 2
+	LW        V0, 0 (S3)
+	ANDI      V0, V0, 2
+	BNE       V0, R0, .return
+	LI        V0, 2
+	%	Get rid of this check (no idea what it is, maybe a grounded check?)
+	%LW        V0, 0 (S1)
+	%ANDI      V0, V0, 1000
+	%BEQ       V0, R0, .return
+	%LI        V0, 2
+	JAL       ~Func:disable_player_input
+	NOP
+	LB        V0, 15 (S3)
+	LI        A0, 1
+	SW        V0, 7C (S2)
+	LW        V0, 0 (S1)
+	LI        V1, F5B7
+	SAW       A0, $ControlDisabled
+	SAW       R0, $IsCasting
+	%SAW       R0, $End[10]
+	SAW       R0, $EffectPointer
+	AND       V0, V0, V1
+	SW        V0, 0 (S1)
+	LI        V0, 3
+	SB        A0, 0 (S5)	
+	LWC1      F0, 80 (S3)	%mario yaw
+	SWC1      F0, C (S1)	%partner yaw	
+	%X pos is not offset (this might look weird, may change later)
+	LWC1      F0, 28 (S3)
+	SWC1      F0, 38 (S1)	
+	%Y pos is offset by 15 (hopefully this doesn't make aiming too hard)
+	LWC1      F0, 2C (S3)
+	LIF	      F2, 15.0
+	ADD.S     F0, F0, F2
+	SWC1      F0, 3C (S1)		
+	%Z pos is offset by 5 to make her appear in front of mario
+	LWC1      F0, 30 (S3)
+	LIF	      F2, 5.0
+	ADD.S     F0, F0, F2
+	SWC1      F0, 40 (S1)	
+	%animation
+	LI        A0, 00060005
+	JAL       ~Func:suggest_player_anim_clearUnkFlag
+	NOP
+	LI	      V1, 1
+	SW        V1, 70 (S2) %state
+	LI		  V0, 5		  %Duration (use this to make sure the update works right)
+	SW        V0, 74 (S2) %countdown
+	%charge for a little bit
+	.chargeenergy
+	%animation
+	LI        A1, 00FC0013
+	SW        A1, 28 (S1)
+	%countdown
+	LW        V0, 74 (S2)
+	ADDI	  V0, V0, FFFF
+	SW        V0, 74 (S2)
+	BGT		  V0, R0, .return			
+	ORI		  V0, R0, 0	
+	LI	      V1, 2
+	SW        V1, 70 (S2)		
+	%now shoot some magic
+	.shootmagic
+	%animation
+	LI        A1, 00FC0014
+	SW        A1, 28 (S1)	
+	%magic noise
+	LI		  A0, 20D5
+	CLEAR     A1
+	JAL       ~Func:sfx_play_sound_at_npc
+	LI        A2, FFFC
+	%get x,y,z for starting pos
+	LWC1      F20, 38 (S1)
+	LWC1      F22, 3C (S1)
+	LWC1      F24, 40 (S1)
+	%Create a ray in the right direction
+	%	 90 degrees = +X
+	%	180 degrees = +Z
+	%	so...
+	%		X = sin ( yaw )
+	%		Z = -cos ( yaw )
+	%sin / cos have F12 as the input and F0 as the output
+	LW        A2, C (S1)					%yaw
+	MTC1	  A2, F12
+	JAL		  ~Func:sin_deg
+	NOP
+	MOV.S 	  F26, F0
+	LW        A2, C (S1)					%yaw
+	MTC1	  A2, F12
+	JAL		  ~Func:cos_deg
+	NOP
+	MOV.S 	  F30, F0
+	NEG.S	  F30, F30	
+	LIF		  F18, 160.0						%length
+	%
+	MUL.S	  F26, F26, F18
+	ADD.S	  F26, F26, F20
+	MOV.S	  F28, F22
+	LIF		  F18, 20.0
+	ADD.S	  F28, F28, F18
+	LIF		  F18, 160.0						%length
+	MUL.S	  F30, F30, F18
+	ADD.S	  F30, F30, F24
+	%
+	LI		  T0, 10		%Duration
+	ADDI	  SP, SP, -28	%should be enough to not mess up the other stack stuff	(Ok for stupid reasons I have to keep this 8 aligned because it has to push + pop doubles and not having it aligned causes address errors)
+	CLEAR	  A0			%subtype 0
+	LI		  A0, 50		%actually 50
+	MFC1      A1, F20		%start x,y,z
+	MFC1      A2, F22
+	MFC1      A3, F24
+	SWC1      F26, 10 (SP)	%end x,y,z
+	SWC1      F28, 14 (SP)
+	SWC1      F30, 18 (SP)
+	JAL       8006FF50					%magic
+	SW        T0, 1C (SP)
+	ADDI	  SP, SP, 28	
+	%use return value
+	SAW       V0, $EffectPointer
+	LAB		  V0, 800740AB	%Area byte		<-- not *GB_WorldLocation (that is 800DBD70 + 1A9 / 800DBF19) (also, the locations in this byte are completely different from the world location byte)
+	LI	      AT, 1D
+	BEQ		  V0, AT, .paststore
+	NOP
+	LI	      AT, 1E
+	BEQ		  V0, AT, .paststore
+	NOP
+	LI		  V0, 1
+	SAW		  V0, $MagicBlastBool				
+	.paststore
+	LI		  V0, 1
+	SAW       V0, $IsCasting
+	LI		  V0,  F		%Duration (use this to make sure the update works right)
+	SW        V0, 74 (S2)
+	LI	      V1, 3
+	SW        V1, 70 (S2)		
+	.spellout
+	%spell is in the world, do stuff
+	%Possible explanation for weird crash: it reads uninitialized data for one frame that looks enough like a pointer
+	%doesn't really make sense since this section must come after the effect pointer is set
+	%Also it reads data from C + effect pointer, so it looks like the effect pointer is just pointing to illegal data
+	%Probably a rare effect table setup problem
+	LAW		  V0, $EffectPointer
+	LW		  V1, C (V0)
+	LUI		  T0, 8000
+	AND		  T0, V1, T0
+	BEQ		  T0, R0, .postspellout		%Fix a rare crash?
+	NOP
+	%need a bonus check, note that the valid RAM space for the effect pointer starts with 0x80-
+	LUI		  T0, 7F00
+	AND		  T0, V1, T0
+	BNE		  T0, R0, .postspellout		%Fix a rare crash?
+	NOP	
+	LW		  V0, 10 (V1)
+	LW		  T0, 4 (V1)
+	MTC1	  V0, F0
+	MTC1	  T0, F2
+	ADD.S	  F0, F0, F2
+	MFC1	  V0, F0
+	SAW		  V0, $MagicPosition[0]
+	LW		  V0, 14 (V1)
+	LW		  T0, 8 (V1)
+	MTC1	  V0, F0
+	MTC1	  T0, F2
+	ADD.S	  F0, F0, F2
+	MFC1	  V0, F0
+	SAW		  V0, $MagicPosition[4]
+	LW		  V0, 18 (V1)
+	LW		  T0, C (V1)
+	MTC1	  V0, F0
+	MTC1	  T0, F2
+	ADD.S	  F0, F0, F2
+	MFC1	  V0, F0
+	SAW		  V0, $MagicPosition[8]	
+	LW        V0, 74 (S2)
+	ADDI	  V0, V0, FFFF
+	SW        V0, 74 (S2)
+	BGT		  V0, R0, .return			
+	ORI		  V0, R0, 0
+	.postspellout
+	SAW       R0, $EffectPointer
+	SAW       R0, $IsCasting
+	SAW		  R0, $MagicBlastBool				
+	LI	      V1, 4
+	SW        V1, 70 (S2)			
+	%done with stuff, reset things
+	.reset
+	%Copied from the before battle function
+	LI        A0, 00010002
+	JAL       ~Func:suggest_player_anim_clearUnkFlag
+	NOP
+	LA        V0, 8010EBB0
+	LB        V1, 0 (V0)
+	BEQ       V1, R0, .o170
+	COPY      S2, V0
+	LAW       V0, $ControlDisabled		%if control is disabled, reenable it
+	BEQL      V0, R0, .o54
+	CLEAR     A0
+	JAL       ~Func:enable_player_input
+	NOP
+	CLEAR     A0
+    .o54
+	%Convert these variables
+	%in the before battle function...
+	%	S0 = A0
+	%	S1 = 8010EFC8
+	%	S2 = 8010EBB0
+	%in this function...
+	%	S1 = 14C (S2)
+	%	S2 = A0
+	%	S3 = 8010EFC8
+	%	S4 = 8015A550
+	%	S5 = 8010EBB0
+	%	S6 = A0			<-- S2 gets overwritten somewhere so I need another one
+	%so...
+	%	S0 -> S6
+	%	S1 -> S3
+	%	S2 -> S5
+	LW        V0, 0 (S3)
+	LI        V1, FFFD
+	SAW       R0, $IsCasting		%set active state to 0
+	AND       V0, V0, V1
+	SW        V0, 0 (S3)
+	LW        V0, 0 (S6)
+	LI        V1, F7FF
+	SW        R0, 1C (S6)
+	AND       V0, V0, V1
+	JAL       ~Func:set_action_state
+	SW        V0, 0 (S6)
+	JAL       ~Func:partner_clear_player_tracking
+	COPY      A0, S0
+	LWC1      F0, 28 (S3)
+	SB        R0, 0 (S5)
+	JAL		  ~Func:enable_partner_ai	%Fix things? (without it she teleports to 0,0,0 after this)
+	SB        R0, 3 (S5)
+	SWC1      F0, 38 (S6)
+	LWC1      F0, 2C (S3)
+	ADDIU     S2, S0, 38
+	SWC1      F0, 3C (S6)
+	LWC1      F0, 30 (S3)
+	LI		  V0, 2			%now finally stop calling this function
+        .o170
+	%
+	%pop stuff and return
+	.return
+	JPOP	RA, S0, S1, S2, S3, S4, S5, S6
+}
+
+%time for a new overworld ability
+%it just kills weak enemies though
+
+%magic beam effect = 8006FF50
+
+
+%How will this work?
+%	fly towards mario
+%	cast the spell
+%	(spell needs hitbox and collision detection)
+%		Handle this with the hit test function
+%	regain movement
+
+
+
+%Other stuff
+%	Calculate whether magic blast hits
+%	Do stuff before battle (reset stuff)
+
+
+%800B0F10 = some special world pointer
+%	+ 5 = encounter start type
+
+%	Encounter start type 6 = partner move
+
+%set at 8003FE50
+%  684:  SB        V0, 5 (S3)
+%1ABCC --> 8003F7CC
+%@ $Function_update_encounters_neutral
+
+%Function that determines if a partner is hitting a certain enemy
+%bool isColliding : enemy* testEnemy
+/%
+% 00084A94 --> 800EB5E4
+@ $Function_partner_test_enemy_collision
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  LAW       V0, 8010CFD8		%enemy pointer to check against	(Note: Enemies don't always check collision)
+    C:  COPY      A1, A0
+   10:  BEQ       V0, R0, .o44
+   14:  SW        RA, 10 (SP)
+   18:  LAW       V0, 8010CFEC		
+   20:  LW        V0, 28 (V0)		%function for determining what to do
+   24:  BEQL      V0, R0, .o48
+   28:  CLEAR     V0
+   2C:  LAW       A0, 8010C930		%partner pointer
+   34:  JALR      V0, RA
+   38:  NOP
+   3C:  BEQ       R0, R0, .o48
+   40:  NOP
+        .o44
+   44:  CLEAR     V0
+        .o48
+   48:  LW        RA, 10 (SP)
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+%/
+
+%Check if enemies should be hit
+%try copying bombettes code here
+
+%This code does three things to check if an enemy should be hit
+%	checks if an explosion is happening (Skip everything if no)
+%	checks if enemy is within the radius of the blast
+%	does a raycast check to see if the path of the blast to the enemy is unobstructed
+
+%A0 = partner (becomes S0)
+%A1 = enemy
+%	Change this to check against the float table positions
+#new:Function $Function_TestEnemyCollision
+{
+    0:  LAW       V0, $IsCasting		%some kind of "is exploding" bool
+    8:  ADDIU     SP, SP, FF90
+    C:  SW        S0, 30 (SP)
+   10:  SW        RA, 38 (SP)
+   14:  SW        S1, 34 (SP)
+   18:  SDC1      F30, 68 (SP)
+   1C:  SDC1      F28, 60 (SP)
+   20:  SDC1      F26, 58 (SP)
+   24:  SDC1      F24, 50 (SP)
+   28:  SDC1      F22, 48 (SP)
+   2C:  SDC1      F20, 40 (SP)
+   30:  BNE       V0, R0, .o40		%if exploding, go to o40
+   34:  COPY      S0, A0
+   38:  BEQ       R0, R0, .o19C		%return 0
+   3C:  CLEAR     V0
+        .o40
+   40:  LH        V0, A8 (A1)		%load A8 + (A1) (what is this?)
+   44:  LIF       F1, 1.75			%load 1.75 into F1 
+   4C:  MTC1      R0, F0			%	F0/F1 = 0.5d
+   50:  MTC1      V0, F2			%load V0 into F2
+   54:  NOP
+   58:  CVT.D.W   F2, F2			%convert F2 from int to double
+   5C:  MUL.D     F2, F2, F0		%F2 *= 0.5 
+   60:  NOP
+   64:  LH        V0, A6 (A1)		%load A6 + (A1) (what is this?)
+   68:  LAD       F0, $MagicRadius	%load some radius	to F0/F1
+   70:  MTC1      V0, F6			%move V0 to F6
+   74:  NOP
+   78:  CVT.D.W   F6, F6			%convert F6 from int to double
+   7C:  MUL.D     F6, F6, F0		%F6 *= some radius
+   80:  NOP
+   84:  LWC1      F26, 38 (A1)		%load 38 + (A1) (X pos of enemy?)
+   %88:  LWC1      F28, 38 (S0)		%load 38 + (S0) (X pos of partner?)
+		LAW		  T0, $MagicPosition[0]
+		MTC1	  T0, F28
+   8C:  SUB.S     F8, F26, F28		%F8 = F26 - F28 (x displacement)
+   90:  MUL.S     F10, F8, F8		%F10 = F8 ^ 2
+   94:  NOP
+   98:  LWC1      F4, 3C (A1)		%Load 3C + (A1) (Y pos of enemy?)
+   9C:  CVT.S.D   F2, F2			%convert F2 to single
+   A0:  ADD.S     F4, F4, F2		%F4 += F2
+   %A4:  LWC1      F0, 3C (S0)		%load 3C + (S0)	(Y pos of partner?)
+		LAW		  T0, $MagicPosition[4]
+		MTC1	  T0, F0
+   A8:  SUB.S     F4, F4, F0		%F4 -= F0 (y displacement)
+   AC:  MUL.S     F12, F4, F4		%F12 = F4 ^ 2
+   B0:  NOP
+   B4:  LWC1      F22, 40 (A1)		%Load 40 + (A1)	(Z pos of enemy?)
+   %B8:  LWC1      F24, 40 (S0)		%load 40 + (S0) (Z pos of partner?)
+		LAW		  T0, $MagicPosition[8]
+		MTC1	  T0, F24
+   BC:  SUB.S     F0, F22, F24		%F0 = F22 - F24 (z displacement)
+   C0:  MUL.S     F2, F0, F0		%F2 = F0 ^ 2
+   C4:  NOP
+   C8:  LIF       F30, 35.0			%Load 35 into F30
+   D0:  ADD.S     F10, F10, F12		%Add (X^2 + Y^2)
+   D4:  SWC1      F8, 20 (SP)		%Store X displacement for some reason
+   D8:  CVT.S.D   F20, F6			%convert some radius to single in F20?
+   DC:  ADD.S     F12, F10, F2		%Add (X^2 + Y^2 + Z^2) = (Dist ^ 2)
+   E0:  SWC1      F0, 28 (SP)		%store Z displacement for some reason
+   E4:  SQRT.S    F2, F12			%Find square root of F12 put it in F2 		= Distance between partner and enemy?
+   E8:  C.EQ.S    F2, F2			%If F2 == F2 (true)
+   EC:  NOP
+   F0:  BC1T      .o104				%Go to 104
+   F4:  SWC1      F4, 24 (SP)		%store Y displacement for some reason
+   F8:  JAL       ~Func:sqrtf		%(Skipped) find square root 	(<-- why is this even here then?)
+   FC:  NOP
+  100:  MOV.S     F2, F0
+        .o104
+  104:  ADD.S     F0, F20, F30		%F0 = (some radius) + 35
+  108:  C.LT.S    F2, F0			%F2 (Dist) < F0 (radius + 35)
+  10C:  NOP
+  110:  BC1F      .o11C				%if distance >= radius, go to 11C
+  114:  CLEAR     S1				%S1 = 0 (if not in radius, set to 0, otherwise set to 1)
+  118:  LI        S1, 1				%S1 = 1
+        .o11C
+  11C:  MOV.S     F12, F26			%enemy X pos?
+  120:  MFC1      A2, F28			%partner X pos?
+  124:  MFC1      A3, F24			%partner Z pos?
+  128:  JAL       ~Func:atan2
+  12C:  MOV.S     F14, F22			%enemy Z pos?
+  130:  MOV.S     F12, F26			%enemy X pos?
+  134:  MOV.S     F14, F22			%enemy Z pos?
+  138:  MFC1      A2, F28			%partner X pos?
+  13C:  MFC1      A3, F24			%partner Z pos?
+  140:  JAL       ~Func:dist2D
+  144:  MOV.S     F20, F0			%move result of atan2 to F20
+  148:  ADDIU     A2, SP, 24		%A2 = SP + 24 (???)
+  14C:  ADDIU     A3, SP, 28		%A3 = SP + 28 (???)
+  150:  CLEAR     A0				%A0 = 0	(do not ignore flags)
+  %154:  LWC1      F2, 38 (S0)		%X pos of partner
+  %158:  LWC1      F4, 3C (S0)		%Y pos of partner
+  %15C:  LWC1      F6, 40 (S0)		%Z pos of partner
+		LAW		  T0, $MagicPosition[0]
+		MTC1	  T0, F2
+		LAW		  T0, $MagicPosition[4]
+		MTC1	  T0, F4
+		LAW		  T0, $MagicPosition[8]
+		MTC1	  T0, F6
+  160:  LIF       F8, 2.0			%load 2 to F8
+  168:  ADDIU     A1, SP, 20		%A1 = SP + 20 (???)
+  16C:  SWC1      F2, 20 (SP)		%Store X pos of partner
+  170:  SWC1      F4, 24 (SP)		%Store Y pos of partner
+  174:  SWC1      F6, 28 (SP)		%Store Z pos of partner
+  178:  SWC1      F0, 10 (SP)		%dist2D result
+  17C:  SWC1      F20, 14 (SP)		%yaw
+  180:  SWC1      F30, 18 (SP)		%radius?
+  184:  JAL       ~Func:npc_test_move_taller_with_slipping
+  188:  SWC1      F8, 1C (SP)		%2
+  18C:  COPY      V1, V0			%Result of raycast
+  190:  BNE       V1, R0, .o19C			%if V1 != 0, go to 19C (Return 0)
+  194:  CLEAR     V0
+  198:  COPY      V0, S1				%return (value of S1)
+        .o19C							%The end
+  19C:  LW        RA, 38 (SP)
+  1A0:  LW        S1, 34 (SP)
+  1A4:  LW        S0, 30 (SP)
+  1A8:  LDC1      F30, 68 (SP)
+  1AC:  LDC1      F28, 60 (SP)
+  1B0:  LDC1      F26, 58 (SP)
+  1B4:  LDC1      F24, 50 (SP)
+  1B8:  LDC1      F22, 48 (SP)
+  1BC:  LDC1      F20, 40 (SP)
+  1C0:  JR        RA
+  1C4:  ADDIU     SP, SP, 70
+}
+
+%defaults to -1000 -1000 -1000
+%there really shouldn't be anything that far away
+%	most out of bounds stuff gets stored at 0, -1000, 0 which is not here
+#new:FloatTable $MagicPosition
+{
+	-1000.0 -1000.0 -1000.0
+}
+
+#new:ConstDouble $MagicRadius
+{
+	0.700000d
+}
+
+#new:IntTable $IsCasting
+{
+	00000000
+}
+
+#new:IntTable $ControlDisabled
+{
+	00000000
+}
+
+#new:IntTable $EffectPointer
+{
+	00000000
+}
+
+
+%use the before battle function to reset things
+%also copied this from bombettes file but I have to remove a lot of it
+#new:Function $Function_BeforeBattle
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S0, 10 (SP)
+    8:  COPY      S0, A0
+    C:  SW        S1, 14 (SP)
+   10:  LA        S1, 8010EFC8
+   18:  LA        V0, 8010EBB0
+   20:  SW        RA, 20 (SP)
+   24:  SW        S3, 1C (SP)
+   28:  SW        S2, 18 (SP)
+   2C:  LB        V1, 0 (V0)
+   30:  BEQ       V1, R0, .o170
+   34:  COPY      S2, V0
+   38:  LAW       V0, $ControlDisabled		%if control is disabled, reenable it
+   40:  BEQL      V0, R0, .o54
+   44:  CLEAR     A0
+   48:  JAL       ~Func:enable_player_input
+   4C:  NOP
+   50:  CLEAR     A0
+        .o54
+   54:  LW        V0, 0 (S1)
+   58:  LI        V1, FFFD
+   5C:  SAW       R0, $IsCasting		%set active state to 0
+   64:  AND       V0, V0, V1
+   68:  SW        V0, 0 (S1)
+   6C:  LW        V0, 0 (S0)
+   70:  LI        V1, F7FF
+   74:  SW        R0, 1C (S0)
+   78:  AND       V0, V0, V1
+   7C:  JAL       ~Func:set_action_state
+   80:  SW        V0, 0 (S0)
+   84:  JAL       ~Func:partner_clear_player_tracking
+   88:  COPY      A0, S0
+   8C:  LWC1      F0, 28 (S1)
+   90:  SB        R0, 0 (S2)
+   94:  SB        R0, 3 (S2)
+   A0:  SWC1      F0, 38 (S0)
+   A4:  LWC1      F0, 2C (S1)
+   A8:  ADDIU     S2, S0, 38
+   AC:  SWC1      F0, 3C (S0)
+   B0:  LWC1      F0, 30 (S1)
+   B4:  ADDIU     S3, S0, 40
+		SAW		  R0, $MagicBlastBool				   %not sure if I need to delay this
+        .o170
+  170:  LW        RA, 20 (SP)
+  174:  LW        S3, 1C (SP)
+  178:  LW        S2, 18 (SP)
+  17C:  LW        S1, 14 (SP)
+  180:  LW        S0, 10 (SP)
+  184:  JR        RA
+  188:  ADDIU     SP, SP, 28
+}

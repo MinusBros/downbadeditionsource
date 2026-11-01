@@ -26,7 +26,7 @@ ADDIU	V0, R0, 2
 
 @ $Script_802A11FC
 {
-   [D8]  Call  SetActorSpeed ( .Actor:Player *Fixed[15.0] )
+   [D8]  Call  SetActorSpeed ( .Actor:Player *Fixed[16.0] )
 }
 
 %This is the "squatting" script. Remove it to eliminate the need for squat-cancelling
@@ -64,17 +64,17 @@ ADDIU	V0, R0, 2
    3C:  Call  SetGoalToHome ( .Actor:Player )
    4C:  Call  GetGoalPos    ( .Actor:Player *Var0 *Var1 *Var2 )
    68:  Add   *Var0  00000028
+		Call  EnablePlayerBlur  ( FFFFFFFF )
    78:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010008 00010009 )
    98:  Call  SetActorJumpGravity   ( .Actor:Player *Fixed[1.3] )
    AC:  Call  SetGoalPos    ( .Actor:Player *Var0 *Var1 *Var2 )
    C8:  Call  $Function_802A1000 ( )
    D4:  Call  80273444      ( *Var0 00000000 00000000 )
 	   EC:  Call  SetAnimation  ( .Actor:Player 00000000 00010009 )
-	  104:  Wait  1`
+	  104:  Wait  0`
 	  110:  Call  AddGoalPos    ( .Actor:Player  -20`  0`  0` )
 	  12C:  Call  80273444      ( 00000001 00000000 00000002 )
-			Call  EnablePlayerBlur  ( FFFFFFFF )
-	  15C:  Wait  1`
+	  15C:  Wait  0`
 	  178:  Call  SetGoalToHome ( .Actor:Player )
 	  188:  Call  SetActorSpeed ( .Actor:Player *Fixed[16.0] )
 	  19C:  Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
@@ -88,10 +88,10 @@ ADDIU	V0, R0, 2
 @ $Script_802A1A00
 {
    [B4]  Call  SetActorJumpGravity   ( .Actor:Player *Fixed[0.8] )
-  [104]  Wait  1`
+  [104]  Wait  0`
   [12C]  Call  80273444      ( 00000001 00000000 00000002 )
   [144]  Call  SetAnimation  ( .Actor:Player 00000000 0008001B )
-  [15C]  Wait  1`
+  [15C]  Wait  0`
   [188]  Call  SetActorSpeed ( .Actor:Player *Fixed[15.0] )
 }
 
@@ -160,7 +160,7 @@ ADDIU	V0, R0, 2
    94:  Call     SetGoalToTarget 	( .Actor:Player )
    A4:  Call     SetJumpAnimations 	( .Actor:Player 00000000 00010007 0001000A 0001000B )
    C4:  Call     802752AC ( *Var[A] 00000000 )
-   D8:  Wait     00000001 
+   D8:  Wait     0` 
    E4:  Call     802752AC ( 00000003 00000001 )
    F8:  Call     SetGoalToTarget 	( .Actor:Player )
   108:  Call     8024E664 ( 00000022 )
@@ -243,10 +243,20 @@ ADDIU	V0, R0, 2
   128:  Switch  *Var0
   134:  	Case  >  .False
   140:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
-  15C:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 00000050 )
+				Call  GetStatusFlags    ( .Actor:Player *VarC )
+				If  *VarC  !&  ~Flags:StatusFlags:Static
+  15C:  			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 00000050 )
+				Else
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000001 00000050 )
+				EndIf
   180:  	Default
   188:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
-  1A4:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 00000030 )
+				Call  GetStatusFlags    ( .Actor:Player *VarC )
+				If  *VarC  !&  ~Flags:StatusFlags:Static
+  1A4:  			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 00000030 )
+				Else
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000001 00000030 )
+				EndIf
 				Call  PlaySound ( 0000008B )
   1C8:  EndSwitch
   1D0:  Switch  *Var0
@@ -261,7 +271,7 @@ ADDIU	V0, R0, 2
   230:  EndSwitch
   238:  ChildThread
   240:  	Call  UseBattleCamPreset    ( 0000001B )
-  250:  	Wait  5`
+  250:  	Wait  2`
   25C:  	Call  SetGoalToTarget       ( .Actor:Player )
   26C:  	Call  UseBattleCamPreset    ( 00000023 )
   27C:  EndChildThread
@@ -274,9 +284,14 @@ ADDIU	V0, R0, 2
   2E0:  Call  SetGoalToTarget   ( .Actor:Player )
   2F0:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010008 0001000C )
   310:  Call  80274A18  ( 00000018 00000003 )
-  324:  Wait  1`
+  324:  Wait  0`
   330:  Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015A 00000000 )
-  34C:  Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 000000E0 )
+		Call  GetStatusFlags    ( .Actor:Player *VarC )
+		If  *VarC  !&  ~Flags:StatusFlags:Static
+			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000001 000000E0 )
+		Else
+			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000001 000000E0 )
+		EndIf
   370:  Call  80269550  ( *VarF )
   380:  ExecWait  $Script_802A1628
   38C:  Return
@@ -293,15 +308,25 @@ ADDIU	V0, R0, 2
    40:  	ExecWait  $Script_802A203C
    4C:  	Return
    54:  EndIf
-   5C:  Wait  1`
+   5C:  Wait  0`
    68:  Call  DidActionSucceed  ( *Var0 )
    78:  Switch  *Var0
    84:  	Case  >  .False
    90:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
-   AC:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000002 00000050 )
+				Call  GetStatusFlags    ( .Actor:Player *VarC )
+				If  *VarC  !&  ~Flags:StatusFlags:Static
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000002 00000050 )
+				Else
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000002 00000050 )
+				EndIf
    D0:  	Default
    D8:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
-   F4:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000002 00000030 )
+				Call  GetStatusFlags    ( .Actor:Player *VarC )
+				If  *VarC  !&  ~Flags:StatusFlags:Static
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000002 00000030 )
+				Else
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000002 00000030 )
+				EndIf
 				Call  PlaySound ( 0000008B )
   118:  EndSwitch
   120:  Switch  *Var0
@@ -317,7 +342,7 @@ ADDIU	V0, R0, 2
   188:  Call  80269524  ( *VarF )
   198:  ChildThread
   1A0:  	Call  UseBattleCamPreset    ( 0000001B )
-  1B0:  	Wait  5`
+  1B0:  	Wait  2`
   1BC:  	Call  SetGoalToTarget       ( .Actor:Player )
   1CC:  	Call  UseBattleCamPreset    ( 00000023 )
   1DC:  EndChildThread
@@ -330,12 +355,17 @@ ADDIU	V0, R0, 2
   240:  Call  EnablePlayerBlur  ( 00000001 )
   250:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 0001000A 0001000B )
   270:  Call  802752AC  ( 00000014 00000004 )
-  284:  Wait  4`
+		Call  EnablePlayerBlur  ( FFFFFFFF )
+  284:  Wait  2`
   290:  Call  802752AC  ( 00000003 00000005 )
-  2A4:  Call  EnablePlayerBlur  ( FFFFFFFF )
-  2B4:  Wait  1`
+  2B4:  Wait  0`
   2C0:  Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015B 00000000 )
-  2DC:  Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000002 000000E0 )
+		Call  GetStatusFlags    ( .Actor:Player *VarC )
+		If  *VarC  !&  ~Flags:StatusFlags:Static
+			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000002 000000E0 )
+		Else
+			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000002 000000E0 )
+		EndIf
   300:  Call  80269550  ( *VarF )
   310:  ExecWait  $Script_802A1628
   31C:  Return
@@ -351,15 +381,25 @@ ADDIU	V0, R0, 2
    40:  	ExecWait  $Script_802A203C
    4C:  	Return
    54:  EndIf
-   5C:  Wait  1`
+   5C:  Wait  0`
    68:  Call  DidActionSucceed  ( *Var0 )
    78:  Switch  *Var0
    84:  	Case  >  .False
    90:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
-   AC:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000003 00000050 )
+				Call  GetStatusFlags    ( .Actor:Player *VarC )
+				If  *VarC  !&  ~Flags:StatusFlags:Static
+   AC:  			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000003 00000050 )
+				Else
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000003 00000050 )
+				EndIf
    D0:  	Default
    D8:  		Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
-   F4:  		Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000003 00000030 )
+				Call  GetStatusFlags    ( .Actor:Player *VarC )
+				If  *VarC  !&  ~Flags:StatusFlags:Static
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000003 00000030 )
+				Else
+					Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000003 00000030 )
+				EndIf
 				Call  PlaySound ( 0000008B )
   118:  EndSwitch
   120:  Switch  *Var0
@@ -375,10 +415,11 @@ ADDIU	V0, R0, 2
   188:  Call  80269524  ( *VarF )
   198:  ChildThread
   1A0:  	Call  UseBattleCamPreset    ( 0000001C )
-  1B0:  	Wait  5`
+  1B0:  	Wait  2`
   1BC:  	Call  SetGoalToTarget       ( .Actor:Player )
   1CC:  	Call  UseBattleCamPreset    ( 00000023 )
   1DC:  EndChildThread
+		Call  EnablePlayerBlur  ( FFFFFFFF )
   1E4:  Call  CloseActionCommandInfo ( )
   1F0:  Call  LoadActionCommand ( .ActionCommand:Jump )
   200:  Call  802A9000 ( )
@@ -388,10 +429,14 @@ ADDIU	V0, R0, 2
   240:  Call  EnablePlayerBlur  ( 00000001 )
   250:  Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010007 0001000C )
   270:  Call  80275F00  ( 00000019 00000004 )
-  284:  Call  EnablePlayerBlur  ( FFFFFFFF )
-  294:  Wait  1`
+  294:  Wait  0`
   2A0:  Call  SetActorSounds    ( .Actor:Player .ActorSound:Hurt 0000015C 00000000 )
-  2BC:  Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000003 000000E0 )
+		Call  GetStatusFlags    ( .Actor:Player *VarC )
+		If  *VarC  !&  ~Flags:StatusFlags:Static
+			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump 00000000 00000000 00000003 000000E0 )
+		Else
+			Call  PlayerDamageEnemy ( *Var0 ~Flags:DamageType:Jump|Electric 00000000 00000000 00000003 000000E0 )
+		EndIf
   2E0:  Call  80269550  ( *VarF )
   2F0:  ExecWait  $Script_802A1628
   2FC:  Return

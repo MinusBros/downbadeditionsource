@@ -1,6 +1,30 @@
+#define .Npc:Luigi  20
+
 @	$Script_Main
 {
-  [10] Call  SetSpriteShading  ( .Shading:mim_01 )
+    0:  Set   *GB_WorldLocation  .Location:CrystalPalace
+   10:  Call  SetSpriteShading  ( .Shading:mim_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  24`  24`  40` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  ExecWait  $Script_MakeEntities
+   90:  Exec  $Script_80240220
+		If    *GB_StoryProgress < .Story:Ch7_DefeatedMirrorDuplighosts
+			If    *GF_PRA05_Chest_BlueKey == .True
+				Call  MakeNpcs  ( .True $NpcGroupList_LuigiPRA03 )
+			EndIf
+		EndIf
+   9C:  If  *GF_PRA04_BoardedFloor  ==  .True
+   AC:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:deilittn 7FFFFE00 )
+   C4:  	Call  EnableModel   ( ~Model:g286 .False )
+   D8:  Else
+   E0:  	Call  EnableModel   ( ~Model:o998 .False )
+   F4:  EndIf
+   FC:  Exec  $Script_EnterDoubleDoor_802404B0
+  108:  Wait  1`
+  114:  Return
+  11C:  End
 }
 
 @	$Script_80240220
@@ -22,4 +46,125 @@
 		EndThread
    1C:  Return
    24:  End
+}
+
+
+#new:NpcGroupList $NpcGroupList_LuigiPRA03
+{
+	1 $Luigi 0
+	00000000 00000000 00000000
+}
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` $LuigiTattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 $LuigiInteract )
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
+}
+
+
+
+#string $LuigiInteract
+{
+[Style Right]
+Oh, hey, Bro![BR]
+What are you doing out here?[BR]
+[Pause 10]This place is-a fun.[BR]
+It's one of those mirror houses.[BR]
+[Wait][Next]
+You know,[Pause 3] like at the [Rainbow]amusement[BR]
+parks[/fx]? Those are fun.[BR]
+[Pause 5]I wanna practice my trapeze skills, cuz[BR]
+I'm a [SaveColor][Color:03]green hero[RestoreColor]! Yahoo![BR]
+[Wait][Next]
+I'd be really worried if a big[BR]
+blobby guy came out of nowhere and[BR]
+ambushed me, though.[BR]
+[Pause 10]I'd hate that.[BR]
+[Wait][Next]
+Even worse if he's the last guy[BR]
+after I fought so many other bosses.[BR]
+[Pause 12][Shake]The time limit is gonna get to me![/fx][BR]
+[Wait][Next]
+I'ma go and score some hoops.[BR]
+Later, Bro![BR]
+[Wait][End]
+}
+
+
+#string $LuigiTattle
+{
+[Style Tattle]
+[EnableCDownNext]
+Oh, it's not your reflection.[BR]
+It's just Luigi. [Pause 5]How lame.[BR]
+Why is he here exactly?[BR]
+[Wait][Next]
+Don't ask questions you[BR]
+aren't ready to hear the[BR]
+answers to.[BR]
+[Wait][Next]
+Just like Mrs. Porcupuffer[BR]
+said. Right, Mario?[BR]
+[Wait][Next]
+Oh, c'mon. You don't?[BR]
+[Pause 10]All I know is she taught[BR]
+me how to Go-Kart.[BR]
+[Wait][Next]
+Why don't we have one?[BR]
+I could put up girls faster[BR]
+with one.[BR]
+[Wait][End]
 }

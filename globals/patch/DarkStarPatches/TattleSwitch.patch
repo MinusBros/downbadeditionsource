@@ -8,54 +8,6 @@
 %Setting the tattle at the start of battle only will work if you have all enemies using that table entry using a function
 %However, a better way is to reset at the end of battle (The poptattles method is good)
 
-%I have set it up so that the PopTattles function is called before battle so you go into battle with all original tattles
-%I found code that runs every time you enter battle, but not code that always runs when exiting battle
-
-#export:Function $Function_SetTattle %( word ) 
-{
-PUSH RA, A0, A1, S0 
-JAL		~Func:get_variable
-LW		A1, 0 (S0) %get argument 1
-COPY	S0, V0
-LW 		A0, 148 (S1) %script owner id?
-JAL		80269D6C %{Func:GetActor}
-NOP
-LBU     A0, 136 (V0)	%Get actor type
-SLL		A0, A0, 2 	%make it 4 bytes wide
-STW		S0, A0 ($Global_ActorTattleTable)	%hm?
-POP RA, A0, A1, S0
-JR	RA
-ADDIU	V0, R0, 2
-}
-
-%Uses push table
-#export:Function $Function_SetTattle_B %( word ) 
-{
-PUSH RA, A0, A1, S0, S1, S2
-JAL		~Func:get_variable
-LW		A1, 0 (S0) %get argument 1
-COPY	S0, V0
-LW 		A0, 148 (S1) %script owner id?
-JAL		80269D6C %{Func:GetActor}
-NOP
-LBU     A0, 136 (V0)	%Get actor type
-COPY	S2, A0
-%COPY	A0, V0
-%COPY	A1, S0
-%Get the original tattle!
-COPY	A1, A0
-SLL		A1, A1, 2
-LTW		A1, A1 ($Global_ActorTattleTable)	%hm?
-JAL		$AddToTattlePushTable
-NOP
-COPY	A0, S2
-%LBU     A0, 136 (V0)	%Get actor type
-SLL		A0, A0, 2 	%multiply by 4 to fix index
-STW		S0, A0 ($Global_ActorTattleTable)	%hm?
-POP RA, A0, A1, S0, S1, S2
-JR	RA
-ADDIU	V0, R0, 2
-}
 
 %Uses 2 args
 %No actor pointer

@@ -1,0 +1,76 @@
+@	$Function_802A123C
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A1, E
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   20:  LW        A2, 84 (V0)
+   24:  LW        S1, 1F4 (S0)
+   28:  JAL       ~Func:inflict_status
+   2C:  COPY      A0, S0
+   30:  SB        R0, 21C (S0)
+   34:  LW        V1, 0 (S1)
+   38:  ORI       V1, V1, 100
+   3C:  SW        V1, 0 (S1)
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  LI        V0, 2
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_Vanish1Turn
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  COPY      V0, A0
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A1, E
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   20:  LW        A2, 84 (V0)
+   24:  LW        S1, 1F4 (S0)
+   28:  JAL       ~Func:inflict_status
+   2C:  COPY      A0, S0
+   30:  SB        R0, 21C (S0)
+   34:  LW        V1, 0 (S1)
+   38:  ORI       V1, V1, 100
+   3C:  SW        V1, 0 (S1)
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  LI        V0, 1
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 20
+}
+
+@	$Script_UseItem
+{
+    0:  SetConst  *VarA  00000097
+   10:  ExecWait  $Script_802A12A0
+   1C:  Call  PlaySoundAtActor  ( .Actor:Player .Sound:RepelGelApply )
+   30:  Call  SetAnimation  ( .Actor:Player 00000000 00030008 )
+   48:  Wait  40`
+   54:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+   6C:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   88:  Add   *Var1  00000014
+   98:  Call  PlayEffect    ( ~FX:RadialFlowIn:WhiteWaves *Var0 *Var1 *Var2 *Fixed[1.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   DC:  Call  PlaySoundAtActor  ( .Actor:Player .Sound:RepelGelVanish )
+   F0:  Call  GetItemPower  ( .Item:RepelGel *Var0 *Var1 )
+		Switch *MagicCookieByte
+			Case >=  1`
+				Call  $Function_Vanish1Turn ( )
+			Case == 0`
+				Call  $Function_802A123C ( )
+		EndSwitch
+		Add   *MagicCookieByte 1`
+  114:  Wait  15`
+  140:  ExecWait  $Script_802A16D0
+  14C:  Return
+  154:  End
+}

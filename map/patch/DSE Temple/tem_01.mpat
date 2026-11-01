@@ -1,0 +1,270 @@
+% Auto-generated script for tem_01
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 2
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]
+This is the entrance hall of[BR]
+the Temple of Darkness.[BR]
+It really lives up to its name,[BR]
+doesn't it?[BR]
+[WAIT][NEXT]
+Would it have killed whoever[BR]
+was building it to put a[BR]
+light somewhere?[BR]
+[WAIT][END]
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Call    MakeNpcs    	( 00000001 $NpcGroupList )
+	Bind     $Script_LoreText1  .Trigger:WallPressA ~Collider:interact1  00000001 00000000 
+	Bind     $Script_LoreText2  .Trigger:WallPressA ~Collider:interact2  00000001 00000000 
+	ExecWait $Script_SetupSwitchBlocks
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+#new:Script $Script_LoreText1
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     ShowMessageAtScreenPos     	( $LoreTextA 000000A0 00000028 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_LoreText2
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     ShowMessageAtScreenPos     	( $LoreTextB 000000A0 00000028 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+%some basic temple lore
+%might not be specific enough though
+%He is the one who created all the stones (you can see some stone symbols in the big hub area
+
+#new:String $LoreTextA
+{
+[Style Inspect]FROM THE DEEPEST SHADOW[BR]
+	CAME FORTH THE SHADOW KING[BR]
+	THE WORLD WAS UNAWARE[BR]
+	OF THE CHAOS HE WOULD BRING[BR]
+	[WAIT][NEXT]
+	WITHIN THIS DARK LAND[BR]
+	THIS TEMPLE WOULD BE HIS HOME[BR]
+	A DOMAIN HE WOULD COMMAND[BR]
+	A PLACE FOR DARKNESS TO ROAM[WAIT][END]
+}
+
+
+%Foreshadow the final test after you beat all 7 of the bosses
+%the shadow king is gone but he left behind some really powerful bosses down here
+#new:String $LoreTextB
+{
+	[Style Inspect]	
+	WITH THE EMPEROR DEFEATED[BR]
+	HE WAS LEFT WEAKENED[BR]
+	THOUGH HIS LIFE WAS DEPLETED[BR]
+	HIS REVENGE WOULD BE COMPLETED[WAIT][END]
+}
+
+%set up the blocks
+#import SwitchBlocks.mpat
+
+#new:Script $Script_SetupSwitchBlocks
+{
+	%										Models and colliders for blue platforms (and low opacity red platforms)
+	Set *Var[A] ~Model:blueactive 			%model ID (group)
+	Set *Var[B] ~Collider:blueplatform 		%collider ID
+	Set *Var[C] .True	 
+	Exec $Script_SwitchBlocks
+	%										Models and colliders for red platforms (and low opacity blue platforms)
+	Set *Var[A] ~Model:redactive 			%model ID (group)
+	Set *Var[B] ~Collider:redplatform 		%collider ID
+	Set *Var[C] .False	 
+	Exec $Script_SwitchBlocks				%hopefully having the same script twice works correctly
+	Return
+	End
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch 80000000 )
+	Call  AssignAreaFlag    ( 00000004 )
+	Bind  $Script_SwitchTrigger_Simple .Trigger:AreaFlagSet *AreaFlag[004] 00000001 00000000
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call  GetEntryID    ( *Var[0] )
+	Switch  *Var[0]
+		CaseOR  ==  ~Entry:Entry1
+		CaseOR  ==  ~Entry:Entry0
+			Set   *Var[0] $Script_CreateExitTriggers
+			Exec  EnterWalk
+		EndCaseGroup
+		Default
+			Exec  $Script_CreateExitTriggers
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry1 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_02" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_00" ~Entry:tem_00:Entry1 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit1 .Trigger:FloorAbove ~Collider:backLZ 00000001 00000000
+	Bind  $Script_Exit0 .Trigger:FloorAbove ~Collider:frontLZ 00000001 00000000
+	Return
+	End
+}
+
+#import Pit_AI.mpat
+
+@ $NpcSettings_Goomba
+{
+00000000 00180020 00000000 00000000 $Script_GoombaAI 80077F70 00000000 8007809C
+00000000 00000000 00630000 
+}
+
+@ $AISettings_Goomba
+{
+    1.6 % move speed
+    60` % move time
+    30` % wait time
+   200.0 % alert radius
+    0.0
+    5`
+    4.6 % chase speed
+    60`
+    15`
+  400.0 % chase radius
+    0.0
+    1`		 
+}
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_DarkGoomba1 3A040002
+00000001 $NpcGroup_DarkGoomba2 3A040002
+00000001 $NpcGroup_DarkGoomba3 3A050002
+00000000 00000000 00000000
+}
+
+
+#new:NpcGroup $NpcGroup_DarkGoomba1 %normal goomba AI might cause problems with hitbox sizes though
+{
+00000000 $NpcSettings_Goomba ~Vec3f:NPC_Goomba1
+00000400 00000000 00000000 00000000 0000005A 
+~Items:64:UltraShroom:A %Dark shroom
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:NPC_Goomba1
+00620206 00620204 00620205 00620204 00620206 00620200 00620209 00620209 % dark goomba
+00620203 00620203 00620203 00620203 00620202 00620204 00620200 00620202 
+00000000 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NpcGroup_DarkGoomba2 %normal goomba AI might cause problems with hitbox sizes though
+{
+00000001 $NpcSettings_Goomba ~Vec3f:NPC_Goomba2
+00000400 00000000 00000000 00000000 0000005A 
+~Items:64:UltraShroom:A %Dark shroom
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:NPC_Goomba2
+00620206 00620204 00620205 00620204 00620206 00620200 00620209 00620209 % dark goomba
+00620203 00620203 00620203 00620203 00620202 00620204 00620200 00620202 
+00000000 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NpcGroup_DarkGoomba3 %normal goomba AI might cause problems with hitbox sizes though
+{
+00000002 $NpcSettings_Goomba ~Vec3f:NPC_Goomba3
+00000400 00000000 00000000 00000000 0000005A 
+~Items:64:UltraShroom:A %Dark shroom
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:NPC_Goomba3
+00620206 00620204 00620205 00620204 00620206 00620200 00620209 00620209 % dark goomba
+00620203 00620203 00620203 00620203 00620202 00620204 00620200 00620202 
+00000000 00000000 00000000 00000000 % no tattle string	
+}
+

@@ -1,7 +1,78 @@
+#define .NpcID:Boo_00               00
+#define .NpcID:Boo_01               01
+#define .NpcID:Boo_02               02
+#define .NpcID:Boo_03               03
+#define .NpcID:Boo_04               04
+#define .NpcID:Boo_05               05
+#define .NpcID:Boo_06               06
+#define .NpcID:Boo_07               07
+#define .NpcID:Boo_08               08
+#define .NpcID:Boo_09               09
+#define .NpcID:Boo_10               0A
+#define .NpcID:Boo_11               0B
+#define .NpcID:Boo_12               0C
+#define .Npc:PacMan        15
+
+
 @	$Script_Main
 {
-   [10]  Call  SetSpriteShading  ( .Shading:kzn_05 )
+    0:  Set   *GB_WorldLocation  .Location:BoosMansion
+   10:  Call  SetSpriteShading  ( .Shading:kzn_05 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_802458E0 )
+   98:  ExecWait  $Script_MakeEntities
+   A4:  Set   *AreaFlag[008]  .False
+   B4:  Exec  $Script_80242B3C
+   C0:  Exec  $Script_80243298
+   CC:  Exec  $Script_80241970
+   D8:  Bind  $Script_802418BC .Trigger:WallPressA ~Collider:tt1 00000001 00000000
+   F4:  Exec  $Script_80241860
+  100:  Exec  $Script_802417F0
+  10C:  Return
+  114:  End
 }
+
+@	$Script_802417F0
+{
+		If  *TheodoreAsked == .True
+			If  *PacManDefeated == .False
+				Exec $ScaryPacMan
+				Return
+			EndIf
+		EndIf
+    0:  If  *GB_StoryProgress  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
+   10:  	Call  SetMusicTrack ( 00000000 .Song:BoosMansion 00000000 00000008 )
+   2C:  Else
+   34:  	Call  SetMusicTrack ( 00000000 .Song:CheerfulBoosMansion 00000000 00000008 )
+   50:  EndIf
+   58:  Return
+   60:  End
+}
+
+#new:Script  $ScaryPacMan
+{
+	Call  SetMusicTrack ( 00000000 .Song:Breathing 3 00000008 )
+	Label  11
+	Wait  15`
+	If  *MapFlag[02] == .True
+		Return
+	EndIf
+	Loop  3`
+		Thread
+			Call  ShakeCam  ( .Cam:Default 00000000  5` *Fixed[0.6] )
+		EndThread
+		Call  PlaySoundAtCollider   ( ~Collider:tansu2 1C6 00000000 )
+		Wait  9`
+	EndLoop
+	Wait  40`
+	Goto  11
+	Return
+	End
+}
+
 
 @	$Function_80240808
 {
@@ -31,14 +102,187 @@
    80:  Else
    88:  	Call  DisablePlayerInput    ( .True )
    98:  	Call  802D2B6C ( )
-   A4:  	ExecWait  $Script_8024217C
+   A4:  	ExecWait  $Script_8024217C		%Open cabinet
    B0:  	Wait  20`
-   BC:  	ExecWait  $Script_8024224C
+			ExecWait  $PacManScene
+			If  *MapFlag[01] == .False
+				ExecWait  $Script_8024224C		%Close cabinet
+			EndIf
    C8:  	Call  DisablePlayerInput    ( .False )
    D8:  EndIf
    E0:  Return
    E8:  End
 }
+
+%Pac-Man from Pac-Man 2: The New Adventures is a superboss
+#new:Script $PacManScene
+{
+		If  *TheodoreAsked == .True
+			If  *PacManDefeated == .True	%Don't spawn Pac-Man if he's been defeated already
+				Return
+			EndIf
+		Else
+			Return	%If you didn't talk to Theo
+		EndIf
+		Set  *MapFlag[02] .True
+		Call  SetNpcAnimation   ( .Npc:PacMan 00F10015 )
+		Call  FadeOutMusic  ( 00000000 000001F4 )
+		Call  EnablePartnerAI ( )
+   6C:  	Call  SetPlayerSpeed    ( *Fixed[6.0] )
+   7C:  	Call  PlayerMoveTo      (  -110`  0`  0` )
+			Call  PlayerMoveTo      (  -113`  0`  0` )
+		Call  SetNpcPos ( .Npc:PacMan  -242`  58`  0` )
+		Call  SetNpcJumpscale   ( .Npc:PacMan *Fixed[0.1] )
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		Sub  *Var0 10`
+		Call  NpcJump1  ( .Npc:PacMan  *Var0  10`  *Var2 15` )
+   70:  Call  SetPlayerJumpscale    (  1` )
+		Thread
+			Call  NpcJump1  ( .Npc:PacMan  237`  10` 3` 16` )
+			Call  NpcJump1  ( .Npc:PacMan  217`  0` 10` 8` )
+		EndThread
+   80:  Call  PlayerJump2       ( 237` 0` 0  16` )
+		Call  PlaySoundAtNpc    ( .Npc:PacMan 95 00000000 )	%Crash noise
+		Call  PlaySoundAtNpc    ( .Npc:PacMan 159 00000000 )	%Boing noise
+		Call  ShakeCam  ( .Cam:Default 00000000  30` *Fixed[2.0] )
+		Call  SetMusicTrack ( 00000000 .Song:CheerfulBoosMansion 3 00000007 )
+		Wait  15`
+		Call  SetNpcAnimation   ( .Npc:PacMan 00F10007 )
+		Thread
+			Loop  2`
+			Call  PlaySoundAtNpc    ( .Npc:PacMan 20E5 00000000 )	
+			Wait  40`
+			EndLoop
+		EndThread
+		Call  NpcMoveTo ( .Npc:PacMan  110`  15`  45` )
+		Wait  10`
+		Call  InterpNpcYaw  ( .Npc:PacMan  90`  0` )
+		Call  SetNpcAnimation   ( .Npc:PacMan 00F1001F )
+		Wait  30`
+		Call  SetNpcAnimation   ( .Npc:PacMan 00F10000 )
+		Call  SpeakToPlayer ( .Npc:PacMan 00F10000 00F10000 00000000 000E0152 )
+		Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E0153 )
+		Call  SpeakToPlayer ( .Npc:PacMan 00F10000 00F10000 00000000 000E0154 )
+		Call  SetNpcVar    ( .Npc:PacMan 00000000 1 )
+		Wait  1`
+		Return
+		End
+}
+
+
+
+#new:Script  $Script_Init_PacMan
+{
+	Call  SetNpcFlagBits    ( .Npc:PacMan 00000140 .True )
+	Call  SetNpcScale   ( .Npc:PacMan *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
+    Call  BindNpcIdle   ( .Npc:PacMan $Script_Idle_PacMan )
+    Call  BindNpcDefeat ( .Npc:PacMan $Script_Defeat_PacMan )
+	Return
+	End
+}
+
+#new:NpcGroup $NpcGroup_PacMan
+{
+	.Npc:PacMan $NpcSettings_80243560 ~Vec3f:PacMan
+	00000000 $Script_Init_PacMan 00000000 00000000 00000000
+	~NoDrops
+	~Movement:PacMan
+	~AnimationTable:PacMan
+	00000000 00000000 00000000 00000000
+}
+
+@	$NpcGroupList_802458E0
+{
+	00000001 $NpcGroup_80243E7C 00000000
+	00000001 $NpcGroup_8024406C 00000000
+	00000001 $NpcGroup_8024425C 00000000
+	00000001 $NpcGroup_8024444C 00000000
+	00000001 $NpcGroup_8024463C 00000000
+	00000001 $NpcGroup_8024482C 00000000
+	00000001 $NpcGroup_80244A1C 00000000
+	00000001 $NpcGroup_80244C0C 00000000
+	00000001 $NpcGroup_80244DFC 00000000
+	00000002 $NpcGroup_802450E8 00000000
+	00000002 $NpcGroup_80245500 00000000
+	00000001 $NpcGroup_PacMan   0D130000
+	00000000 00000000 00000000
+}
+
+
+#new:Script $Script_Idle_PacMan
+{
+    0:  Loop
+    C:  	Call  GetNpcVar    ( .Npc:Self 00000000 *Var0 )
+   20:  	If  *Var0  !=  00000000
+   30:  		BreakLoop
+   38:  	EndIf
+   40:  	Wait  1`
+   4C:  EndLoop
+		Set   *CheckPacMan .True
+		Call  $Function_SaveItems ( )
+		Wait  2`
+		Call  StartBossBattle   ( .Song:Faith )
+		Wait  1`
+   48:  Return
+   50:  End
+}
+
+
+
+#new:Script  $Script_Defeat_PacMan
+{	
+		
+		Wait  30`
+		Call  SetMusicTrack ( 00000000 .Song:CheerfulBoosMansion 2 00000008 )	%Pac is back
+		Call  SpeakToPlayer ( .Npc:PacMan 00F10000 00F10000 00000000 000E0155 )
+		Call  NpcFlyTo  ( .Npc:PacMan  111`  38` 15`    40`  0` .Easing:Linear )
+		Call  802CFD30  ( .Npc:PacMan 00000004 *Fixed[3.0] *Fixed[3.0] 00000000 00000000 )
+		Call  PlaySoundAtNpc    ( .Npc:PacMan 2DF 00000000 )
+		Wait  2`
+		Thread
+			SetF  *Var6  *Fixed[255.0]
+	  594:  Loop  255`
+	  5A0:  	SubF  *Var6  *Fixed[1.5]
+	  5B0:  	Call  802CFD30  ( .Npc:PacMan 00000007 *Var6 00000000 00000000 00000000 )
+	  5D4:  	Wait  1`
+	  5E0:  EndLoop	
+		EndThread
+			Set   *Var5 0`
+			Call  SetNpcRotation    ( .Npc:PacMan 0` 0` *Var5 )
+   E0:  	Loop  18`
+   EC:  		Sub   *Var5  20`
+   FC:  		Call  SetNpcRotation    ( .Npc:PacMan 0` 0` *Var5 )
+  118:  		Wait  1`
+  124:  	EndLoop
+   E0:  	Loop  18`
+   EC:  		Sub   *Var5  40`
+   FC:  		Call  SetNpcRotation    ( .Npc:PacMan 0` 0` *Var5 )
+  118:  		Wait  1`
+  124:  	EndLoop
+   E0:  	Loop  18`
+   EC:  		Sub   *Var5  40`
+   FC:  		Call  SetNpcRotation    ( .Npc:PacMan 0` 0` *Var5 )
+  118:  		Wait  1`
+  124:  	EndLoop
+   E0:  	Loop  36`
+   EC:  		Sub   *Var5  60`
+   FC:  		Call  SetNpcRotation    ( .Npc:PacMan 0` 0` *Var5 )
+  118:  		Wait  1`
+  124:  	EndLoop
+   E0:  	Loop  72`
+   EC:  		Sub   *Var5  80`
+   FC:  		Call  SetNpcRotation    ( .Npc:PacMan 0` 0` *Var5 )
+  118:  		Wait  1`
+  124:  	EndLoop
+			Call  ResetCam      ( .Cam:Default *Fixed[3.0] )
+			Set  *PacManDefeated .True
+			Call  SetMusicTrack     ( 00000000 .Song:CheerfulBoosMansion 00000000 00000008 )
+		Return
+		End
+}
+
+
+%Insta kill dressers lol
 
 @	$Script_8024240C
 {
@@ -132,4 +376,291 @@
 		Call  GotoMap   ( "gv_01" 00000001 )
   388:  Return
   390:  End
+}
+
+
+
+
+@	$Script_80245C34
+{
+    0:  Call  DisablePlayerInput    ( .True )
+   10:  Call  802D2B6C ( )
+   1C:  Call  SetMusicTrack ( 00000000 .Song:BooMinigame 00000000 00000008 )
+   38:  Wait  20`
+		Call  ShowMessageAtScreenPos    ( 001F00A0  160`  40` ) % Display song title
+   44:  Call  InterpPlayerYaw       (  90`  0` )
+   58:  Wait  20`
+   64:  Thread
+   6C:  	Call  SetPlayerSpeed    ( *Fixed[2.0] )
+   7C:  	Call  PlayerMoveTo      (  -170`  0`  0` )
+   94:  EndThread
+   9C:  Call  SetCamProperties  ( .Cam:Default *Fixed[2.0]  0`  0`  0` *Fixed[450.0] *Fixed[15.0] *Fixed[-7.0] )
+   C8:  Wait  60`
+   D4:  Call  SetCamProperties  ( .Cam:Default *Fixed[2.0]  0`  0`  0` *Fixed[325.0] *Fixed[13.0] *Fixed[-13.0] )
+  100:  Call  SetNpcPos ( .NpcID:Boo_11  0`  45`  20` )
+  11C:  Call  SetItemPos        ( *MapVar[0] 00000000 00000041 00000000 )
+  138:  Call  MakeLerp  ( 00000000 000000FF 0000001E .Easing:Linear )
+  154:  Loop
+  160:  	Call  UpdateLerp ( )
+  16C:  	Call  802CFD30      ( 0000000B 00000007 *Var0 00000000 00000000 00000000 )
+  190:  	Call  SetItemAlpha  ( *MapVar[0] *Var0 )
+  1A4:  	Wait  1`
+  1B0:  	If  *Var1  ==  00000000
+  1C0:  		BreakLoop
+  1C8:  	EndIf
+  1D0:  EndLoop
+  1D8:  Call  SpeakToPlayer     ( .NpcID:Boo_11 00950004 00950001 00000000 000E0030 ) % Marioooooo... You have come... If you want this re ...
+  1F8:  Label  32
+  204:  Call  SetCamProperties  ( .Cam:Default *Fixed[2.0]  0`  0`  0` *Fixed[500.0] *Fixed[15.0] *Fixed[-7.0] )
+  230:  Wait  20`
+  23C:  Call  MakeLerp  ( 000000FF 00000000 0000001E .Easing:Linear )
+  258:  Loop
+  264:  	Call  UpdateLerp ( )
+  270:  	Call  802CFD30      ( 0000000B 00000007 *Var0 00000000 00000000 00000000 )
+  294:  	Call  SetItemAlpha  ( *MapVar[0] *Var0 )
+  2A8:  	Wait  1`
+  2B4:  	If  *Var1  ==  00000000
+  2C4:  		BreakLoop
+  2CC:  	EndIf
+  2D4:  EndLoop
+  2DC:  Loop
+  2E8:  	Wait  1`
+  2F4:  	If  *MapVar[1]  ==  00000001
+  304:  		BreakLoop
+  30C:  	EndIf
+  314:  EndLoop
+  31C:  Wait  10`
+  328:  Set   *Var0  0000010E
+  338:  Set   *MapVar[5]  *Var0
+  348:  Call  $Function_80241220 ( )
+  354:  Call  MakeLerp  ( 00000000 000000FF 0000001E .Easing:Linear )
+  370:  Loop
+  37C:  	Call  UpdateLerp ( )
+  388:  	Call  802CFD30      ( 0000000B 00000007 *Var0 00000000 00000000 00000000 )
+  3AC:  	Call  GetNpcPos     ( .NpcID:Boo_11 *Var3 *Var4 *Var5 )
+  3C8:  	Add   *Var4  00000014
+  3D8:  	Call  SetItemPos    ( *MapVar[0] *Var3 *Var4 *Var5 )
+  3F4:  	Call  SetItemAlpha  ( *MapVar[0] *Var0 )
+  408:  	Wait  1`
+  414:  	If  *Var1  ==  00000000
+  424:  		BreakLoop
+  42C:  	EndIf
+  434:  EndLoop
+  43C:  Wait  20`
+  448:  Call  SpeakToPlayer ( .NpcID:Boo_11 00950004 00950001 00000000 000E0031 ) % The Lady Bow will be very angry if we let him get  ...
+  468:  Wait  20`
+  474:  Thread
+  47C:  	Call  GetNpcPos ( .NpcID:Boo_11 *Var3 *Var4 *Var5 )
+  498:  	Set   *Var6  *Var4
+  4A8:  	Add   *Var6  00000014
+  4B8:  	Call  MakeLerp  ( *Var6 *Var4 00000014 .Easing:Linear )
+  4D4:  	Loop
+  4E0:  		Call  UpdateLerp ( )
+  4EC:  		Call  SetItemPos    ( *MapVar[0] *Var3 *Var0 *Var5 )
+  508:  		If  *Var1  ==  00000000
+  518:  			BreakLoop
+  520:  		EndIf
+  528:  		Wait  1`
+  534:  	EndLoop
+  53C:  	Call  SetItemPos    ( *MapVar[0] 00000000 FFFFFC18 00000000 )
+  558:  EndThread
+  560:  Wait  20`
+  56C:  Call  RandInt   ( 00000168 *Var0 )
+  580:  Add   *Var0  000000B4
+  590:  Set   *VarA  *Var0
+  5A0:  Call  RandInt   ( 00000014 *Var0 )
+  5B4:  Add   *Var0  00000168
+  5C4:  Set   *VarB  *Var0
+  5D4:  Set   *Var0  *MapVar[5]
+  5E4:  Loop
+  5F0:  	Call  $Function_80241220 ( )
+  5FC:  	Call  $Function_802412BC ( )
+  608:  	Wait  1`
+  614:  	Add   *VarA  FFFFFFFE
+  624:  	If  *VarA  <=  00000000
+  634:  		BreakLoop
+  63C:  	EndIf
+  644:  EndLoop
+  64C:  Loop
+  658:  	Call  $Function_80241220 ( )
+  664:  	Call  $Function_802412BC ( )
+  670:  	Call  $Function_80241300 ( )
+  67C:  	Wait  1`
+  688:  	If  *Var1  ==  00000001
+  698:  		BreakLoop
+  6A0:  	EndIf
+  6A8:  EndLoop
+  6B0:  Thread
+  6B8:  	Call  PlaySoundAtNpc    ( .NpcID:Boo_11 .Sound:Throw 00000000 )
+  6D0:  	Call  GetNpcPos ( .NpcID:Boo_11 *Var3 *Var4 *Var5 )
+  6EC:  	Add   *Var5  00000014
+  6FC:  	Set   *Var6  *Var4
+  70C:  	Add   *Var6  FFFFFFE2
+  71C:  	Call  MakeLerp  ( *Var4 *Var6 0000000F .Easing:Linear )
+  738:  	Loop
+  744:  		Call  UpdateLerp ( )
+  750:  		Call  SetItemPos    ( *MapVar[0] *Var3 *Var0 *Var5 )
+  76C:  		If  *Var1  ==  00000000
+  77C:  			BreakLoop
+  784:  		EndIf
+  78C:  		Wait  1`
+  798:  	EndLoop
+  7A0:  	Call  SetItemPos    ( *MapVar[0] 00000000 FFFFFC18 00000000 )
+  7BC:  EndThread
+  7C4:  Loop
+  7D0:  	Call  $Function_80241220 ( )
+  7DC:  	Call  $Function_802412BC ( )
+  7E8:  	Wait  1`
+  7F4:  	Add   *VarB  FFFFFFFE
+  804:  	If  *VarB  <=  00000000
+  814:  		BreakLoop
+  81C:  	EndIf
+  824:  EndLoop
+  82C:  Call  SpeakToPlayer ( .NpcID:Boo_11 00950004 00950001 00000000 000E0032 ) % Hey, hey, Boos and Boos! Who's got it? Choose, cho ...
+  84C:  Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  864:  Wait  10`
+  870:  Set   *MapVar[4]  00000000
+  880:  Call  DisablePlayerInput    ( .False )
+  890:  Loop
+  89C:  	Wait  1`
+  8A8:  	If  *MapVar[4]  !=  00000000
+  8B8:  		BreakLoop
+  8C0:  	EndIf
+  8C8:  EndLoop
+  8D0:  Set   *MapVar[2]  00000001
+  8E0:  Call  DisablePlayerInput    ( .True )
+  8F0:  ExecWait  $Script_80245970
+  8FC:  If  *MapVar[4]  ==  00000001
+  90C:  	Call  GetNpcPos     ( *MapVar[6] *Var3 *Var4 *Var5 )
+  928:  	Call  SetNpcPos     ( .NpcID:Boo_12 *Var3 *Var4 *Var5 )
+  944:  	Set   *Var0  0000000C
+  954:  	Set   *Var3  00000000
+  964:  	Set   *Var4  00000000
+  974:  	Set   *Var5  FFFFFFEC
+  984:  	Exec  $Script_80245A90
+  990:  	Call  PlaySoundAtNpc    ( .NpcID:Boo_12 .Sound:Throw 00000000 )
+  9A8:  	Call  SetNpcJumpscale   ( .NpcID:Boo_12 *Fixed[2.0] )
+  9BC:  	Call  NpcJump0      ( .NpcID:Boo_12  0`  0`  0`  20` )
+  9DC:  	Call  SetNpcPos     ( .NpcID:Boo_12  0`  -1000`  0` )
+  9F8:  	Call  MakeItemEntity    ( .Item:BooRecord ~Vec3d:Item8024662C .ItemSpawnMode:Fixed_NeverVanish *GF_OBK08_Item_Record )
+  A1C:  	Wait  20`
+  A28:  	Call  GetNpcPos     ( .NpcID:Boo_11 *Var0 *Var1 *Var2 )
+  A44:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  A60:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  A7C:  	Call  SetCamDistance    ( .Cam:Default *Fixed[350.0] )
+  A90:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  AA4:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  ABC:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  AD0:  	Call  SpeakToPlayer ( .NpcID:Boo_11 00950004 00950001 00000000 000E0033 ) % Noooo! Boo hoo! You...You guessed right. Go on, ta ...
+  AF0:  	Wait  20`
+  AFC:  	Thread
+  B04:  		Call  SetNpcJumpscale   ( .NpcID:Boo_11 00000000 )
+  B18:  		Call  NpcJump1  ( .NpcID:Boo_11  0`  45`  0` 00000014 )
+  B38:  		Call  InterpNpcYaw      ( .NpcID:Boo_11  90`  0` )
+  B50:  	EndThread
+  B58:  	Call  $Function_80241658 ( )
+  B64:  	Call  SetPlayerSpeed    ( *Fixed[4.0] )
+  B74:  	Call  PlayerMoveTo  ( *Var0 *Var2  0` )
+  B8C:  	Call  UseSettingsFrom   ( .Cam:Default  0`  0`  0` )
+  BA8:  	Call  SetPanTarget  ( .Cam:Default  0`  0`  0` )
+  BC4:  	Call  SetCamDistance    ( .Cam:Default *Fixed[450.0] )
+  BD8:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  BEC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  C04:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  C18:  	Wait  20`
+  C24:  	Thread
+  C2C:  		Wait  30`
+  C38:  		Call  PlaySound ( 00000047 )
+  C48:  	EndThread
+  C50:  	Set   *VarA  00000001
+  C60:  	Exec  $Script_80245B28
+  C6C:  	Set   *VarA  00000002
+  C7C:  	Exec  $Script_80245B28
+  C88:  	Set   *VarA  00000003
+  C98:  	Exec  $Script_80245B28
+  CA4:  	Set   *VarA  00000004
+  CB4:  	Exec  $Script_80245B28
+  CC0:  	Set   *VarA  00000005
+  CD0:  	Exec  $Script_80245B28
+  CDC:  	Set   *VarA  00000006
+  CEC:  	Exec  $Script_80245B28
+  CF8:  	Set   *VarA  00000007
+  D08:  	Exec  $Script_80245B28
+  D14:  	Set   *VarA  00000008
+  D24:  	Exec  $Script_80245B28
+  D30:  	Set   *VarA  0000000B
+  D40:  	Exec  $Script_80245B28
+  D4C:  	Wait  60`
+  D58:  	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  D70:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  D8C:  	Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  DA8:  	Call  SetCamDistance    ( .Cam:Default *Fixed[450.0] )
+  DBC:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[2.0] )
+  DD0:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  DE8:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  DFC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  E14:  Else
+  E1C:  	Call  SetCamProperties  ( .Cam:Default *Fixed[2.0]  0`  0`  0` *Fixed[450.0] *Fixed[15.0] *Fixed[-7.0] )
+  E48:  	Wait  30`
+  E54:  	Call  SetNpcFlagBits    ( *MapVar[6] 00040000 .False )
+  E6C:  	Call  GetNpcPos     ( *MapVar[6] *Var3 *Var4 *Var5 )
+  E88:  	Call  GetAngleBetweenNPCs   ( *MapVar[6] .NpcID:Boo_00 *Var0 )
+  EA0:  	Call  InterpNpcYaw  ( *MapVar[6] *Var0  0` )
+  EB8:  	Call  SetNpcJumpscale   ( *MapVar[6] 00000000 )
+  ECC:  	Call  NpcJump0      ( *MapVar[6]  0`  45`  0`  20` )
+  EEC:  	Call  InterpNpcYaw  ( *MapVar[6]  90`  0` )
+  F04:  	Call  GetNpcPos     ( *MapVar[6] *Var6 *Var7 *Var8 )
+  F20:  	Set   *VarA  *Var7
+  F30:  	Add   *VarA  00000014
+  F40:  	Call  MakeLerp      ( *Var7 *VarA 00000014 .Easing:Linear )
+  F5C:  	Loop
+  F68:  		Call  UpdateLerp ( )
+  F74:  		Call  SetItemPos    ( *MapVar[0] *Var6 *Var0 *Var8 )
+  F90:  		If  *Var1  ==  00000000
+  FA0:  			BreakLoop
+  FA8:  		EndIf
+  FB0:  		Wait  1`
+  FBC:  	EndLoop
+  FC4:  	Wait  20`
+  FD0:  	Call  SpeakToPlayer ( *MapVar[6] 00950004 00950001 00000000 000E0034 ) % Hee hee hee hee... Wrong! This is so much fun... K ...
+  FF0:  	Call  GetNpcPos ( .NpcID:Boo_11 *Var0 *Var1 *Var2 )
+ 100C:  	Call  GetNpcPos ( *MapVar[6] *VarA *VarB *VarC )
+ 1028:  	Call  SetNpcPos ( .NpcID:Boo_11 *VarA *VarB *VarC )
+ 1044:  	Call  SetNpcPos ( *MapVar[6] *Var0 *Var1 *Var2 )
+ 1060:  	Wait  1`
+ 106C:  	Call  MakeLerp  ( 000000FF 00000000 00000014 .Easing:Linear )
+ 1088:  	Loop
+ 1094:  		Call  UpdateLerp ( )
+ 10A0:  		Call  802CFD30  ( *MapVar[6] 00000007 *Var0 00000000 00000000 00000000 )
+ 10C4:  		Wait  1`
+ 10D0:  		If  *Var1  ==  00000000
+ 10E0:  			BreakLoop
+ 10E8:  		EndIf
+ 10F0:  	EndLoop
+ 10F8:  	Wait  10`
+ 1104:  	Call  SetNpcPos     ( *MapVar[6] *Var3 *Var4 *Var5 )
+ 1120:  	Call  InterpNpcYaw  ( *MapVar[6]  90`  0` )
+ 1138:  	Call  MakeLerp      ( 00000000 000000FF 00000014 .Easing:Linear )
+ 1154:  	Loop
+ 1160:  		Call  UpdateLerp ( )
+ 116C:  		Call  802CFD30  ( *MapVar[6] 00000007 *Var0 00000000 00000000 00000000 )
+ 1190:  		Wait  1`
+ 119C:  		If  *Var1  ==  00000000
+ 11AC:  			BreakLoop
+ 11B4:  		EndIf
+ 11BC:  	EndLoop
+ 11C4:  	Call  SetNpcFlagBits    ( *MapVar[6] 00040000 .True )
+ 11DC:  	Set   *MapVar[4]  00000000
+ 11EC:  	Set   *MapVar[2]  00000000
+ 11FC:  	Call  $Function_80241658 ( )
+ 1208:  	Call  SetPlayerSpeed    ( *Fixed[4.0] )
+ 1218:  	Call  PlayerMoveTo      ( *Var0 *Var2  0` )
+ 1230:  	Goto  32
+ 123C:  EndIf
+ 1244:  Set   *GB_StoryProgress  .Story:Ch3_GotRecord
+ 1254:  Exec  $Script_80242BF0
+ 1260:  Exec  $Script_802417F0
+ 126C:  Call  DisablePlayerInput    ( .False )
+ 127C:  Return
+ 1284:  End
 }

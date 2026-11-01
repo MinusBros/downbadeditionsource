@@ -1,4 +1,4 @@
-%Dark Star Edition code wasn't working the way I wanted to, so use the Master Quest code instead
+%This is a homogenized patch of Master Quest and Dark Star status code.
 
 
 %%% This overhauls status-granting effects to always hit the enemy, but only up to twice a battle. (once for bosses)
@@ -38,30 +38,6 @@
  
  
 
- 
-@Function 1947AC
-{
-	J 		$Function_FixStatusChance
- 	COPY 	V0, A2 %this line was in the original source, but it was clobbered by the 'hook'
-}
-
- @Function 1947C0
-{
-	J 		$Function_FixStatusChance
- 	COPY 	V0, A2
-}
-
- 
- #new:Function $Function_FixStatusChance
-{
-	%when we arrive, V0 will have the set status chance
- 	BNEL 	V0, R0, .done
- 	ADDIU	V0, R0, 42		%status is around 66% now
- 	ADDIU	V0, R0, 42		%status is around 66% now
- 	.done 
- 	JR RA					%we now return you to before GetStatusChance was called
- 	NOP
-}
  
  
 
@@ -224,100 +200,207 @@
 
 
 
-%fn starts at 802771F8
-
-% Okay, scrap Dizzy cuz it overwrites the Pretty Lucky and Lucky Day checks
-
-
-/% this only affects Mario. If you want to affect partners:
-% • you'll need to change partner-targeted attacks to trigger lucky
-% you may need to change it so that the lucky event (event 37) is broadcast to partners in the damage calc code 
-% once that's done, you can modify each partner's handle event scripts to listen for lucky
-% don't forget that Bow's script will need some special cases - don't pop 'MISS' when she's outta sight! 
-% may also need to handle that in the damage calc code
-% anyway, you can then play the sound, change the anim if you can come up with one, and run the 'LUCKY' anim script (80260B70) except with actor pointer changed to partner actor ptr
-
-% alternately, you might be able to short circuit it by having each partner-targeted attack trigger a generic 'PartnerLucky' script without going through the event handler code. A kludge, but it means you won't have to patch the event handling system (probably do this)
-% the script would play the sound, set anims if not statused, and pop the 
-LUCKY anim script (modified for partner)
-%/
-
-%how we're going to handle Truth Stomp: TS gets the 'magic' element set - only to the check, not to the damage. the check casts 'miss' as normal if it's miss due to invis, but DOESN'T POP THE ANIMATION. otherwise, animation goes off.
-
-%code that does the anim for an actual AoN Miss:
-/% 1320:  LW			T0, 24 (SP)
- 1324:  BEQ			T0, R0, .o1344		%this had the All or Nothing check value - fished out of the stack
- 1328:  ADDIU		A0, R0, 1			%effect ID
- 132C:  LWC1		F0, 14 (S2)			%Z		%note that S2 = T0+C - target pos (S2 is mario actor struct +C)
- 1330:  SWC1		F0, 10 (SP)			%target Z
- 1334:  LW			A2, C (S2)			%target X
- 1338:  LW			A3, 10 (S2)			%target Y
- 133C:  JAL			$Function_802667F0	%A0 = 1 ('MISS') %'play effect' of some kind
- 1340:  COPY		A1, S3				%target actor struct%/
-
-@Hook 1A00A4  %001A0034+70 %80271754+70
+@Function 175C8C
 {
-	%S4 has Mario's actor struct
-	%S3 has target actor
-	LW			A0, 7C (S1)		%sprite event flags
-	ANDI		V0, A0, 20		%illusory
-	BNE			V0, R0,	.definitelyMiss
-	LB			V0, 210 (S4)	%is Mario dizzy?
-	ADDIU		V1, R0, 4
-	BEQ			V1, V0, .definitelyMiss
-	%now check for quake-only	
-	ANDI		V0, A0, 800		%A0 still has event flags
-   	BEQ			V0, R0, .skipQO		
-   	LW			V0, 188 (S2)
-   	ANDI		V0, V0, 800			%if SE flag 800 (Quake-only) is set and attack element is 800 (Quake), then don't return 6 (miss)
-   	BEQ			V0, R0, .definitelyMiss	%if bit is not set, it's a miss!
-   	.skipQO
-   	%now we check for the maybe miss
-   	LB			V1, 218 (S3)		%target actor invis
-   	ADDIU		V0, R0, E
-   	BNE			V0, V1, .noMiss		%if none of the checks have passed, we hit
-   	.definitelyMiss	%if we didn't branch, now we do the animation... maybe.
-   	LW			V0, 188 (S2)	%get element flags again
-   	ANDI		V0, V0, 10		%magiiiiiiic
-   	BNE			V0, R0, .missNoAnim
-   	% if we have the magic flag set, we don't pop the decal. But otherwise we do.
-    ADDIU		A0, R0, 1			%effect ID
-    %fortunately stack slots 10 and 14 are already free in this context
-    LWC1		F0, 20 (S4)
-    SWC1		F0, 10 (SP)			%target Z
-    LW			A2, 18 (S4)			%target X
- 	LW			A3, 1C (S4)			%target Y
-    JAL			802667F0			%play 'MISS' effect
-    COPY		A1, S3				%target actor struct
-   	JAL			~Func:sfx_play_sound	%play 'miss' sound.
-   	ADDIU		A0, R0, 3FC
-   	.missNoAnim
-   	J			80271924	%return pt  (80271754+1D0)
-   	ADDIU		V0, R0, 6	%result code
-   	.noMiss
-   	J 			80271804	%check for static/stone  (80271754+B0)
-   	NOP  					%is cleanup needed?
-   	
+	LI        V0, 3	%checks status 3 twice, doesn't really change anything but removes the check for dizzy here
 }
-	/% original code:
-	   70:  LW			A0, 7C (S1)			%(target) sprite event flags - HOOK HERE
-   74:  ANDI		V0, A0, 20			%illusory
-   78:  BNE			V0, R0, .o1D0			%return miss
-   7C:  ADDIU		V0, R0, 6
-   80:  LB			V1, 218 (S3)		%target actor invis
-   84:  ADDIU		V0, R0, E
-   88:  BEQ			V1, V0, .oA8		%if set: return 6
-   8C:  ANDI		V0, A0, 800
-   90:  BEQ			V0, R0, .oB0		%if SE flag 800 not set, skip this next bit
-   94:  NOP
-   98:  LW			V0, 188 (S2)
-   9C:  ANDI		V0, V0, 800			%if SE flag 800 (Quake-only) is set and attack element is 800 (Quake), then don't return 6 (miss)
-   A0:  BNE			V0, R0, .oB0
-   A4:  NOP
-        .oA8
-   A8:  BEQ			R0, R0, .o1D0
-   AC:  ADDIU		V0, R0, 6
-	%/
+%100:  LI        V0, 4
+
+%	check around 80247384
+%	Called once per enemy, but stunned enemies skip their turn, so that code should be nearby
+
+
+%Modify the status curing code to allow movement after status is gone (*This makes it act like shrink in that the turn count is 1 less than it should)
+
+%Remove effect 4 (dizzy) from this conditional statement thing
+%  1B4:  ADDIU     V0, V1, FFFD			%V0 = V1 - 3
+%  1B8:  SLTIU     V0, V0, 6				%V0 < 9 ?	(effects 9 is poison, A is shrink, B is static...)
+%		normally, detects statuses 3,4,5,6,7,8
+%			all the normal stunning statuses + the unused status 3
+%			Note that this means that all the statuses outside of that range act like shrink in that the final turn does not actually negate the enemy's turn
+%1718C0 --> 80242FE0
+@Hook 171A74
+{
+	PUSH	T0
+	ORI		T0, R0, 4
+	BEQ		T0, V0 .end
+	ORI	 	V0, R0, 0
+	ADDIU   V0, V1, FFFD	%normal code
+	SLTIU   V0, V0, 6		%normal code
+	.end
+	POP		T0
+	J		8024319C
+	NOP
+}
+
+
+
+%^Re do this to actually use the check function
+
+#export:Data $TempActorPointer
+{
+00000000
+}
+
+%Use some global pointer to temporarily store the pointer we need
+%   0:  ADDIU     SP, SP, FFD8
+%	4:  SW        S2, 18 (SP)
+%1A5AD8 --> 802771F8
+@Hook 1A5AD8
+{
+	SAW		  S2, $TempActorPointer
+	ADDIU     SP, SP, FFD8
+	J		  80277200
+	SW        S2, 18 (SP)
+}
+
+@Function 1A5C50
+{
+	LAW		A0, $TempActorPointer
+	LB		A0, 210 (A0)
+	ORI		V0, R0, 4
+	BEQ		A0, V0, .yes
+	NOP
+	.no
+	COPY    A0, S0	%required
+	J		802773A8
+	ORI		V0, R0, 0	%probably not required
+	.yes
+	COPY    A0, S0	%required
+	LI      S1, 5
+	J		802773D0
+	ORI		V0, R0, 0	%probably not required
+	
+}
+
+
+%nop out some other checks
+@Function 1A5BE0
+{
+	NOP
+}
+
+@Function 1A5BEC
+{
+	NOP
+}
+
+@Function 1A5BF4
+{
+	NOP
+}
+
+
+
+%Change the "Lucky" text to a "Miss" text
+%Find 80071390
+
+%1950D0 --> 802667F0
+@Function 1951C0
+{
+BEQ       R0, R0, 40, %80266920?			
+LI        A0, 4
+}
+
+%try again
+@Hook 4C790
+{
+	ORI		T0, R0, 3
+	BNE		A0, T0, .enda
+	NOP
+	ORI		A0, R0, 4
+	.enda
+	ORI		T0, R0, 8
+	BNE		A0, T0, .endb
+	NOP
+	ORI		A0, R0, 9
+	.endb
+	ADDIU 	SP, SP, -30
+	J		80071398
+	SW		A0, 10 (SP)
+}
+
+
+
+%Now make it work for mario
+
+%Reenable movement with dizzy
+%	more complicated check than enemy dizziness
+%	Has to be at the very start or before player turn
+
+%The normal stun check
+%	Statuses 9, A do not stop movement, but all other values do
+
+%This check is performed at the very end of the status X animation, (the last call to the start player turn function?)
+
+%Separate check to determine if Z button works
+%	^ Not true! The check is the same code :P
+
+%41A5A8 --> 802A5818
+%	64:  LI        A0, 1	
+@Function 41A60C
+{
+	CLEAR	A0
+}
+
+
+%	Seems to have a similar final check as the other statuses (but status 2 does not free turn)
+%170904 --> 80242024
+@Hook 17104C
+{
+	PUSH	V1
+	LB      V0, 210 (S1)
+	ORI		V1, R0, 4
+	BNE		V0, V1, .normalend
+	NOP
+	POP		V1
+	J		80242774
+	NOP
+	.normalend
+	POP		V1
+	LI		V0, 1
+	SAW     V0, 8029F254
+	J		80242774
+	NOP
+}
+%  748:  SAW       V0, 8029F254		%Some kind of marker value that removes mario's turn?
+
+%Potential thing to do later: Reenable blocking when dizzy
+%	maybe not
+%	It seems that this check is independent from the move check though (some statuses stop movement but not blocking)
+
+%802586F4 <- could be associated with the dizzy removal effect
+
+%80265DBC
+
+%802588E0
+
+
+%Change result of damage check to return 5 when dizzy
+%	(I'll make items still work since they are technically not your attacks)
+
+
+%1A0034 --> 80271754
+@Hook 1A00A4
+{
+	LAW		  A0, 800DC148
+	LB		  A0, 210 (A0)
+	ORI		  V1, R0, 4
+	BNE		  A0, V1, .normal
+	NOP
+	J		  80271924
+	ORI		  V0, R0, 6			%Check result 5 doesn't really work
+	.normal
+	LW        A0, 7C (S1)
+	J		  802717CC
+	ANDI      V0, A0, 20
+}
+%70:  LW        A0, 7C (S1)		Illusory enemy check
+%74:  ANDI      V0, A0, 20
+
+%jump to 78 if no
+%1D0 if yes (return 5)
+
 	
 %we're also adding the 'MISS' anim in when a partner misses, even though partners can't get dizzy
 %001AC85C --> 8027DF7C
@@ -348,15 +431,6 @@ LUCKY anim script (modified for partner)
 		ADDIU		V0, R0, 6
 }
 
-%orig code:
-/% 84:  BNE			V0, R0, .o38C		%JUMP POINT
-   88:  ADDIU		V0, R0, 6		%return with 'miss' coding
-   8C:  LB			V1, 218 (S3)	%target invisibility
-   90:  ADDIU		V0, R0, E
-   94:  BEQ			V1, V0, .o38C
-   98:  ADDIU		V0, R0, 6		%return with 'miss' coding
-   9C:  LW			V0, 188 (S1)		%REJOIN POINT
-   %/
 	
 	
 % TODO: enemies still don't act properly yet (FIXED)
@@ -552,7 +626,7 @@ $Function_NeoDizzy
    14:  ADDIU		A1, R0, 4
    18:  CLEAR		A2
    1C:  JAL			80266CF0	%~Func:inflict_status_set_duration
-   20:  ADDIU		A3, R0, 2 %duration updated to account for Dizzy's new properties
+   20:  ADDIU		A3, R0, 3 %duration updated to account for Dizzy's new properties
    24:  JAL			8026777C	%$Function_8026777C %some sort of animation thing
    28:  NOP
    		LI			V0, 101
@@ -591,10 +665,7 @@ $Function_NeoDizzy
 	ExecWait  802988F0 %in original script
 	Call  GetPlayerHP ( *Var[0] )
 	If *Var[0] > 0
-		Call  $IsBadgeEquippedScriptVer (35 *Var[0]) %35 = jr. emblem
-		If *Var[0] == 0`
 			Call  AfflictActor  ( .Actor:Player .Status:Paralyze 00000001 )
-		EndIf
 	EndIf
 	Return
 	End
@@ -619,6 +690,7 @@ $Function_NeoDizzy
 	J		80277D7C
 	ORI		V0, R0, 0
 }
+
 
 
 %force 100%

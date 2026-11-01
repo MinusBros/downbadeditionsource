@@ -14,6 +14,9 @@
 		If   *IWannaBeTheGuy == .True
 			Call  SetNpcPos     ( .Npc:Self 0` -1000` 0` )	
 		EndIf
+		If  *SuperguardlessMode == .True
+			Call  SetNpcPos     ( .Npc:Self 0` -1000` 0` )	
+		EndIf
 		Call  SetNpcAnimation   ( .Npc:Self 00A50106 )
 		Call  NpcFacePlayer ( .Npc:Self 00000005 )
 		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
@@ -41,18 +44,6 @@
 		Else
 			Call  SpeakToPlayer     ( .Npc:Self 00A50104 00A50101 00000000 000300EA ) % Ah, Mario. Do you want me to predict the path you  ...
 		EndIf
-		Set     *Var1 *Var0
-		Switch *Var1
-        Case == 0 % Difficulty
-			Switch *Byte_Settings_Difficulty
-					Case == 0
-						Set *Var0 $String_Easy
-					Case == 1
-						Set *Var0 $String_Normal
-					Case == 2
-						Set *Var0 $String_Hard
-			EndSwitch
-				Call    SetMessageString ( *Var0 0 )
 				If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin
 					If  *Byte_Settings_Difficulty == 1` %Normal
 						If  *SuperguardlessTrigger == .True
@@ -60,6 +51,7 @@
 								Switch *Var0 
 									Case == 0`
 										Set     *Byte_Settings_Difficulty *Var0
+										Set  *PlayerSkin 1`
 									Case == 1`
 										Call  CloseChoice ( )
 										Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 00030100 ) %Are you sure you want to activate Superguardless mode?
@@ -67,6 +59,7 @@
 										If   *Var0 == 0`
 											Set     *Byte_Settings_Difficulty 1`
 											Set     *SuperguardlessMode .True
+											Set  *PlayerSkin 4`
 											Goto  FortuneSelected
 										Else
 											Call  CloseMessage
@@ -74,6 +67,7 @@
 										EndIf
 									Case == 2`
 										Set     *Byte_Settings_Difficulty *Var0
+										Set  *PlayerSkin 2`
 									EndCaseGroup
 									Case   == 3` %Cancel
 										Call  CloseMessage
@@ -84,12 +78,18 @@
 					If  *Byte_Settings_Difficulty == 2` %Gamer
 						Call    ShowChoice ( $String_Choice_Settings_DifficultyExtreme )
 						Switch *Var0 
-							CaseOR == 0`
-							CaseOR == 1`
-							CaseOR == 2`
+							Case == 0`
+								Set  *PlayerSkin 1`
 								Set     *Byte_Settings_Difficulty *Var0
 								Goto  FortuneSelected
-							EndCaseGroup
+							Case == 1`
+								Set  *PlayerSkin 0`
+								Set     *Byte_Settings_Difficulty *Var0
+								Goto  FortuneSelected
+							Case == 2`
+								Set  *PlayerSkin 2`
+								Set     *Byte_Settings_Difficulty *Var0
+								Goto  FortuneSelected
 							Case   == 3`  %I Wanna Be The Guy
 								Call  CloseChoice ( )
 								Call  ContinueSpeech    ( .Npc:Self 00A50104 00A50101 00000000 000300F9 )	%Are you sure you want to activate I Wanna Be The Guy mode?
@@ -97,6 +97,7 @@
 								If   *Var0 == 0`
 									Set     *Byte_Settings_Difficulty 2`
 									Set     *IWannaBeTheGuy .True
+									Set  *PlayerSkin 3`
 									Goto  FortuneSelected
 								Else
 									Call  CloseMessage
@@ -112,18 +113,20 @@
 				Switch  *Var0
 				Case == 0`	%Casual
 					Set     *Byte_Settings_Difficulty *Var0
+					Set  *PlayerSkin 1`
 				Case == 1`
 					If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin	
 						Set  *SuperguardlessTrigger .True
 					EndIf
+					Set  *PlayerSkin 0`
 					Set     *Byte_Settings_Difficulty *Var0
 				Case == 2`
+					Set  *PlayerSkin 2`
 					Set     *Byte_Settings_Difficulty *Var0
 				Case == 3` %Cancel
 					Call  CloseMessage
 					Goto 69
 				EndSwitch
-		EndSwitch
 		Label FortuneSelected
 		Call  SetNpcAnimation   ( .Npc:Self 00A50108 )
 		If  *GB_StoryProgress  <=  .Story:Ch1_SpokeWithMerlin

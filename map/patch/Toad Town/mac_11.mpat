@@ -227,19 +227,22 @@
 					Call  AddBadge  ( .Item:SourceOfPower *Var0 )
 				EndIf
 				Add *SourcesofPower 1`
+				If  *SourcesofPower > 1`
+					Call  SetMessageValue   ( *SourcesofPower 5 )
+					Call  ShowMessageAtScreenPos    ( 001F00EA  160`  40` )
+				EndIf
 			Set  *MAC11_JaggerBeaten .True
 			Exec  $AutoSave
-        CaseOR == .Outcome:PlayerFled
+        Case == .Outcome:PlayerFled
 				Call  SpeakToPlayer ( .Npc:Jagger 0058051A 0058051A 00000000 0008007A )
 				Call	$Function_LoadItems ( )
 				Call  FullyRestoreHPandFP ( )
 				Call  FullyRestoreSP ( )
-		CaseOR == .Outcome:PlayerLost		
+		Case == .Outcome:PlayerLost		
 				Call  SpeakToPlayer ( .Npc:Jagger 0058051A 0058051A 00000000 00080079 )
 				Call	$Function_LoadItems ( )
 				Call  FullyRestoreHPandFP ( )
 				Call  FullyRestoreSP ( )
-        EndCaseGroup
     EndSwitch
 	Call  BindNpcIdle   ( .Npc:Jagger $IdleJagger )
     Return
@@ -281,6 +284,12 @@
 			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080084 )  %Would you like to spar?
 			Call  ShowChoice    ( 001E0016 )
 			If  *Var0  ==  00000000  % Yes, fight
+				If *Byte_Settings_Difficulty == 0` %Casual difficulty
+					Call  ContinueSpeech    ( .Npc:Jinx 00F70001 00F70000 00000000 0008009D ) % I won't battle you on casual difficulty
+					Call  GotoMap   ( "mac_10" 1 )
+					Wait  100`
+					Return
+				EndIf
 				Call  ContinueSpeech    ( .Npc:Jinx 00F70001 00F70000 00000000 00080086 ) % Let's fight
 				Thread
 					Call  SetNpcJumpscale   ( .Npc:Jinx *Fixed[2.5] )
@@ -358,19 +367,17 @@
     Switch  *Var0
         Case == .Outcome:PlayerWon		
             ExecWait  $JinxBeaten
-        CaseOR == .Outcome:PlayerFled
+        Case == .Outcome:PlayerFled
 			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080088 )
 				Call	$Function_LoadItems ( )
 				Call  FullyRestoreHPandFP ( )
 				Call  FullyRestoreSP ( )
-		CaseOR == .Outcome:PlayerLost
+		Case == .Outcome:PlayerLost
 			Call  SpeakToPlayer ( .Npc:Jinx 00F70001 00F70000 00000000 00080087 )
 				Call	$Function_LoadItems ( )
 				Call  FullyRestoreHPandFP ( )
 				Call  FullyRestoreSP ( )
-        EndCaseGroup
     EndSwitch
-	Call    DisablePlayerInput ( .False )
     Return
     End
 }

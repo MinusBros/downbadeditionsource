@@ -86,14 +86,21 @@
    38:  Call  DisablePlayerInput    ( .True )
    48:  Call  SetNpcPos ( .NpcID:WorldLakilester_00  -250`  120`  45` )
    64:  Call  SetMusicTrack ( 00000000 .Song:LakilesterTheme 00000000 00000008 )
-   80:  Call  ShowMessageAtScreenPos    ( 001100A0  160`  40` ) % Hey hey hey! Hold up! Wait, man!
+		If    *CheckJonathan == .False
+			Call  ShowMessageAtScreenPos    ( 001100A0  160`  40` ) % Hey hey hey! Hold up! Wait, man!
+		EndIf
    98:  Call  802D2B6C ( )
    A4:  Call  SetPlayerAnimation    ( 0001002A )
-   B4:  Wait  14`
-   C0:  Call  InterpPlayerYaw       (  270`  1` )
-   D4:  Wait  14`
-   E0:  Call  InterpPlayerYaw       (  90`  1` )
-   F4:  Wait  14`
+		If  *CheckJonathan == .False
+	   B4:  Wait  14`
+	   C0:  Call  InterpPlayerYaw       (  270`  1` )
+	   D4:  Wait  14`
+	   E0:  Call  InterpPlayerYaw       (  90`  1` )
+	   F4:  Wait  14`
+	    Else
+			Call  InterpPlayerYaw       (  90`  1` )
+			Wait  14`			
+		EndIf
   100:  Call  SetPlayerAnimation    ( .PlayerAnim:StandStill )
   110:  Call  802CF56C  ( 00000002 )
   120:  Call  SetNpcAnimation       ( .NpcID:WorldLakilester_00 00080007 )
@@ -125,9 +132,11 @@
   2E8:  	Call  PlayerMoveTo  (  -75`  65`  10` )
   300:  	Call  PlayerFaceNpc ( .NpcID:WorldLakilester_00 .False )
   314:  EndThread
-  31C:  Call  SpeakToPlayer     ( .NpcID:WorldLakilester_00 00080009 00080001 00000000 001100A1 ) % Hey, man! I don't think we've ever met, have we? I ...
-  33C:  Call  SetNpcAnimation   ( .NpcID:WorldLakilester_00 00080007 )
-  350:  Wait  3`
+		If    *CheckJonathan == .False
+	  31C:  Call  SpeakToPlayer     ( .NpcID:WorldLakilester_00 00080009 00080001 00000000 001100A1 ) % Hey, man! I don't think we've ever met, have we? I ...
+	  33C:  Call  SetNpcAnimation   ( .NpcID:WorldLakilester_00 00080007 )
+	  350:  Wait  3`
+		EndIf
   35C:  Call  SetNpcAnimation   ( .NpcID:WorldLakilester_00 00080001 )
   370:  Thread
   378:  	Call  SetCamDistance    ( .Cam:Default  1000` )
@@ -137,6 +146,8 @@
   3D0:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
   3E4:  EndThread
   3EC:  Call  DisablePlayerInput    ( .False )
+		Set  *CheckJonathan .True
+		Call	$Function_SaveItems ( )
 		Call $SetFlagCarryOverworldMusicToBattle()
   3FC:  Call  StartBossBattle       ( .Song:LakilesterTheme )
   40C:  Return
@@ -149,6 +160,7 @@
 @	$Script_80245444
 {
 		Call $ClearFlagCarryOverworldMusicToBattle()
+		Exec  $NukeBossChecks
 		Call  FadeOutMusic      ( 00000000 000001F4 )
     0:  Call  DisablePlayerInput    ( .True )
    10:  Wait  30`

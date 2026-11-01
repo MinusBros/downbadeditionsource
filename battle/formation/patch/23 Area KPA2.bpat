@@ -200,6 +200,7 @@
 
 @	$Script_Init_802216C0
 {
+		Call  $WriteAddress ( $Data_FireBreathColor 2 0 .False .False )
     0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
    18:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
    30:  Call  SetActorVar   ( .Actor:Self 00000004 00000003 )
@@ -1588,6 +1589,7 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
 
 @	$Script_Init_80227770
 {
+		Call  $WriteAddress ( $Data_FireBreathColor 2 0 .False .False )
     0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
    18:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
    30:  Call  SetActorVar   ( .Actor:Self 00000004 00000003 )
@@ -2255,6 +2257,7 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
 
 @	$Script_Init_8022D6A0
 {
+		Call  $WriteAddress ( $Data_FireBreathColor 2 0 .False .False )
     0:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
    18:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
    30:  Call  SetActorVar   ( .Actor:Self 00000004 00000003 )
@@ -2265,11 +2268,13 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
    A8:  Call  SetActorVar   ( .Actor:Self 00000006 00000000 )
    C0:  Call  SetActorVar   ( .Actor:Self 00000007 00000003 )
    D8:  Call  SetActorVar   ( .Actor:Self 0000000E 00000000 )
-        Call  $ReadAddress ( 800DBD70 0 *Var0 18A .False ) % get value as unsigned, GameByte[18A](GB_FinalBowserHP)
-        Call  SetEnemyHP    ( .Actor:Self *Var0 )
-        If  *Var0  <  00000001 
-  114:  	Call  SetEnemyHP    ( .Actor:Self 00000001 )
-  128:  EndIf
+		If  *SkippedFinalBowerPhase1 == .False				%If the first fight and Kamopa were skipped, keep him at max HP
+			Call  $ReadAddress ( 800DBD70 0 *Var0 18A .False ) % get value as unsigned, GameByte[18A](GB_FinalBowserHP)
+			Call  SetEnemyHP    ( .Actor:Self *Var0 )
+			If  *Var0  <  00000001 
+	  114:  	Call  SetEnemyHP    ( .Actor:Self 00000001 )
+	  128:  EndIf
+		EndIf
 		Call  SetActorScale     ( .Actor:Self *Fixed[1.5] *Fixed[1.5] *Fixed[1.0] )
   14C:  Call  ModifyActorDecoration ( .Actor:Self 00000001 00000001 00000096 00000000 00000000 00000000 )
   174:  Exec  $Script_8022F488
@@ -2520,12 +2525,16 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
    60:  Call  AddActorVar   ( .Actor:Self 00000003 00000001 )
    78:  Call  AddActorVar   ( .Actor:Self 00000006 00000001 )
    90:  Call  GetActorHP    ( .Actor:Self *Var0 )
-   A4:  Call  GetEnemyMaxHP ( .Actor:Self *Var1 )
-		Add   *Var0  30`	%This might prevent HP overflowing?
-   B8:  Mul   *Var0  100`
-   C8:  Div   *Var0  *Var1
-   D8:  Call  $Function_GetPlayerPercentHP  ( *Var2 )
-   E8:  Sub   *Var2  *Var0
+		If    *Var0  <  40`
+			Set  *Var2  50`		%He heals anyways if he's low enough. No Danger wins for you
+		Else
+	   A4:  Call  GetEnemyMaxHP ( .Actor:Self *Var1 )
+			Add   *Var0  30`	%This might prevent HP overflowing?
+	   B8:  Mul   *Var0  100`
+	   C8:  Div   *Var0  *Var1
+	   D8:  Call  $Function_GetPlayerPercentHP  ( *Var2 )
+	   E8:  Sub   *Var2  *Var0
+		EndIf
    F8:  If  *Var2  >  25`
   108:  	Call  GetActorVar   ( .Actor:Self 00000007 *Var0 )
   120:  	If  *Var0  !=  00000000
@@ -2552,6 +2561,7 @@ $RoseGoomba	  $Rose2 00000009 00000000 00000000 00000000 00000000
   208:  			EndIf
   210:  		EndIf
   218:  	EndIf
+			Else
   220:  EndIf
   228:  Call  GetActorVar   ( .Actor:Self 00000000 *Var0 )
   240:  If  *Var0  >  00000001

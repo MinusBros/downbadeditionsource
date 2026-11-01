@@ -35,6 +35,30 @@ ADDIU	V0, R0, 2
 	.Status:End
 }
 
+@IdleAnimations	001B1BB4
+{
+	.Status:Normal    00010014
+	.Status:Danger    00010003
+	.Status:Stone     00050001
+	.Status:Sleep     00030004
+	.Status:Dizzy     00030006
+	.Status:Stop      00010000
+	.Status:Hustle    00010014
+	.Status:Berserk   00010014
+	.Status:Paralyze  00030004
+	.Status:Frozen    00010B0E
+	0000000E 00010002
+	.Status:TurnDone  00010000
+	00000013 00040029
+	00000014 0004002A
+	00000015 00030003
+	00000018 00030005
+	00000016 00010001
+	.Status:Thinking  00010021
+	.Status:Weary     0001000D
+	.Status:End
+}
+
 @Function:Battle 0041A718  %$Function_btl_state_update_player_menu
 {
   [924]  LI        A2, 0001003B  %Apparently patching this on its own makes Mario not use an animation at all here, so cool I guess
@@ -105,7 +129,7 @@ NOP
 %Reset BEFORE turn so that it stays in effect until next turn
 %Check AutoBlock
 JAL     $IsBadgeEquipped
-ORI		A0, R0, 175 %formerly payoff
+ORI		A0, R0, 175 %Auto Dodge's value
 %
 ORI		V0, R0, 1
 BNE		A0, R0, .yes
@@ -486,13 +510,6 @@ ADDIU	V0, R0, 2
 
 #export:Script:Battle $CustomItemEffects
 {
-If *GB_FileCodeMode == 13`
-	Call $Function_ApplyHustle ( )
-EndIf
-If *GB_FileCodeMode == 14`
-	Call	 $Function_SetArbitraryByte ( 00000002 $ItemCostReductionData[2] )
-	Call	 $Function_SetArbitraryByte ( 00000000 $ItemCostReductionData[3] )	
-EndIf
 Call $Function_AddCoinTurns ( )
 If (*DelayedHealTurns > 0) %DelayedHealTurns
 	Set *Var[E] *DelayedHealAmount
@@ -529,7 +546,16 @@ End
 	If *GlobalTurnCount > 120`
 		Sub *GlobalTurnCount 60`
 	EndIf
+	Set		*Var[A] 0
+	Call 	$GetAreaVar ( *Var[A] )
 	Set		*Var[B] *GlobalTurnCount %hopefully doing this avoids problems
+    Switch (*Var[A])
+		Case == 1F		%Dark temple
+		%	(prevents usage of star power and takes it all away)
+			Call $Function_AddSP ( FFFFF900 ) %all of it (?)			
+		Default
+			%do nothing
+	EndSwitch
 	Return
 	End
 }
@@ -713,12 +739,17 @@ End
 
 #export:Script:Battle $FirstTimeText
 {
+	If   *GlobalTurnCount < 1`
+		Set  *MagicCookieByte 0`
+		Set  *HustleDrinkCounter 0`
+	EndIf
 	Return 
 	End
 }
 
 #export:Script:Battle $TurnScript
 {
+
 ExecWait $EnviroScript
 ExecWait $CustomItemEffects
 Return

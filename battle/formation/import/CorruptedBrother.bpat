@@ -189,7 +189,7 @@
 #new:Actor $CorruptedBrother {
 % stats
 [Index]         80b 
-[Level]         36`b  %Not much EXP 
+[Level]         48`b  %Not much EXP 
 [MaxHP]         169`b 
 [Coins]         1`b 
 [Flags]       00000000 
@@ -285,14 +285,17 @@
 .Status:End
 }
 
+#define .ThinkingVariation F
+
 #new:Script $Script_Init_802197AC_00 
 {
 		Set *GB_EnemyDefense  00000000
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_Luigi )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_802197F8_00 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80219AD4_00 )
+		Call	 SetActorVar (.Actor:Self .ThinkingVariation 0 )
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $CorruptedBrother 40` )
+			Call	$Function_SetLevel	( $CorruptedBrother 58` )
 		EndIf
    3C:  Return
    44:  End
@@ -307,6 +310,37 @@
 		Wait  1`
   2CC:  Return
   2D4:  End
+}
+
+
+
+#new:Script  $MonitorPosCorrupted
+{
+	Call	 SetActorVar ( .Actor:Enemy0 .ThinkingVariation 0` )
+	Loop
+		Call	 GetActorVar ( .Actor:Enemy0 .ThinkingVariation *Var7 )
+		If  *Var7  == 1`
+			BreakLoop
+		EndIf
+		Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+			If  *Var7 > -88`
+				BreakLoop
+			EndIf
+		Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+			If  *Var7 > -45`
+				BreakLoop
+			EndIf
+		Add  *Var6  1`
+		If   *Var6  > 40`
+			Call  802D5FA4  ( 00000005 )
+		EndIf
+		Wait  2`
+	EndLoop
+	Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 0` )
+	Call  802D5FA4  ( 00000007 )
+	Wait  2`
+	Return
+	End
 }
 
 #new:Script $Script_HandleEvent_80219AD4_00 {
@@ -352,6 +386,7 @@
 				Wait  2`
   294:  		Call  SetActorSpeed ( .Actor:Self *Fixed[12.0] )
   2A8:  		Set   *Var1  .AnimRun
+				Exec  $MonitorPosCorrupted
   378:  	Case  ==  .Event:ShockDeath % 26
   384:  		SetConst  *Var0  00000001 
   394:  		SetConst  *Var1  .AnimPain 
@@ -379,13 +414,6 @@
 				Call  SetMusicTrack ( 00000000 .Song:Vergil 00000001 00000008 )
   4AC:  		ExecWait  DoDeath 
   4B8:  		Return
-  4C0:  	Case  ==  .Event:EndFirstStrike % 35
-  4CC:  		Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[2.0] )
-  4FC:  		Call  SetGoalToHome ( .Actor:Self )
-  50C:  		Call  SetActorSpeed ( .Actor:Self *Fixed[4.0] )
-  520:  		Call  RunToGoal     ( .Actor:Self  0` .False )
-  538:  		Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
-  550:  		Call  HPBarToHome   ( .Actor:Self )
   560:  	Case  ==  .Event:RecoverStatus % 31
   56C:  		SetConst  *Var0  00000001 
   57C:  		SetConst  *Var1  .AnimIdle 
@@ -779,9 +807,11 @@
 
 #new:Script $Script_TakeTurn_Luigi 
 {
+		Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 1` )
 		If  *GB_EnemyDefense  > 00000007
   				Set *GB_EnemyDefense  00000000
   				ExecWait $Script_LuigiLightning
+				Exec  $MonitorPosCorrupted
  				Return
 			EndIf
 		Call  RandInt   ( 00000001 *Var0 )
@@ -796,6 +826,7 @@
 		Else
 			ExecWait $Script_ElecBallBarrage
 		EndIf
+		Exec  $MonitorPosCorrupted
 		Return
 		End
 }

@@ -54,6 +54,19 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
 	[PowerBounce]   5`b
 }
 
+@	$Script_Init_80219FF0
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_8021B394 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021A2D0 )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021A4FC )
+   3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_8021B384 )
+   50:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   68:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   80:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   98:  Return
+   A0:  End
+}
+
 %Resists most elements, but weak to water since he's an apparition. Oh and Gravity too cuz why not
 
 @	$DefenseTable_80219E60
@@ -72,12 +85,71 @@ $FreezeeDayzee	  $Dayzee3 00000008 00000000 00000000 00000000 00000000
 	.Element:End
 }
 
+@	$StatusTable_80219E74
+{
+	.Status:Normal      0`
+	.Status:Default     0`
+	.Status:Sleep       0`
+	.Status:Poison      0`
+	.Status:Frozen      0`
+	.Status:Dizzy       0`
+	.Status:Fear        0`
+	.Status:Static      0`
+	.Status:Paralyze    0`
+	.Status:Shrink      0`
+	.Status:Stop        0`
+	.Status:DefaultTurnMod    0`
+	.Status:SleepTurnMod     -4`
+	.Status:PoisonTurnMod    -4`
+	.Status:FrozenTurnMod    -4`
+	.Status:DizzyTurnMod     -4`
+	.Status:FearTurnMod      -4`
+	.Status:StaticTurnMod    -4`
+	.Status:ParalyzeTurnMod  -4`
+	.Status:ShrinkTurnMod    -4`
+	.Status:StopTurnMod      -4`
+	.Status:End
+}
+
+
+#new:Script  $MonitorPosMonstar
+{
+	Call	 SetActorVar ( .Actor:Enemy0 .ThinkingVariation 0` )
+	Loop
+		Call	 GetActorVar ( .Actor:Enemy0 .ThinkingVariation *Var7 )
+		If  *Var7  == 1`
+			BreakLoop
+		EndIf
+		Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+			If  *Var7 > -88`
+				BreakLoop
+			EndIf
+		Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+			If  *Var7 > -45`
+				BreakLoop
+			EndIf
+		Add  *Var6  1`
+		If   *Var6  > 40`
+			Call  802D5FA4  ( 00000004 )
+		EndIf
+		Wait  2`
+	EndLoop
+	Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 0` )
+	Call  802D5FA4  ( 00000007 )
+	Wait  2`
+	Return
+	End
+}
+
+#define .ThinkingVariation F
 
 %Stop with the textboxes every turn.
 
 @	$Script_TakeTurn_8021B394
 {
+	Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 1` )
     ExecWait  $Script_8021AB64
+	Exec  $MonitorPosMonstar
     Return
     End
 }

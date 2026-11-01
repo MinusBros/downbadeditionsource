@@ -182,9 +182,69 @@
 }
 
 
-%Boo on the bottom
+@	$Script_Init_80244DA4
+{
+    0:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80244B80 )
+   14:  If  *GB_StoryProgress  <  .Story:Ch3_BowJoinedParty % FFFFFFDC
+   24:  	Call  SetNpcPos ( .Npc:Self  0`  -1000`  0` )
+   40:  EndIf
+	If  *GB_StoryProgress  >=  .Story:Ch4_DefeatedGeneralGuy
+		If  *TheodoreCompleted == .False
+			Exec $TheodoreProblem
+		EndIf
+	EndIf		
+   48:  Return
+   50:  End
+}
+
+#new:Script  $TheodoreProblem
+{
+		Loop
+			Call  ShowEmote ( .NpcID:Boo_03 .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *TheodoreCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
+#import CountItems.mpat
+
+%Boo on the second floor. His name is Theodore
 @	$Script_Interact_80244B80
 {
+		If  *PacManDefeated == .True
+			Set  *TheodoreCompleted .True
+			Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0156 )	%Congrats
+			Call	ShowCoinCounter ( .True )
+			Wait    12`
+			Call	AddCoin ( 1000` )
+			Call	ShowCoinCounter ( .False )
+			Wait    28`
+			Call  $Function_CountItems
+			If *Var0 != .False
+				Call  ShowGotItem       ( .Item:BooTea .True 00000000 )
+				Call  AddItem   ( .Item:BooTea 0 )
+			EndIf
+			ExecWait $ProblemSolved
+			Return
+		EndIf
+		If  *GB_StoryProgress  >=  .Story:Ch4_DefeatedGeneralGuy
+			If  *TheodoreAsked == .False
+				Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E014E )
+				Call  ShowChoice    ( 001E000D ) % Yes No
+		  11C:  If  *Var0  ==  00000000
+					Set  *TheodoreAsked .True
+					Call  ContinueSpeech    ( .Npc:Self 0095020A 00950213 00000000 000E0150 ) 
+				Else
+		  12C:  	Call  ContinueSpeech    ( .Npc:Self 00950206 00950206 00000000 000E014F ) 
+				EndIf
+				Return
+			EndIf
+		EndIf		
+
     0:  Switch  *GB_StoryProgress
     C:  	Case  <  .Story:Ch3_DefeatedTubbaBlubba % FFFFFFF0
    18:  		Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0061 ) % This mansion has been passed down through the year ...
@@ -192,7 +252,7 @@
 				If    *Var0 == .Partner:Bow
 					Call  DisablePartnerAI  ( 00000000 )
 					Call  SpeakToPlayer ( .Npc:Partner 00050009 00050001 00000005 000E0118 ) % He handled Tyrant like a pro
-					Call  SpeakToPlayer ( .Npc:Self 00950211 00950211 00000000 000E0061 ) %  I salute you
+					Call  SpeakToPlayer ( .Npc:Self 00950211 00950211 00000000 000E0119 ) %  I salute you
 					Call  EnablePartnerAI ( )
 				EndIf
    38:  	Case  <  .Story:Ch5_StarSpritDeparted % 27
@@ -215,6 +275,12 @@
 					Call  EnablePartnerAI ( )
 				EndIf
    90:  EndSwitch
+
+		If  *GB_StoryProgress  >=  .Story:Ch4_DefeatedGeneralGuy
+			If  *TheodoreCompleted == .False
+				Call  SpeakToPlayer ( .Npc:Self 00950204 00950201 00000000 000E0151 )
+			EndIf
+		EndIf	
    98:  Return
    A0:  End
 }
@@ -345,6 +411,9 @@
 	~AnimationTable:NPC_Boo_02 % .Sprite:Boo
 	00000000 00000000 00000000 00000000 % no tattle string
 }
+
+
+
 
 @ $NpcGroup_80245424
 {

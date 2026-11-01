@@ -48,11 +48,12 @@
 #define .BombsAwayFlag 2
 #define .SorryDisplay  3
 #define .SorryDisplay2  4
+#define .ImpressiveStatus  5
 
 #new:PartsTable $PartsTable_Jinx {
 00800000 01000000 001200FF $IdleAnimations_Jinx $DefenseTable_Jinx 00000000 00000000 FFF60000 00000000 
 00120001 02000000 000000FF $IdleAnimations_BombsAway $DefenseTable_Jinx 00000000 00000000 00000000 00000000 
-00124002 03000000 000C00FF $IdleAnimations_Jagger $DefenseTable_Jinx 00000000 00000000 00000000 00000000
+40124002 03000000 000C00FF $IdleAnimations_Jagger $DefenseTable_Jinx 00000000 00000000 00000000 00000000
 }
 
 #new:IdleAnimations $IdleAnimations_Jinx {
@@ -134,6 +135,7 @@
 		Call    SetActorVar ( .Actor:Self .Counter 0 )
 		Call    SetActorVar ( .Actor:Self .BombsAwayFlag 0 )
 		Call    SetActorVar ( .Actor:Self .SorryDisplay 0 )
+		Call    SetActorVar ( .Actor:Self .ImpressiveStatus 0 )
 		Call  SetBattleFlagBits ( 00820000 .True ) %No celebration or Game Over on death	
    3C:  Return
    44:  End
@@ -173,8 +175,10 @@
 				Mul   *Var1  100`
 				Div   *Var1  *Var2 	
 				If    *Var1  < 50`	
-					ExecWait  $JinxMoveList2Low
 					ExecWait  $JinxMoveList2High
+					Call    SetActorVar ( .Actor:Self .ImpressiveStatus 1 )
+					ExecWait  $JinxMoveList2Low
+					Call    SetActorVar ( .Actor:Self .ImpressiveStatus 0 )
 				Else
 					ExecWait  $JinxMoveList2High
 				EndIf
@@ -189,9 +193,13 @@
 				Div   *Var1  *Var2 	
 				If    *Var1  < 50`	
 					ExecWait  $JinxMoveList3
+					Call    SetActorVar ( .Actor:Self .ImpressiveStatus 1 )
 					ExecWait  $JinxMoveList2Low
+					Call    SetActorVar ( .Actor:Self .ImpressiveStatus 0 )
 				Else
+					Call    SetActorVar ( .Actor:Self .ImpressiveStatus 1 )
 					ExecWait  $JinxMoveList2Low
+					Call    SetActorVar ( .Actor:Self .ImpressiveStatus 0 )
 				EndIf				
 		EndSwitch
 		Return
@@ -520,7 +528,7 @@
 		Call  BattleCamTargetActor  ( .Actor:Self )
 		Call  EnableActorBlur   ( .Actor:Self .True )
 		Call  AddGoalPos    ( .Actor:Self  -24`  0`  -4` )
-		Call  SetActorSpeed     ( .Actor:Self *Fixed[22.0] )
+		Call  SetActorSpeed     ( .Actor:Self *Fixed[16.0] )
 		Call  SetAnimation 	( .Actor:Self 00000001 00F7000B )
 		Call  PlaySoundAtActor 	( .Actor:Self 2DB )
    88:  Thread
@@ -566,6 +574,13 @@
 		Call  SetGoalToTarget       ( .Actor:Self )
 		Call  EnemyDamageTarget     ( .Actor:Self *VarF ~Flags:DamageType:NoContact|SpinSmash|Unsuperguardable 0000FFFF 00000000 99` 00000020 )
 		Wait  6`
+		Call  GetLastDamage ( .Actor:Player *Var0 )
+		If  *Var0 == 0`
+			Call    GetActorVar ( .Actor:Self .ImpressiveStatus *Var9 )
+			If   *Var9  == 1`
+				Call  ActorSpeak    ( 0008009C .Actor:Self 00000001 FFFFFFFF FFFFFFFF )	%Impressive
+			EndIf
+		EndIf
 		ExecWait  $ReturnHome
 		Call  EnableIdleScript  ( .Actor:Self 00000001 )
 		Call  UseIdleAnimation  ( .Actor:Self .True )

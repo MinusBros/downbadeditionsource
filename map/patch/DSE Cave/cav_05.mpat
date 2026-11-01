@@ -1,3 +1,4 @@
+#import PiranhaPlant.mpat
 
 #new:Header $Header
 {
@@ -55,6 +56,28 @@ something that was left behind.[BR]
 ~Vec4f:Entry1
 }
 
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:tik_01 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Bind     $Script_LoreText  .Trigger:WallPressA ~Collider:LoreText  00000001 00000000 
+Exec    $Script_SetMusic 
+Call   MakeNpcs ( .True $NpcGroupList_Cave  )
+ExecWait $Script_MakeEntities
+%entry 0 = left loading zoone
+%entry 1 = right loading zone
+Call     GetEntryID  	( *Var[0] )
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
 #new:Script $Script_SetMusic
 {
 Call     SetMusicTrack 	( 00000000 .Song:RecoveredStarRod 00000001 00000008 ) %Batman Stage 1
@@ -81,7 +104,7 @@ End
 
 #new:Script $Script_Chest
 {
-	0:  Set  *Var[A]  .Item:DefendPlusX
+	0:  Set  *Var[A]  .Item:DefendPlusY		%Changed to be Defend Plus Y instead of X, since that one is given in the sewers
    10:  Set  *Var[B]  00000002 
    20:  Set  *CAV05_Chest .True
    30:  ExecWait $Script_80245E6C 
@@ -180,26 +203,6 @@ End
 
 
 
-#new:Script_Main $Script_Main
-{
-Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
-Call	SetSpriteShading 	( .Shading:tik_01 )
-Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
-Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
-Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
-Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
-Bind     $Script_LoreText  .Trigger:WallPressA ~Collider:LoreText  00000001 00000000 
-Exec    $Script_SetMusic 
-ExecWait $Script_MakeEntities
-%entry 0 = left loading zoone
-%entry 1 = right loading zone
-Call     GetEntryID  	( *Var[0] )
-Set		*Var[0] $Script_MakeExits 
-Exec EnterWalk
-Return
-End
-}
-
 #new:Script $Script_LoreText
 {
 	Call	 DisablePlayerInput ( .True )
@@ -251,4 +254,88 @@ End
    40:  Wait     00000064 
    4C:  Return
    54:  End
+}
+
+
+
+#new:NpcGroupList $NpcGroupList_Cave
+{
+00000002 $Npc_PiranhaPlant1 3E2D0000 
+00000002 $Npc_PiranhaPlant2 3E2E0000 
+00000002 $Npc_PiranhaPlant3 3E2F0000 
+00000002 $Npc_PiranhaPlant4 3E300000
+00000000 00000000 00000000 
+}
+
+
+#new:NpcGroup $Npc_PiranhaPlant1 {
+00000000 $NpcSettings_80244070_mim_01 ~Vec3f:Plant1
+00000400 00000000 00000000 00000000 00000000 
+~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+~Movement:Plant1
+~AnimationTable:Plant1
+00000001 00000000 00000000 00000000 % no tattle string
+%
+00000001 $NpcSettings_802441A8_mim_01 ~Vec3f:Plant1Hitbox
+00800D00 00000000 00000000 00000000 00000000 
+~NoDrops
+~Movement:Plant1Hitbox
+~AnimationTable:Plant1Hitbox
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+
+#new:NpcGroup $Npc_PiranhaPlant2 {
+00000002 $NpcSettings_80244070_mim_01 ~Vec3f:Plant2
+00000400 00000000 00000000 00000000 00000000 
+~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+~Movement:Plant2
+~AnimationTable:Plant2
+00000001 00000000 00000000 00000000 % no tattle string
+%
+00000003 $NpcSettings_802441A8_mim_01 ~Vec3f:Plant2Hitbox
+00800D00 00000000 00000000 00000000 00000000 
+~NoDrops
+~Movement:Plant2Hitbox
+~AnimationTable:Plant2Hitbox
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+
+#new:NpcGroup $Npc_PiranhaPlant3 {
+00000004 $NpcSettings_80244070_mim_01 ~Vec3f:Plant3
+00000400 00000000 00000000 00000000 00000000 
+~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+~Movement:Plant3
+~AnimationTable:Plant3
+00000001 00000000 00000000 00000000 % no tattle string
+%
+00000005 $NpcSettings_802441A8_mim_01 ~Vec3f:Plant3Hitbox
+00800D00 00000000 00000000 00000000 00000000 
+~NoDrops
+~Movement:Plant3Hitbox
+~AnimationTable:Plant3Hitbox
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+
+
+#new:NpcGroup $Npc_PiranhaPlant4 {
+00000006 $NpcSettings_80244070_mim_01 ~Vec3f:Plant4
+00000400 00000000 00000000 00000000 00000000 
+~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+~Movement:Plant4
+~AnimationTable:Plant4
+00000001 00000000 00000000 00000000 % no tattle string
+%
+00000007 $NpcSettings_802441A8_mim_01 ~Vec3f:Plant4Hitbox
+00800D00 00000000 00000000 00000000 00000000 
+~NoDrops
+~Movement:Plant4Hitbox
+~AnimationTable:Plant4Hitbox
+00000000 00000000 00000000 00000000 % no tattle string
 }

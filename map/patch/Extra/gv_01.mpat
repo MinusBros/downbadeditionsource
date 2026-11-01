@@ -29,6 +29,7 @@
   118:  Call  SetCamEnabled     ( .Cam:Default .True )
   12C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
   140:  Thread
+			Set  *DisableLifeShroomPrompt .False
   148:  	Call  GetCurrentPartnerID   ( *Var[0] )
   158:  	If  *Var[0]  !=  .Partner:None % 0
   168:  		Call  DisablePartnerAI  ( 00000000 )
@@ -68,14 +69,14 @@
   29C:  EndThread
 		Thread
 			Call  SetMusicTrack ( 00000000 .Song:GameOver 00000000 00000008 )
-			Wait  264`
+			Wait  263`
 			If  *Flag[05] == .False
 				Call  SetMusicTrack ( 00000000 .Song:GameOver 00000001 00000008 )
 			EndIf
 		EndThread
   2C0:  Call  ClearAmbientSounds    ( 00000000 )
   2D0:  Thread
-			Wait  105`
+			Wait  104`
 			If   *GB_StoryProgress < .Story:Ch0_ReturnedToToadTown	%Prevent the death warp that plagued 1.0.2
 				Exec $GoToTitle
 				Return
@@ -205,6 +206,12 @@
 {
 	Set  *Var0 2`
 	Wait 1`
+	If *CheckFinalBower == .True
+		If  *FinalBowerRefightHint == .False
+			Set *FinalBowerRefightHint .True
+			Call  ShowMessageAtScreenPos    ( 001F00EC  152`  10` )
+		EndIf
+	EndIf
 	If *CheckFuzzies == .True
 		Set  *Flag[08] .True
 	EndIf
@@ -232,6 +239,9 @@
 	If *CheckShyShogun == .True
 		Set  *Flag[08] .True
 	EndIf
+	If *CheckWhiteCody == .True
+		Set  *Flag[08] .True
+	EndIf
 	If *CheckRaphael == .True
 		Set  *Flag[08] .True
 	EndIf
@@ -242,6 +252,12 @@
 		Set  *Flag[08] .True
 	EndIf
 	If  *CheckMrTrooper5 == .True
+		Set  *Flag[08] .True
+	EndIf
+	If  *CheckPythonMoles == .True
+		Set  *Flag[08] .True
+	EndIf
+	If  *CheckJonathan == .True
 		Set  *Flag[08] .True
 	EndIf
 	If *CheckLordofThunder == .True
@@ -259,6 +275,12 @@
 	If *CheckXinSui == .True
 		Set  *Flag[08] .True
 	EndIf
+	If *CheckMrTrooper7 == .True
+		Set  *Flag[08] .True
+	EndIf
+	If *CheckMrTrooper7Again == .True
+		Set  *Flag[08] .True
+	EndIf
 	If *CheckFinalBower == .True
 		Set  *Flag[08] .True
 	EndIf
@@ -271,77 +293,44 @@
 	If  *Flag[08] == .True
 		Call  ShowMessageAtScreenPos    ( 001E004C  152`  10` ) % Run it back	
 	EndIf
-	If  *Var0 == 0`		
+	If  *Var0 == 0`					%Reordered this list to be based on reverse order, so whichever the latest boss is will take priority in the run-it back list
 		Set   *Flag[05]  .True
 		Call  FullyRestoreHPandFP ( )
 		Call  FullyRestoreSP ( )
 		Call  FadeOutMusic  ( 00000000 00000BB8 )
-		Call	$Function_LoadItems ( )
+		If *CheckPythonMoles == .True				%Don't restore items when fighting the Python Moles
+			Wait  1`
+			Call  GotoMapSpecial    ( "flo_03" 0 6 )
+			Return
+		EndIf
+		Call   $Function_LoadItems ( )
 		Wait  1`
-		If *CheckFuzzies == .True
-			Call  GotoMapSpecial    ( "nok_04" 0 6 )
+		If *CheckRobotoad == .True
+			Call  GotoMapSpecial    ( "tik_26" 0 6 )
 			Return
 		EndIf
-		If *CheckCoopNotes == .True
-			Call  GotoMapSpecial    ( "trd_10" 0 6 )
+		If *EscapeSequence == .True
+			Call  GotoMapSpecial    ( "kpa_121" 1 6 )
 			Return
 		EndIf
-		If *CheckTutankoopa == .True
-			Call  GotoMapSpecial    ( "isk_16" 0 6 )
+		If *CheckFinalBower == .True		
+			Call  GotoMapSpecial    ( "kkj_25" 1 6 )
 			Return
 		EndIf
-		If *CheckMrTrooper3 == .True
-			Call  GotoMapSpecial    ( "sbk_30" 6 6 )
+		If *CheckMrTrooper7Again == .True
+			Call  GotoMapSpecial    ( "kpa_83" 0 6 )
 			Return
 		EndIf
-		If  *CheckTyrant == .True
-			Call  GotoMapSpecial    ( "obk_09" 0 6 )
+		If *CheckMrTrooper7 == .True
+			Call  GotoMapSpecial    ( "kpa_83" 0 6 )
 			Return
 		EndIf
-		If *CheckTubbs1 == .True
-			Call  GotoMapSpecial    ( "arn_11" 0 6 )
+		If *CheckXinSui == .True
+			Call  GotoMapSpecial    ( "dnj_29" 0 6 )
 			Return
 		EndIf
-		If *CheckTubbs2 == .True
-			Call  GotoMapSpecial    ( "arn_07" 0 6 )
-			Return
-		EndIf
-		If *CheckMrTrooper4 == .True
-			Call  GotoMapSpecial    ( "mim_07" 3 6 )
-			Return
-		EndIf
-		If *CheckShyShogun == .True
-			Call  GotoMapSpecial    ( "omo_15" 0 6 )
-			Return
-		EndIf
-		If *CheckWhiteCody == .True
-			Call  GotoMapSpecial    ( "jan_15" 0 6 )
-			Return
-		EndIf
-		If *CheckRaphael == .True
-			Call  GotoMapSpecial    ( "jan_23" 0 6 )
-			Return
-		EndIf
-		If *CheckBowersBrother == .True
-			Call  GotoMapSpecial    ( "kzn_16" 0 6 )
-			Return
-		EndIf
-		If *CheckMoltenPiranha == .True
-			Set  *MoltenPiranhaTurn .False
-			Call  GotoMapSpecial    ( "kzn_19" 1 6 )
-			Return
-		EndIf
-		If *CheckMrTrooper5 == .True		
-			Call  GotoMapSpecial    ( "mac_05" 1 6 )
-			Return
-		EndIf
-		If *CheckLordofThunder == .True
-			Set  *LordofThunderTurn .False
-			Call  GotoMapSpecial    ( "flo_21" 0 6 )
-			Return
-		EndIf
-		If  *CheckKoopaKoot == .True
-			Call    GotoMapSpecial ( "pra_01" 0 6 )
+		If *CheckPriest == .True
+			Call  GotoMapSpecial    ( "dnj_29" 0 6 )
 			Return
 		EndIf
 		If *CheckBlackCrystalKing == .True
@@ -349,24 +338,76 @@
 			Call  GotoMapSpecial    ( "pra_32" 0 6 )
 			Return
 		EndIf
-		If *CheckPriest == .True
-			Call  GotoMapSpecial    ( "dnj_29" 0 6 )
+		If  *CheckKoopaKoot == .True
+			Call    GotoMapSpecial ( "pra_01" 0 6 )
 			Return
 		EndIf
-		If *CheckXinSui == .True
-			Call  GotoMapSpecial    ( "dnj_29" 0 6 )
+		If *CheckLordofThunder == .True
+			Set  *LordofThunderRunbackFailsafe .True	%This is to prevent a softlock
+			Set  *LordofThunderTurn .False
+			Call  GotoMapSpecial    ( "flo_21" 0 6 )
 			Return
 		EndIf
-		If *CheckFinalBower == .True		
-			Call  GotoMapSpecial    ( "kkj_25" 1 6 )
+		If *CheckJonathan == .True		
+			Call  GotoMapSpecial    ( "flo_13" 1 6 )
 			Return
 		EndIf
-		If *EscapeSequence == .True
-			Call  GotoMapSpecial    ( "kpa_121" 1 6 )
+		If *CheckMrTrooper5 == .True		
+			Call  GotoMapSpecial    ( "mac_05" 1 6 )
 			Return
 		EndIf
-		If *CheckRobotoad == .True
-			Call  GotoMapSpecial    ( "tik_26" 0 6 )
+		If *CheckMoltenPiranha == .True
+			Set  *MoltenPiranhaTurn .False
+			Call  GotoMapSpecial    ( "kzn_19" 1 6 )
+			Return
+		EndIf
+		If *CheckBowersBrother == .True
+			Call  GotoMapSpecial    ( "kzn_16" 0 6 )
+			Return
+		EndIf
+		If *CheckRaphael == .True
+			Call  GotoMapSpecial    ( "jan_23" 0 6 )
+			Return
+		EndIf
+		If *CheckWhiteCody == .True
+			Set  *GB_StoryProgress  .Story:Ch5_MovedRavenStatue		%The plants advance story progress as soon as you battle, so we have to set this back
+			Call  GotoMapSpecial    ( "jan_15" 0 6 )
+			Return
+		EndIf
+		If *CheckShyShogun == .True
+			Call  GotoMapSpecial    ( "omo_15" 0 6 )
+			Return
+		EndIf
+		If *CheckMrTrooper4 == .True
+			Call  GotoMapSpecial    ( "mim_07" 3 6 )
+			Return
+		EndIf
+		If *CheckTubbs2 == .True
+			Call  GotoMapSpecial    ( "arn_07" 0 6 )
+			Return
+		EndIf
+		If *CheckTubbs1 == .True
+			Call  GotoMapSpecial    ( "arn_11" 0 6 )
+			Return
+		EndIf
+		If  *CheckTyrant == .True
+			Call  GotoMapSpecial    ( "obk_09" 0 6 )
+			Return
+		EndIf
+		If *CheckMrTrooper3 == .True
+			Call  GotoMapSpecial    ( "sbk_30" 6 6 )
+			Return
+		EndIf
+		If *CheckTutankoopa == .True
+			Call  GotoMapSpecial    ( "isk_16" 0 6 )
+			Return
+		EndIf
+		If *CheckCoopNotes == .True
+			Call  GotoMapSpecial    ( "trd_10" 0 6 )
+			Return
+		EndIf
+		If *CheckFuzzies == .True
+			Call  GotoMapSpecial    ( "nok_04" 0 6 )
 			Return
 		EndIf
 	EndIf

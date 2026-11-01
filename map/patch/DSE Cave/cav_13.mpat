@@ -1,0 +1,1137 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000001
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]I don't know how they[BR]
+manage to live down in this[BR]
+dark cave.[BR]
+[WAIT][NEXT]
+I guess being able to make[BR]
+your own light helps a lot.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:BowserAttacks 00000000 00000008 ) %Moon Kingdom
+Return
+End
+}
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:tik_01 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec    $Script_SetMusic 
+ExecWait $Script_MakeEntities
+ExecWait $Script_MakeDoors
+Call     MakeNpcs           ( 00000001 $NpcGroupList_Town )
+Call  MakeShop      ( $ShopItemPositions_8024B808 $ShopInventory_8024B6CC $ShopPriceList_8024B720 00010000 )
+Call  MakeShopOwner ( $ShopOwnerNPC_CapSparky )
+%entry 0 = left loading zone
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+%Make some shrooms spawn inside the mushroom farm, but you can't collect them without consequences :)
+#new:Script $Script_MakeEntities
+{
+	Call     MakeItemEntity ( .Item:HighMaxShroom ~Vec3d:goldenshroom 00000011 *GF_CAV13_GoldenShroom )
+	Call     MakeItemEntity ( .Item:UltraShroom ~Vec3d:powershroom 00000011 *GF_CAV13_PowerShroom )
+	Call     MakeItemEntity ( .Item:LifeShroom ~Vec3d:shieldshroom 00000011 *GF_CAV13_ShieldShroom )
+	Call     MakeItemEntity ( .Item:HighMaxShroom ~Vec3d:boostershroom 00000011 *GF_CAV13_BoosterShroom )
+	Call     MakeItemEntity ( .Item:StarPiece ~Vec3d:starpiece 00000011 *GF_CAV13_StarPiece )
+	%Temporary solution to missing item problem
+	Call     MakeItemEntity ( .Item:HighMaxShroom ~Vec3d:shopitem1 .ItemSpawnMode:Decoration *GF_PitDummyFlag )
+	Call     MakeItemEntity ( .Item:MiracleJelly ~Vec3d:shopitem2 .ItemSpawnMode:Decoration *GF_PitDummyFlag )
+	Call     MakeItemEntity ( .Item:LifeShroom ~Vec3d:shopitem3 .ItemSpawnMode:Decoration *GF_PitDummyFlag )
+	Call     MakeItemEntity ( .Item:PleaseComeBack ~Vec3d:shopitem4 .ItemSpawnMode:Decoration *GF_PitDummyFlag )
+	Call     MakeItemEntity ( .Item:HeatRiser ~Vec3d:shopitem5 .ItemSpawnMode:Decoration *GF_PitDummyFlag )
+	Call     MakeItemEntity ( .Item:BluePepper ~Vec3d:shopitem6 .ItemSpawnMode:Decoration *GF_PitDummyFlag )
+	Return
+	End
+}
+
+
+#new:Script $Script_MakeDoors %this is gonna get complicated
+{
+	%the args are...
+	%??? int (door sound? flags? needs more testing) (sam doors have value 00000002) (jan doors have values 00001006 and 00000005)
+	%open door script
+	%move walls script
+	%drop doors script (optional?)
+	%toggle internal visibility script
+	%collider (outward facing door collider)
+	%collider (inward facing door collider)
+	%everything except this model is disabled (but I don't really want to disable all the models)
+	%inside npc list? (can be 00000000
+	Call  SetGroupEnabled   ( ~Model:room1 00000000 )
+	Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_room1 $Script_MoveWalls_room1 $Script_DropDoor_room1 $Script_ToggleVis_room1 ~Collider:door1co ~Collider:door1ci ~Model:keeploaded $NpcList_room1 )
+	Call  SetGroupEnabled   ( ~Model:room3 00000000 )
+	Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_Room3 $Script_MoveWalls_Room3 $Script_DropDoor_Room3 $Script_ToggleVis_Room3 ~Collider:door3co ~Collider:door3ci ~Model:keeploaded $NpcList_Room3 )
+	Return
+	End
+}
+
+#new:Script $Script_OpenDoor_room1
+{
+    0:  Call  RotateGroup   ( ~Model:door1 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_MoveWalls_room1
+{
+	/%
+    0:  Call  RotateGroup   ( ~Model:wall1 *Var0 00000001 00000000 00000000 )
+   20:  If  *Var0  >  00000059
+   30:  	Call  SetGroupEnabled   ( ~Model:wall1 00000000 )
+   44:  EndIf
+   4C:  If  *Var0  <  00000059
+   5C:  	Call  SetGroupEnabled   ( ~Model:wall1 00000001 )
+   70:  EndIf
+	%/
+   78:  Return
+   80:  End
+}
+
+#new:Script $Script_DropDoor_room1
+{
+    0:  Call  RotateGroup   ( ~Model:door1 *Var0 00000001 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_ToggleVis_room1
+{
+    0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000000
+				Thread
+					If *ShopState == 00000000
+						Set *ShopState 00000001
+						Wait 24`
+						Call  PushSong      ( .Song:UnusedFanfare 1 ) %The Old Sinking Sanctuary (Art Tower)
+					EndIf
+				EndThread
+  108:  		Call  SetGroupEnabled   ( ~Model:room1 00000001 )
+   DC:  	Case  ==  00000003
+				Thread
+					If *ShopState == 00000001
+						Set *ShopState 00000000
+						Call  PopSong ( )
+					EndIf
+				EndThread
+  108:  		Call  SetGroupEnabled   ( ~Model:room1 00000000 )
+  11C:  EndSwitch
+  124:  Return
+  12C:  End
+}
+
+#new:Script $Script_OpenDoor_Room3
+{
+    0:  Call  RotateGroup   ( ~Model:door3 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_MoveWalls_Room3
+{
+    0:  Call  RotateGroup   ( ~Model:wall3 *Var0 00000001 00000000 00000000 )
+   20:  If  *Var0  >  00000059
+   30:  	Call  SetGroupEnabled   ( ~Model:wall3 00000000 )
+   44:  EndIf
+   4C:  If  *Var0  <  00000059
+   5C:  	Call  SetGroupEnabled   ( ~Model:wall3 00000001 )
+   70:  EndIf	
+   78:  Return
+   80:  End
+}
+
+#new:Script $Script_DropDoor_Room3
+{
+    0:  Call  RotateGroup   ( ~Model:door3 *Var0 00000001 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_ToggleVis_Room3
+{
+    0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000000
+  108:  		Call  SetGroupEnabled   ( ~Model:room3 00000001 )
+   DC:  	Case  ==  00000003
+  108:  		Call  SetGroupEnabled   ( ~Model:room3 00000000 )
+  11C:  EndSwitch
+  124:  Return
+  12C:  End
+}
+
+#new:NpcList $NpcList_room1
+{
+	00000003 FFFFFFFF
+}
+
+#new:NpcList $NpcList_Room3
+{
+	00000001 FFFFFFFF
+}
+
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftLZ 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_12" 00000001 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+
+%npc stuff
+
+#new:NpcGroupList $NpcGroupList_Town_NoShroom
+{
+00000004 $NpcGroup_SparkyGroup 00000000
+00000000 00000000 00000000
+}
+
+#new:NpcGroupList $NpcGroupList_Town
+{
+00000004 $NpcGroup_SparkyGroup 00000000
+00000001 $NpcGroup_Shroom 35010002
+00000000 00000000 00000000
+}
+
+
+%the sparkies
+#new:NpcGroup $NpcGroup_SparkyGroup
+{
+00000000 $NpcSettings ~Vec3f:sparky %???
+00000D0D $Script_Init_Sparky 00000000 00000000 00000080 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:sparky
+%too lazy to set the animation table in the map so I'll do it in script
+00F80001 00F80001 00F80001 00F80001 00F80001 00F80001 00F80001 00F80001
+00F80001 00F80001 00F80001 00F80001 00F80001 00F80001 00F80001 00F80001
+00000000 00000000 00000000 $SparkyTattle
+%
+00000001 $NpcSettings ~Vec3f:mayor %???
+00000D0D $Script_Init_Mayor 00000000 00000000 00000080 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:mayor
+00F80309 00F80309 00F80309 00F80309 00F80309 00F80309 00F80309 00F80309
+00F80309 00F80309 00F80309 00F80309 00F80309 00F80309 00F80309 00F80309
+00000000 00000000 00000000 $HatSparkyTattle
+%
+00000002 $NpcSettings ~Vec3f:strawhat %???
+00000D0D $Script_Init_StrawHat 00000000 00000000 00000080 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:strawhat
+00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B
+00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B 00F80B0B
+00000000 00000000 00000000 $StrawSparkyTattle
+%
+00000003 $NpcSettings ~Vec3f:bluecap %???
+00000D0D $Script_Init_CapSparky 00000000 00000000 00000080 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:bluecap
+00F80006 00F80006 00F80006 00F80006 00F80006 00F80006 00F80006 00F80006
+00F80006 00F80006 00F80006 00F80006 00F80006 00F80006 00F80006 00F80006
+00000000 00000000 00000000 $CapSparkyTattle
+}
+
+#new:NpcGroup $NpcGroup_Shroom
+{
+00000004 $NpcSettings ~Vec3f:mushroom %???
+00000D0D $Script_Init_Mushroom 00000000 00000000 00000080 %???
+~Items:64:UltraShroom:A 		%Lol
+ ~NoHP ~NoFP ~NoCoinBonus
+~Movement:mushroom
+%too lazy to set the animation table in the map so I'll do it in script
+00EE0200 00EE0200 00EE0200 00EE0200 00EE0200 00EE0200 00EE0200 00EE0200
+00EE0200 00EE0200 00EE0200 00EE0200 00EE0200 00EE0200 00EE0200 00EE0200
+00000000 00000000 00000000 00000000 %an enemy so no tattle
+}
+
+#new:NpcSettings $NpcSettings
+{
+00000000 00300018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+
+#new:Script $Script_Init_Sparky
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_Sparky )
+	Return
+	End
+}
+
+#new:Script $Script_Init_Mayor
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_HatSparky )
+	Call	 SetNpcYaw	  ( .Npc:Self 180.0 )
+	Return
+	End
+}
+
+#new:Script $Script_Init_StrawHat
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_StrawHat )
+	Call	 SetNpcYaw	  ( .Npc:Self 180.0 )
+	Return
+	End
+}
+
+#new:Script $Script_Init_CapSparky
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_CapSparky )
+	Return
+	End
+}
+
+#new:Script $Script_Init_Mushroom
+{
+		Set *MapFlag[4] .False
+	0:  If  *GF_CAV13_UltraShroom == 00000000
+   10:  	Call     BindNpcIdle 	( .Npc:Self $Script_IdleAI_Shroom )
+			Call 	 BindNpcDefeat ( .Npc:Self $Script_HandleOutcome )
+   38:  Else
+   78:  	Call     SetNpcPos   	( .Npc:Self 0` -1000` 0` )
+   94:  EndIf
+   9C:  Return
+   A4:  End
+}
+
+#new:Script $Script_Interact_Sparky
+{
+	Call	 DisablePlayerInput ( .True )
+	If *GF_CAV13_MeetMayor == .False
+		Call     SpeakToPlayer 	( 00000000 00F80001 00F80004 00000000 $SparkyText )
+	Else
+		Call     SpeakToPlayer 	( 00000000 00F80001 00F80004 00000000 $SparkyTextB )
+	EndIf
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+
+%get the new partner to actually get the key to the temple of darkness
+%other partners will give justifications that he won't accept
+%To do later: rewrite the dialogue here?
+%	Some of it doesn't completely fit but eh I don't really like writing
+
+#new:Script $Script_Interact_HatSparky
+{
+	Call	 DisablePlayerInput ( .True )
+	If *GF_CAV13_GivenKey == .False
+		If *GF_CAV13_MeetMayor == .False
+			Call     SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNoKey )
+			%mario anim
+			Call  SetPlayerAnimation    ( 00090000 )
+			Wait  35`
+			Call  SetPlayerAnimation    ( 00010002 )		
+			Call     SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNoKey2 )
+		EndIf
+		Set *GF_CAV13_MeetMayor .True
+		Call  GetCurrentPartnerID   ( *Var0 )
+		Switch  *Var0 %Copied this switch statement from the mayor penguin map so I get all the right animation values (Not sure about the NPC id parameter)
+			Case  ==  .Partner:Goombario % 1
+				Call  SpeakToNpc    ( .Npc:Partner 00010008 00010001 00000001 00000001 $JustificationA ) % What's your problem? You don't actually think Mari ...
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  .Partner:Kooper % 2
+				Call  SpeakToNpc    ( .Npc:Partner 0002000D 00020003 00000001 00000001 $JustificationB ) % Are you crazy? Do you really think Mario would do  ...
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  .Partner:Bombette % 3
+				Call  SpeakToNpc    ( .Npc:Partner 0003000E 00030003 00000001 00000001 $JustificationC ) % Don't be ridiculous! Mario didn't do it!
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  .Partner:Parakarry % 4
+				Call  SpeakToNpc    ( .Npc:Partner 00040006 00040001 00000001 00000001 $JustificationD ) % Mario didn't do it. He's obviously innocent!
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  .Partner:Bow % 9
+				Call  SpeakToNpc    ( .Npc:Partner 00050004 00050001 00000001 00000001 $JustificationE ) % I was with him the whole time. I swear on my own g ...
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  .Partner:Watt % 6
+				Call  SpeakToNpc    ( .Npc:Partner 00060004 00060001 00000001 00000001 $JustificationF ) % Mario, um, didn't do it! It's mean that you're tre ...
+				Wait  30`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvincedB )
+			Case  ==  .Partner:Sushie % 7
+				Call  SpeakToNpc    ( .Npc:Partner 00070004 00070001 00000001 00000001 $JustificationG ) % Hey, use your head! Do you really think Mario is c ...
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  .Partner:Lakilester % 8
+				Call  SpeakToNpc    ( .Npc:Partner 00080009 00080001 00000001 00000001 $JustificationH ) % What! Are you nuts, man? Mario's not a murderer! T ...
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextNotConvinced )
+			Case  ==  0000000A
+				Call  SpeakToNpc    ( .Npc:Partner 00FC000E 00FC0001 00000001 00000001 $JustificationI )
+				Wait  10`
+				Call  SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorTextOkFine )
+				Call  AddKeyItem        ( 00000035 ) %dark key (should be)
+				Call  ShowGotItem   ( 00000035 .True 00000000 )
+				Set *GF_CAV13_GivenKey .True
+		EndSwitch		
+	Else
+		Call     SpeakToPlayer 	( 00000001 00F8030F 00F80309 00000000 $MayorText )
+	EndIf
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Interact_StrawHat
+{
+	Call	 DisablePlayerInput ( .True )
+	If *GF_CAV13_UltraShroom == .False
+		Call     SpeakToPlayer 	( 00000002 00F80B11 00FB0B0B 00000000 $StrawHatText )
+	Else
+		Call     SpeakToPlayer 	( 00000002 00F80B11 00FB0B0B 00000000 $StrawHatNoShroomText )
+	EndIf
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Interact_CapSparky
+{
+	%Call	 DisablePlayerInput ( .True )
+	%Call     SpeakToPlayer 	( 00000003 00F8030C 00F80306 00000000 $HatSparkyText )
+	%Call	 DisablePlayerInput ( .False )
+	ExecWait  ItemShopInteract
+	Return
+	End
+}
+
+
+%have to set up some shopkeeper stuff
+
+#new:IntTable $IntTable_DialogueList
+{
+	$ShopCoinPrice $ShopTooPoor $ShopInventoryFullA $ShopLeave $ShopWelcome $ShopBuyTutorial $ShopEmptySell $ShopSellQueryA
+	$ShopSellCoinCost $ShopSellQueryB $ShopSellMore $ShopSellLast $ShopEmptyCheck $ShopStorageFull $ShopCheckQuery $ShopCheckLast
+	$ShopCheckMore $ShopNoStorage $ShopInventoryFullB $ShopClaimQuery $ShopClaimLast $ShopClaimMore $ShopExit
+}
+
+/%
+#new:IntTable $IntTable_DialogueList
+{
+	0027008E 0027008F 00270090 00270091 00270092 00270093 00270094 00270095
+	00270096 00270097 00270098 00270099 0027009A 0027009B 0027009C 0027009D
+	0027009E 0027009F 002700A0 002700A1 002700A2 002700A3 002700A4
+}
+%/
+
+#new:ShopInventory $ShopInventory_8024B6CC
+{
+	.Item:HighMaxShroom   100` 002400DA 
+	.Item:MiracleJelly    120` 002400DB
+	.Item:LifeShroom      200` 0024000C 		% You can FINALLY buy Life Shrooms
+	.Item:PleaseComeBack   97` 002400DC 		% Mega POW Blocks are buyable too
+	.Item:HeatRiser       169` 002400D9 		% Heat Riser, combination of Tarukaja and Rakukaja Gems
+	.Item:BluePepper	  224` 002400DD			% Blue Pepper, a stronger Hustle Drink, but only if you cook it
+	00000000 00000000 00000000
+}
+
+%star stuff is worth more
+%jelly ultra is worth more lol
+#new:ShopPriceList $ShopPriceList_8024B720
+{
+	.Item:ShootingStar   00000020 00000000	%should be fine
+	.Item:StarCake   	 00000028 00000000	%ok
+	.Item:BlandMeal      0000000F 00000000
+	.Item:YummyMeal      00000014 00000000
+	.Item:DeluxeFeast    00000046 00000000
+	.Item:JellyUltra     000000C8 00000000	%with 75 coins for ultra shroom and jelly (didn't check this), you can make 50 coin profit (but it takes quite a while to get it set up)
+	%Things they don't want
+	.Item:Pebble		 00000000 00000000  %wow a rock its not like they live in an area made of rocks
+	%Dark items are evil so no
+	%.Item:DarkLeaf		 00000000 00000000
+	%.Item:DarkShroom 	 00000000 00000000
+	%.Item:DarkTea		 00000000 00000000
+	%.Item:DarkPop		 00000000 00000000
+	%.Item:DarkCake 		 00000000 00000000
+	%.Item:DarkShroomCake 00000000 00000000
+	00000000 00000000 00000000
+}
+
+%useless script
+#new:Script $Script_8024B7B4
+{
+    0:  Switch  *Var0
+    C:  	Case  ==  00000003
+   18:  	Case  ==  00000004
+   24:  	Case  ==  00000001
+   30:  	Case  ==  00000002
+   3C:  EndSwitch
+   44:  Return
+   4C:  End
+}
+
+%luckily I imported the shop models n stuff directly from the same map I copied the scripts from
+#new:ShopItemPositions $ShopItemPositions_8024B808
+{
+	~Short:Model:1 ~Short:Collider:o433
+	~Short:Model:2 ~Short:Collider:o434
+	~Short:Model:3 ~Short:Collider:o435
+	~Short:Model:4 ~Short:Collider:o436
+	~Short:Model:5 ~Short:Collider:o437
+	~Short:Model:6 ~Short:Collider:o438
+}
+
+%NPC ID, idle anim, talk anim, script (unknown purpose), ???, ???, dialogue list
+#new:ShopOwnerNPC $ShopOwnerNPC_CapSparky
+{
+	00000003 00F80006 00F8000C $Script_8024B7B4 00000000 00000000 $IntTable_DialogueList
+}
+
+#new:Script $Script_IdleAI
+{
+	%Hopefully this will work
+	Call	 GetNpcVar    ( .Npc:Self 00000001 *VarE )
+	If 		 *VarE == 00000000
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call     PlayEffect  	( 00000073 00000001 *Var[0] *Var[1] *Var[2] *Fixed[1.0] 00000005 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call	 SetNpcVar    ( .Npc:Self 00000001 *VarF )	
+		%Fix positions
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call	 $Function_SetThunderboltPos ( *VarF *Var0 *Var1 *Var2 )
+	EndIf
+	Return
+	End
+}
+
+%Repurposed a different 4 arg function so it looks a little weird
+#new:Function $Function_SetThunderboltPos 
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 30 (SP)
+   1C:  SDC1      F22, 28 (SP)
+   20:  SDC1      F20, 20 (SP)
+   24:  LW        S0, C (S1)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  COPY      A0, S1
+   44:  COPY      S2, V0
+		LW		  S2, C (S2)
+   40:  JAL       ~Func:get_variable
+		NOP
+   48:  LW        A1, 0 (S0)
+   4C:  ADDIU     S0, S0, 4
+   50:  MTC1      V0, F24
+   54:  NOP
+   58:  CVT.S.W   F24, F24
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      A0, S1
+   64:  LW        A1, 0 (S0)
+		%Offset Y pos by 12
+		ADDI	  V0, V0, C
+   68:  MTC1      V0, F22
+   6C:  NOP
+   70:  CVT.S.W   F22, F22
+   74:  JAL       ~Func:get_variable
+   78:  COPY      A0, S1
+   7C:  MTC1      V0, F20
+   80:  NOP
+   84:  CVT.S.W   F20, F20
+		%Do stuff
+		%S2 = id
+		%F24, F22, F20 = x,y,z (floats)
+		SWC1	  F24, 4 (S2)
+		SWC1	  F22, 8 (S2)
+		SWC1	  F20, C (S2)		
+   A0:  LW        RA, 1C (SP)
+   A4:  LW        S2, 18 (SP)
+   A8:  LW        S1, 14 (SP)
+   AC:  LW        S0, 10 (SP)
+   B0:  LDC1      F24, 30 (SP)
+   B4:  LDC1      F22, 28 (SP)
+   B8:  LDC1      F20, 20 (SP)
+   BC:  LI        V0, 2
+   C0:  JR        RA
+   C4:  ADDIU     SP, SP, 38
+}
+
+
+%Start fight if you grab any of the shrooms or get to close to the ultra shroom
+#new:Script $Script_IdleAI_Shroom
+{
+	Exec 	$Script_ListenForPlayer	*VarA
+	Exec 	$Script_ListenForFlags	*VarB
+	Label 0
+	If *MapFlag[4] == .False
+		Wait 1`
+		Goto 0
+	EndIf	
+	%probably unneccessary but don't want to leave scripts hanging around even if they don't do anything without this one
+	Kill *VarA
+	Kill *VarB
+	Wait     0000000F 
+	%you just get a random boss fight out of nowhere, but the straw hat guy says there would be consequences
+	Call     StartBossBattle 	( .Song:SpecialBattle )	
+	Set  *GF_CAV13_UltraShroom 00000001 	
+	Return
+	End
+}
+
+#new:Script $Script_HandleOutcome
+{
+    Call     GetBattleOutcome 	( *Var[0] )
+    Switch  *Var[0] 
+		Case  ==  00000000 
+			Set  *GF_CAV13_UltraShroom 00000001 
+			Call    DoNpcDefeat ( )
+		Case  ==  00000001 
+		Case  ==  00000002 
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_ListenForFlags
+{
+	Label 0
+	If *GF_CAV13_GoldenShroom == .True
+		Set *MapFlag[4] .True
+	EndIf
+	If *GF_CAV13_PowerShroom == .True
+		Set *MapFlag[4] .True
+	EndIf
+	If *GF_CAV13_ShieldShroom == .True
+		Set *MapFlag[4] .True
+	EndIf
+	If *GF_CAV13_BoosterShroom == .True
+		Set *MapFlag[4] .True
+	EndIf
+	Wait 1`
+	Goto 0
+	Return
+	End
+}
+
+#new:Script $Script_ListenForPlayer
+{
+	Call     AwaitPlayerApproach 	( 347` 230` 60` )	%have to make sure you don't trigger this from outside (problem: this triggers when you leave the radius)
+	Set *MapFlag[4] .True
+	Return
+	End
+}
+
+
+
+%dialogue text
+
+#new:String $SparkyText
+{
+	[Style Right]If you want to talk to[BR]
+	the mayor, he lives up[BR]
+	on that hill over there.[BR]
+	[WAIT][END]
+}
+
+#new:String $SparkyTextB
+{
+	[Style Right]Mayor Maxwell keeps to[BR]
+	himself most of the time.[BR]
+	All of us down here do that[BR]
+	too, kinda.[BR]
+	[WAIT][END]
+}
+
+#new:String $MayorTextNoKey
+{
+	[Style Right]Hello there.[BR]
+	You must be Mario.[BR]
+	I've heard of you.[BR]
+	I'm not sure why you came here.[BR]
+	[WAIT][NEXT]	
+	You want the key[BR]
+	to the Temple of Darkness?[BR]
+	[WAIT][NEXT]
+	I cannot do that.[BR]
+	It is too dangerous.[BR]
+	[WAIT][END]
+}
+
+/%
+#new:String $MayorTextNoKey2
+{
+	[Style Right]No, you don't understand.[BR]
+	Bowser's men are nothing[BR]
+	compared to the enemies[BR]
+	in that temple.[BR]
+	[WAIT][NEXT]
+	[PAUSE:0A]...I will give you the key,[BR]
+	but you must be very[BR]
+	careful out there.[BR]
+	[WAIT][END]
+}
+%/
+
+#new:String $MayorTextNoKey2
+{
+	[Style Right]No, you don't understand.[BR]
+	Bowser's men are nothing[BR]
+	compared to the enemies[BR]
+	in that temple.[BR]
+	[WAIT][NEXT]
+	The previous mayor passed this[BR]
+	key down to me and warned me[BR]
+	that the Temple should never[BR]
+	be opened again.[BR]
+	[WAIT][NEXT]
+	I will not allow you to go[BR]
+	there.[BR]
+	[WAIT][END]
+}
+
+%partner specific dialogue
+%probably should rewrite these later
+#new:String $JustificationA
+{
+	[STYLE:RIGHT]Huh? We've had no problem[BR]
+	with Bowser's guys.[BR]
+	There's no way those enemies[BR]
+	in the temple can beat us![WAIT][END]
+}
+
+#new:String $JustificationB
+{
+	[STYLE:RIGHT]What? We've beat enemies[BR]
+	all over the world![BR]
+	There's no way those enemies[BR]
+	in the temple can beat us![WAIT][END]
+}
+
+#new:String $JustificationC
+{
+	[STYLE:RIGHT]What? We can totally handle[BR]
+	those temple guys![WAIT][END]
+}
+
+#new:String $JustificationD
+{
+	[STYLE:RIGHT]Huh? We've had no problems[BR]
+	fighting enemies before.[BR]
+	I don't see why we'll have[BR]
+	any problems in that temple.[WAIT][END]
+}
+
+%not sure about this one (Probably fine)
+#new:String $JustificationE
+{
+	[STYLE:RIGHT]What? You really think we[BR]
+	can't handle it?[BR]
+	Do you even know what it[BR]
+	took to come down here?[WAIT][END]
+}
+
+#new:String $JustificationF
+{
+	[STYLE:RIGHT]Um, mister mayor?[BR]
+	We're really strong now![BR]
+	That dark temple doesn't scare[BR]
+	us![WAIT][END]
+}
+
+#new:String $JustificationG
+{
+	[STYLE:RIGHT]Are you sure?[BR]
+	I think we can handle whatever[BR]
+	is down there.[WAIT][END]
+}
+
+#new:String $JustificationH
+{
+	[STYLE:RIGHT]Come on, man![BR]
+	We can handle these guys![WAIT][END]
+}
+
+#new:String $JustificationI
+{
+	[STYLE:RIGHT]Really? You want to keep it[BR]
+	locked forever? Do you really[BR]
+	think that will work? You're[BR]
+	only making the problem worse.[BR]
+	[WAIT][NEXT]If we don't do anything,[BR]
+	they will only get stronger.[BR]
+	Soon, they will escape the temple[BR]
+	to destroy the world once again![BR]
+	[WAIT][NEXT]We have to stop this threat[BR]
+	once and for all.[BR]
+	[WAIT][END]
+}
+
+%yay short text
+#new:String $MayorTextNotConvinced
+{
+	[Style Right]I've already made myself clear.[BR]
+	No.[BR]
+	[WAIT][NEXT]
+	Also, the temple is locked with[BR]
+	[COLOR:20]two keys[COLOR:0A]. If you really want[BR]
+	to enter the temple, you will[BR]
+	need both of them.[BR]
+	[WAIT][NEXT]
+	Maybe if you find the other[BR]
+	person with a key I will[BR]
+	reconsider.[BR]
+	[WAIT][END]
+}
+
+%special text if you bring Watt here	(?)
+#new:String $MayorTextNotConvincedB
+{
+	[Style Right]I've already made myself clear.[BR]
+	No.[BR]
+	[WAIT][NEXT]
+	Also, the temple is locked with[BR]
+	[COLOR:20]two keys[COLOR:0A]. If you really want[BR]
+	to enter the temple, you will[BR]
+	need both of them.[BR]
+	[WAIT][NEXT]
+	Maybe if you find the other[BR]
+	person with a key I will[BR]
+	reconsider.[BR]
+	[WAIT][END]
+}
+
+#new:String $MayorTextOkFine
+{
+	[Style Right]
+	Huh? Is that so...[BR]
+	[WAIT][NEXT]
+	...The previous mayor told me[BR]
+	about you. He said you were the[BR]
+	one who held the other key to[BR]
+	the temple.[BR]
+	[WAIT][NEXT]
+	Very well. If you are willing[BR]
+	to go down this path, I will[BR]
+	give you the second key.[BR]
+	[WAIT][NEXT]...But you must remember that[BR]
+	the enemies in this temple are[BR]
+	stronger than those you've faced[BR]
+	before.[BR]
+	[WAIT][NEXT]It may be better to avoid[BR]
+	fighting them.[BR]
+	[WAIT][END]
+}
+
+
+
+
+
+#new:String $MayorText
+{
+	[Style Right]Be careful out there.[BR]
+	[WAIT][END]
+}
+
+#new:String $StrawHatText
+{
+	[Style Right]Hi there![BR]
+	These mushrooms can only[BR]
+	grow in this cave.[BR]
+	[WAIT][NEXT]
+	If you want some of them,[BR]
+	go talk to the shopkeeper[BR]
+	over there.[BR]
+	[WAIT][NEXT]
+	Oh, if you try to take them[BR]
+	from my farm, [COLOR:20]there will be[BR]
+	consequences[COLOR:0A].[BR]
+	[WAIT][END]
+}
+
+#new:String $StrawHatNoShroomText
+{
+	[Style Right]Huh? It looks like some[BR]
+	mushrooms are missing from[BR]
+	my farm.[BR]
+	[WAIT][NEXT]
+	Maybe that weird green one ate[BR]
+	some of them.[BR]
+	[WAIT][NEXT]Oh well! I'm sure they'll[BR]
+	grow back.[BR]
+	[PAUSE:0A]...Hopefully.[BR]
+	[WAIT][END]
+}
+
+
+
+
+%shop text
+#new:String $ShopCoinPrice
+{
+	[Yield][End]
+}
+
+#new:String $ShopTooPoor
+{
+	[Next]
+	I don't give discounts.[BR]
+	[PAUSE:0A]Come back when you have more[BR]
+	coins.[BR]
+	[Wait][End]
+}
+
+#new:String $ShopInventoryFullA
+{
+	[Next]
+	You're holding too much.[BR]
+	[Wait][Next]
+	Come back when you're carrying[BR]
+	less junk.[Wait][End]
+}
+
+#new:String $ShopLeave
+{
+	[Next][End]
+}
+
+#new:String $ShopWelcome
+{
+	[Style Right]
+	Yeah, this is my shop.[BR]
+	[Wait][Next]
+	What do you want?[BR]
+	[Yield][End]
+}
+
+#new:String $ShopBuyTutorial
+{
+	[Next]
+	You've come all this way and[BR]
+	you don't know how to use a[BR]
+	shop?[BR]
+	[WAIT][NEXT]
+	Stand in front of the item you[BR]
+	want and press [A]. It's not that[BR]
+	hard.
+	[Wait][End]
+}
+
+#new:String $ShopEmptySell
+{
+	[Next]
+	You think I'm stupid or[BR]
+	something? Come back when[BR]
+	you have something worth buying.[Wait][End]
+}
+
+#new:String $ShopSellQueryA
+{
+	[Next][End]
+}
+
+#new:String $ShopSellCoinCost
+{
+	[Style Right]
+	[Next]
+	[Yield][End]
+}
+
+#new:String $ShopSellQueryB
+{
+	[Style Right]
+	Fine.[BR]
+	[Pause 5]What else are you selling?[BR]
+	[Yield][End]
+}
+
+#new:String $ShopSellMore
+{
+	[Yield][End]
+}
+
+#new:String $ShopSellLast
+{
+	[Style Right]
+	Alright.[Wait][End]
+}
+
+#new:String $ShopEmptyCheck
+{
+	[Next]
+	You have nothing.[Wait][End]
+}
+
+#new:String $ShopStorageFull
+{
+	[Next]
+	I've got no more room for[BR]
+	your junk.[Wait][End]
+}
+
+#new:String $ShopCheckQuery
+{
+	[Next]
+	I can check [Var 0] more item[Var 1].[BR]
+	Which one are you checking?[Wait][End]
+}
+
+#new:String $ShopCheckLast
+{
+	[Style Right]
+	Alright, I'll keep it.[Wait][End]
+}
+
+#new:String $ShopCheckMore
+{
+	[Yield][End]
+}
+
+#new:String $ShopNoStorage
+{
+	[Next]
+	What you trying to pull?[BR]
+	[Pause 5]I've got nothing for you.[Wait][End]
+}
+
+#new:String $ShopInventoryFullB
+{
+	[Next]
+	You're holding too much.[BR]
+	[Wait][Next]
+	Come back when you're carrying[BR]
+	less junk.[Wait][End]
+}
+
+#new:String $ShopClaimQuery
+{
+	[Next][End]
+}
+
+#new:String $ShopClaimLast
+{
+	[Style Right]
+	Here.[Wait][End]
+}
+
+#new:String $ShopClaimMore
+{
+	[Style Right]
+	[Yield][End]
+}
+
+#new:String $ShopExit
+{
+	[Style Right]
+	[Next][End]
+}
+
+
+%tattles
+#new:String $SparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]It's a Lil' Sparky.[BR]
+	These guys mostly keep to [BR]
+	themselves.[BR]
+	[WAIT][END]
+}
+
+#new:String $HatSparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]He's a Lil' Sparky that is[BR]
+	the mayor of this town.[BR]
+	He's somewhat soft spoken,[BR]
+	but everyone seems to trust him.[BR]
+	[WAIT][END]
+}
+
+#new:String $StrawSparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]He's a Lil' Sparky.[BR]
+	It looks like he is farming[BR]
+	mushrooms.[BR]
+	[WAIT][NEXT]
+	Those mushrooms are pretty rare,[BR]
+	but I don't think we can take[BR]
+	them.[BR]
+	[WAIT][END]
+}
+
+#new:String $CapSparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]He's a Lil' Sparky who runs[BR]
+	this shop.[BR]
+	[Pause 5]He also keeps and buys items.[BR]
+	[Wait][Next]
+	He is pretty rude, but I don't[BR]
+	think we can buy his items[BR]
+	anywhere else.[BR]
+	[WAIT][END]
+}

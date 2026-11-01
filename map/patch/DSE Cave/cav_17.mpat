@@ -1,0 +1,654 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000001
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This room looks a lot less[BR]
+ruined than the others.[BR]
+I can't tell if that's a good[BR]
+thing or a bad thing though.[BR]
+[WAIT][END]
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:GeneralGuyTheme 00000001 00000008 ) %The Imp's song
+Return
+End
+}
+
+
+%just import this because I don't really feel like importing the other stuff
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:tik_01 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec    $Script_SetMusic 
+If *GF_CAV17_Boss == .False
+	Call    MakeNpcs    	( 00000001 $NpcGroupList )
+EndIf
+ExecWait $Script_MakeEntities
+%if all 4 lights are triggered, break the seal
+If *GF_CAV17_Light1 == 00000001
+	If *GF_CAV17_Light2 == 00000001
+		If *GF_CAV17_Light3 == 00000001
+			If *GF_CAV17_Light4 == 00000001
+				%Unseal
+				Call	EnableModel		( ~Model:barriermodel .False )
+				Call     ModifyColliderFlags 	( 00000000 ~Collider:barrierwall 7FFFFE00 ) 				
+			EndIf
+		EndIf
+	EndIf
+EndIf
+If *GF_CAV17_Boss == 00000001
+	%Unseal 2
+	Call	EnableModel		( ~Model:innermodel .False )
+	Call	EnableModel		( ~Model:innershimmering .False )
+	Call     ModifyColliderFlags 	( 00000000 ~Collider:innerwall 7FFFFE00 ) 					
+EndIf
+Call    MakeNpcs    	( 00000001 $NpcGroupList )	
+ExecWait $Script_FlipLights
+%entry 0 = left loading zone
+Call     GetEntryID  	( *Var[0] )
+Set *MapVar[0] *Var[0]
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+#new:Function $Function_WhiteWave
+{
+    0:  ADDIU     SP, SP, FFD8
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 24 (SP)
+   10:  SW        S2, 20 (SP)
+   14:  SW        S0, 18 (SP)
+   18:  LW        S0, C (S1)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  LW        A1, 0 (S0)
+   2C:  ADDIU     S0, S0, 4
+   30:  COPY      A0, S1
+   34:  JAL       ~Func:get_variable
+   38:  COPY      S2, V0
+   3C:  COPY      A0, S1
+   40:  LW        A1, 0 (S0)
+   44:  JAL       ~Func:get_variable
+   48:  COPY      S0, V0
+   4C:  LW        V1, AC (S1)
+   50:  BNE       V1, R0, .o90
+   54:  CLEAR     A0
+   58:  MTC1      S2, F0
+   5C:  NOP
+   60:  CVT.S.W   F0, F0
+   64:  MFC1      A1, F0
+   68:  MTC1      S0, F0
+   6C:  NOP
+   70:  CVT.S.W   F0, F0
+   74:  MFC1      A2, F0
+   78:  MTC1      V0, F0
+   7C:  NOP
+   80:  CVT.S.W   F0, F0
+   84:  MFC1      A3, F0
+   88:  BEQ       R0, R0, .oC0
+   8C:  LI        A0, 1
+        .o90
+   90:  MTC1      S2, F0
+   94:  NOP
+   98:  CVT.S.W   F0, F0
+   9C:  MFC1      A1, F0
+   A0:  MTC1      S0, F0
+   A4:  NOP
+   A8:  CVT.S.W   F0, F0
+   AC:  MFC1      A2, F0
+   B0:  MTC1      V0, F0
+   B4:  NOP
+   B8:  CVT.S.W   F0, F0
+   BC:  MFC1      A3, F0
+        .oC0
+   C0:  JAL       80070B50
+   C4:  SW        R0, 10 (SP)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, F0			%R
+		SB			A1, 50 (V1)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, F0			%G
+		SB			A1, 51 (V1)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, F0			%B
+		SB			A1, 52 (V1)
+		LW			A0, C (V0)
+		ADDIU		V1, R0, FF			%R 2
+		SB			V1, 53 (A0)
+		LW			A0, C (V0)
+		ADDIU		V1, R0, FF			%G 2
+		SB			V1, 54 (A0)
+		LW			V1, C (V0)
+		ADDIU		A1, R0, FF			%B 2
+		SB			A1, 55 (V1)		
+   C8:  LW        RA, 24 (SP)
+   CC:  LW        S2, 20 (SP)
+   D0:  LW        S1, 1C (SP)
+   D4:  LW        S0, 18 (SP)
+   D8:  LI        V0, 2
+   DC:  JR        RA
+   E0:  ADDIU     SP, SP, 28
+}
+
+#new:Script $Script_MakeEntities
+{
+	%the switches
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch1 80000000 )
+	Call  AssignAreaFlag    ( 00000004 )
+	Bind  $Script_SwitchTrigger1 .Trigger:AreaFlagSet *AreaFlag[004] 00000001 00000000
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch2 80000000 )
+	Call  AssignAreaFlag    ( 00000005 )
+	Bind  $Script_SwitchTrigger2 .Trigger:AreaFlagSet *AreaFlag[005] 00000001 00000000
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch3 80000000 )
+	Call  AssignAreaFlag    ( 00000006 )
+	Bind  $Script_SwitchTrigger3 .Trigger:AreaFlagSet *AreaFlag[006] 00000001 00000000
+	Call  MakeEntity    ( .Entity:RedSwitch ~Vec4d:switch4 80000000 )
+	Call  AssignAreaFlag    ( 00000007 )
+	Bind  $Script_SwitchTrigger4 .Trigger:AreaFlagSet *AreaFlag[007] 00000001 00000000	
+	Bind  $Script_BossStart .Trigger:PointBomb $TriggerCoord_Bomb 00000001 00000000
+	Call  MakeEntity  		( .Entity:Signpost ~Vec4d:helpsign 80000000 )
+	Call	 AssignScript ( $Script_SignPost )	
+	If *GF_CAV17_Boss == 00000001
+		%Call     MakeItemEntity ( .Item:SPPlus ~Vec3d:bombpos 00000011 *GF_CAV17_Badge )
+	EndIf
+	Return
+	End
+}
+
+#new:TriggerCoord $TriggerCoord_Bomb
+{
+	~BombPos:bombpos 
+}
+
+#new:Script $Script_SignPost
+{
+	0:  Call     DisablePlayerInput 	( .True )
+		Call     ShowMessageAtScreenPos 	( $HelpSign 000000A0 00000028 )			
+	8:  Call     DisablePlayerInput 	( .False )
+   38:  Return
+   40: End
+}
+
+#new:String $HelpSign
+{
+	[DelayOff][Style Sign]Warning! Primary barrier is to[BR]
+	be kept active at all times to[BR]
+	prevent risk of containment[BR]
+	failure.[BR]
+	[WAIT][NEXT]
+	Without primary barrier active,[BR]
+	secondary barrier is vulnerable[BR]
+	to shattering.[BR]
+	[DelayOn][WAIT][END] 
+}
+
+/%
+	Switch values
+	0000 -> 1111
+	
+	1 = 0101
+	2 = 1110
+	3 = 1011
+	4 = 1010
+	
+	1 + 4 is solution	
+	2 + 3 + 4 is alternative
+%/
+
+#new:Script $Script_BossStart
+{
+	%for some reason the default behavior of bomb triggers is to trigger infinitely
+	If *MapFlag[2] == .True
+		Return
+	EndIf
+	If *GF_CAV17_Boss == .True
+		Return
+	EndIf
+	%Unseal 2
+	Call	EnableModel		( ~Model:innermodel .False )
+	Call	EnableModel		( ~Model:innershimmering .False )
+	Call     ModifyColliderFlags 	( 00000000 ~Collider:innerwall 7FFFFE00 ) 
+	Call    PlaySound ( 0000038B )
+	Call  PlayEffect    ( ~FX:RedImpact:Huge ~Vec3d:bombpos 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call  $Function_SetBlastPaletteA ( *VarF )
+	Set *MapFlag[2] .True
+	Return
+	End
+}
+
+#new:Script $Script_SwitchTrigger1
+{
+	Set *AreaFlag[004] .False
+	%If all 4 lights are triggered, block switches
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	/%
+	If *GF_CAV17_Light1 == 00000001
+		Set *GF_CAV17_Light1 .False
+	Else
+		Set *GF_CAV17_Light1 .True
+	EndIf
+	%/
+	If *GF_CAV17_Light2 == 00000001
+		Set *GF_CAV17_Light2 .False
+	Else
+		Set *GF_CAV17_Light2 .True
+	EndIf
+	/%
+	If *GF_CAV17_Light3 == 00000001
+		Set *GF_CAV17_Light3 .False
+	Else
+		Set *GF_CAV17_Light3 .True
+	EndIf
+	%/
+	If *GF_CAV17_Light4 == 00000001
+		Set *GF_CAV17_Light4 .False
+	Else
+		Set *GF_CAV17_Light4 .True
+	EndIf	
+	ExecWait $Script_FlipLights
+	%If you got all 4 lights on with this switch, cool effects
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Call    PlaySound ( 0000038B )
+					Call  PlayEffect    ( ~FX:RedImpact:Huge ~Vec3d:bombpos 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+					Call  $Function_SetBlastPaletteA ( *VarF )
+					%Unseal
+					Call	EnableModel		( ~Model:barriermodel .False )
+					Call     ModifyColliderFlags 	( 00000000 ~Collider:barrierwall 7FFFFE00 ) 				
+				EndIf
+			EndIf
+		EndIf
+	EndIf	
+	Return
+	End
+}
+
+#new:Script $Script_SwitchTrigger2
+{
+	Set *AreaFlag[005] .False
+	%If all 4 lights are triggered, block switches
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	If *GF_CAV17_Light1 == 00000001
+		Set *GF_CAV17_Light1 .False
+	Else
+		Set *GF_CAV17_Light1 .True
+	EndIf
+	If *GF_CAV17_Light2 == 00000001
+		Set *GF_CAV17_Light2 .False
+	Else
+		Set *GF_CAV17_Light2 .True
+	EndIf
+	If *GF_CAV17_Light3 == 00000001
+		Set *GF_CAV17_Light3 .False
+	Else
+		Set *GF_CAV17_Light3 .True
+	EndIf
+	/%
+	If *GF_CAV17_Light4 == 00000001
+		Set *GF_CAV17_Light4 .False
+	Else
+		Set *GF_CAV17_Light4 .True
+	EndIf	
+	%/
+	ExecWait $Script_FlipLights
+	%If you got all 4 lights on with this switch, cool effects
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Call    PlaySound ( 0000038B )
+					Call  PlayEffect    ( ~FX:RedImpact:Huge ~Vec3d:bombpos 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+					Call  $Function_SetBlastPaletteA ( *VarF )
+					%Unseal
+					Call	EnableModel		( ~Model:barriermodel .False )
+					Call     ModifyColliderFlags 	( 00000000 ~Collider:barrierwall 7FFFFE00 ) 				
+				EndIf
+			EndIf
+		EndIf
+	EndIf	
+	Return
+	End
+}
+
+#new:Script $Script_SwitchTrigger3
+{
+	Set *AreaFlag[006] .False
+	%If all 4 lights are triggered, block switches
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	If *GF_CAV17_Light1 == 00000001
+		Set *GF_CAV17_Light1 .False
+	Else
+		Set *GF_CAV17_Light1 .True
+	EndIf
+	/%
+	If *GF_CAV17_Light2 == 00000001
+		Set *GF_CAV17_Light2 .False
+	Else
+		Set *GF_CAV17_Light2 .True
+	EndIf
+	%/
+	If *GF_CAV17_Light3 == 00000001
+		Set *GF_CAV17_Light3 .False
+	Else
+		Set *GF_CAV17_Light3 .True
+	EndIf
+	If *GF_CAV17_Light4 == 00000001
+		Set *GF_CAV17_Light4 .False
+	Else
+		Set *GF_CAV17_Light4 .True
+	EndIf	
+	ExecWait $Script_FlipLights
+	%If you got all 4 lights on with this switch, cool effects
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Call    PlaySound ( 0000038B )
+					Call  PlayEffect    ( ~FX:RedImpact:Huge ~Vec3d:bombpos 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+					Call  $Function_SetBlastPaletteA ( *VarF )
+					%Unseal
+					Call	EnableModel		( ~Model:barriermodel .False )
+					Call     ModifyColliderFlags 	( 00000000 ~Collider:barrierwall 7FFFFE00 ) 				
+				EndIf
+			EndIf
+		EndIf
+	EndIf	
+	Return
+	End
+}
+
+#new:Script $Script_SwitchTrigger4
+{
+	Set *AreaFlag[007] .False
+	%If all 4 lights are triggered, block switches
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Return
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	If *GF_CAV17_Light1 == 00000001
+		Set *GF_CAV17_Light1 .False
+	Else
+		Set *GF_CAV17_Light1 .True
+	EndIf
+	/%
+	If *GF_CAV17_Light2 == 00000001
+		Set *GF_CAV17_Light2 .False
+	Else
+		Set *GF_CAV17_Light2 .True
+	EndIf
+	%/
+	If *GF_CAV17_Light3 == 00000001
+		Set *GF_CAV17_Light3 .False
+	Else
+		Set *GF_CAV17_Light3 .True
+	EndIf
+	/%
+	If *GF_CAV17_Light4 == 00000001
+		Set *GF_CAV17_Light4 .False
+	Else
+		Set *GF_CAV17_Light4 .True
+	EndIf	
+	%/
+	ExecWait $Script_FlipLights
+	%If you got all 4 lights on with this switch, cool effects
+	If *GF_CAV17_Light1 == 00000001
+		If *GF_CAV17_Light2 == 00000001
+			If *GF_CAV17_Light3 == 00000001
+				If *GF_CAV17_Light4 == 00000001
+					Call    PlaySound ( 0000038B )
+					Call  PlayEffect    ( ~FX:RedImpact:Huge ~Vec3d:bombpos 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+					Call  $Function_SetBlastPaletteA ( *VarF )
+					%Unseal
+					Call	EnableModel		( ~Model:barriermodel .False )
+					Call     ModifyColliderFlags 	( 00000000 ~Collider:barrierwall 7FFFFE00 ) 				
+				EndIf
+			EndIf
+		EndIf
+	EndIf	
+	Return
+	End
+}
+
+#new:Function $Function_SetBlastPaletteA     
+{
+    0:  ADDIU        SP, SP, FFE8
+    4:  SW            RA, 10 (SP)
+    8:  LW            V0, C (A0)
+    C:  JAL            ~Func:get_variable
+   10:  LW            A1, 0 (V0)
+   14:  LW            V1, C (V0)
+   18:  ADDIU        A0, R0, D0                %R
+   1C:  SB            A0, 50 (V1)
+   20:  LW            V1, C (V0)
+        ADDIU        A0, R0, F0                %G
+   24:  SB            A0, 51 (V1)
+   28:  LW            V1, C (V0)
+   2C:  ADDIU        A1, R0, F0                %B
+   30:  SB            A1, 52 (V1)
+   34:  LW            A0, C (V0)
+   38:  ADDIU        V1, R0, FF                %R 2
+   3C:  SB            V1, 53 (A0)
+   40:  LW            A0, C (V0)
+   44:  ADDIU        V1, R0, FF                %G 2
+   48:  SB            V1, 54 (A0)
+   4C:  LW            V1, C (V0)
+        ADDIU        A1, R0, FF                %B 2
+   50:  SB            A1, 55 (V1)
+   54:  LW            RA, 10 (SP)
+   58:  ADDIU        V0, R0, 2
+   5C:  JR            RA
+   60:  ADDIU        SP, SP, 18
+}
+
+
+
+#new:Script $Script_FlipLights
+{	
+	If *GF_CAV17_Light1 == 00000000
+		Call	EnableModel		( ~Model:light1 .False )
+		Call	EnableModel		( ~Model:light1B .True )
+	Else
+		Call	EnableModel		( ~Model:light1 .True )
+		Call	EnableModel		( ~Model:light1B .False )
+	EndIf	
+	If *GF_CAV17_Light2 == 00000000
+		Call	EnableModel		( ~Model:light2 .False )
+		Call	EnableModel		( ~Model:light2B .True )
+	Else
+		Call	EnableModel		( ~Model:light2 .True )
+		Call	EnableModel		( ~Model:light2B .False )
+	EndIf	
+	If *GF_CAV17_Light3 == 00000000
+		Call	EnableModel		( ~Model:light3 .False )
+		Call	EnableModel		( ~Model:light3B .True )
+	Else
+		Call	EnableModel		( ~Model:light3 .True )
+		Call	EnableModel		( ~Model:light3B .False )
+	EndIf	
+	If *GF_CAV17_Light4 == 00000000
+		Call	EnableModel		( ~Model:light4 .False )
+		Call	EnableModel		( ~Model:light4B .True )
+	Else
+		Call	EnableModel		( ~Model:light4 .True )
+		Call	EnableModel		( ~Model:light4B .False )
+	EndIf	
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:backlz 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_15" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+
+
+
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_Boss 	   35020000
+00000000 00000000 00000000
+}
+
+
+#new:NpcSettings $NpcSettings_Guy
+{
+	00000000 00170016 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 000E0001
+}
+
+#new:NpcGroup $NpcGroup_Boss
+{
+00000003 $NpcSettings_Guy ~Vec3f:bosspos % -770 0 0
+00640D01 $Script_Init_Boss 00000000 00000000 0000010E 
+~Items:0:DriedShroom:A
+~NoHP
+~NoFP
+~NoCoinBonus
+~NoMovement
+003B0501 003B0502 003B0504 003B0504 003B0501 003B0501 003B050C 003B050C
+003B0515 003B0512 003B0511 003B0510 003B0505 003B0501 003B0501 003B0501 % .Sprite:ShyGuy
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_Idle_Boss
+{
+	Loop	
+		Wait 1`
+		If *MapFlag[2] == .True
+			BreakLoop
+		EndIf
+	EndLoop
+	Call	StartBossBattle		( .Song:SpecialBattle )
+	Set  *MapFlag[2] .False
+	Return
+	End
+}
+
+#new:Script $Script_Init_Boss
+{
+	Call     BindNpcIdle		( .Npc:Self $Script_Idle_Boss )
+	Call	 BindNpcDefeat		( .Npc:Self $Script_Defeat )
+	Return
+	End
+}
+
+#new:Script $Script_Defeat
+{
+		Set  *MapFlag[2] .False		
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_CAV17_Boss  .True
+				%Call     MakeItemEntity ( .Item:SPPlus ~Vec3d:bombpos 00000011 *GF_CAV17_Badge )
+				Call     DisablePlayerInput 	( .False )	%bad!
+   5C:  	Case  ==  .Outcome:PlayerLost % 1
+   7C:  	Case  ==  .Outcome:PlayerFled % 2
+   9C:  EndSwitch		
+   A4:  Return
+   AC:  End
+}

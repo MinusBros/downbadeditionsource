@@ -1,0 +1,146 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000001
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+	%set fog
+	JAL		~Func:enable_world_fog
+	NOP
+	LI		A0, 03B6 
+	LI	    A1, 0400
+	JAL		~Func:set_world_fog_dist
+	NOP	
+	LI		A0, 0
+	LI	    A1, 0
+	LI		A2, 0
+	JAL		~Func:set_world_fog_color
+	NOP		
+	%
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This place looks like a supply[BR]
+room of some kind.[BR]
+[WAIT][NEXT]
+I was kind of expecting this[BR]
+room to be big like all the[BR]
+other rooms here, but I guess[BR]
+not.[BR]
+[WAIT][END]
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:GeneralGuyTheme 00000001 00000008 ) %The Imp's song
+Return
+End
+}
+
+
+%just import this because I don't really feel like importing the other stuff
+#import Pit_AI.mpat
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_BuzzyBeetle1 3E250000
+00000000 00000000 00000000
+}
+
+#new:NpcGroup $NpcGroup_BuzzyBeetle1
+{
+00000000 $NpcSettings_BuzzyBeetle ~Vec3f:beetle1 % 561 25 47
+00000400 00000000 00000000 00000000 00000163 
+~Items:0:DriedShroom:A
+~HP:20:80:2:50 ~HP:30:70:2:50 ~HP:50:60:2:40 ~HP:80:50:2:40 ~HP:100:40:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:1:2
+~Movement:beetle1
+00330601 00330603 00330604 00330604 00330600 00330600 00330607 00330607
+0033060C 00330605 0033060D 00330600 00330600 00330600 00330600 00330600 
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+@ $NpcSettings_BuzzyBeetle
+{
+00000000 00140016 00000000 00000000 $Script_NpcAI_BuzzyBeetle 80077F70 00000000 8007809C 
+00000000 00000000 00200000 
+}
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:tik_01 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec    $Script_SetMusic 
+If *GF_CAV14_Encounter == .False
+	Call    MakeNpcs    	( 00000001 $NpcGroupList )
+EndIf
+ExecWait $Script_MakeEntities
+%entry 0 = left loading zone
+Call     GetEntryID  	( *Var[0] )
+Set *MapVar[0] *Var[0]
+Set		*Var[0] $Script_MakeExits 
+Exec EnterWalk
+Return
+End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeItemEntity ( .Item:BluePepper ~Vec3d:hustledrink 00000011 *GF_CAV16_HustleDrink )
+	Call     MakeItemEntity ( .Item:StoneCap ~Vec3d:repelgel 00000011 *GF_CAV16_RepelGel )
+	Return
+	End
+}
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:backlz 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_15" 00000001 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+

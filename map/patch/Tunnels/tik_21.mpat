@@ -1,21 +1,3 @@
-%Make some of the blocks drop star points instead of coins.
-
-@	$Script_MakeEntities
-{
-    0:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity802425D0 .Item:Coin 80000000 )
-   28:  Call  AssignBlockFlag   ( *GF_TIK21_ItemBlock_Coin )
-   38:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242608 .Item:StarPoint 80000000 )
-   60:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinA )
-   70:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242640 .Item:StarPoint 80000000 )
-   98:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinB )
-   A8:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242678 .Item:StarPoint 80000000 )
-   D0:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinC )
-   E0:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity802426B0 .Item:Coin 80000000 )
-  108:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinD )
-  118:  Return
-  120:  End
-}
-
 
 @	$Script_Main
 {
@@ -52,6 +34,98 @@
   1D0:  Return
   1D8:  End
 }
+
+
+%Make some of the blocks drop star points instead of coins.
+
+@	$Script_MakeEntities
+{
+    0:  Call  MakeEntity        ( .Entity:YellowBlock ~Vec4d:Entity802425D0 .Item:Coin 80000000 )
+   28:  Call  AssignBlockFlag   ( *GF_TIK21_ItemBlock_Coin )
+   38:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242608 .Item:StarPoint 80000000 )
+   60:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinA )
+   70:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242640 .Item:StarPoint 80000000 )
+   98:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinB )
+   A8:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity80242678 .Item:StarPoint 80000000 )
+   D0:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinC )
+   E0:  Call  MakeEntity        ( .Entity:HiddenYellowBlock ~Vec4d:Entity802426B0 .Item:Coin 80000000 )
+  108:  Call  AssignBlockFlag   ( *GF_TIK21_HiddenItem_CoinD )
+  118:  Return
+  120:  End
+}
+
+
+@	$Script_802419AC
+{
+    0:  Bind  $Script_ExitWalk_802417CC .Trigger:FloorAbove ~Collider:deiliw 00000001 00000000
+   1C:  If  *GB_StoryProgress  >=  .Story:Ch7_InvitedToStarbornValley % 3D
+   2C:  	Bind  $Script_ExitDoubleDoor_80241828 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+   48:  Else
+   50:  	Bind  $Script_80241964 .Trigger:WallPressA ~Collider:tte 00000001 00000000
+   6C:  EndIf
+   74:  Bind  $Script_8024190C .Trigger:FloorTouch ~Collider:o49 00000001 00000000
+   90:  Return
+   98:  End
+}
+
+
+@	$Script_ExitDoubleDoor_80241828
+{
+			If  *GF_TIK25_GiantChest == .False												
+				Call  DisablePlayerInput    ( .True )
+				Call  BringPartnerOut   ( .Partner:Goombario )
+				Call  DisablePartnerAI  ( 00000000 )
+				Wait  5`	
+				If  *MapFlag[00] == .False
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 0001001B 00000000 $GettheUltraBoots )	%No more skipping Ultra Boots
+				Else
+					Call  SpeakToPlayer ( .Npc:Partner 00010018 00010017 00000000 $FortheloveofGodgettheUltraBoots )
+				EndIf
+				Set  *MapFlag[00] .True
+				Call  PutPartnerAway ( )
+				Wait  5`
+				Call  EnablePartnerAI ( )
+				Call  DisablePlayerInput    ( .False )
+				Return
+			EndIf
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Call  DisablePlayerInput    ( .True )
+   2C:  Set   *Var0  ~Entry:Entry1
+   3C:  Set   *Var1  ~Collider:tte
+   4C:  Set   *Var2  ~Model:o46
+   5C:  Set   *Var3  ~Model:o47
+   6C:  Exec  ExitDoubleDoor
+   78:  Wait  17`
+   84:  Call  GotoMap   ( $ASCII_80242708 00000000 ) % tik_22
+   98:  Wait  100`
+   A4:  Return
+   AC:  End
+}
+
+#new:String $GettheUltraBoots
+{
+[Style Right]
+Hey, Mario.[BR]
+Aren't you forgetting something[BR]
+important?[BR]
+[Wait][Next]
+You know, like the Ultra Boots,[BR]
+maybe?[BR]
+I think it'd be a good idea to[BR]
+go get them.[BR]
+[Wait][End]
+}
+
+#new:String $FortheloveofGodgettheUltraBoots
+{
+[Style Right]
+Okay, at this point I'm telling you.[BR]
+[Shake]Get the God dang Ultra Boots.[BR]
+Stop sequence-breaking![BR]
+[Wait][End]
+}
+
 
 
 #import NPC_Boo.mpat

@@ -1,5 +1,32 @@
 
 #define .NpcID:YoshiKid_00          00
+#define .Npc:BigLanternGhost  10
+
+#import AutoSave.mpat
+#import KeyItemPopUp.mpat
+#import CountItems.mpat
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:JadeJungle
+   10:  Call  SetSpriteShading  ( .Shading:tik_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+		If  *GB_StoryProgress  >=  .Story:Ch5_KoloradoRanAhead
+			Call  MakeNpcs  ( .False $NpcGroupList_BLG )
+		Else
+			Call  MakeNpcs  ( .False $NpcGroupList_80242820 )
+		EndIf
+   98:  Exec  $Script_80240890
+   A4:  Set   *Var0  $Script_80241F38
+   B4:  Exec  EnterWalk
+   C0:  Exec  $Script_80240850
+   CC:  ExecWait  $Script_80241E84
+   D8:  Return
+   E0:  End
+}
 
 @	$Script_80240850
 {
@@ -20,7 +47,7 @@
    28:  End
 }
 
-#import AutoSave.mpat
+
 
 @	$Script_Idle_802420F4
 {
@@ -94,4 +121,266 @@
   430:  Call  RemoveNpc ( .Npc:Self )
   440:  Return
   448:  End
+}
+
+
+#new:Script  $Script_Init_BigLanternGhost
+{
+	Call  BindNpcIdle   ( .Npc:Self $Script_Idle_BLG )
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_BLG )
+			If  *BigLanternGhostCompleted == .False
+				Exec  $BigLanternGhostProblem
+			EndIf
+	Return
+	End
+}
+
+
+#new:Script  $BigLanternGhostProblem
+{
+		Wait  10`
+		Loop
+			Call  ShowEmote ( .Npc:BigLanternGhost .Emote:Frustration  1`  60` .True  0`  0`  0`  0` )
+			Wait  60`
+			If  *BigLanternGhostCompleted == .True
+				BreakLoop
+			EndIf
+		EndLoop
+		Return
+		End
+}
+
+#new:Script $Script_Idle_BLG
+{
+		Label  0
+		Wait  1`
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		Call  GetCurrentPartnerID   ( *Var3 )
+		If  *Var0 < 215`
+			Goto  0
+		EndIf
+		If  *Var3 != .Partner:Watt
+			Goto  0
+		EndIf
+		Call  DisablePlayerInput    ( .True )
+		ExecWait $Script_Interact_BLG
+		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+		Call  SetPlayerPos  ( 214` *Var1 *Var2 )
+		Wait  1`
+		Call  DisablePlayerInput    ( .False )		
+		Goto  0
+   70:  Return
+   78:  End
+}
+
+#new:Script  $Script_Interact_BLG
+{
+		If  *BigLanternGhostCompleted == .True
+			Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 0010016D )	
+			Return
+		EndIf
+		Call  PushSong  ( .Song:CreepyToybox 00000000 )
+		Wait  8`
+		If  *BigLanternGhostAsked == .False
+			Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 00100167 )	
+			Wait  20`
+			Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 00100168 )	
+			Set  *BigLanternGhostAsked .True
+			If  *LampOilObtained == .True
+				Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 0010016A )
+			EndIf
+			ExecWait  $Script_CompletedBLG
+			If  *MapFlag[02] == .True
+				Goto BLGEnding
+			EndIf
+			Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 00100169 )	
+		Else
+			If  *LampOilObtained == .True
+				Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 0010016A )
+			Else
+				Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 00100169 )
+			EndIf	
+		EndIf
+		
+		ExecWait  $Script_CompletedBLG
+		Label  BLGEnding
+		Wait  5`
+		Call PopSong ( )
+		Return
+		End
+}
+
+#new:Script  $Script_CompletedBLG
+{
+		If  *BigLanternGhostCompleted == .False
+				Call  FindKeyItem   ( .Item:LampOil *Var1 )
+				If    *Var1 != FFFFFFFF
+					Set   *Var0  $???_CheckLampOil
+					Set   *Var1  00000005
+					ExecWait $Script_CheckForKeyItem	
+					Switch *Var0
+						Case   == 0`   %If you don't have the key item, end script
+							Return
+						Case   == FFFFFFFF  %If you refuse to give the key item, say a funny line
+							Set  *MapFlag[02] .True
+							%Call  SpeakToPlayer ( 00000001 00BF0007 00BF0008 00000000 000E0139  )
+						Default			%If you give him the key item
+							Set  *MapFlag[02] .True
+							Set  *BigLanternGhostCompleted .True
+							Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 0010016B )	
+							Loop  2`
+					   10:  	Set   *Var0  0000015C
+					   20:  	Set   *Var1  00000003
+					  108:  	Call  ShowGotItem   ( *Var0 .True 00000000 )
+					  114:  	Call  AddStarPieces ( 00000001 )
+								Wait  1`
+							EndLoop
+							Call  $Function_CountItems
+							If *Var0 != .False
+								Call  ShowGotItem       ( .Item:ElectroPop .True 00000000 )
+								Call  AddItem   ( .Item:ElectroPop 0 )
+							EndIf
+							Call  SpeakToPlayer ( .Npc:Self 006D0005 006D0001 00000000 0010016C )	
+							ExecWait  $ProblemSolved
+					  10C:  Call  GetNpcPos     ( .Npc:BigLanternGhost *Var2 *Var3 *Var4 )
+					  128:  Add   *Var2  00000020
+					  138:  Add   *Var3  0000000A
+					  148:  Call  MakeLerp      ( 000000FF 00000064 0000003C .Easing:Linear )
+					  164:  Label  0
+					  170:  Call  UpdateLerp ( )
+					  17C:  Call  $Function_HandleLight    ( *Var2 *Var3 *Var4 *Var0 )
+					  198:  Wait  1`
+					  1A4:  If  *Var1  ==  00000001
+					  1B4:  	Goto  0
+					  1C0:  EndIf
+							Exec  $Script_SetupLightSource
+							Return
+					EndSwitch
+				EndIf
+		EndIf
+		Return
+		End
+}
+
+
+#new:NpcGroup $NpcGroup_BigLanternGhost
+{
+	.Npc:BigLanternGhost $NpcSettings_80240850 ~Vec3f:BigLanternGhost
+	00000001 $Script_Init_BigLanternGhost 00000001 00000000 90`
+	~NoDrops
+	~Movement:BigLanternGhost
+	~AnimationTable:BigLanternGhost
+	00000000 00000000 $ExtraAnimationList_8024293C 001A0175
+}
+
+#new:ExtraAnimationList $ExtraAnimationList_8024293C
+{
+	006D0001 006D0006 006D0007 006D0008 006D000F 006D0005 006D0002 006D0003
+	006D0004 FFFFFFFF
+}
+
+#new:NpcSettings $NpcSettings_80240850
+{
+	00000000 0044003C 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
+
+#new:NpcGroupList $NpcGroupList_BLG
+{
+	00000001 $NpcGroup_BigLanternGhost 00000000
+	00000000 00000000 00000000
+}
+
+
+
+#new:Script $Script_80240AF4
+{
+		If  *BigLanternGhostCompleted == .True
+   18:  	Set   *AreaByte[1]  00000005
+   28:  	Set   *AreaByte[2]  0000007F
+   38:  	Exec  $Script_SetupLightSource
+		Else
+		EndIf
+   9C:  Return
+   A4:  End
+}
+
+
+
+#new:Script $Script_SetupLightSource
+{
+    0:  SetGroup  00000000
+    C:  Label  0
+   18:  Switch  *AreaByte[1]
+   30:  	Case  ==  00000001
+   3C:  		Call  GetNpcPos ( .Npc:BigLanternGhost *Var0 *Var1 *Var2 )
+   58:  		Set   *Var3  *AreaByte[2]
+   68:  		Add   *Var3  00000080
+   78:  		Call  $Function_HandleLight    ( *Var0 *Var1 *Var2 *Var3 )
+  1DC:  	Case  ==  00000006
+  1E8:  		Return
+  1F0:  EndSwitch
+  1F8:  Wait  1`
+  204:  Goto  0
+  210:  Return
+  218:  End
+}
+
+
+#new:Unknown $???_CheckLampOil
+{
+	000001D7 00000000
+}
+
+#new:Function $Function_HandleLight
+{
+    0:  ADDIU     SP, SP, FFD0
+    4:  SW        S1, 1C (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 28 (SP)
+   10:  SW        S3, 24 (SP)
+   14:  SW        S2, 20 (SP)
+   18:  SW        S0, 18 (SP)
+   1C:  LW        S0, C (S1)
+   20:  LW        A1, 0 (S0)
+   24:  JAL       ~Func:get_variable
+   28:  ADDIU     S0, S0, 4
+   2C:  LW        A1, 0 (S0)
+   30:  ADDIU     S0, S0, 4
+   34:  COPY      A0, S1
+   38:  JAL       ~Func:get_variable
+   3C:  COPY      S3, V0
+   40:  LW        A1, 0 (S0)
+   44:  ADDIU     S0, S0, 4
+   48:  COPY      A0, S1
+   4C:  JAL       ~Func:get_variable
+   50:  COPY      S2, V0
+   54:  COPY      A0, S1
+   58:  LW        A1, 0 (S0)
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      S0, V0
+   64:  LI        A0, 1
+   68:  COPY      A1, A0
+   6C:  SW        S0, 10 (SP)
+   70:  COPY      S0, V0
+   74:  COPY      A2, S3
+   78:  JAL       ~Func:set_screen_overlay_center_worldpos
+   7C:  COPY      A3, S2
+   80:  MTC1      S0, F0
+   84:  NOP
+   88:  CVT.S.W   F0, F0
+   8C:  MFC1      A1, F0
+   90:  JAL       ~Func:set_screen_overlay_alpha
+   94:  LI        A0, 1
+   98:  LUI       A1, 437F
+   9C:  JAL       ~Func:set_screen_overlay_params_back
+   A0:  ADDIU     A0, R0, B
+   A4:  LW        RA, 28 (SP)
+   A8:  LW        S3, 24 (SP)
+   AC:  LW        S2, 20 (SP)
+   B0:  LW        S1, 1C (SP)
+   B4:  LW        S0, 18 (SP)
+   B8:  LI        V0, 2
+   BC:  JR        RA
+   C0:  ADDIU     SP, SP, 30
 }

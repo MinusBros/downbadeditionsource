@@ -1,122 +1,28 @@
 
 #import Chompy.bpat
-#import LimeoDino.bpat
+#import SpinelDino.bpat
 
-@ $LimeoDino 
-{
-[Level]        19`b 
-[MaxHP]        12`b 
-}
-
-@	$Script_Init_8021D968_1F {
-	0: 	Call  SetActorScale     ( .Actor:Self *Fixed[1.2] *Fixed[1.2] *Fixed[1.0] )
-    9:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021E070_1F )
-   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021D9B4_1F )
-   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021DA40_1F )
-		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $LimeoDino 22` )
-		EndIf
-   3C:  Return
-   44:  End
-}
-
-@	$Script_TakeTurn_8021E070_1F {
-    0:  Call  UseIdleAnimation  ( .Actor:Self .False )
-   14:  Call  EnableIdleScript  ( .Actor:Self 00000000 )
-   28:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-   3C:  Call  UseBattleCamPreset    ( 0000003F )
-   4C:  Call  BattleCamTargetActor  ( .Actor:Self )
-   5C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
-   74:  Exec  $Script_8021DF24_1F *Var9 
-   84:  Thread
-   8C:  	Loop  00000004 
-   98:  		Call  PlaySoundAtActor  ( .Actor:Self 0000030B )
-   AC:  		Wait  2`
-   B8:  		Call  PlaySoundAtActor  ( .Actor:Self 000002FD )
-   CC:  		Wait  2`
-   D8:  	EndLoop
-   E0:  EndThread
-   E8:  Call  SetAnimation      ( .Actor:Self 00000001 004F0505 )
-  100:  Wait  4`
-  10C:  Call  EnemyTestTarget   ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 00000001 00000010 )
-  130:  Switch  *VarF 
-  13C:  	CaseOR  ==  .HitResult:Miss % 6
-  148:  	CaseOR  ==  .HitResult:Lucky % 5
-  154:  		Thread
-  15C:  			Call  SetGoalToTarget   ( .Actor:Self )
-  16C:  			Call  AddGoalPos    ( .Actor:Self  -100`  0`  0` )
-  188:  			Call  SetActorSpeed ( .Actor:Self *Fixed[20.0] )
-  19C:  			Call  RunToGoal     ( .Actor:Self  0` .False )
-  1B4:  			Kill  *Var9 
-  1C0:  		EndThread
-  1C8:  		Call  UseBattleCamPreset    ( 00000002 )
-  1D8:  		Wait  10`
-  1E4:  		If  *VarF  ==  .HitResult:Lucky % 5
-  1F4:  			Call  SetGoalToTarget   ( .Actor:Self )
-  204:  			Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
-  228:  		EndIf
-  230:  		Wait  15`
-  23C:  		Call  YieldTurn ( )
-  248:  		Call  AddActorDecoration    ( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-  264:  		Call  SetActorYaw       ( .Actor:Self  180` )
-  278:  		ExecWait  $Script_8021D9C4_1F 
-  284:  		Call  SetActorYaw       ( .Actor:Self  0` )
-  298:  		Call  RemoveActorDecoration ( .Actor:Self 00000001 00000000 )
-  2B0:  		Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  2C4:  		Call  UseIdleAnimation  ( .Actor:Self .True )
-  2D8:  		Return
-  2E0:  	EndCaseGroup
-  2E8:  EndSwitch
-  2F0:  Call  SetGoalToTarget   ( .Actor:Self )
-  300:  Call  GetStatusFlags    ( .Actor:Self *VarA )
-  314:  If  *VarA  &  ~Flags:StatusFlags:Shrink % 80000
-  324:  	Call  AddGoalPos    ( .Actor:Self  12`  0`  0` )
-  340:  Else
-  348:  	Call  AddGoalPos    ( .Actor:Self  30`  0`  0` )
-  364:  EndIf
-  36C:  Call  SetActorSpeed ( .Actor:Self *Fixed[20.0] )
-  380:  Call  RunToGoal     ( .Actor:Self  0` .False )
-  398:  Thread
-  3A0:  	Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[1.5] )
-  3BC:  EndThread
-  3C4:  Kill  *Var9 
-  3D0:  Wait  2`
-  3DB:  Call  PlaySoundAtActor      ( .Actor:Self 000002C8 )
-  3DC:  Call  SetGoalToTarget   ( .Actor:Self )
-  3EC:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:0 00000000 ~DebuffType:Shrink:2:60` 00000007 00000020 )
-		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call  YieldTurn ( )
-		EndIf
-  414:  Switch  *VarF 
-  420:  	CaseOR  ==  .HitResult:Hit % 0
-  42C:  	CaseOR  ==  .HitResult:QuakeImmune % 2
-  438:  		Call  UseBattleCamPreset    ( 00000002 )
-  448:  		Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
-  464:  		Add   *Var0  00000028 
-  474:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[2.0] )
-  488:  		Call  SetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  4A4:  		Call  JumpToGoal    ( .Actor:Self  15` .False .True .False )
-  4C4:  		Call  PlaySoundAtActor      ( .Actor:Self 000002FD )
-  4D8:  		Call  SetAnimation  ( .Actor:Self 00000001 004F0503 )
-  4F0:  		Call  ShakeCam      ( .Cam:Battle 00000000  3` *Fixed[2.0] )
-				Call  YieldTurn ( )
-  50C:  		Wait  10`
-  524:  		ExecWait  $Script_8021D9C4_1F 
-  530:  	EndCaseGroup
-  538:  EndSwitch
-  540:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  554:  Call  UseIdleAnimation  ( .Actor:Self .True )
-  568:  Return
-  570:  End
-}
 
 @	$JungleFuzzy
 {
-	[Level]        18`b
+	[Level]        22`b
 	[MaxHP]        12`b
 	[Coins]         2`b
 	[AirLift]      55`b
 	[Hurricane]    30`b % Bow's "Spook" as well
+}
+
+@	$Script_Init_8021EB28
+{
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80221628 )
+   14:  Call  BindIdle      ( .Actor:Self $Script_Idle_8021EB8C )
+   28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021EB9C )
+   3C:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $JungleFuzzy 26` )
+		EndIf
+   54:  Return
+   5C:  End
 }
 
 @	$DefenseTable_8021E9D0
@@ -194,7 +100,7 @@
 
 @	$SpearGuy
 {
-	[Level]        18`b
+	[Level]        22`b
 	[MaxHP]        15`b
 	[Coins]         3`b
 	[AirLift]      45`b
@@ -228,7 +134,7 @@
   184:  	EndCaseGroup
   18C:  EndSwitch
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $SpearGuy 21` )
+			Call	$Function_SetLevel	( $SpearGuy 26` )
 		EndIf
   194:  Return
   19C:  End
@@ -243,6 +149,7 @@
 	.Element:Ice    -1`
 	.Element:Shock  -1`
 	.Element:Blast  -1`
+	.Element:Quake  -1`
 	.Element:Hammer  2`
 	.Element:Jump    1`
 	.Element:Throw   1`
@@ -347,6 +254,16 @@
   440:  Wait  5`
   44C:  Wait  2`
   458:  Call  SetGoalToTarget   ( .Actor:Self )
+  468:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000002 00000000 )
+    174:  Call  SetAnimation  ( .Actor:Self 00000002 00420004 )
+  18C:  Wait  3`
+  198:  Call  SetAnimation  ( .Actor:Self 00000002 0042001A )
+  1B0:  Wait  3`
+    414:  Call  PlaySoundAtActor  ( .Actor:Self 00000309 )
+  428:  Call  SetAnimation      ( .Actor:Self 00000002 0042001B )
+  440:  Wait  5`
+  44C:  Wait  2`
+  458:  Call  SetGoalToTarget   ( .Actor:Self )
   468:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000003 00000000 )
     174:  Call  SetAnimation  ( .Actor:Self 00000002 00420004 )
   18C:  Wait  3`
@@ -361,16 +278,6 @@
     174:  Call  SetAnimation  ( .Actor:Self 00000002 00420004 )
   18C:  Wait  3`
   198:  Call  SetAnimation  ( .Actor:Self 00000002 0042001A )
-  1B0:  Wait  3`
-    414:  Call  PlaySoundAtActor  ( .Actor:Self 00000309 )
-  428:  Call  SetAnimation      ( .Actor:Self 00000002 0042001B )
-  440:  Wait  5`
-  44C:  Wait  2`
-  458:  Call  SetGoalToTarget   ( .Actor:Self )
-  468:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000005 00000000 )
-    174:  Call  SetAnimation  ( .Actor:Self 00000002 00420004 )
-  18C:  Wait  3`
-  198:  Call  SetAnimation  ( .Actor:Self 00000002 0042001A )
   1B0:  Wait  8`
     414:  Call  PlaySoundAtActor  ( .Actor:Self 00000309 )
   428:  Call  SetAnimation      ( .Actor:Self 00000002 0042001B )
@@ -382,7 +289,7 @@
   44C:  Wait  2`
   414:  Call  PlaySoundAtActor  ( .Actor:Self 00000309 )
   458:  Call  SetGoalToTarget   ( .Actor:Self )
-  468:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000006 00000000 )
+  468:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact 00000000 00000000 00000005 00000000 )
   490:  Switch  *Var0
   49C:  	CaseOR  ==  .HitResult:Hit % 0
   4A8:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -435,7 +342,7 @@
 
 @	$HurtPlant
 {
-	[Level]        19`b
+	[Level]        23`b
 	[MaxHP]        15`b
 	[Coins]         2`b
 }
@@ -446,8 +353,19 @@
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_8021E33C )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021DAE4 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_8021DCF4 )
+		Call     RandInt     	( 4` *Var7 )
+		Switch  *Var7
+			Case == 1`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.9] *Fixed[0.9] *Fixed[0.9] )
+			Case == 2`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.95] *Fixed[0.95] *Fixed[0.95] )
+			Case == 3`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.05] *Fixed[1.05] *Fixed[1.05] )
+			Case == 4`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.1] *Fixed[1.1] *Fixed[1.1] )
+		EndSwitch
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $HurtPlant 22` )
+			Call	$Function_SetLevel	( $HurtPlant 28` )
 		EndIf
    3C:  Return
    44:  End
@@ -627,8 +545,8 @@
 
 @	$MBush
 {
-	[Level]        19`b
-	[MaxHP]        18`b
+	[Level]        25`b
+	[MaxHP]        17`b
 	[Coins]         2`b
 	[AirLift]      55`b
 	[Hurricane]    30`b % Bow's "Spook" as well
@@ -640,8 +558,19 @@
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_80221F78 )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_802219D4 )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_80221A74 )
+		Call     RandInt     	( 4` *Var7 )
+		Switch  *Var7
+			Case == 1`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.9] *Fixed[0.9] *Fixed[0.9] )
+			Case == 2`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.95] *Fixed[0.95] *Fixed[0.95] )
+			Case == 3`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.05] *Fixed[1.05] *Fixed[1.05] )
+			Case == 4`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.1] *Fixed[1.1] *Fixed[1.1] )
+		EndSwitch
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $MBush 22` )
+			Call	$Function_SetLevel	( $MBush 30` )
 		EndIf
    3C:  Return
    44:  End
@@ -787,175 +716,183 @@
 
 @	$Formation_00
 {
-	$SpearGuy 00000001 0000000A 00000000 00000000 00000000 00000000
-	$SpearGuy 00000002 00000009 00000001 00000000 00000000 00000000
-	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+	$SpearGuy 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpearGuy 00000002 00000009 00000001 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpinelDino 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_SpinelDino
 }
 
 
 @	$Formation_01
 {
-	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$SpearGuy 00000001 00000009 00000001 00000000 00000000 00000000
-	$SpearGuy 00000002 00000008 00000001 00000000 00000000 00000000
-	$LimeoDino 00000003 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpearGuy 00000001 00000009 00000001 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpearGuy 00000002 00000008 00000001 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpinelDino 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_SpinelDino
 }
 
 
 @	$Formation_02
 {
-	$SpearGuy 00000001 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000002 00000009 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000008 00000000 00000000 00000000 00000000
+	$SpearGuy 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$JungleFuzzy 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$Chompy 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_03
 {
-	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000002 00000008 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$Chompy 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_04
 {
-	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000002 00000008 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$SpinelDino 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_SpinelDino
 }
 
 
 @	$Formation_05
 {
-	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 00000000
-	$SpearGuy 00000002 00000008 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$SpearGuy 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$Chompy 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_06
 {
-	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 00000002 00000008 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$SpinelDino 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_SpinelDino
+	$Chompy 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
-
+%Formation 07 is unused
 
 
 @	$Formation_08
 {
-	$HurtPlant 00000001 0000000A 00000000 00000000 00000000 00000000
-	$HurtPlant 00000002 0000000A 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000009 00000000 00000000 00000000 00000000
+	$HurtPlant 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$HurtPlant 00000002 0000000A 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$Chompy 00000003 00000009 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_09
 {
-	$HurtPlant 00000000 0000000A 00000000 00000000 00000000 00000000
-	$HurtPlant 00000001 00000009 00000000 00000000 00000000 00000000
-	$HurtPlant 00000002 00000008 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000007 00000000 00000000 00000000 00000000
+	$HurtPlant 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$HurtPlant 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$HurtPlant 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$Chompy 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_0A
 {
-	$JungleFuzzy 00000001 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000002 00000009 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000008 00000000 00000000 00000000 00000000
+	$JungleFuzzy 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$Chompy 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 @	$Formation_0B
 {
-	$JungleFuzzy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 00000002 00000008 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000008 00000000 00000000 00000000 00000000
+	$JungleFuzzy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$SpinelDino 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_SpinelDino
+	$Chompy 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_0C
 {
-	$JungleFuzzy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 00000000
-	$Chompy 00000002 00000008 00000000 00000000 00000000 00000000
-	$Chompy 00000003 00000007 00000000 00000000 00000000 00000000
+	$JungleFuzzy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$Chompy 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
+	$Chompy 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 
 @	$Formation_0D
 {
-	$JungleFuzzy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$SpearGuy 00000001 00000009 00000001 00000000 00000000 00000000
-	$Chompy 00000002 00000008 00000000 00000000 00000000 00000000
-	$JungleFuzzy 00000003 00000007 00000000 00000000 00000000 00000000
+	$JungleFuzzy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$SpearGuy 00000001 00000009 00000001 00000000 00000000 $ItemDropTable_SpearGuy
+	$Chompy 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
+	$JungleFuzzy 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
 }
 
 
 @	$Formation_0E
 {
-	$MBush 00000001 0000000A 00000000 00000000 00000000 00000000
-	$MBush 00000002 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+	$MBush 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_MBush
+	$SpinelDino 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_SpinelDino
 }
 
 
 @	$Formation_0F
 {
-	$MBush 00000000 0000000A 00000000 00000000 00000000 00000000
-	$MBush 00000001 00000009 00000000 00000000 00000000 00000000
-	$MBush 00000002 00000008 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000007 00000000 00000000 00000000 00000000
+	$MBush 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_MBush
+	$SpinelDino 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_SpinelDino
+}
+
+@	$Formation_10
+{
+	$MBush 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_MBush
 }
 
 
 #new:Formation $Formation_11
 {
-	$SpearGuy 0 0000000A 00000000 00000000 00000000 00000000
-	$SpearGuy 1 00000009 00000000 00000000 00000000 00000000
-	$HurtPlant 2 00000008 00000000 00000000 00000000 00000000
-	$Chompy 3 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 0 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpearGuy 1 00000009 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$HurtPlant 2 00000008 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$Chompy 3 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 #new:Formation $Formation_12
 {
-	$JungleFuzzy $PitPos1 0000000A 00000000 00000000 00000000 00000000
-	$JungleFuzzy $PitPos2 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino $PitPos3 00000008 00000000 00000000 00000000 00000000
-	$HurtPlant $PitPos4 00000007 00000000 00000000 00000000 00000000
-	$HurtPlant $PitPos5 00000006 00000000 00000000 00000000 00000000
+	$JungleFuzzy $PitPos1 0000000A 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy $PitPos2 00000009 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$SpinelDino $PitPos3 00000008 00000000 00000000 00000000 $ItemDropTable_SpinelDino
+	$HurtPlant $PitPos4 00000007 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$HurtPlant $PitPos5 00000006 00000000 00000000 00000000 $ItemDropTable_HurtPlant
 }
 
 #new:Formation $Formation_13
 {
-	$MBush 0 0000000A 00000000 00000000 00000000 00000000
-	$MBush 1 00000009 00000000 00000000 00000000 00000000
-	$Chompy 2 00000008 00000000 00000000 00000000 00000000
-	$Chompy 3 00000007 00000000 00000000 00000000 00000000
+	$MBush 0 0000000A 00000000 00000000 00000000 $ItemDropTable_MBush
+	$MBush 1 00000009 00000000 00000000 00000000 $ItemDropTable_MBush
+	$Chompy 2 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
+	$Chompy 3 00000007 00000000 00000000 00000000 $ItemDropTable_Chompy
 }
 
 #new:Formation $Formation_14
 {
-	$Chompy $PitPos1 0000000A 00000000 00000000 00000000 00000000
-	$SpearGuy $PitPos2 00000009 00000000 00000000 00000000 00000000
-	$HurtPlant $PitPos3 00000008 00000000 00000000 00000000 00000000
-	$JungleFuzzy $PitPos4 00000007 00000000 00000000 00000000 00000000
-	$JungleFuzzy $PitPos5 00000006 00000000 00000000 00000000 00000000
+	$Chompy $PitPos1 0000000A 00000000 00000000 00000000 $ItemDropTable_Chompy
+	$SpearGuy $PitPos2 00000009 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$HurtPlant $PitPos3 00000008 00000000 00000000 00000000 $ItemDropTable_HurtPlant
+	$JungleFuzzy $PitPos4 00000007 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
+	$JungleFuzzy $PitPos5 00000006 00000000 00000000 00000000 $ItemDropTable_JungleFuzzy
 }
 
 #new:Formation $Formation_15
 {
-	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 00000000
-	$LimeoDino 00000001 00000009 00000000 00000000 00000000 00000000
-	$Chompy 00000002 00000008 00000000 00000000 00000000 00000000
-	$MBush 00000003 00000007 00000000 00000000 00000000 00000000
+	$SpearGuy 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_SpearGuy
+	$SpinelDino 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_SpinelDino
+	$Chompy 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Chompy
+	$MBush 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_MBush
 }
 
 

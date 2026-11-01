@@ -1,0 +1,282 @@
+% Auto-generated script for tem_03
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 2
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]The gate at the top[BR]
+will only stay open for[BR]
+a short time after you[BR]
+hit the switch.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+}
+
+#define .AreaByte_Timer1A 1		%arbitrary
+#define .AreaByte_Timer1B 2		%arbitrary
+
+#define .AreaByte_Timer1AMax 36` %Problem: its only 1 byte and 127 frames is way too short
+#define .AreaByte_Timer1BMax 15` %solution: two timers
+
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Call    MakeNpcs    	( 00000001 $NpcGroupList )	
+	Exec  $Script_GateLoop
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeEntity    ( .Entity:GreenStompSwitch ~Vec4d:bottomswitch 80000000 )
+	Call  AssignScript  ( $Script_GreenSwitch )	
+	Call  MakeEntity    ( .Entity:GreenStompSwitch ~Vec4d:topswitch 80000000 )
+	Call  AssignScript  ( $Script_GreenSwitch )	
+	Return
+	End
+}
+
+#new:Script $Script_GreenSwitch
+{
+	ExecWait $Script_GateOpenEffect
+	Set *AreaByte[.AreaByte_Timer1A] .AreaByte_Timer1AMax
+	Set *AreaByte[.AreaByte_Timer1B] .AreaByte_Timer1BMax
+	Return
+	End
+}
+
+%loop for making the gate stuff work
+%Disable ~Collider:gatecollider to open gate
+%Move ~Model:gatetransform to move gate around
+
+
+#new:Script $Script_GateLoop
+{
+	Label 0
+	%decrement timers?
+	If *AreaByte[.AreaByte_Timer1B] > 0`
+		Sub *AreaByte[.AreaByte_Timer1B] 1
+	EndIf
+	If *AreaByte[.AreaByte_Timer1A] > 0`
+		If *AreaByte[.AreaByte_Timer1B] <= 0`
+			Set *AreaByte[.AreaByte_Timer1B] .AreaByte_Timer1BMax
+			Sub *AreaByte[.AreaByte_Timer1A] 1
+		EndIf
+	EndIf
+	%determine gate position
+	If *AreaByte[.AreaByte_Timer1A] > 0`
+		%the gate shakes around 100 above its normal position
+		%shake a little bit (up to 2 seconds before ending)
+		If *AreaByte[.AreaByte_Timer1A] > 12`
+			Set *VarA 102`
+			Set *VarB *AreaByte[.AreaByte_Timer1B]			
+			Div *VarB 3
+			Sub *VarA *VarB
+		Else
+			Set *VarA 104`
+			Set *VarB *AreaByte[.AreaByte_Timer1B]
+			Sub *VarA *VarB
+		EndIf
+		Call  TranslateModel        ( ~Model:gatetransform 0` *VarA 0` )
+		Call  ModifyColliderFlags 	( 00000000 ~Collider:gatecollider 7FFFFE00 )		
+	Else
+		If *AreaByte[.AreaByte_Timer1B] > 0`
+			Set *VarA 6`
+			Mul *VarA *AreaByte[.AreaByte_Timer1B]
+			Add *VarA 10`
+			Call  TranslateModel        ( ~Model:gatetransform 0` *VarA 0` )
+		Else
+			Call  TranslateModel        ( ~Model:gatetransform 0` 0` 0` )
+			Call  ModifyColliderFlags 	( 00000001 ~Collider:gatecollider 7FFFFE00 )	
+			Call  StopSound     ( 00000394 )
+		EndIf
+	EndIf
+	%
+	%Gate closing sounds
+	If *AreaByte[.AreaByte_Timer1A] == 0
+		If *AreaByte[.AreaByte_Timer1B] == 1
+			Exec $Script_GateCloseEffect
+		EndIf	
+	EndIf	
+	Wait 1`
+	Goto 0
+	Return
+	End
+}
+
+#new:Script $Script_GateOpenEffect
+{
+	Call  PlaySoundAtCollider   ( ~Collider:gatecollider .Sound:MetalGateOpen 00000000 )
+	Call  PlaySoundAtCollider   ( ~Collider:gatecollider 00000394 00000000 )
+	Return
+	End
+}
+
+#new:Script $Script_GateCloseEffect
+{	
+	Call  StopSound     ( 00000394 )
+	Call  PlaySoundAtCollider   ( ~Collider:gatecollider .Sound:MetalGateClose 00000000 )
+	Loop 10`
+		Call     ShakeCam    	( .Cam:Default 00000000 00000001 *Fixed[1.0] )
+	EndLoop
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call  GetEntryID    ( *Var[0] )
+	Switch  *Var[0]
+		CaseOR  ==  ~Entry:Entry1
+		CaseOR  ==  ~Entry:Entry0
+			Set   *Var[0] $Script_CreateExitTriggers
+			Exec  EnterWalk
+		EndCaseGroup
+		Default
+			Exec  $Script_CreateExitTriggers
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry1 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_11" 00000000 )
+	Call  StopSound     ( 00000394 )
+	Set   *AreaByte[.AreaByte_Timer1A] 0
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_02" ~Entry:tem_02:Entry1 )
+	Call  StopSound     ( 00000394 )
+	Set   *AreaByte[.AreaByte_Timer1A] 0
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit1 .Trigger:FloorAbove ~Collider:gateLZ 00000001 00000000
+	Bind  $Script_Exit0 .Trigger:FloorAbove ~Collider:hubLZ 00000001 00000000
+	Return
+	End
+}
+
+
+#import Pit_AI.mpat
+
+@ $NpcSettings_Goomba
+{
+00000000 00180020 00000000 00000000 $Script_GoombaAI 80077F70 00000000 8007809C
+00000000 00000000 00630000 
+}
+
+@ $AISettings_Goomba
+{
+    1.6 % move speed
+    60` % move time
+    30` % wait time
+   200.0 % alert radius
+    0.0
+    5`
+    4.6 % chase speed
+    60`
+    15`
+  400.0 % chase radius
+    0.0
+    1`		 
+}
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_DarkGoomba1 3A040002
+00000001 $NpcGroup_DarkGoomba2 3A040002
+00000000 00000000 00000000
+}
+
+
+#new:NpcGroup $NpcGroup_DarkGoomba1
+{
+00000000 $NpcSettings_Goomba ~Vec3f:NPC_DarkGoomba1
+00000400 00000000 00000000 00000000 0000005A 
+~Items:64:UltraShroom:A %Dark shroom
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:NPC_DarkGoomba1
+00620206 00620204 00620205 00620204 00620206 00620200 00620209 00620209 % dark goomba
+00620203 00620203 00620203 00620203 00620202 00620204 00620200 00620202 
+00000000 00000000 00000000 00000000 % no tattle string	
+}
+
+#new:NpcGroup $NpcGroup_DarkGoomba2
+{
+00000001 $NpcSettings_Goomba ~Vec3f:NPC_DarkGoomba2
+00000400 00000000 00000000 00000000 0000005A 
+~Items:64:UltraShroom:A %Dark shroom
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:2:40 ~FP:30:40:2:40 ~FP:50:40:2:40 ~FP:80:40:2:40 ~FP:100:30:2:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:2:6
+~Movement:NPC_DarkGoomba2
+00620206 00620204 00620205 00620204 00620206 00620200 00620209 00620209 % dark goomba
+00620203 00620203 00620203 00620203 00620202 00620204 00620200 00620202 
+00000000 00000000 00000000 00000000 % no tattle string	
+}
+

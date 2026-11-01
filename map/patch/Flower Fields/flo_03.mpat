@@ -8,6 +8,51 @@
 
 #define .Npc:Fuzzy             6`
 
+@	 $Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:FlowerFields
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   34:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   54:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Set   *AreaFlag[01B]  .False
+   94:  Set   *AreaFlag[01C]  .False
+   A4:  Set   *AreaByte[1]  00000000
+   B4:  Call  MakeNpcs  ( .False $NpcGroupList_8024442C )
+   C8:  ExecWait  $Script_MakeEntities
+   D4:  ExecWait  $Script_80241EF4
+   E0:  Exec  $Script_80244E54
+   EC:  Exec  $Script_80244ED0
+   F8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o160 00000006 )
+  110:  Set   *Var0  FFFFFF6F
+  120:  Set   *Var1  FFFFFEB1
+  130:  Set   *Var2  000000B6
+  140:  Set   *Var3  FFFFFF4C
+  150:  Set   *Var4  00000000
+  160:  Exec  $Script_80240880
+  16C:  Set   *Var0  000000C8
+  17C:  Set   *Var1  FFFFFF56
+  18C:  Set   *Var2  00000136
+  19C:  Set   *Var3  00000096
+  1AC:  Set   *Var4  00000000
+  1BC:  Exec  $Script_80240880
+  1C8:  Call  GetEntryID        ( *Var0 )
+  1D8:  If  *Var0  ==  ~Entry:Entry2
+  1E8:  	Exec  $Script_80240FFC
+  1F4:  Else
+  1FC:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  214:  	Set   *Var0  $Script_80240BE4
+  224:  	Exec  EnterWalk
+  230:  EndIf
+  238:  ExecWait  $Script_802406A0
+  244:  If  *GB_StoryProgress  >=  .Story:Ch6_DestroyedPuffPuffMachine % 35
+  254:  	Call  $Function_80240000 ( )
+  260:  EndIf
+  268:  Return
+  270:  End
+}
+
 @	$Script_802406A0
 {
     0:  Call  GetEntryID    ( *Var0 )
@@ -19,11 +64,13 @@
    20:  	Call  SetMusicTrack ( 00000000 .Song:SunshineReturns 00000000 00000008 )
    3C:  Else
    44:  	Switch  *GB_StoryProgress
-   50:  		Case  <=  .Story:Ch6_AskedToDefeatMontyMoles % 2C
+   50:  		Case  <=  .Story:Ch6_AskedToDefeatMontyMoles % 2C			
    5C:  			If  *GF_FLO03_DefeatedAll_MontyMoles  ==  .False
    6C:  				Call  SetMusicTrack ( 00000000 .Song:MontyMoleAssault 00000000 00000008 )
+						Set  *CheckPythonMoles .True
 						Call $SetFlagCarryOverworldMusicToBattle()
    88:  			Else
+						Set  *CheckPythonMoles .False
    90:  				Call  SetMusicTrack ( 00000000 .Song:FlowerFieldsCloudy 00000000 00000008 )
    AC:  			EndIf
    B4:  		Case  <  .Story:Ch6_DestroyedPuffPuffMachine % 35
@@ -235,6 +282,10 @@
 						Call  AddBadge  ( .Item:SourceOfPower *Var0 )
 					EndIf
 					Add *SourcesofPower 1`
+					If  *SourcesofPower > 1`
+						Call  SetMessageValue   ( *SourcesofPower 5 )
+						Call  ShowMessageAtScreenPos    ( 001F00EA  160`  40` )
+					EndIf
 					Wait    10`		
 					ExecWait  $ProblemSolved
 				Else
@@ -259,6 +310,7 @@
 @	$Script_ExitWalk_80240B2C
 {
 		Call $ClearFlagCarryOverworldMusicToBattle()
+		Set  *CheckPythonMoles .False
     0:  SetGroup  0000001B
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
    20:  Exec  ExitWalk
@@ -271,6 +323,7 @@
 @ $Script_ExitWalk_80240B88
 {
 		Call $ClearFlagCarryOverworldMusicToBattle()
+		Set  *CheckPythonMoles .False
     0:  SetGroup  0000001B
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry1 )
    20:  Exec  ExitWalk

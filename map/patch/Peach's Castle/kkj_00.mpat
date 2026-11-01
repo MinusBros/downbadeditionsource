@@ -27,6 +27,7 @@
 #define .NpcID:ToadGuard_42         2A
 #define .NpcID:ToadGuard_44         2C
 #define .NpcID:ToadGuard_46         2E
+#define .Npc:Wario			        50
 
 
 @	$Header
@@ -441,6 +442,12 @@
 %We also need to update them to have tattles
 %All done
 
+@	$NpcGroupList_802439C4
+{
+	0000000C $NpcGroup_80242474 00000000	%We added Wario to the mix
+	00000000 00000000 00000000
+}
+
 @	$NpcGroup_80242474
 {
 	00000000 $NpcSettings_80241820 ~Vec3f:NPC_Luigi_00 % 0 -1000 0
@@ -529,10 +536,59 @@
 	~Movement:NPC_ToadGuard_10
 	~AnimationTable:NPC_ToadGuard_10 % .Sprite:ToadGuard
 	00000000 00000000 00000000 001A0157 % He's Athora T.
+	
+	.Npc:Wario $NpcSettingsWario ~Vec3f:Wario
+	00400D0D $Script_Init_Wario 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:Wario
+	~AnimationTable:Wario
+	00000000 00000000 00000000 001A0172 % WARIO!
 }
 
 
+#new:Script  $Script_Init_Wario
+{
+	Call  SetNpcScale   ( .Npc:Wario *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Wario )
+	Return
+	End
+}
 
+
+#new:Script  $Script_Interact_Wario
+{
+		Call  SpeakToPlayer ( .Npc:Self 00E6040E 00E6040C 00000000 0000006D ) % variable string ID
+		Return
+		End
+}
+
+#new:NpcSettings $NpcSettingsWario
+{
+	00000000 00230018 00000000 00000000 $Script_NpcAI_MoveWario 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+#new:Script $Script_NpcAI_MoveWario {
+    0:  Call  DoBasicAI ( $AIWario )
+   10:  Return
+   18:  End
+}
+
+
+#new:AISettings $AIWario {
+    3.0 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
 
 
 

@@ -117,3 +117,283 @@ LW	    V0, 0040 (A0)
 J       802E720C
 ADDIU	A0, R0, 01D3
 }
+
+
+
+
+
+
+
+
+% Mario's palette's get overwrited everytime mario's animation changes
+% this hook overwrite the palette value everytime
+% JAL_Overwrite_PlayersPalette
+@Hook 1007B4 % 802DD6C4
+{
+    /% 802DF588 - Mario Sprite Data - Pointer
+    [Pointer + 28](4 Bytes) Component_00 Palette
+    [Pointer + 2C](4 Bytes) Component_00 Palette (Battle)
+    [Pointer + 63](1 Byte)  Component_01 Byte Flag?
+    [Pointer + 68](4 Bytes) Component_01 Palette
+    [Pointer + 7C](4 Bytes) Component_01 Palette (Battle)
+
+    80074094 - Current Mode
+    0x00 = Overworld
+    0x01 = Battle
+    0x02 = Pause
+
+    *PlayerSkin
+    0x00=Default
+    0x01=Doopliss
+    0x02=B&W
+    0x03=Gameboy
+    0x04=Luigi
+    0x05=Wario
+    0x06=Waluigi
+    0x07=Fire Flower
+    0x08=Ice Flower
+    0x09=Jumpman
+    0x0A=SMB1
+    0x0B=SMB3
+    0x0C=Maker
+    0x0D=Modern
+    0x0E=Gold
+    0x0F=Black Pit
+    %/
+
+    % This SW writes stuff for all NPCs/Actors in the map
+    % Check if the one trying to be overwrited right now is Mario's palette
+    PUSH    RA, T0, T1, T2, T3, T4, A0, A1, A2, A3, V1, S0, S1
+    LAW     T0, 802DF588 % Mario Sprite Data (Pointer)
+    % If the pointer isn't even loaded skip everything
+    BEQ     T0, R0, .End
+    NOP
+    % Check if mario is inside a battle
+    LABU    T1, 80074094 % Current Mode
+    BNEL    T1, R0, .InBattle0
+    ORI     T1, R0, 14
+    .InOverworld0
+    ORI     T1, R0, 10
+    .InBattle0
+    % The current actor/npc about to be overwriten isn't Mario comp_00?
+    % A0 = Mario Sprite Data Pointer
+    ADDU    T0, T0, T1
+    BEQ     T0, A0, .LoadPaletteID
+    NOP
+    % Check if the current actor/npc to be overwriten is maybe Mario comp_01 instead?
+    ORI     T1, R0, 50 % Comp_01
+    ADDU    T0, T0, T1
+    BNE     T0, A0, .End
+    NOP
+    .LoadPaletteID
+    % Don't overwrite the palette if mario have the following animation
+    LAW     T0, 802DF58C % Mario Universal Animation ID
+    LIO     T1, 0001002F % burned
+    BEQ     T0, T1, .End
+    NOP
+    % Load Palette ID
+    COPY    S0, V0 % PUSH V0
+    COPY    S1, A0 % PUSH A0
+    LIO 	A1, *PlayerSkin % new palette
+    JAL 	~Func:get_variable
+    RESERVED
+    COPY    T1, V0 % PUSH skin ID
+    COPY    V0, S0 % POP V0
+    COPY    A0, S1 % POP A0
+    COPY    S0, T1 % POP skin ID
+    % GET PALETTE ID %
+    /% Why I overwrited some vanilla's palettes?
+    Mario can have a maximum of 0x23 palettes on Bank 1
+    If he have above 23, some problems will happen inside battle.
+    %/
+    % The *PlayerSkin byte is now loaded, but now load the actual palette ID
+    BEQ     S0, R0, .LoadPalette % Normal
+    ORI     T1, R0, 1	%Casual Skin
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 16 % Casual skin
+    ORI     T1, R0, 2	%Gamer skin
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 15 % Gamer skin
+    ORI     T1, R0, 3	%I Wanna Be The Guy 
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 17 % I Wanna Be The Guy
+    ORI     T1, R0, 4  % Superguardless
+    BEQL    S0, T1, .LoadPalette
+    ORI     S0, R0, 18 % Superguardless
+    % S0 = Skin ID
+    .LoadPalette
+    #DEF    S0, *SkinID
+    % Check if mario is inside a battle
+    LAW     T0, 802DF588 % Mario Sprite Data (Pointer)
+    LABU    T1, 80074094 % Current Mode
+    BNEL    T1, R0, .InBattle
+    ORI     T1, R0, 14
+    .InOverworld
+    ORI     T1, R0, 10
+    /% Hammer Animations
+    Hammer's animations works a little different to all other animations
+    because it uses 2 components instead of 1, on all other animations
+    Mario's body is always component 00 but on the hammer ones he is component 01
+    and the hammer is component 00 %/
+    % Check if the current animation is a hammer one to overwrite component 01 palette instead
+    LBU     T2, 63 (T0) % Component 01 byte flag
+    BEQ     T2, R0, .Overwrite_Component % If component 01 is false
+    NOP
+    .OverwriteHammer
+    % Some animations use 2 components too but Mario body is component 00 instead of 01
+    % like the hammer ones, If the current animation is one of those, overwrite comp_00 not 01
+    LAW     T3, 8010F080 % Mario's Animation ID (Overworld)
+    /%
+    Check the following animations:
+    0006000C
+    0006000E
+    0006000F
+    0008001E
+    %/
+    LIO     T2, 0006000C
+    BEQ     T3, T2 .Overwrite_Component
+    LUI     T2, 0006
+    ORI     T2, T2, 000E
+    BEQ     T3, T2 .Overwrite_Component
+    LUI     T2, 0006
+    ORI     T2, T2, 000F
+    BEQ     T3, T2 .Overwrite_Component
+    LUI     T2, 0008
+    ORI     T2, T2, 001E
+    BEQ     T3, T2 .Overwrite_Component
+    NOP
+    % Overwrite Component 01 Palette - Overworld
+    % Check if the current actor/npc to be overwriten is Mario comp_01?
+    ADDU    T0, T0, T1
+    ORI     T1, R0, 50 % Comp_01
+    ADDU    T0, T0, T1
+    BNE     T0, A0, .End
+    NOP
+    BEQ     R0, R0, .Overwrite_Component
+    NOP
+    .InBattle
+    % Check if Mario is a stone or poisoned to not overwrite the ID
+    LIO     T3, 800DC148 % Mario's Actor Data Pointer
+    LW      T2, 0 (T3)
+    LBU     T3, 210 (T2) % Mario's Status
+    ORI     T4, R0, 9 % Poison
+    BEQ     T3, T4, .End
+    ORI     T4, R0, C % Stone
+    LBU     T3, 214 (T2) % Mario's Status 2
+    BEQ     T3, T4, .End
+    NOP
+    /% Some battle animations Mario's body is in comp_01 instead of comp_00 too
+    check if the current animation is one of those, to write comp_01 instead of 00.
+
+    Check the following animations:
+    00030013
+    00030019
+    0003001A
+    00030020
+    00030021
+    0004001B
+    00040021
+    00040026
+    00040027
+    %/
+    LAW     T3, 802DF58C % Mario's Animation ID (Battle)
+    LIO     T2, 00030013
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00030019
+    LIO     T2, 00030019
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .0003001A
+    LIO     T2, 0003001A
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00030020
+    LIO     T2, 00030020
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00030021
+    LIO     T2, 00030021
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .0004001B
+    LIO     T2, 0004001B
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00040021
+    LIO     T2, 00040021
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00040026
+    LIO     T2, 00040026
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    .00040027
+    LIO     T2, 00040027
+    BEQ     T3, T2, .Overwrite_Comp01
+    NOP
+    % The current animation isn't one of those?
+    % Check if the current pointer in A0 is for comp_01 to skip overwriting the palette then
+    ADDU    T0, T0, T1
+    ORI     T1, R0, 50 % Comp_01
+    ADDU    T0, T0, T1
+    BEQ     T0, A0, .End
+    NOP
+    BEQ     R0, R0, .Overwrite_Component
+    NOP
+    .Overwrite_Comp01 % Battle
+    % skip if the pointer in A0 is for comp_00
+    ADDU    T0, T0, T1 % Comp_00
+    BEQ     T0, A0, .End
+    NOP
+    .Overwrite_Component
+    % Mario's palette is about to be overwrited
+    COPY    V0, *SkinID % overwrite palette
+    .End
+    #UNDEF  S0
+    POP     RA, T0, T1, T2, T3, T4, A0, A1, A2, A3, V1, S0, S1
+    % Vanilla code %
+    BNE 	A3, R0 .Falso
+    SW	    V0, 0018 (A0) % Write Palette
+    J       802DD6D4
+    NOP
+    .Falso
+    J       802DD6CC
+    NOP
+}
+
+/%
+Zap Tab misc notes
+8025891C % Show Thunder Icon
+80258624 % Zap/Thunder Shroom Swap Palettes - Main
+80258670 % Zap Tab - Swap Palettes (Only if you started wearing Zap-Tab inside battle, basically impossible)
+
+80259D9C % Blink Thunder Palette Main code?
+%/
+
+% Add Skin "compatibility" for Zap-Tab/Volt Shrooms
+%
+% Hammers' Electrified palettes are 0x14/15/16 for each hammer, but #15 & #16 are actually some skins
+% So this hook disables using any electrified palette for any hammer, just use their normal palettes
+@Hook 188938 % 8025A058
+{
+% T1 = Palette Counter
+% 3 = Hammer
+% 4 = Super Hammer
+% 5 = Ultra Hammer
+LW	    A2, 0000 (V0) % load palette pointer
+% Is a hammer palette?
+ORI     V0, R0, 3 % Hammer
+BEQL    T1, V0, .End
+CLEAR   A2 % A2 = 0 = Don't overwrite palette
+ORI     V0, R0, 4 % Super Hammer
+BEQL    T1, V0, .End
+CLEAR   A2
+ORI     V0, R0, 5 % Ultra Hammer
+BEQL    T1, V0, .End
+CLEAR   A2
+.End
+% restore vanilla code
+J       8025A060
+SLL	    V0, T1, 5
+}

@@ -19,6 +19,55 @@
 #define .NpcID:TuffPuff_17          11
 
 
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:CloudyClimb
+   10:  Call  SetSpriteShading  ( .Shading:None )
+   20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   34:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   54:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   70:  Call  SetCamEnabled     ( .Cam:Default .True )
+   84:  Call  MakeNpcs  ( .False $NpcGroupList_80245AEC )
+		ExecWait $Script_MakeEntities
+   98:  Exec  $Script_80241B98
+   A4:  Call  HidePlayerShadow  ( .True )
+   B4:  Exec  $Script_80241600
+   C0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o114 00000007 )
+   D8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o115 00000007 )
+   F0:  Call  GetEntryID        ( *Var0 )
+  100:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
+  134:  ExecWait  $Script_80240D40
+  140:  If  *GB_StoryProgress  >=  .Story:Ch6_DestroyedPuffPuffMachine % 35
+  150:  	Call  $Function_80240B00 ( )
+  15C:  EndIf
+  164:  Exec  $Script_80240E3C
+		Exec  $Script_CheckPos
+		Exec  $Script_CheckPosSave
+		If    *LordofThunderCrashFailsafe == .True
+			Set  *LordofThunderCrashFailsafe .False
+			Set   *GB_StoryProgress  .Story:Ch6_DefeatedHuffNPuff
+			Exec  EnterSavePoint
+			Exec  $Script_80241350
+			Return			
+		EndIf
+		Call  GetLoadType   ( *Var1 )
+		If  *Var1  ==  00000001
+			Exec  EnterSavePoint
+			Exec  $Script_80241350
+			Return
+		EndIf
+		If *CheckLordofThunder == .True
+			Exec  EnterSavePoint
+			Exec  $Script_80241350
+			Return
+		EndIf
+		Set   *Var0  $Script_80241350  
+		Exec  EnterWalk
+  170:  Return
+  178:  End
+}
+
 #new:Script $Script_MakeEntities
 {
 		Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SavePoint 80000000 )
@@ -47,12 +96,15 @@
    94:  	Call  802D2B6C ( )
    A0:  	Wait  15`
    AC:  EndIf
+		Set  *MapFlag[00] .True
    B4:  Call  DisablePlayerPhysics  ( .True )
 		If    *CheckLordofThunder == .False
-   C4:  Call  InterpPlayerYaw   (  90`  1` )
-   D8:  Wait  5`
-   E4:  Call  SetPlayerAnimation    ( 0001002B )
+	   C4:  Call  InterpPlayerYaw   (  90`  1` )
+	   D8:  Wait  5`
+	   E4:  Call  SetPlayerAnimation    ( 0001002B )
+		EndIf
    F4:  Call  SetNpcFlagBits    ( .NpcID:HuffNPuff_01 00000100 .True )
+		If    *CheckLordofThunder == .False
   10C:  Call  GetPlayerPos      ( *Var2 *Var3 *Var4 )
   124:  Call  UseSettingsFrom   ( .Cam:Default *Var2 *Var3 *Var4 )
   140:  Call  SetPanTarget      ( .Cam:Default *Var2 *Var3 *Var4 )
@@ -158,10 +210,9 @@
 
 @	$Script_80243010
 {
-		Call  DisablePlayerInput    ( .True )
+		Set  *LordofThunderCrashFailsafe .False
 		Call  $ClearFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:HuffNPuffTheme 00000000 00000008 )
-		ExecWait  $NukeBossChecks
     0:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_01 007C0004 )
    14:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_00 007C0005 )
    28:  Call  SetNpcAnimation   ( .NpcID:HuffNPuff_02 007C0006 )
@@ -207,54 +258,129 @@
   3D8:  Exec  $Script_8024263C
   3E4:  ExecWait  $Script_80242918
   3F0:  ExecWait  $Script_80242D34
-		Exec  $AutoSave  %Do this just in case the weird softlock happens
-  3FC:  Wait  10`
-		Call  DisablePlayerInput    ( .False )
   408:  Return
   410:  End
 }
 
 
-@	$Script_Main_EnterWalk
+@	$Script_80240E3C
 {
-    0:  Set   *GB_WorldLocation  .Location:CloudyClimb
-   10:  Call  SetSpriteShading  ( .Shading:None )
-   20:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-   34:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
-   54:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
-   70:  Call  SetCamEnabled     ( .Cam:Default .True )
-   84:  Call  MakeNpcs  ( .False $NpcGroupList_80245AEC )
-		ExecWait $Script_MakeEntities
-   98:  Exec  $Script_80241B98
-   A4:  Call  HidePlayerShadow  ( .True )
-   B4:  Exec  $Script_80241600
-   C0:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o114 00000007 )
-   D8:  Call  ModifyColliderFlags   ( 00000003 ~Collider:o115 00000007 )
-   F0:  Call  GetEntryID        ( *Var0 )
-  100:  Call  ModifyColliderFlags   ( 00000000 ~Collider:deilitw 7FFFFE00 )
-  118:  Set   *Var0  $Script_80241350  
-  134:  ExecWait  $Script_80240D40
-  140:  If  *GB_StoryProgress  >=  .Story:Ch6_DestroyedPuffPuffMachine % 35
-  150:  	Call  $Function_80240B00 ( )
-  15C:  EndIf
-  164:  Exec  $Script_80240E3C
-		Exec  $Script_CheckPos
-		Exec  $Script_CheckPosSave
-		Call  GetLoadType   ( *Var1 )
-		If  *Var1  ==  00000001
-			Exec  EnterSavePoint
-			Exec  $Script_80241350
-			Return
-		EndIf
-		If *CheckLordofThunder == .True
-			Exec  EnterSavePoint
-			Exec  $Script_80241350
-			Return
-		EndIf
-		Exec  EnterWalk
-  170:  Return
-  178:  End
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch6_DefeatedHuffNPuff % Change to be if story progress is before beating Huff
+   18:  		Set   *Var0  00000000
+   28:  		If  *MapVar[A]  ==  00000000
+   38:  			Return
+   40:  		EndIf
+				Call  PlaySound ( 3FD )
+   48:  		Set   *GB_StoryProgress  .Story:Ch6_DefeatedHuffNPuff
+				Thread
+					Wait  150`
+					Exec  $AutoSave  %Do this just in case the weird softlock happens	
+					Exec  $Script_CheckPos
+					If  *LordofThunderRunbackFailsafe == .True
+						Wait  200`
+						Wait  200`
+						Wait  50`
+						Goto  SkipCheck
+					EndIf
+				EndThread
+   58:  	Case  ==  .Story:Ch6_DefeatedHuffNPuff % 38
+   64:  		Set   *Var0  00000001
+   74:  	Default
+   7C:  		Return
+   84:  EndSwitch
+   8C:  If  *Var0  ==  00000000
+   9C:  	Call  DisablePlayerInput    ( .True )		
+   AC:  	Call  UseSettingsFrom   ( .Cam:Default  650`  205`  0` )
+   C8:  	Call  SetCamSpeed       ( .Cam:Default *Fixed[0.6] )
+   DC:  	Call  SetPanTarget      ( .Cam:Default  650`  150`  0` )
+   F8:  	Call  GetCamDistance    ( .Cam:Default *Var1 )
+  10C:  	Sub   *Var1  00000064
+  11C:  	Call  SetCamDistance    ( .Cam:Default *Var1 )
+  130:  	If  *Fixed[-5.5]  !=  00002710
+  140:  		Call  GetCamPitch   ( .Cam:Default *Var2 *Var3 )
+  158:  		Call  SetCamPitch   ( .Cam:Default *Var2 *Fixed[-5.5] )
+  170:  	EndIf
+  178:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  190:  	Call  $Function_8024004C    ( 00000005 000000B4 0000028A 000000AA 00000000 0000028A 000000CD 00000000 00000096 00000078 )
+  1C4:  	Thread
+  1CC:  		Call  $Function_802401AC ( )
+  1D8:  	EndThread
+  1E0:  	Thread
+  1E8:  		Wait  1`
+  1F4:  		Call  PlaySound     ( 80000067 )
+  204:  		Call  $Function_80240000 ( )
+  210:  		Call  StopSound     ( 80000067 )
+  220:  		Call  PlaySoundAt   ( 000000B2 00000000 0000028A 000000CD 00000000 )
+  240:  	EndThread
+  248:  	Thread
+  250:  		Wait  45`
+  25C:  		Call  SetPlayerAnimation    ( 0001002A )
+  26C:  	EndThread
+  274:  	Thread
+  27C:  		Wait  180`
+  288:  		Wait  115`
+  294:  		Call  PlaySoundAt   ( 00000137 00000000 0000028A 000000CD 00000000 )
+  2B4:  	EndThread
+  2BC:  	Call  $Function_802405BC    ( 00000001 )
+  2CC:  	Thread
+  2D4:  		Wait  80`
+  2E0:  		Call  SetPlayerAnimation    ( 00010002 )
+  2F0:  	EndThread
+  2F8:  	Add   *Var1  00000064
+	  308:  	Call  SetCamDistance        ( .Cam:Default *Var1 )
+	  31C:  	Call  SetPanTarget  ( .Cam:Default  650`  120`  0` )
+	  338:  	Call  $Function_802405BC    ( 00000002 )
+	  348:  	Call  GetPlayerPos  ( *Var2 *Var3 *Var4 )
+	  360:  	Call  UseSettingsFrom       ( .Cam:Default *Var2 *Var3 *Var4 )
+	  37C:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[1.0] )
+	  390:  	Call  SetPanTarget  ( .Cam:Default *Var2 *Var3 *Var4 )
+	  3AC:  	Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+	  3C0:  	Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+	  3D8:  	Call  DisablePlayerInput    ( .False )
+  3E8:  Else
+			Call  PlaySound ( 3FD )
+  3F0:  	Call  $Function_802405FC    ( 00000005 0000028A 00000096 00000000 00000078 )
+  410:  	Thread
+  418:  		Call  $Function_80240708 ( )
+  424:  	EndThread
+  42C:  	Wait  1`
+  438:  EndIf
+  440:  Call  $Function_802405BC    ( 00000003 )
+		Label SkipCheck
+  450:  Call  PlaySoundAtPlayer     ( .Sound:RescueStarSpirit 00000000 )
+		ExecWait  $NukeBossChecks
+  464:  Call  DisablePlayerInput    ( .True )
+  474:  Set   *GB_StoryProgress  .Story:Ch6_StarSpiritRescued
+  484:  Call  GotoMapSpecial        ( $ASCII_80245B24 00000005 0000000E ) % kmr_23
+  49C:  Wait  100`
+  4A8:  Return
+  4B0:  End
 }
+
+
+
+@	$Script_Defeat_802434D8
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Call  SetEncounterStatusFlags   ( 00000001 .True )
+   3C:  		Call  SetNpcYaw     ( .Npc:Partner  90` )
+   50:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var3 )
+   68:  		Call  GetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var2 )
+   84:  		Add   *Var3  FFFFFFEC
+   94:  		Call  SetNpcPos     ( .Npc:Partner *Var0 *Var1 *Var3 )
+   B0:  		ExecWait  $Script_80243010
+   BC:  		Wait  50`
+   C8:  		Set   *MapVar[A]  00000001
+   D8:  		Exec  $Script_80240E3C
+   E4:  EndSwitch
+   EC:  Return
+   F4:  End
+}
+
+
 
 
 @	$Script_ExitWalk_802412F4
@@ -262,6 +388,7 @@
     0:  SetGroup  0000001B
     C:  Call  UseExitHeading    ( 0000003C ~Entry:Entry0 )
    20:  Exec  ExitWalk
+		ExecWait  $NukeBossChecks
 		Call  GotoMapSpecial    ( "flo_19" 00000001 00000006 )   %Transition with white screen
    40:  Wait  100`
    4C:  Return
@@ -273,6 +400,9 @@
 {
 	Label 1
 	Wait  1`
+	If  *MapFlag[00] == .True
+		Return
+	EndIf
 	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
 	If *Var1  < -255`
 		ExecWait  $NukeBossChecks
@@ -292,6 +422,9 @@
 {
 	Loop
 	Wait  1`
+	If  *MapFlag[00] == .True
+		Return
+	EndIf
 	Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
 	If *Var0  > 410`
 		If  *Var1  == 104`

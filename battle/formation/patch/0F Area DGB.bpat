@@ -24,7 +24,7 @@
 
 @	$Clubba
 {
-	[Level]        14`b
+	[Level]        18`b
 	[MaxHP]        10`b
 	[Coins]         2`b
 }
@@ -34,8 +34,19 @@
     0:  Call  BindTakeTurn      ( .Actor:Self $Script_TakeTurn_802186BC )
    14:  Call  BindIdle  ( .Actor:Self $Script_Idle_8021819C )
    28:  Call  BindHandleEvent   ( .Actor:Self $Script_HandleEvent_802181AC )
+		Call     RandInt     	( 4` *Var7 )
+		Switch  *Var7
+			Case == 1`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.9] *Fixed[0.9] *Fixed[0.9] )
+			Case == 2`
+				Call  SetActorScale     ( .Actor:Self *Fixed[0.95] *Fixed[0.95] *Fixed[0.95] )
+			Case == 3`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.05] *Fixed[1.05] *Fixed[1.05] )
+			Case == 4`
+				Call  SetActorScale     ( .Actor:Self *Fixed[1.1] *Fixed[1.1] *Fixed[1.1] )
+		EndSwitch
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
-			Call	$Function_SetLevel	( $Clubba 16` )
+			Call	$Function_SetLevel	( $Clubba 20` )
 		EndIf
    3C:  Return
    44:  End
@@ -183,7 +194,7 @@
   4C0:  		Call  StartRumble   ( 0000000B )
   4D8:  			Call  ShakeCam  ( .Cam:Battle 00000000  1` *Fixed[0.24] )
    430:  Call  SetGoalToTarget   ( .Actor:Self )
-  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000000 00000000 10` 00000020 )
+  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|MultiBounce 00000000 00000000 5` 00000020 )
   4F4:  			Call  ShakeCam  ( .Cam:Battle 00000000  3` *Fixed[1.2] )
   510:  			Call  ShakeCam  ( .Cam:Battle 00000000  7` *Fixed[2.4] )
   52C:  			Call  ShakeCam  ( .Cam:Battle 00000000  4` *Fixed[1.2] )
@@ -210,169 +221,6 @@
   530:  Call  UseIdleAnimation  ( .Actor:Self .True )
   544:  Return
   54C:  End
-}
-
-
-
-
-#new:Script $ShowMessage3
-{
-	Call  ActorSpeak        ( 001F003E .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Libido Slam
-	Return
-	End
-}
-
-#new:Script $ShowMessage4
-{
-	Call  ActorSpeak        ( 001F003F .Actor:Enemy0 00000001 FFFFFFFF FFFFFFFF ) %Lustful Hook
-	Return
-	End
-}
-
-
-
-
-@	$Script_80219D88
-{
-		Exec  $ShowMessage4
-    0:  Call  SetTargetActor    ( .Actor:Self .Actor:Player )
-   14:  Call  UseBattleCamPreset    ( 0000003F )
-   24:  Call  SetBattleCamZoom  (  150` )
-   34:  Call  BattleCamTargetActor  ( .Actor:Self )
-   44:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
-   5C:  Call  SetAnimation      ( .Actor:Self 00000001 006B0007 )
-   74:  Call  SetGoalToTarget   ( .Actor:Self )
-   84:  If  *Var5  !&  00080000
-   94:  	Call  AddGoalPos    ( .Actor:Self  50`  0`  0` )
-   B0:  Else
-   B8:  	Call  AddGoalPos    ( .Actor:Self  20`  0`  0` )
-   D4:  EndIf
-   DC:  Call  SetActorSpeed ( .Actor:Self *Fixed[9.0] )
-   F0:  Call  RunToGoal     ( .Actor:Self  0` .False )
-  108:  Call  SetAnimation  ( .Actor:Self 00000001 006B0015 )
-  120:  Wait  8`
-  12C:  Call  PlaySoundAtActor  ( .Actor:Self 0000035E )
-  140:  Call  SetAnimation  ( .Actor:Self 00000001 006B0016 )
-  158:  Wait  10`
-  164:  Call  SetAnimation  ( .Actor:Self 00000001 006B0017 )
-  17C:  Wait  1`
-  188:  Call  SetGoalToTarget   ( .Actor:Self )
-  198:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
-  1AC:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
-  1BC:  	Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  1D8:  	Set   *Var1  00000000
-  1E8:  	Call  PlayEffect    ( ~FX:Steam:LargeOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  22C:  	Call  PlayEffect    ( ~FX:ShockWave:LargeWhite *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  270:  	Thread
-  278:  		Call  StartRumble   ( 00000001 )
-  288:  		Call  ShakeCam      ( .Cam:Battle 00000000  5` *Fixed[15.0] )
-  2A4:  	EndThread
-  2AC:  	Call  PlaySoundAtActor  ( .Actor:Self 000020EA )
-  2C0:  EndIf
-  2C8:  Call  EnemyTestTarget   ( .Actor:Self *VarA ~Flags:DamageType:0 00000000 00000001 00000010 )
-  2EC:  Switch  *VarA
-  2F8:  	CaseOR  ==  .HitResult:Miss % 6
-  304:  	CaseOR  ==  .HitResult:Lucky % 5
-  310:  		Wait  5`
-  31C:  		If  *VarA  ==  .HitResult:Lucky % 5
-  32C:  			Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:TriggerLucky 00000000 00000000 00000000 )
-  350:  		EndIf
-  358:  		Wait  10`
-  364:  		Call  SetAnimation  ( .Actor:Self 00000001 006B0002 )
-  37C:  		Call  UseBattleCamPreset    ( 00000002 )
-  38C:  		Call  MoveBattleCamOver     (  20` )
-  39C:  		ExecWait  $Script_80219238
-  3A8:  		Return
-  3B0:  	EndCaseGroup
-  3B8:  	Default
-  3C0:  EndSwitch
-  424:  Call  GetStatusFlags    ( .Actor:Self *Var5 )
-  438:  If  *Var5  !&  ~Flags:StatusFlags:Shrink % 80000
-  448:  	Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  464:  	Call  PlayEffect    ( ~FX:ShockWave:LargeWhite *Var0 00000000 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  4A8:  EndIf
-  4B0:  Wait  2`
-  4BC:  Call  SetGoalToTarget   ( .Actor:Self )
-  4F4:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 00000000 00000003 00000020 )
-  138:  Call  SetAnimation  ( .Actor:Self 00000001 006B0015 )
-  150:  Wait  8`
-  15C:  Call  PlaySoundAtActor  ( .Actor:Self 0000035E )
-  170:  Call  SetAnimation  ( .Actor:Self 00000001 006B0016 )
-  188:  Wait  10`
-  194:  Call  SetAnimation  ( .Actor:Self 00000001 006B0017 )
-  1AC:  Wait  1`
-  1B8:  Call  SetGoalToTarget   ( .Actor:Self )
-  1C8:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
-  1DC:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
-  1EC:  	Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  208:  	Set   *Var1  00000000
-  218:  	Call  PlayEffect    ( ~FX:Steam:LargeOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  25C:  	Thread
-  264:  		Call  StartRumble   ( 00000001 )
-  274:  		Call  ShakeCam      ( .Cam:Battle 00000000  5` *Fixed[15.0] )
-  290:  	EndThread
-  298:  	Call  PlaySoundAtActor  ( .Actor:Self 000020EA )
-  2AC:  EndIf
-  424:  Call  GetStatusFlags    ( .Actor:Self *Var5 )
-  438:  If  *Var5  !&  ~Flags:StatusFlags:Shrink % 80000
-  448:  	Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  464:  	Call  PlayEffect    ( ~FX:ShockWave:LargeWhite *Var0 00000000 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  4A8:  EndIf
-  4B0:  Wait  2`
-  4BC:  Call  SetGoalToTarget   ( .Actor:Self )
-  4F4:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 00000000 00000003 00000020 )
-  138:  Call  SetAnimation  ( .Actor:Self 00000001 006B0015 )
-  150:  Wait  8`
-  15C:  Call  PlaySoundAtActor  ( .Actor:Self 0000035E )
-  170:  Call  SetAnimation  ( .Actor:Self 00000001 006B0016 )
-  188:  Wait  18`
-  194:  Call  SetAnimation  ( .Actor:Self 00000001 006B0017 )
-  1AC:  Wait  1`
-  1B8:  Call  SetGoalToTarget   ( .Actor:Self )
-  1C8:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
-  1DC:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
-  1EC:  	Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  208:  	Set   *Var1  00000000
-  218:  	Call  PlayEffect    ( ~FX:Steam:LargeOutward *Var0 *Var1 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  25C:  	Thread
-  264:  		Call  StartRumble   ( 00000001 )
-  274:  		Call  ShakeCam      ( .Cam:Battle 00000000  5` *Fixed[15.0] )
-  290:  	EndThread
-  298:  	Call  PlaySoundAtActor  ( .Actor:Self 000020EA )
-  2AC:  EndIf
-  424:  Call  GetStatusFlags    ( .Actor:Self *Var5 )
-  438:  If  *Var5  !&  ~Flags:StatusFlags:Shrink % 80000
-  448:  	Call  GetGoalPos    ( .Actor:Self *Var0 *Var1 *Var2 )
-  464:  	Call  PlayEffect    ( ~FX:ShockWave:LargeWhite *Var0 00000000 *Var2 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
-  4A8:  EndIf
-  4B0:  Wait  2`
-  4BC:  Call  SetGoalToTarget   ( .Actor:Self )
-  4CC:  If  *Var5  !&  ~Flags:StatusFlags:Shrink % 80000
-  4DC:  	Call  80269EAC  ( 00000017 )
-  4EC:  EndIf
-  4F4:  Call  EnemyDamageTarget ( .Actor:Self *VarF ~Flags:DamageType:NoContact 00000000 00000000 00000004 00000020 )
-  51C:  Call  UseBattleCamPreset    ( 0000003F )
-  52C:  Call  SetBattleCamZoom  (  200` )
-  53C:  Call  BattleCamTargetActor  ( .Actor:Self )
-  54C:  Call  8024ECF8  ( FFFFFFFF 00000001 00000000 )
-  564:  Call  MoveBattleCamOver (  30` )
-  518:  Switch  *VarF
-  524:  	CaseOR  ==  .HitResult:Hit % 0
-  530:  	CaseOR  ==  .HitResult:QuakeImmune % 2
-  53C:  	CaseOR  ==  0000000A % A
-  548:  		Wait  10`
-  554:  		Call  SetAnimation  ( .Actor:Self 00000001 006B0002 )
-  56C:  		Call  UseBattleCamPreset    ( 00000002 )
-  57C:  		Call  MoveBattleCamOver     (  20` )
-  58C:  		If  *VarF  ==  0000000A % A
-  59C:  			Return
-  5A4:  		EndIf
-  5AC:  		Call  YieldTurn ( )
-  5B8:  		ExecWait  $Script_80219238
-  5C4:  	EndCaseGroup
-  5CC:  EndSwitch
-  5D4:  Return
-  5DC:  End
 }
 
 
@@ -456,8 +304,7 @@
   590:  	Wait  15`
   59C:  	Call  802535B4  ( 00000001 )
   5AC:  EndIf
-  5B4:  Call  RandInt   ( 00000064 *Var0 )
-  5EC:  	ExecWait  $Script_8021A36C
+  5EC:  ExecWait  $Script_8021A36C
   600:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
   614:  Call  UseIdleAnimation  ( .Actor:Self .True )
   628:  Return
@@ -488,13 +335,12 @@
   554:  		Call  SetGoalToTarget       ( .Actor:Self )
   564:  		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
   578:  		Call  JumpToGoal    ( .Actor:Self  16` .False .True .False )
-				Thread
+				ChildThread
 				    Call  SetActorSpeed     ( .Actor:Partner *Fixed[16.0] )
 					Call  PlaySoundAtActor  ( .Actor:Partner 000015E )
-					Call  SetGoalToTarget   ( .Actor:Partner )
-   84:  			Call  AddGoalPos        ( .Actor:Partner  -400`  0`  0` )
+   84:  			Call  SetGoalPos        ( .Actor:Partner  -400`  0`  0` )
    B4:  			Call  RunToGoal ( .Actor:Partner  0` .False )
-				EndThread
+				EndChildThread
   5A0:  Wait  2`
 		Call  FadeOutMusic  ( 00000000 000001F4 )
   5AC:  Call  PlaySoundAtActor  ( .Actor:Self 000020EA )
@@ -539,97 +385,97 @@
 
 @	$Formation_00
 {
-	$Clubba 00000001 0000000A 00000000 00000000 00000000 00000000
-	$Clubba 00000002 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+	$Clubba 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 @ $Formation_01
 {
-	$Clubba 00000001 0000000A 00000000 00000000 00000000 00000000
-	$LimeoDino 00000002 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+	$Clubba 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$LimeoDino 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 @ $Formation_02
 {
-	$Clubba 00000000 0000000A 00000000 00000000 00000000 00000000
-	$Clubba 00000001 00000009 00000000 00000000 00000000 00000000
-	$Clubba 00000002 00000008 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000007 00000000 00000000 00000000 00000000
+	$Clubba 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 @ $Formation_03
 {
-	$Clubba 00000000 0000000A 00000000 00000000 00000000 00000000
-	$Clubba 00000001 00000009 00000000 00000000 00000000 00000000
-	$Clubba 00000002 00000008 00000000 00000000 00000000 00000000
-	$Clubba 00000003 00000007 00000000 00000000 00000000 00000000
+	$Clubba 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Clubba
 }
 
 
 #new:Formation $Formation_06
 {
-	$LimeoDino 00000001 0000000A 00000000 00000000 00000000 00000000
-	$LimeoDino 00000002 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000008 00000000 00000000 00000000 00000000
+	$LimeoDino 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$LimeoDino 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$LimeoDino 00000003 00000008 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 #new:Formation $Formation_07
 {
-	$LimeoDino 00000001 0000000A 00000000 00000000 00000000 00000000
-	$LimeoDino 00000002 00000009 00000000 00000000 00000000 00000000
-	$Clubba    00000003 00000008 00000000 00000000 00000000 00000000  
+	$LimeoDino 00000001 0000000A 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$LimeoDino 00000002 00000009 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$Clubba    00000003 00000008 00000000 00000000 00000000 $ItemDropTable_Clubba 
 }
 
 #new:Formation $Formation_08
 {
-	$LimeoDino 00000000 0000000A 00000000 00000000 00000000 00000000
-	$Clubba    00000001 00000009 00000000 00000000 00000000 00000000 
-	$LimeoDino 00000002 00000008 00000000 00000000 00000000 00000000
-	$Clubba    00000003 00000007 00000000 00000000 00000000 00000000  
+	$LimeoDino 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$Clubba    00000001 00000009 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$Clubba    00000003 00000007 00000000 00000000 00000000 $ItemDropTable_Clubba
 }
 
 #new:Formation $Formation_09
 {
-	$Clubba 00000000 0000000A 00000000 00000000 00000000 00000000
-	$Flubba 00000001 00000009 00000000 00000000 00000000 00000000
-	$Flubba 00000002 00000008 00000000 00000000 00000000 00000000
-	$LimeoDino 00000003 00000007 00000000 00000000 00000000 00000000
+	$Clubba 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Flubba 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_Flubba
+	$Flubba 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Flubba
+	$LimeoDino 00000003 00000007 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 #new:Formation $Formation_0A
 {
-	$Clubba 00000000 0000000A 00000000 00000000 00000000 00000000
-	$Flubba 00000001 00000009 00000000 00000000 00000000 00000000
-	$Clubba 00000002 00000008 00000000 00000000 00000000 00000000
+	$Clubba 00000000 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Flubba 00000001 00000009 00000000 00000000 00000000 $ItemDropTable_Flubba
+	$Clubba 00000002 00000008 00000000 00000000 00000000 $ItemDropTable_Clubba
 }
 
 
 #new:Formation $Formation_0B
 {
-	$Clubba 0 0000000A 00000000 00000000 00000000 00000000
-	$LimeoDino 1 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino 2 00000008 00000000 00000000 00000000 00000000
-	$ForestGuy 3 00000007 00000000 00000000 00000000 00000000
+	$Clubba 0 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino 1 00000009 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$LimeoDino 2 00000008 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$ForestGuy 3 00000007 00000000 00000000 00000000 $ItemDropTable_ForestGuy
 }
 
 #new:Formation $Formation_0C
 {
-	$LimeoDino $PitPos1 0000000A 00000000 00000000 00000000 00000000
-	$Flubba $PitPos2 00000009 00000000 00000000 00000000 00000000
-	$Clubba $PitPos3 00000008 00000000 00000000 00000000 00000000
-	$ForestGuy $PitPos4 00000007 00000000 00000000 00000000 00000000
-	$LimeoDino $PitPos5 00000006 00000000 00000000 00000000 00000000
+	$LimeoDino $PitPos1 0000000A 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$Flubba $PitPos2 00000009 00000000 00000000 00000000 $ItemDropTable_Flubba
+	$Clubba $PitPos3 00000008 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$ForestGuy $PitPos4 00000007 00000000 00000000 00000000 $ItemDropTable_ForestGuy
+	$LimeoDino $PitPos5 00000006 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 #new:Formation $Formation_0D
 {
-	$Clubba $PitPos1 0000000A 00000000 00000000 00000000 00000000
-	$Clubba $PitPos2 00000009 00000000 00000000 00000000 00000000
-	$LimeoDino $PitPos3 00000008 00000000 00000000 00000000 00000000
-	$Clubba $PitPos4 00000007 00000000 00000000 00000000 00000000
-	$LimeoDino $PitPos5 00000006 00000000 00000000 00000000 00000000
+	$Clubba $PitPos1 0000000A 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$Clubba $PitPos2 00000009 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino $PitPos3 00000008 00000000 00000000 00000000 $ItemDropTable_LimeoDino
+	$Clubba $PitPos4 00000007 00000000 00000000 00000000 $ItemDropTable_Clubba
+	$LimeoDino $PitPos5 00000006 00000000 00000000 00000000 $ItemDropTable_LimeoDino
 }
 
 

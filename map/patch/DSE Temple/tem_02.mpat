@@ -1,0 +1,364 @@
+% Auto-generated script for tem_02
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 9
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]Wow! This room is huge![BR]
+It's really dark though...[BR]
+Whoever built this place should[BR]
+have put some lights down here.[BR]
+[WAIT][NEXT]
+I know this is supposed to be[BR]
+the Temple of Darkness, but[BR]
+come on![BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+	~Vec4f:Entry2
+	~Vec4f:Entry3
+	~Vec4f:Entry4
+	~Vec4f:Entry5
+	~Vec4f:Entry6
+	~Vec4f:Entry7
+	~Vec4f:Entry8
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True  )
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	ExecWait $Script_CompletionIcons
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+#new:Script $ShowFinalText
+{
+	Set   *MapFlag[1] .True
+	If    *GF_TEM_Boss7 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss6 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss5 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss4 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss3 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss2 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss1 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If *MapFlag[1] == .True
+		If *GF_TEM_SeeFinalWarning == .False
+			Set *GF_TEM_SeeFinalWarning .True
+			Call	 DisablePlayerInput ( .True )
+			Call     ShowMessageAtScreenPos     	( $FinalWarning 000000A0 00000028 )
+			Call	 DisablePlayerInput ( .False )			
+		EndIf
+	EndIf
+	Return
+	End
+}
+
+%Show which sections of the temple you completed
+%Once you get all 7, the final boss opens up
+#new:Script $Script_CompletionIcons
+{
+	If *GF_TEM_Boss1 == .True
+		Call     EnableGroup 	( ~Model:Inactive1 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active1 .False )
+	EndIf
+	If *GF_TEM_Boss2 == .True
+		Call     EnableGroup 	( ~Model:Inactive2 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active2 .False )
+	EndIf
+	If *GF_TEM_Boss3 == .True
+		Call     EnableGroup 	( ~Model:Inactive3 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active3 .False )
+	EndIf
+	If *GF_TEM_Boss4 == .True
+		Call     EnableGroup 	( ~Model:Inactive4 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active4 .False )
+	EndIf
+	If *GF_TEM_Boss5 == .True
+		Call     EnableGroup 	( ~Model:Inactive5 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active5 .False )
+	EndIf
+	If *GF_TEM_Boss6 == .True
+		Call     EnableGroup 	( ~Model:Inactive6 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active6 .False )
+	EndIf
+	If *GF_TEM_Boss7 == .True
+		Call     EnableGroup 	( ~Model:Inactive7 .False )
+	Else
+		Call     EnableGroup 	( ~Model:Active7 .False )
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeEntity    ( .Entity:SavePoint ~Vec4d:SaveBlock 80000000 )
+	Call  MakeEntity    ( .Entity:HealingBlock ~Vec4d:HeartBlock 80000000 )
+	Return
+	End
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call  GetLoadType   ( *Var[0] )
+	If  *Var[0]  ==  1
+		Exec  EnterSavePoint
+		Exec $Script_CreateExitTriggers
+		Return
+	EndIf
+	Call  GetEntryID    ( *Var[0] )
+	Switch  *Var[0]
+		CaseOR  ==  ~Entry:Entry0
+		CaseOR  ==  ~Entry:Entry1
+		CaseOR  ==  ~Entry:Entry2
+		CaseOR  ==  ~Entry:Entry3
+		CaseOR  ==  ~Entry:Entry4
+		CaseOR  ==  ~Entry:Entry5
+		CaseOR  ==  ~Entry:Entry6
+		CaseOR  ==  ~Entry:Entry7
+			Set   *Var[0] $Script_CreateExitTriggers
+			Exec  EnterWalk
+		EndCaseGroup
+		Default
+			Exec  $Script_CreateExitTriggers
+	EndSwitch
+	%Show final text if needed
+	ExecWait $ShowFinalText	
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_01" ~Entry:tem_01:Entry1 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry1 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_03" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit2
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry2 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_04" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit3
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry3 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_05" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit4
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry4 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_06" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit5
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry5 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_07" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit6
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry6 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_08" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit7
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry7 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_09" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+%If you are not worthy, you get kicked back into the map in entry 8
+%Otherwise, you ascend to the final stage
+#new:Script $Script_Exit8
+{
+	Set   *MapFlag[1] .True
+	If    *GF_TEM_Boss7 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss6 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss5 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss4 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss3 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss2 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If    *GF_TEM_Boss1 == .False
+		Set   *MapFlag[1] .False
+	EndIf
+	If *MapFlag[1] == .True
+		Call  DisablePlayerPhysics  ( .True )
+		Call  SetPlayerActionState  ( .ActionState:Jump )
+		Wait  1`
+		Thread
+			Wait  8`
+			Call  GotoMap   ( "tem_10" 00000001 ) % dgb_10
+			Wait  100`
+		EndThread
+		Set   *Var3  000001F4
+		Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+		Call  PlayerJump    ( ~Vec3d:Exit8dest 00000014 )
+	Else		
+		Call	 DisablePlayerInput ( .True )
+		Call     ShowMessageAtScreenPos     	( $NotWorthy 000000A0 00000028 )
+		Call	 DisablePlayerInput ( .False )
+		Call  	 GotoMap   ( "tem_02" 00000008 ) 
+		Wait 	 30`
+	EndIf
+	Return
+	End
+}
+
+#new:String $NotWorthy
+{
+	[Style Inspect]	
+	THE FINAL TEST IS BLOCKED[BR]
+	TRIALS HAVE NOT BEEN COMPLETED[BR]
+	FOR THIS PATH TO BE UNLOCKED[BR]
+	SEVEN TRIALS MUST BE DEFEATED[WAIT][END]
+}
+
+#new:String $FinalWarning
+{
+	[Style Inspect]	
+	YOUR POWER HAS BEEN PROVEN[BR]
+	NOW TAKE THE CENTRAL PATH[BR]
+	THE NEXT STEP IS TO ASCEND[BR]
+	FACE THE REMNANT OF HIS WRATH[WAIT][END]
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit0 .Trigger:FloorAbove ~Collider:lz0 00000001 00000000
+	Bind  $Script_Exit1 .Trigger:FloorAbove ~Collider:lz1 00000001 00000000
+	Bind  $Script_Exit2 .Trigger:FloorAbove ~Collider:lz2 00000001 00000000
+	Bind  $Script_Exit3 .Trigger:FloorAbove ~Collider:lz3 00000001 00000000
+	Bind  $Script_Exit4 .Trigger:FloorAbove ~Collider:lz4 00000001 00000000
+	Bind  $Script_Exit5 .Trigger:FloorAbove ~Collider:lz5 00000001 00000000
+	Bind  $Script_Exit6 .Trigger:FloorAbove ~Collider:lz6 00000001 00000000
+	Bind  $Script_Exit7 .Trigger:FloorAbove ~Collider:lz7 00000001 00000000
+	Bind  $Script_Exit8 .Trigger:FloorAbove ~Collider:escapeLZ 00000001 00000000
+	Return
+	End
+}
+

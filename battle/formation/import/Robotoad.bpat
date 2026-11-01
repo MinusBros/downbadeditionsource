@@ -190,6 +190,7 @@
     Call     BindNextTurn 	( .Actor:Self $Script_NextTurn_Robotoad )
 	Call	 SetActorVar (.Actor:Self 00000001 00000000) %current color (0 = red, 2 = blue, 3 = yellow)
 	Call	 SetActorVar (.Actor:Self 00000002 00000000) %last color
+	Call	 SetActorVar (.Actor:Self .ThinkingVariation 0 )
 	Call  $Function_SetName_C ( 2A 002900DC )  %Red name
 	Call  $Function_SetTattle_C ( 2A 001C00ED )	
 		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
@@ -198,6 +199,38 @@
     Return
     End
 }
+
+#define .ThinkingVariation F
+
+#new:Script  $MonitorPos
+{
+	Call	 SetActorVar ( .Actor:Enemy0 .ThinkingVariation 0` )
+	Loop
+		Call	 GetActorVar ( .Actor:Enemy0 .ThinkingVariation *Var7 )
+		If  *Var7  == 1`
+			BreakLoop
+		EndIf
+		Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+			If  *Var7 > -88`
+				BreakLoop
+			EndIf
+		Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+			If  *Var7 > -45`
+				BreakLoop
+			EndIf
+		Add  *Var6  1`
+		If   *Var6  > 40`
+			Call  802D5FA4  ( 00000005 )
+		EndIf
+		Wait  2`
+	EndLoop
+	Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 0` )
+	Call  802D5FA4  ( 00000007 )
+	Wait  2`
+	Return
+	End
+}
+
 
 #new:Script $Script_ChangeColor %I think we can change it immediately, without doing the same stuff as the spy guys
 {
@@ -439,6 +472,7 @@
 
 #new:Script $Script_TakeTurn_Robotoad % here's the hard part - the attack itself (or AI if you have more than one)
 {
+	Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 1` )
 	Call	 GetActorVar (.Actor:Self 00000001 *Var[3] )
     Switch (*Var[3])
 		Case == 00000000
@@ -448,6 +482,7 @@
 		Case == 00000003
 			ExecWait $Script_RangeBeam
 	EndSwitch
+	Exec  $MonitorPos
 	Return
     End
 }

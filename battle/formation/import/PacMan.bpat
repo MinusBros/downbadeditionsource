@@ -121,8 +121,8 @@
 
 
 #new:PartsTable $PartsTable_PacMan{
-00800000 01000000 FF1F00FF $IdleAnimations_PacManNormal $DefenseTable_PacMan 00000000 00000000 0F000000 00000000 
-00120001 02000000 001800FF $IdleAnimations_LookLook $DefenseTable_PacMan 00000000 00000000 FFF60000 00000000 
+00800000 01000000 FF1F00FF $IdleAnimations_PacManNormal $DefenseTable_PacMan 00000000 00000000 00F60000 00000000 
+40120001 02000000 001800FF $IdleAnimations_LookLook $DefenseTable_PacMan 00000000 00000000 FFF60000 00000000 
 }
 
 #define .AttackTurns 1`
@@ -134,8 +134,41 @@
 		Call  SetActorScale 	( .Actor:Self *Fixed[1.5] *Fixed[1.5] *Fixed[1.5] )
 		Call  SetMusicTrack ( 00000000 .Song:Faith 00000000 00000008 )
 		Call  SetActorVar   ( .Actor:Self .AttackTurns 00000000 )	%How many times Pac-Man gets to attack
+		Call	 SetActorVar (.Actor:Self .ThinkingVariation 0 )
    3C:  Return
    44:  End
+}
+
+
+#define .ThinkingVariation F
+
+#new:Script  $MonitorPosPacMan
+{
+	Call	 SetActorVar ( .Actor:Enemy0 .ThinkingVariation 0` )
+	Loop
+		Call	 GetActorVar ( .Actor:Enemy0 .ThinkingVariation *Var7 )
+		If  *Var7  == 1`
+			BreakLoop
+		EndIf
+		Call  GetActorPos       ( .Actor:Player *Var7 *Var8 *Var9 )
+			If  *Var7 > -88`
+				BreakLoop
+			EndIf
+		Call  GetActorPos       ( .Actor:Partner *Var7 *Var8 *Var9 )
+			If  *Var7 > -45`
+				BreakLoop
+			EndIf
+		Add  *Var6  1`
+		If   *Var6  > 40`
+			Call $TurnOffChannels ( )
+		EndIf
+		Wait  2`
+	EndLoop
+	Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 0` )
+	Call  $TurnOnChannels ( )
+	Wait  2`
+	Return
+	End
 }
 
 #new:Script $Script_Idle_PacMan {
@@ -164,8 +197,11 @@
 			Case  >= 66`
 				Call  SetActorVar   ( .Actor:Self .AttackTurns 2` )
 		EndSwitch
+		Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 1` )
 		ExecWait  $PacManAttack
+		Call	 SetActorVar (.Actor:Enemy0 .ThinkingVariation 0` )
 		ExecWait  $RandomizeIdleAnim
+		Exec $MonitorPosPacMan
 		Return
 		End
 }
@@ -279,7 +315,7 @@
 				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
 				Call  SetGoalToTarget   ( .Actor:Self )
 				Call  80269EAC  ( 0`)
-				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 12` 00000020 )
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 15` 00000020 )
 			Case == 1		%The Pac-Man pimp slap
 				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSlap )	%Two timings
 				Call     RandInt     	( 1` *VarC )
@@ -294,7 +330,7 @@
 				Call  PlaySoundAtActor  ( .Actor:Self 000003ED )	
 				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
 				Call  SetGoalToTarget   ( .Actor:Self )
-				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 10` 00000020 )		
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 12` 00000020 )		
 			Case == 2`
 				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSlap2 )	%Only one timing for this one
 				Wait  14`	
@@ -303,13 +339,13 @@
 				Call  80269EAC  ( 13`)
 				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
 				Call  SetGoalToTarget   ( .Actor:Self )
-				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 11` 00000020 )
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 14` 00000020 )
 			Case  == 3`
 				Call  SetAnimation      ( .Actor:Self 00000001 .AnimSmugPoke )
 				Wait  8`
 				Call  SetAnimationRate  ( .Actor:Self 00000001 *Fixed[1.0] )
 				Call  SetGoalToTarget   ( .Actor:Self )
-				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 00000000 00000000 6` 00000020 )
+				Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:IgnoreDefense 00000000 00000000 9` 00000020 )
 		EndSwitch
   468:  Switch  *Var0 
   474:  	CaseOR  ==  .HitResult:Hit % 0
@@ -384,7 +420,7 @@
   424:  Wait  2`
 		Call  80269EAC  ( 0`)
   430:  Call  SetGoalToTarget   ( .Actor:Self )
-  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 12` 00000020 )
+  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 15` 00000020 )
   468:  Switch  *Var0 
   474:  	CaseOR  ==  .HitResult:Hit % 0
   480:  	CaseOR  ==  .HitResult:QuakeImmune % 2
@@ -428,8 +464,7 @@
 		Else
 			Call  SetActorSpeed     ( .Actor:Self *Fixed[8.0] )
 		EndIf
-		Call  AddGoalPos    ( .Actor:Self  30`  0`  0` )
-  14C:  Call  SetGoalToTarget   ( .Actor:Self )
+		Call  AddGoalPos    ( .Actor:Self  40`  0`  0` )
   1C8:  Call  RunToGoal     ( .Actor:Self  0` .False )
   20C:  Call  EnemyTestTarget   ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000001 00000010 )
   230:  Switch  *Var0 
@@ -451,18 +486,16 @@
   3C0:  EndSwitch	
 		Call  SetGoalToTarget       ( .Actor:Self )
 		Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+		Sub   *Var0 45`
 		Set   *Var1 0`
+		Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
 		Call  SetAnimation  ( .Actor:Self 00000001 .AnimJump )
 		Call  PlaySoundAtActor  ( .Actor:Self 000020DA )
+		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.0] )
 		Call  JumpToGoal    ( .Actor:Self  24` .False .True .False )
-		Call  SetActorJumpGravity   ( .Actor:Self *Fixed[1.2] )
-  5A0:  Call  GetStatusFlags    ( .Actor:Self *Var5 )
-  5B4:  If  *Var5  !&  ~Flags:StatusFlags:Shrink % 80000
-  5C4:  	Call  80269EAC  ( 24`)
-  5D4:  	Call  PlaySoundAtActor  ( .Actor:Self 000020EA )
-  5E8:  EndIf
   424:  Wait  2`
-  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 13` 00000020 )
+		Call  80269EAC  ( 00000018 )
+  440:  Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:0 00000000 00000000 16` 00000020 )
 		Wait  5`
 		Call  SetAnimation      ( .Actor:Self 00000001 .AnimLand )
 		Wait  4`
@@ -561,25 +594,25 @@
 #new:StatusTable $StatusTable_PacMan {
 .Status:Normal      0`
 .Status:Default     0`
-.Status:Sleep      50`
-.Status:Poison     50`
+.Status:Sleep      70`
+.Status:Poison     70`
 .Status:Frozen      0`
-.Status:Dizzy      55`
+.Status:Dizzy      75`
 .Status:Fear        0`
-.Status:Static     50`
-.Status:Paralyze   50`
-.Status:Shrink     55`
-.Status:Stop       50`
+.Status:Static     70`
+.Status:Paralyze   70`
+.Status:Shrink     75`
+.Status:Stop       70`
 .Status:DefaultTurnMod    0`
 .Status:SleepTurnMod     -1`
 .Status:PoisonTurnMod     0`
 .Status:FrozenTurnMod     0`
-.Status:DizzyTurnMod     -2`
+.Status:DizzyTurnMod     -1`
 .Status:FearTurnMod       0`
 .Status:StaticTurnMod     0`
-.Status:ParalyzeTurnMod  -2`
+.Status:ParalyzeTurnMod  -1`
 .Status:ShrinkTurnMod    -1`
-.Status:StopTurnMod      -2`
+.Status:StopTurnMod      -1`
 .Status:End
 }
 
@@ -645,7 +678,7 @@
 				EndIf
 				
 				%If he's taken all his turns, randomize idle animation like normal
-				
+				Exec  $MonitorPosPacMan
 				ExecWait  $RandomizeIdleAnim
   28C:  	Case  ==  .Event:ShockDeath % 26
   298:  		SetConst  *Var0  00000001 
@@ -716,4 +749,33 @@
 		  530:  Call  UseIdleAnimation  ( .Actor:Self .True )
 				Return
 				End
+}
+
+
+
+#new:Function $TurnOffChannels
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  LI        A1, 1
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
+}
+
+
+#new:Function $TurnOnChannels
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  CLEAR     A0
+    8:  SW        RA, 10 (SP)
+    C:  JAL       8014ABB4
+   10:  COPY      A1, A0
+   14:  LW        RA, 10 (SP)
+   18:  LI        V0, 2
+   1C:  JR        RA
+   20:  ADDIU     SP, SP, 18
 }

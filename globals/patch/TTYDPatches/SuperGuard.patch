@@ -268,7 +268,7 @@
    D4:  Call  8027D32C      ( .Actor:Self )
    E4:  Call  HPBarToCurrent    ( .Actor:Self )
    F4:  Call  8027D2D8      ( .Actor:Self )
-  48C:  Wait  21`
+  48C:  Wait  20`
   498:  Call  8027D32C      ( .Actor:Self )
   4A8:  Call  HPBarToHome   ( .Actor:Self )
   4B8:  Call  GetLastEvent  ( .Actor:Self *Var0 )
@@ -305,6 +305,7 @@
     Switch  *VarF 
         CaseOR  ==  .Event:SpikeContact % 2A
         CaseOR  ==  .Event:SpikeDeath % 27
+			ExecWait $CheckPityStar
             Call  SetActorRotation      ( .Actor:Self 00000000 00000000 00000000 )
             Call  UseBattleCamPreset  ( 0000001E )
             Call  GetGoalPos    ( .Actor:Player *Var0 *Var1 *Var2 )
@@ -337,6 +338,7 @@
         EndCaseGroup
         CaseOR  ==  .Event:BurnContact % 2C
         CaseOR  ==  .Event:BurnDeath % 24
+			ExecWait $CheckPityStar
             Call  SetActorRotation  ( .Actor:Self 00000000 00000000 00000000 )
             Call  UseBattleCamPreset      ( 0000001F )
             Call  GetGoalPos        ( .Actor:Player *Var0 *Var1 *Var2 )
@@ -382,6 +384,7 @@
         EndCaseGroup
         CaseOR  ==  .Event:ShockHit % 2F
         CaseOR  ==  .Event:ShockDeath % 26
+			ExecWait $CheckPityStar
             Call  SetActorRotation      ( .Actor:Self 00000000 00000000 00000000 )
             Call  UseBattleCamPreset  ( 0000001F )
             Call  GetGoalPos    ( .Actor:Player *Var0 *Var1 *Var2 )
@@ -417,10 +420,10 @@
             Call  80260B70
             If  *Var0  ==  00000000 
                 Call  SetAnimation  ( .Actor:Player 00000000 00030009 )
-                Wait  30`
+                Wait  20`
                 Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
             Else
-                Wait  30`
+                Wait  20`
             EndIf
         Case  ==  .Event:RecoverStatus % 31
             Call  SetActorJumpGravity   ( .Actor:Player *Fixed[1.8] )
@@ -435,7 +438,7 @@
             Call  PlayerRunToGoal       ( 00000000 )
             Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
         Case  ==  00000032 % 32
-            Wait  10`
+            Wait  5`
             Call  UseIdleAnimation  ( .Actor:Player .False )
             Call  SetActorJumpGravity   ( .Actor:Player *Fixed[1.8] )
             Call  SetJumpAnimations ( .Actor:Player 00000000 00010007 00010008 00010009 )
@@ -444,7 +447,7 @@
             Call  80273444      ( 0000000F 00000000 00000000 )
             Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
             Call  SetGoalToHome ( .Actor:Player )
-            Call  SetActorSpeed ( .Actor:Player *Fixed[8.0] )
+            Call  SetActorSpeed ( .Actor:Player *Fixed[16.0] )
             Call  SetAnimation  ( .Actor:Player 00000000 00010005 )
             Call  PlayerRunToGoal   ( 00000000 )
             Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
@@ -452,6 +455,7 @@
         CaseOR  ==  .Event:Hit % A
             SetConst  *Var1  00010017 
             Set   *Var2  00000000 
+			ExecWait $CheckPityStar
             ExecWait  80298724 
             Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
 			Call  SetActorRotation  ( .Actor:Player 0 0 0 )
@@ -474,15 +478,18 @@
         CaseOR  ==  00000018 % 18
         CaseOR  ==  .Event:Block % 1A
             Call  PlaySoundAtActor  ( .Actor:Player 0000208C )
+			ExecWait $CheckPityStar
             SetConst  *Var0  00000001 
             SetConst  *Var1  00010014 
             ExecWait  80298948 
-            Wait  10`
+            Wait  4`
 			Call  SetActorRotation  ( .Actor:Player 0 0 0 )
 			Call  GetActorPos   ( .Actor:Player *Var5 *Var6 *Var7 )	
 			Call  SetActorPos   ( .Actor:Player *Var5 0` *Var7 )
+			Wait  4`
         EndCaseGroup
         Case  ==  .Event:BurnHit % E
+			ExecWait $CheckPityStar
             SetConst  *Var1  00050003 
             Set   *Var2  00000000 
             ExecWait  802988F0 
@@ -552,8 +559,22 @@
 }
 
 
-%Superguarding has been nerfed to lose 1/10 of current FP per superguard. (And a bit of Love Piety too)
-%If Hanatatsu is equipped, revert Superguarding costs to nothing.
+
+#new:Script:Battle  $CheckPityStar
+{
+	Call  $IsBadgeEquippedScriptVer ( 000001C7 *VarB )
+	Call  GetLastDamage ( .Actor:Player *Var0 )
+	If  *Var0 > 0`
+		If   *VarB == 1`
+			Call $Function_AddSP ( 32` )
+		EndIf
+	EndIf
+	Return
+	End
+}
+
+%Superguarding has been nerfed to lose 1/10 of your max FP per superguard. (And a bit of Love Piety too)
+%If Hanatatsu is equipped, halve the penalties.
 
 % var0 = Sprite Part
 %
@@ -574,10 +595,10 @@
 						Call  $IsBadgeEquippedScriptVer ( 0000018E *VarC )
 						If   *VarC == 0`
 							Call $Function_AddSP ( -85` ) %About 1/3 of a bar
-							Div   *Var5  6`
+							Div   *Var5  4`
 						Else
 							Call $Function_AddSP ( -42` ) %About 1/6 of a bar
-							Div   *Var5  12`
+							Div   *Var5  8`
 						EndIf
 						If   *Var5 == 0`
 							Set *Var5 1`
@@ -594,16 +615,16 @@
 					EndIf
 				Else
 					%If FP is NOT 0, drain FP (and a bit of Love Piety)
-					
+					Call    $ReadAddress ( 8010F290 0 *Var5 6 .False )	%Get MAX FP
 					Call  $IsBadgeEquippedScriptVer ( 0000018E *VarC )  %Check for Hanatatsu Badge
 					If  *VarC == 0`
-						Div  *Var5 6`
-						If   *Var5 == 0`	% FP Loss is Current FP divided by 6
+						Div  *Var5  10`
+						If   *Var5 == 0`	% FP Loss is Current FP divided by 8
 							Set *Var5 1`
 						EndIf
 					Else
-						Div  *Var5 12`
-						If   *Var5 == 0`	% FP Loss is Current FP divided by 12 %Half as much if Hanatatsu is on
+						Div  *Var5 20`
+						If   *Var5 == 0`	% FP Loss is Current FP divided by 16 %Half as much if Hanatatsu is on
 							Set *Var5 1`
 						EndIf
 					EndIf
@@ -656,7 +677,7 @@
             BreakLoop
         EndIf
     EndLoop
-    Wait  5
+    Wait  4
     Call  SetActorRotation  ( .Actor:Self 0 0 0 )
 	Call  GetActorPos   ( .Actor:Player *Var5 *Var6 *Var7 )
 	Set   *Var6 0`
@@ -665,18 +686,6 @@
     End
 }
 
-
-#new:Function $CheckHanatatsu
-{
-PUSH    RA, A0, A1, A2, A3, V0, V1, S0, S1, S2, S3
-JAL     $IsBadgeActivated_Stack
-ORI     A0, R0, 016F %
-BEQ     V0, R0, .End
-NOP
-COPY    S0, V0
-ADDU    V0, S0, V0
-.End
-}
 
 #export $DoSuperguard
 

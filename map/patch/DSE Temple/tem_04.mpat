@@ -1,0 +1,251 @@
+%No enemies here, but there are rotating platforms
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 2
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]These moving platforms are[BR]
+pretty slippery. You better[BR]
+be careful to not fall off.[BR]
+[WAIT][END]
+}
+
+%^	I don't know how to make platforms move mario along with them
+%	To do later: look at the bowser castle maps / mt lavalava maps to see how its done
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+	~Vec4f:Entry1
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Thread
+		Call     ResetFromLava 	( $LavaResetList )
+	EndThread
+	Exec  $Script_RotatePlatforms
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+
+#new:LavaResetList $LavaResetList
+{
+~Collider:hubPlatform		   0.0	15.0  -854.0
+~Collider:centerPlatform 	   0.0	15.0  -450.0
+~Collider:backPlatform 		   0.0	29.0  -36.0
+FFFFFFFF 00000000 00000000 00000000 % idk
+00000000
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_MakeEntities
+{
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call  GetEntryID    ( *Var[0] )
+	Switch  *Var[0]
+		CaseOR  ==  ~Entry:Entry1
+		CaseOR  ==  ~Entry:Entry0
+			Set   *Var[0] $Script_CreateExitTriggers
+			Exec  EnterWalk
+		EndCaseGroup
+		Default
+			Exec  $Script_CreateExitTriggers
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_Exit1
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry1 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_12" 00000000 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_02" ~Entry:tem_02:Entry2 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit1 .Trigger:FloorAbove ~Collider:backLZ 00000001 00000000
+	Bind  $Script_Exit0 .Trigger:FloorAbove ~Collider:hubLZ 00000001 00000000
+	Return
+	End
+}
+
+
+
+%time for some rotating platforms
+%RotateModel exists, but I have to rotate the collider too
+
+%rotate Group works better
+%ParentColliderToModel is glitching
+
+#new:Script $Script_RotatePlatforms
+{
+	%Call  ParentColliderToModel ( ~Collider:rotatingplatformC1 ~Model:rotatingplatform1 )
+	%Call  ParentColliderToModel ( ~Collider:rotatingplatformC2 ~Model:rotatingplatform2 )
+	Call  ParentColliderToModel ( ~Collider:rotatingplatformC1 ~Model:RP1 )
+	Call  ParentColliderToModel ( ~Collider:rotatingplatformC2 ~Model:RP2 )
+	%Call   $Function_ParentColliderToModel ( 00000000 00000000 )
+	%Call   $Function_ParentColliderToModel ( 00000002 00000003 )
+	Set *Var0   0`
+	%
+	%Loop
+	Label 0
+	Add   *Var0 1`
+	Mod   *Var0 360`
+	Call  RotateGroup  ( ~Model:rotatingplatform1 *Var0 00000000 FFFFFFFF 00000000 )	%Var0 = angle, (x,y,z) = axis of rotation?
+	Call  RotateGroup   ( ~Model:rotatingplatform2 *Var0 00000000 00000001 00000000 )	%Var0 = angle, (x,y,z) = axis of rotation?
+	Call  UpdateColliderTransform ( ~Collider:rotatingplatformC1 )
+	Call  UpdateColliderTransform ( ~Collider:rotatingplatformC2 )
+	Wait 1`
+	Goto 0
+	Return
+	End
+}
+
+%This is stupid, but somehow the function ParentColliderToModel is literally broken and it parents everything to model 0, and it happens that one of my platforms is model 0
+
+%Non broken function
+#new:Function $Function_ParentColliderToModel
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, C (S1)
+   18:  LW        A1, 0 (S0)
+   1C:  JAL       ~Func:get_variable
+   20:  ADDIU     S0, S0, 4
+   24:  COPY      A0, S1
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  COPY      S0, V0
+   %34:  JAL       ~Func:get_model_list_index_from_tree_index
+   %38:  COPY      A0, V0
+   3C:  SLL       S0, S0, 10
+   40:  SRA       S0, S0, 10
+   44:  COPY      A0, S0
+   48:  SLL       V0, V0, 10
+   4C:  JAL       ~Func:parent_collider_to_model
+   %50:  SRA       A1, V0, 10
+		NOP
+   54:  JAL       ~Func:update_collider_transform
+   58:  COPY      A0, S0
+   5C:  LW        RA, 18 (SP)
+   60:  LW        S1, 14 (SP)
+   64:  LW        S0, 10 (SP)
+   68:  LI        V0, 2
+   6C:  JR        RA
+   70:  ADDIU     SP, SP, 20
+}
+
+
+
+/%
+%split the scripts?
+#new:Script $Script_RotatePlatforms
+{
+	Call  ParentColliderToModel ( ~Collider:rotatingplatformC1 ~Model:rotatingplatform2 )
+	Call  ParentColliderToModel ( ~Collider:rotatingplatformC2 ~Model:rotatingplatform2 )
+	Exec $Script_RotatePlatformA
+	Exec $Script_RotatePlatformB
+	Return
+	End
+}
+#new:Script $Script_RotatePlatformA
+{
+	SetGroup  0000000B
+	Set *Var0   0`
+	%
+	%Loop
+	Label 0
+	Add   *Var0 1`
+	Mod   *Var0 360`
+	Call  RotateGroup  ( ~Model:rotatingplatform1 *Var0 00000000 FFFFFFFF 00000000 )	%Var0 = angle, (x,y,z) = axis of rotation?
+	Set   *Var3  ~Collider:rotatingplatformC1
+	Call  UpdateColliderTransform ( *Var3 )
+	Wait 1`
+	Goto 0
+	Return
+	End
+}
+
+#new:Script $Script_RotatePlatformB
+{
+	SetGroup  0000000C
+	Set *Var0   0`
+	%
+	%Loop
+	Label 0
+	Add   *Var0 1`
+	Mod   *Var0 360`
+	Call  RotateGroup   ( ~Model:rotatingplatform2 *Var0 00000000 00000001 00000000 )	%Var0 = angle, (x,y,z) = axis of rotation?
+	Set   *Var3  ~Collider:rotatingplatformC2
+	Call  UpdateColliderTransform ( *Var3 )
+	Wait 1`
+	Goto 0
+	Return
+	End
+}
+%/

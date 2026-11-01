@@ -1,0 +1,110 @@
+#define .NpcID:SpikedGoomba_00      00
+#define .NpcID:SpikedGoomba_01      01
+
+#import AutoSave.mpat
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ToadTownTunnels
+   10:  Call  SetSpriteShading  ( .Shading:tik_04 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  4096` )
+   40:  Call  SetCamBGColor     ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled     ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Call  MakeNpcs  ( .True $NpcGroupList_8024334C )
+   98:  Exec  $Script_80240CF0
+   A4:  Exec  $Script_80242858
+   B0:  Call  EnableTexPanning  ( ~Model:mizu .True )
+   C4:  Thread
+   CC:  	Set   *Var0  00000002
+   DC:  	Set   *Var1  00000000
+   EC:  	Set   *Var2  FFFFFF38
+   FC:  	Set   *Var3  FFFFFF9C
+  10C:  	Set   *Var4  FFFFFE0C
+  11C:  	Set   *Var5  00000001
+  12C:  	Set   *Var6  00000001
+  13C:  	Set   *Var7  00000001
+  14C:  	Set   *Var8  00000001
+  15C:  	Set   *Var9  00000000
+  16C:  	Set   *VarA  00000000
+  17C:  	Set   *VarB  00000000
+  18C:  	Set   *VarC  00000000
+  19C:  	Exec  $Script_UpdateTexturePan_80240D20
+  1A8:  EndThread
+  1B0:  Exec  $Script_80242BC8
+  1BC:  Call  GetEntryID    ( *Var0 )
+  1CC:  Switch  *Var0
+  1D8:  	Case  ==  ~Entry:Entry2
+  1E4:  		Set   *VarA  $Script_80241CB4
+  1F4:  		Set   *VarB  00000018
+  204:  		Exec  $Script_80241110
+  210:  	Case  ==  ~Entry:Entry3
+  21C:  		Set   *VarA  $Script_80241CB4
+  22C:  		Exec  $Script_80240DBC
+  238:  	Default
+  240:  		Set   *Var0  $Script_80241CB4
+  250:  		Exec  EnterWalk
+  25C:  EndSwitch
+  264:  Wait  1`
+		Thread
+			Wait  15`
+			Exec  $AutoSave
+		EndThread
+  270:  Return
+  278:  End
+}
+
+@	$Script_Idle_80242D2C
+{
+    0:  Call  GetEntryID    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  ~Entry:Entry0
+   28:  		Call  SetNpcPos ( .Npc:Self  280`  -10`  0` )
+   44:  	Case  ==  ~Entry:Entry1
+   50:  		Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80242CE0 )
+   64:  		Return
+   6C:  	Case  ==  ~Entry:Entry2
+   78:  		Call  SetNpcPos ( .Npc:Self  280`  -10`  0` )
+   94:  	Case  ==  ~Entry:Entry3
+   A0:  		Call  SetNpcPos ( .Npc:Self  360`  -10`  0` )
+   BC:  EndSwitch
+   C4:  Label  64
+   D0:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   E8:  If  *Var0  <  FFFFFFE2
+   F8:  	Wait  1`
+  104:  	Goto  64
+  110:  EndIf
+  118:  Call  SetNpcAnimation   ( .Npc:Self 00270103 )
+  12C:  Call  SetNpcFlagBits    ( .Npc:Self 00000028 .False )
+  144:  Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+  15C:  Call  SetNpcSpeed       ( .Npc:Self 00000002 )
+  170:  Call  GetSelfNpcID      ( *Var0 )
+  180:  If  *Var0  ==  00000000
+  190:  	Call  NpcMoveTo ( .Npc:Self  55`  0`  0` )
+  1AC:  Else
+  1B4:  	Wait  14`
+  1C0:  	Call  NpcMoveTo ( .Npc:Self  60`  0`  0` )
+  1DC:  EndIf
+  1E4:  Call  SetNpcAnimation   ( .Npc:Self 00270101 )
+  1F8:  Call  BindNpcAI ( .Npc:Self $Script_NpcAI_80242CE0 )
+  20C:  Return
+  214:  End
+}
+
+
+
+@	$AISettings_80242CB0
+{
+    3.2 % move speed
+    0` % move time
+    0` % wait time
+   100.0 % alert radius
+    0.0
+    1`
+    6.2 % chase speed
+    15`
+    1`
+   120.0 % chase radius
+    0.0
+    1`
+}

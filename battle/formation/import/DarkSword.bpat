@@ -1,0 +1,1119 @@
+%The final boss of this mod
+%Is me :P
+
+%This fight should be very hard
+%It also comes with some special unique mechanics to make things more interesting
+
+%256 hp, 8? atk, 4 def
+
+%AI
+%	slowly gains strength
+%	Turn 1 = red laser (each use adds 3 attack power)
+%		effect gets thicker over time
+%	Turn 2 = lightning bolts (each use of this attack adds 1 bolt)
+%	Turn 3 = ice bolt (each use adds 3 attack power)
+%		effect is multiplied each time
+
+%	Turn 8 = negates B button
+%	Turn 16 = negates items
+%	Turn 24 = You lose
+
+
+#define .AnimRun	00FA0002
+#define .AnimStop	00FA0000
+#define .AnimIdle	00FA0002
+#define .AnimPoison	00FA0002
+#define .AnimPain	00FA0004
+#define .AnimDizzy	00FA0004
+#define .AnimDead	00FA000A
+#define .AnimSleep  00FA000A
+#define .AnimBurn   00FA0004
+#define .AnimBurn2  00FA0000
+
+#define .PommelOffset   85`
+#define .PommelOffsetb  85`b
+
+#new:Actor $DarkSword
+{
+% stats
+[Index]         42b % index from ActorTable.xml
+[Level]       255`b	%Maximum level  
+[MaxHP]       200`b
+[Coins]         1`b 
+[Flags]       00000000 
+[StatusTable] $StatusTable_DarkSword
+% ai
+[PartsCount]   2`s 							%Top and bottom target (low target has high defense, high target is spiky but low defense)
+[PartsTable] $PartsTable_DarkSword
+[Script]      $Script_Init_DarkSword 
+% move effectiveness
+[Escape]        0`b 
+[Item]          0`b 
+[AirLift]       0`b 
+[Hurricane]     0`b % Bow's "Spook" as well
+[UpAndAway]     0`b 
+[PowerBounce]   3`b 
+[SpinSmash]     4`b % weight (0-4)
+% ui positions
+[Size]         30`b  85`b % width height		Thin but very tall
+[HealthBar]     0`b   0`b % dx dy
+[StatusTurn]  -15`b  95`b % dx dy
+[StatusIcon]   15`b  95`b % dx dy
+}
+
+#new:DefenseTable $DefenseTable_DarkSword_Pommel
+{
+.Element:Normal 00000002
+.Element:End
+}
+
+#new:DefenseTable $DefenseTable_DarkSword_Blade
+{
+.Element:Normal 00000003
+.Element:End
+}
+
+
+#new:StatusTable $StatusTable_DarkSword %Good luck!
+{
+.Status:Normal      0`
+.Status:Default     0`
+.Status:Sleep       0`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy       0`
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze    0`
+.Status:Shrink      0`
+.Status:Stop        0`
+.Status:DefaultTurnMod    0`
+.Status:SleepTurnMod     -4`
+.Status:PoisonTurnMod     0`
+.Status:FrozenTurnMod     0`
+.Status:DizzyTurnMod     -4`
+.Status:FearTurnMod       0`
+.Status:StaticTurnMod     0`
+.Status:ParalyzeTurnMod  -4`
+.Status:ShrinkTurnMod    -4`
+.Status:StopTurnMod      -4`
+.Status:End
+}
+
+
+%only one of these should be targettable by multi target moves, otherwise they will hit twice
+
+#new:PartsTable $PartsTable_DarkSword
+{
+00000000 0100F000 002000FF $IdleAnimations_DarkSword  $DefenseTable_DarkSword_Blade  00010000 00000000 00F60000 00000000 	%Normal front spiky (Blades are sharp)
+00800000 02005000 001400FF 00000000 				  $DefenseTable_DarkSword_Pommel 00000000 00000000 00F60000 00000000 	%Normal
+}
+
+#new:IdleAnimations $IdleAnimations_DarkSword
+{
+.Status:Normal    .AnimIdle
+.Status:Stone     .AnimStop
+.Status:Sleep     .AnimSleep
+.Status:Poison    .AnimPoison
+.Status:Stop      .AnimStop
+.Status:Static    .AnimIdle
+.Status:Paralyze  .AnimStop
+.Status:Dizzy     .AnimDizzy
+.Status:Fear      .AnimDizzy
+.Status:End
+}
+
+#new:Script $Script_Init_DarkSword
+{
+	Call     BindTakeTurn 	( .Actor:Self $Script_TakeTurn_DarkSword )
+	Call     BindIdle    	( .Actor:Self $Script_Idle_DarkSword )
+    Call     BindHandleEvent 	( .Actor:Self $Script_HandleEvent_DarkSword )
+	Call	 SetActorVar	( .Actor:Self 00000001 FFFFFFFF )	%which main attack to use
+	Call	 SetActorVar	( .Actor:Self 00000002 00000000 )	%Determine strength of attacks
+	Call	 SetActorVar	( .Actor:Self 00000003 00000000 )	%turn counter (used to determine when to tear reality)
+	Call	 $GetMaxHp ( *Var[D] )
+	Call	 SetActorVar	( .Actor:Self 00000004 *VarD )	%Max hp (for max hp lowering effect)
+	Call  SetMusicTrack ( 00000000 .Song:LetsFight 00000001 00000008 )
+    Return
+    End
+}
+
+#new:Function $GetMaxHp
+{
+PUSH	A1, A2, T0, RA
+LIO		T0, 8010F293 %max hp
+LB		A2, 0 (T0)
+JAL		~Func:set_variable
+LW		A1, 0 (S0) %get argument
+NOP
+POP		A1, A2, T0, RA
+JR		RA
+ADDIU	V0, R0, 2 %apparently this fixes everything?
+}
+
+#new:Function $SetMaxHp
+{
+PUSH	A1, A2, RA
+JAL		~Func:get_variable
+LW		A1, 0 (S0) %get argument
+LIO		A2, 8010F290 %player data
+SB		V0, 3 (A2) %set
+%make sure current hp is within bounds
+LB		A1, 2 (A2) %check
+BGE		V0, A1 .end %if max >= current, skip
+NOP
+SB		V0, 2 (A2)
+.end 
+POP		A1, A2, RA
+JR		RA
+ADDIU	V0, R0, 2 %apparently this fixes everything?
+}
+
+
+#new:Script $Script_Idle_DarkSword
+{
+  Return
+  End
+}
+
+#new:Script $Script_HandleEvent_DarkSword
+{
+    0:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   14:  Call     EnableIdleScript 	( .Actor:Self 00000000 )
+   28:  Call     SetActorScale 	( .Actor:Self *Fixed[1.0] *Fixed[1.0] *Fixed[1.0] )
+   44:  Call     GetLastEvent 	( .Actor:Self *Var[0] )
+   58:  Switch  *Var[0] 
+   64:  	CaseOR  ==  .Event:HitCombo
+   70:  	CaseOR  ==  .Event:Hit
+   7C:  		SetConst  *Var[0]  00000001 
+   8C:  		SetConst  *Var[1]  .AnimPain 
+   9C:  		ExecWait DoNormalHit 
+   A8:  	EndCaseGroup
+   B0:  	Case  ==  .Event:BurnHit
+   BC:  		SetConst  *Var[0]  00000001 
+   CC:  		SetConst  *Var[1]  .AnimBurn 
+   DC:  		SetConst  *Var[2]  .AnimBurn2 
+   EC:  		ExecWait DoBurnHit 
+   F8:  	Case  ==  .Event:BurnDeath
+  104:  		SetConst  *Var[0]  00000001 
+  114:  		SetConst  *Var[1]  .AnimBurn 
+  124:  		SetConst  *Var[2]  .AnimBurn2 
+  134:  		ExecWait DoBurnHit 
+  140:  		SetConst  *Var[0]  00000001 
+  150:  		SetConst  *Var[1]  .AnimBurn2 
+  160:  		ExecWait $Script_DoDeathDarkSword
+  16C:  		Return
+  174:  	Case  ==  .Event:SpinSmashHit
+  180:  		SetConst  *Var[0]  00000001 
+  190:  		SetConst  *Var[1]  .AnimPain 
+  1A0:  		ExecWait DoNormalHit			%Spin smash fails   ExecWait 8029B998 
+  1AC:  	Case  ==  .Event:SpinSmashDeath
+  1B8:  		SetConst  *Var[0]  00000001 
+  1C8:  		SetConst  *Var[1]  .AnimPain 
+  1D8:  		ExecWait DoNormalHit			%Spin smash fails	ExecWait 8029B998 
+  1E4:  		SetConst  *Var[0]  00000001 
+  1F4:  		SetConst  *Var[1]  .AnimDead 
+  204:  		ExecWait $Script_DoDeathDarkSword
+  210:  		Return
+  218:  	Case  ==  .Event:ShockHit
+  224:  		SetConst  *Var[0]  00000001 
+  234:  		SetConst  *Var[1]  .AnimPain 
+  244:  		ExecWait DoShockHit 
+  250:  		SetConst  *Var[0]  00000001 
+  260:  		SetConst  *Var[1]  .AnimPain 
+  270:  		ExecWait 8029BD70 
+  27C:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+  29C:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
+  2B4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimDizzy )
+  2CC:  		Call     SetGoalToHome 	( .Actor:Self )
+  2DC:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[8.0] )
+  2F0:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
+  308:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
+  320:  		Wait     00000005 
+  32C:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+  344:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.6005859] )
+  358:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
+  378:  	Case  ==  .Event:ShockDeath
+  384:  		SetConst  *Var[0]  00000001 
+  394:  		SetConst  *Var[1]  .AnimPain 
+  3A4:  		ExecWait DoShockHit 
+  3B0:  		SetConst  *Var[0]  00000001 
+  3C0:  		SetConst  *Var[1]  .AnimDead 
+  3D0:  		ExecWait $Script_DoDeathDarkSword
+  3DC:  		Return
+  3E4:  	Case  ==  .Event:StarBeam
+  3F0:  	CaseOR  ==  00000017
+  3FC:  	CaseOR  ==  .Event:Immune
+  408:  	CaseOR  ==  .Event:AirLiftFailed
+  414:  		SetConst  *Var[0]  00000001 
+  424:  		SetConst  *Var[1]  .AnimIdle 
+  434:  		ExecWait DoImmune 
+  440:  	EndCaseGroup
+  448:  	Case  ==  .Event:Death
+  454:  		SetConst  *Var[0]  00000001 
+  464:  		SetConst  *Var[1]  .AnimPain 
+  474:  		ExecWait DoNormalHit 
+  480:  		Wait     0000000A 
+  48C:  		SetConst  *Var[0]  00000001 
+  49C:  		SetConst  *Var[1]  .AnimDead 
+  4AC:  		ExecWait $Script_DoDeathDarkSword 
+  4B8:  		Return
+  4C0:  	Case  ==  .Event:EndFirstStrike
+  4CC:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[2.0] )
+  4E4:  		Call     SetAnimation 	( .Actor:Self 00000001 .AnimRun )
+  4FC:  		Call     SetGoalToHome 	( .Actor:Self )
+  50C:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[4.0] )
+  520:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
+  538:  		Call     SetAnimationRate 	( .Actor:Self 00000001 *Fixed[1.0] )
+  550:  		Call     HPBarToHome 	( .Actor:Self )
+  560:  	Case  ==  .Event:RecoverStatus
+  56C:  		SetConst  *Var[0]  00000001 
+  57C:  		SetConst  *Var[1]  .AnimIdle 
+  58C:  		ExecWait DoRecover 
+  598:  	Case  ==  .Event:ScareAway
+  5A4:  		SetConst  *Var[0]  00000001 
+  5B4:  		SetConst  *Var[1]  .AnimRun 
+  5C4:  		SetConst  *Var[2]  .AnimPain 
+  5D4:  		ExecWait DoScareAway 
+  5E0:  		Return
+  5E8:  	Case  ==  .Event:BeginAirLift
+  5F4:  		SetConst  *Var[0]  00000001 
+  604:  		SetConst  *Var[1]  .AnimRun 
+  614:  		ExecWait DoAirLift 
+  620:  	Case  ==  .Event:BlowAway
+  62C:  		SetConst  *Var[0]  00000001 
+  63C:  		SetConst  *Var[1]  .AnimPain 
+  64C:  		ExecWait DoBlowAway 
+  658:  		Return
+  660:  	Default
+  668:  EndSwitch
+  670:  Call     SetAnimation 	( .Actor:Self 00000001 .AnimIdle )
+  688:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  69C:  Call     UseIdleAnimation 	( .Actor:Self .True )
+  6B0:  Return
+  6B8:  End
+}
+
+%Cool effects n stuff
+#new:Script $Script_DoDeathDarkSword
+{
+	Call  8027D32C  ( FFFFFF81 )
+	Call  UseIdleAnimation  ( .Actor:Self .False )
+	Set   *Var2  00000000
+	Call  SetAnimation      ( .Actor:Self *Var0 *Var1 )
+	Wait  10`
+	/%
+	Loop  00000018
+		Call  SetActorYaw   ( .Actor:Self *Var2 )
+		Add   *Var2  0000001E
+		Wait  1`
+	EndLoop
+	%/
+	%big flashy effects
+	Call  GetActorPos   ( .Actor:Self *Var0 *Var1 *Var2 )
+	Add   *Var1  .PommelOffset
+	Sub   *Var2  00000003
+	Call  PlaySound     ( 000000A4 )
+	Call  PlayEffect    ( ~FX:LightRays:SharpA *Var0 *Var1 *Var2 *Fixed[1.5] *VarF 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Thread
+		%Shaky cam
+		Call	ShakeCam ( 00000001 00000000 0000000A *Fixed[1.0] )
+		Call	ShakeCam ( 00000001 00000000 0000000A *Fixed[2.0] )
+		Call	ShakeCam ( 00000001 00000000 0000000A *Fixed[3.0] )
+		Call	ShakeCam ( 00000001 00000000 0000000C *Fixed[4.0] )
+		Call	ShakeCam ( 00000001 00000000 0000000D *Fixed[5.0] )
+	EndThread
+	Wait  50`
+	Thread
+		Wait  5`
+		Call  StopSound     ( 000000A4 )
+		Call  RemoveEffect      ( *VarF )
+	EndThread
+	Call  GetActorPos 	( .Actor:Self *Var5 *Var6 *Var7 )
+	Call  PlayEffect    ( ~FX:RedImpact:Huge *Var5 00000000 *Var7 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call  $Function_SetBlastPalette ( *VarF )			
+	Call  GetActorPos       ( .Actor:Self *Var2 *Var3 *Var4 )
+	%Call  PlayEffect        ( ~FX:BigSmokePuff *Var2 *Var3 *Var4 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call  PlaySoundAtActor  ( .Actor:Self .Sound:Death )
+	Call  DropStarPoints    ( .Actor:Self )
+	Set   *Var3  00000000
+	/%
+	Loop  0000000C
+		Call  SetActorRotation  ( .Actor:Self *Var3 00000000 00000000 )
+		Add   *Var3  00000008
+		Wait  1`
+	EndLoop
+	%/
+	Call  GetActorVar	( .Actor:Self 00000004 *VarD )	
+	Call  $SetMaxHp 	( *VarD )
+	Call  SetPartFlagBits   ( .Actor:Self 00000001 00000001 .True )
+	Call  SetPartFlagBits   ( .Actor:Self 00000002 00000001 .True )
+	Call  SetActorFlagBits  ( .Actor:Self 00000004 .True )
+	Wait  6`
+	Call	RemoveActor ( .Actor:Self )
+	Return
+	End
+}
+
+#new:Function $Function_SetBlastPalette        
+{
+    0:  ADDIU        SP, SP, FFE8
+    4:  SW            RA, 10 (SP)
+    8:  LW            V0, C (A0)
+    C:  JAL            ~Func:get_variable
+   10:  LW            A1, 0 (V0)
+   14:  LW            V1, C (V0)
+   18:  ADDIU        A0, R0, 0                %R
+   1C:  SB            A0, 50 (V1)
+   20:  LW            V1, C (V0)
+        ADDIU        A0, R0, 0                %G
+   24:  SB            A0, 51 (V1)
+   28:  LW            V1, C (V0)
+   2C:  ADDIU        A1, R0, 0                %B
+   30:  SB            A1, 52 (V1)
+   34:  LW            A0, C (V0)
+   38:  ADDIU        V1, R0, 0                %R 2
+   3C:  SB            V1, 53 (A0)
+   40:  LW            A0, C (V0)
+   44:  ADDIU        V1, R0, 0                %G 2
+   48:  SB            V1, 54 (A0)
+   4C:  LW            V1, C (V0)
+        ADDIU        A1, R0, 0                %B 2
+   50:  SB            A1, 55 (V1)
+   54:  LW            RA, 10 (SP)
+   58:  ADDIU        V0, R0, 2
+   5C:  JR            RA
+   60:  ADDIU        SP, SP, 18
+}
+
+#new:Script $Script_TakeTurn_DarkSword % spliced from tubba's heart (it uses the same effect)
+{
+	Call 	GetActorVar ( .Actor:Self 00000003 *Var3 )
+	Add *Var3 1
+	Call 	SetActorVar ( .Actor:Self 00000003 *Var3 )
+	Switch *Var3
+		Case == 7`
+			Set *Var9 0
+			ExecWait $Script_TearReality	%Remove the B button
+			Return
+		Case == 14`
+			Set *Var9 1
+			ExecWait $Script_TearReality	%Delete items
+			Return
+		Case == 21`
+			Set *Var9 2
+			ExecWait $Script_TearReality	%Half your health
+			Return
+		Default
+			If *Var3 > 21`
+				Set *Var4 *Var3
+				Mod *Var4 4
+				If *Var4 == 1
+					Set *Var9 2
+					ExecWait $Script_TearReality	%Half your health
+					Return
+				EndIf
+			EndIf
+	EndSwitch
+	%
+	Call 	GetActorVar ( .Actor:Self 00000001 *Var1 )
+	Add 	*Var1 1
+	If *Var1 > 2`
+		Call 	GetActorVar ( .Actor:Self 00000002 *Var2 )
+		Add *Var2 1
+		Call 	SetActorVar ( .Actor:Self 00000002 *Var2 )
+		Set *Var1 0
+	EndIf
+	Call 	SetActorVar ( .Actor:Self 00000001 *Var1 )
+	Switch *Var1
+		Case == 0
+			ExecWait $Script_ShootRedLaser
+		Case == 1
+			ExecWait $Script_Lightning
+		Case == 2		
+			ExecWait $Script_IceBolt
+	EndSwitch
+	Return
+	End
+}
+
+#new:Function $Function_LaserBeam
+{
+    0:  ADDIU        SP, SP, FFE8
+    4:  SW            RA, 10 (SP)
+    8:  LW            V0, C (A0)
+    C:  JAL            ~Func:get_variable
+   10:  LW            A1, 0 (V0)
+   14:  LW            V1, C (V0)
+   18:  ADDIU        A0, R0, FF                %R
+   1C:  SW            A0, 34 (V1)
+   20:  LW            V1, C (V0)
+        ADDIU        A0, R0, D0                %G
+   24:  SW            A0, 38 (V1)
+   28:  LW            V1, C (V0)
+   2C:  ADDIU        A1, R0, D0                %B
+   30:  SW            A1, 3C (V1)
+   34:  LW            A0, C (V0)
+   38:  ADDIU        V1, R0, FF                %R 2
+   3C:  SW            V1, 44 (A0)
+   40:  LW            A0, C (V0)
+   44:  ADDIU        V1, R0, 00                %G 2
+   48:  SW            V1, 48 (A0)
+   4C:  LW            V1, C (V0)
+        ADDIU        A1, R0, 00                %B 2
+   50:  SW            A1, 4C (V1)
+   54:  LW            RA, 10 (SP)
+   58:  ADDIU        V0, R0, 2
+   5C:  JR            RA
+   60:  ADDIU        SP, SP, 18
+}
+
+%starts at 3 atk (+4 per use)
+#new:Script $Script_ShootRedLaser
+{
+    0:  Call     UseIdleAnimation 	( .Actor:Self .False )
+   14:  Call     EnableIdleScript 	( .Actor:Self 00000000 )
+   28:  Call     SetTargetActor ( .Actor:Self .Actor:Player )
+		%Call     UseBattleCamPreset 	( 0000003F )
+		Wait     00000008
+		Call     PlaySoundAtActor 	( .Actor:Self 000003C1 )
+		Wait     00000004 	%4 frames?
+		Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+		Add  *Var1 .PommelOffset
+		Sub  *Var[0]  00000005
+		Call	 SetGoalToTarget ( .Actor:Self )
+		Call     GetGoalPos  	( .Actor:Self *Var[3] *Var[4] *Var[5] )
+		Sub 	*Var0 1`
+		Add		*Var1 5`
+		Call	 GetActorVar ( .Actor:Self 00000002 *VarD )
+		Add 	 *VarD 1
+		Call     PlayEffect  	( ~FX:Squirt:Waterbeam *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] *Var[5] *VarD 0000000A 00000000 00000000 00000000 00000000 )
+		Call	 $Function_LaserBeam ( *VarF )
+		Wait     0000000A
+  1D0:  Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
+  1F4:  Switch  *Var[0] 
+  200:  	CaseOR  ==  .HitResult:Miss % 6
+  20C:  	CaseOR  ==  .HitResult:Lucky % 5
+  218:  		Set  *Var[A]  *Var[0] 
+  2E4:  		If  *Var[A]  ==  00000005 
+  2F4:  			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
+  318:  		EndIf
+  320:  		Wait     00000014 
+  32C:  		Call     UseBattleCamPreset 	( 00000002 )
+  3B0:  		Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  3C4:  		Call     UseIdleAnimation 	( .Actor:Self .True )
+  3D8:  		Return
+  3E0:  	EndCaseGroup
+  3E8:  EndSwitch
+  4AC:  Wait     00000002 
+		Call	 SetGoalToTarget ( .Actor:Self )
+		Set 	 *VarF 6
+		Call	 GetActorVar ( .Actor:Self 00000002 *VarE )
+		Add *VarF *VarE
+		Add *VarF *VarE
+		Add *VarF *VarE
+		Add *VarF *VarE
+		Add *VarF *VarE
+		Add *VarF *VarE
+		Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 00000002 0000FFFF 80200164 *VarF 00000020 ) 
+  4E0:  Wait     00000014 
+  4EC:  Switch  *Var[0] 
+  4F8:  	CaseOR  ==  00000000 
+  504:  	CaseOR  ==  00000002 
+  510:  		Call     UseBattleCamPreset 	( 00000002 )
+  52C:  	EndCaseGroup
+  534:  EndSwitch
+  53C:  Call     EnableIdleScript 	( .Actor:Self 00000001 )
+  550:  Call     UseIdleAnimation 	( .Actor:Self .True )
+	Return
+	End
+}
+
+#new:Function $Function_DarkenBackground
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	DADDU     S0, A0, R0
+	BEQ       A1, R0, .o48
+	SW        RA, 14 (SP)
+	JAL       8011D82C
+	ADDIU     A0, R0, 1
+	DADDU     A0, R0, R0
+	DADDU     A1, A0, R0
+	DADDU     A2, A0, R0
+	DADDU     A3, A0, R0
+	LAW       V0, 801512F0
+	ADDIU     V1, R0, 1
+	JAL       8011BE5C
+	SB        V1, 0 (V0)
+	ADDIU     V0, R0, 14
+	SW        V0, 70 (S0)
+       .o48
+	DADDU     A0, R0, R0
+	DADDU     A1, A0, R0
+	DADDU     A2, A0, R0
+	LW        V1, 70 (S0)
+	ADDIU     V0, R0, 14
+	SUBU      V0, V0, V1
+	SLL       A3, V0, 2
+	ADDU      A3, A3, V0
+	SLL       A3, A3, 1
+	JAL       8011BE5C
+	ANDI      A3, A3, FE
+	LW        V0, 70 (S0)
+	ADDIU     V0, V0, FFFF
+	SW        V0, 70 (S0)
+	SLTIU     V0, V0, 1
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	SLL       V0, V0, 1
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+	
+#new:Function $Function_BrightenBackground
+{
+	ADDIU     SP, SP, FFE8
+	SW        S0, 10 (SP)
+	DADDU     S0, A0, R0
+	BEQ       A1, R0, .o1C
+	SW        RA, 14 (SP)
+	ADDIU     V0, R0, 14
+	SW        V0, 70 (S0)
+	.o1C
+	DADDU     A0, R0, R0
+	DADDU     A1, A0, R0
+	LW        V0, 70 (S0)
+	DADDU     A2, A0, R0
+	SLL       A3, V0, 2
+	ADDU      A3, A3, V0
+	SLL       A3, A3, 1
+	JAL       8011BE5C
+	ANDI      A3, A3, FE
+	LW        V0, 70 (S0)
+	ADDIU     V0, V0, FFFF
+	BEQ       V0, R0, .o58
+	SW        V0, 70 (S0)
+	BEQ       R0, R0, .o70
+	DADDU     V0, R0, R0
+	.o58
+	DADDU     A0, R0, R0
+	DADDU     A1, A0, R0
+	DADDU     A2, A0, R0
+	JAL       8011BE5C
+	DADDU     A3, A0, R0
+	ADDIU     V0, R0, 2
+	.o70
+	LW        RA, 14 (SP)
+	LW        S0, 10 (SP)
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_ThunderFX
+{
+	ADDIU     SP, SP, FFC0
+	SW        RA, 24 (SP)
+	SW        S2, 20 (SP)
+	SW        S1, 1C (SP)
+	SW        S0, 18 (SP)
+	SDC1      F24, 38 (SP)
+	SDC1      F22, 30 (SP)
+	SDC1      F20, 28 (SP)
+	JAL       ~Func:get_actor
+	LW        A0, 148 (A0)
+	JAL       ~Func:get_actor
+	LH        A0, 428 (V0)
+	DADDU     S0, V0, R0
+	BEQ       S0, R0, .o128
+	ADDIU     V0, R0, 2
+	JAL       80149CB4
+	ADDIU     A0, R0, 366
+	LIO       V1, CCCCCCCD
+	LBU       A0, 191 (S0)
+	LBU       V0, 190 (S0)
+	MULTU     A0, V1
+	LWC1      F0, 188 (S0)
+	SRL       V1, V0, 2
+	ADDU      V0, V0, V1
+	MTC1      V0, F6
+	NOP
+	CVT.S.W   F6, F6
+	MUL.S     F6, F6, F0
+	NOP
+	ADDIU     V0, A0, FFFE
+	MTC1      V0, F4
+	NOP
+	CVT.S.W   F4, F4
+	MUL.S     F4, F4, F0
+	NOP
+	LWC1      F2, 148 (S0)
+	LWC1      F22, 144 (S0)
+	LWC1      F24, 14C (S0)
+	MFHI      T0
+	SRL       V0, T0, 3
+	ANDI      V0, V0, FF
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	TRUNC.W.S F8, F6
+	MFC1      S1, F8
+	TRUNC.W.S F8, F4
+	MFC1      S2, F8
+	LW        V0, 0 (S0)
+	ANDI      V0, V0, 8000
+	BEQ       V0, R0, .oE8
+	ADD.S     F20, F2, F0
+	SRL       V0, A0, 1
+	MTC1      V0, F0
+	NOP
+	CVT.S.W   F0, F0
+	SUB.S     F20, F20, F0
+	.oE8
+	JAL       800299FC
+	ADDIU     A0, R0, 2
+	ADDIU     A0, V0, 3
+	MFC1      A1, F22
+	MFC1      A2, F20
+	MFC1      A3, F24
+	MTC1      S1, F0
+	NOP
+	CVT.S.W   F0, F0
+	SWC1      F0, 10 (SP)
+	MTC1      S2, F0
+	NOP
+	CVT.S.W   F0, F0
+	JAL       80070CD0				%uses subtype 3??
+	SWC1      F0, 14 (SP)
+	%Now to update the color of the lightning bolt (hopefully)
+	%the shockwave thing has RGB values but the lightning bolt itself seems to have a palette in the effect data
+	%problem: the second effect doesn't always exist
+	%LW		 S1, C (V0)	%get pointer
+	%ADDIU	 S2, R0, FF
+	%SW		 S2, 90 (S1)
+	%ADDIU	 S2, R0, 77
+	%SW		 S2, 94 (S1)
+	%ADDIU	 S2, R0, F7
+	%SW		 S2, 98 (S1)
+	%ADDIU	 S2, R0, FF
+	%SW		 S2, 9C (S1)
+	%ADDIU	 S2, R0, FF
+	%SW		 S2, A0 (S1)
+	%ADDIU	 S2, R0, FF
+	%SW		 S2, A4 (S1)
+	ADDIU     V0, R0, 2
+	.o128
+	LW        RA, 24 (SP)
+	LW        S2, 20 (SP)
+	LW        S1, 1C (SP)
+	LW        S0, 18 (SP)
+	LDC1      F24, 38 (SP)
+	LDC1      F22, 30 (SP)
+	LDC1      F20, 28 (SP)
+	JR        RA
+	ADDIU     SP, SP, 40
+}
+
+#new:Script $Script_Lightning
+{
+	Call    SetTargetActor ( .Actor:Self .Actor:Player )
+	Call	$Function_DarkenBackground ( )
+	Call	PlaySound		( 00000365 )
+	Call	GetActorPos		( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Add 	*Var1 .PommelOffset
+	Sub		*Var[2]  10`
+	Call	PlayEffect		( 0000005E 00000000 *Var[0] *Var[1] *Var[2] *Var[0] 200` 0` *Fixed[4.0] 00000006 00000000 00000000 00000000 00000000 )
+	Wait	10` 
+	Call	EnemyTestTarget ( .Actor:Self  *Var[0] 00000000 00000000 00000001 00000010 )
+	Call	 GetActorVar ( .Actor:Self 00000002 *VarF )
+	Add	 	*VarF 1
+	Switch   *Var[0] 
+		CaseOR   ==  00000006 % transparent
+		CaseOR   ==  00000005 % lucky
+			Loop *VarF
+				Thread
+					Call	$Function_ThunderFX ( )
+					Wait	2` 							%5 -> 2
+					Call	80254218 ( 0000000A )
+					Call	ShakeCam ( 00000001 00000000 00000005 *Fixed[1.0] )
+				EndThread
+				Wait 5`
+			EndLoop	
+			Goto	1
+		EndCaseGroup
+	EndSwitch
+	Loop *VarF
+		Thread
+			Call	$Function_ThunderFX ( )
+			Wait	2` 							%5 -> 2
+			Call	80254218 ( 0000000A )
+			Call	ShakeCam ( 00000001 00000000 00000005 *Fixed[1.0] )
+			Call	EnemyTestTarget ( .Actor:Self  *Var[0] 00000020 00000000 00000001 00000010 )
+			Switch   *Var[0] 
+				CaseOR   ==  00000006 % transparent
+				CaseOR   ==  00000005 % lucky
+					%Goto	1						cannot miss! you can't ignore my wacky boss design :)
+				EndCaseGroup
+			EndSwitch
+			Call  SetGoalToTarget       ( .Actor:Player )
+			Call	EnemyDamageTarget	( .Actor:Self *Var[0] 00000020 0000FFFF 00000000 0000000A 00000020 )
+		EndThread
+		Wait 7`
+	EndLoop		
+	Label	1
+	Wait	35` 
+	Call	$Function_BrightenBackground ( )
+	Return
+	End
+}
+
+
+%lightning effect color swapping
+#new:Function $Function_SetLightningPalette_IceBolt
+{
+		PUSH		RA, S0
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%R
+   1C:  SW			A1, 30 (V1)
+   20:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%G
+   24:  SW			A1, 34 (V1)
+   28:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%B
+   2C:  SW			A1, 38 (V1)
+   30:  LW			A0, C (V0)
+   34:  ADDIU		V1, R0, C8			%R 2
+   38:  SW			V1, 40 (A0)
+   3C:  LW			A0, C (V0)
+   40:  ADDIU		V1, R0, F0			%G 2
+   44:  SW			V1, 44 (A0)
+   48:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%B 2
+   4C:  SW			A1, 48 (V1)
+   54:  ADDIU		V0, R0, 2
+		JPOP		RA, S0
+}
+
+#new:Function $Function_SetColdBreathPalette
+{
+		PUSH		RA, S0
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF
+   1C:  SW			A1, 18 (V1)			%R
+   20:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%G
+   24:  SW			A1, 1C (V1)
+   28:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%B
+   2C:  SW			A1, 20 (V1)
+   30:  LW			A0, C (V0)
+   34:  ADDIU		V1, R0, C8			%R 2
+   38:  SW			V1, 28 (A0)
+   3C:  LW			A0, C (V0)
+   40:  ADDIU		V1, R0, F0			%G 2
+   44:  SW			V1, 2C (A0)
+   48:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%B 2
+   4C:  SW			A1, 30 (V1)
+   54:  ADDIU		V0, R0, 2
+		JPOP		RA, S0
+}
+
+%starts at 3 atk (+4 per use)
+#new:Script $Script_IceBolt
+{
+	Call     SetTargetActor ( .Actor:Self .Actor:Player )
+	Wait     00000003 
+  218:  Call     PlaySoundAtActor 	( .Actor:Self 000002E0 )
+  22C:  Call     EnemyTestTarget ( .Actor:Self *Var[0] 00000000 00000000 00000001 00000010 )
+  250:  Switch  *Var[0] 
+  25C:  	CaseOR  ==  .HitResult:Miss % 6
+  268:  	CaseOR  ==  .HitResult:Lucky % 5
+  274:  		Set  *Var[A]  *Var[0] 
+  284:  		Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  2A0:  		Call     GetStatusFlags ( .Actor:Self *Var[3] )
+				Sub  *Var[0]  5` 
+				Add *Var1 .PommelOffset
+  314:  		Call     SetGoalToTarget 	( .Actor:Self )
+  324:  		Call     AddGoalPos 	( .Actor:Self FFFFFFCE 00000014 00000000 )
+  340:  		Call     GetGoalPos  	( .Actor:Self *Var[3] *Var[4] *Var[5] )
+  35C:  		Thread
+  364:  			Sub  *Var[3]  *Var[0] 
+  374:  			Sub  *Var[4]  *Var[1] 
+  384:  			Sub  *Var[5]  *Var[2] 
+  394:  			Div  *Var[3]  0000000A 
+  3A4:  			Div  *Var[4]  0000000A 
+  3B4:  			Div  *Var[5]  0000000A 
+  3C4:  			Loop     0000000A 
+  3D0:  				Add  *Var[0]  *Var[3] 
+  3E0:  				Add  *Var[1]  *Var[4] 
+  3F0:  				Add  *Var[2]  *Var[5] 
+  400:  				Call     PlayEffect  	( ~FX:EmitterVolume:Snowflakes *Var[0] *Var[1] *Var[2] 00000014 FFFFFFEC *Fixed[1.0] 00000005 0000001E 00000000 00000000 00000000 00000000 )
+  444:  				Wait     00000001 
+  450:  			EndLoop
+  458:  		EndThread
+  460:  		Wait     00000003 
+				Call	 GetActorVar ( .Actor:Self 00000002 *VarE )
+				Add *VarE 1
+				Loop *VarE
+  46C:  			Call     PlayEffect  	( ~FX:Lightning *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] *Var[5] *Fixed[1.0] 00000014 00000000 00000000 00000000 00000000 )
+  4B0:  			Call     $Function_SetLightningPalette_IceBolt ( *Var[F] )
+				EndLoop
+  4C0:  		Wait     0000000A 
+  4E4:  		If  *Var[A]  ==  00000005 
+  4F4:  			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
+  518:  		EndIf
+  520:  		Wait     00000014 
+  52C:  		Call     UseBattleCamPreset 	( 00000002 )
+  564:  		Return
+  56C:  EndSwitch
+  574:  Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+		Sub  *Var[0]  5` 
+		Add *Var1 .PommelOffset
+  590:  Call     GetStatusFlags ( .Actor:Self *Var[3] )
+  604:  Call     SetGoalToTarget 	( .Actor:Self )
+  614:  Call     GetGoalPos  	( .Actor:Self *Var[3] *Var[4] *Var[5] )
+  630:  Thread
+  638:  	Sub  *Var[3]  *Var[0] 
+  648:  	Sub  *Var[4]  *Var[1] 
+  658:  	Sub  *Var[5]  *Var[2] 
+  668:  	Div  *Var[3]  0000000A 
+  678:  	Div  *Var[4]  0000000A 
+  688:  	Div  *Var[5]  0000000A 
+  698:  	Loop     0000000A 
+  6A4:  		Add  *Var[0]  *Var[3] 
+  6B4:  		Add  *Var[1]  *Var[4] 
+  6C4:  		Add  *Var[2]  *Var[5] 
+  6D4:  		Call     PlayEffect  	( ~FX:EmitterVolume:Snowflakes *Var[0] *Var[1] *Var[2] 00000014 FFFFFFEC *Fixed[1.0] 00000005 0000001E 00000000 00000000 00000000 00000000 )
+  718:  		Wait     00000001 
+  724:  	EndLoop
+  72C:  EndThread
+  734:  Wait     00000003 
+		Call	 GetActorVar ( .Actor:Self 00000002 *VarE )
+		Add *VarE 1
+		Loop *VarE
+  740:  	Call     PlayEffect  	( ~FX:Lightning *Var[0] *Var[1] *Var[2] *Var[3] *Var[4] *Var[5] *Fixed[1.0] 00000014 00000000 00000000 00000000 00000000 )
+  784: 	 	Call     $Function_SetLightningPalette_IceBolt ( *Var[F] )
+		EndLoop
+  794:  Wait     00000007 
+  7D4:  Wait     00000002 
+  7E0:  Call     SetGoalToTarget 	( .Actor:Self )
+		Set 	 *VarF 6
+		Call	 GetActorVar ( .Actor:Self 00000002 *VarE )
+		Add *VarF *VarE
+		Add *VarF *VarE
+		Add *VarF *VarE 
+		Add *VarF *VarE  
+		Add *VarF *VarE  
+		Add *VarF *VarE
+  7F0:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000008 00000000 80004164 *VarF 00000020 )
+  818:  Switch  *Var[0] 
+  824:  	CaseOR  ==  00000000 
+  830:  	CaseOR  ==  00000002 
+  83C:  		Call     SetGoalToTarget 	( .Actor:Self )
+  84C:  		Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+  868:  		Call     PlayEffect  	( ~FX:ColdBreath:PuffUp *Var[0] *Var[1] *Var[2] *Fixed[2.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  8AC:  		Call     $Function_SetColdBreathPalette ( *Var[F] )
+  8BC:  		Wait     0000001E 
+  8C8:  		Call     UseBattleCamPreset 	( 00000002 )
+  8D8:  	EndCaseGroup
+  8E0:  EndSwitch
+	Return
+	End
+}
+
+
+
+
+%need to do this to make it black (00000000 00000000 makes it yellow and green somehow?)
+
+#new:Function $Function_SetRadialPalette
+{
+		PUSH		RA, S0
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, 0000		%R + G
+   1C:  SH			A1, 68 (V1)
+   20:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, 00FF		%B + R2?
+   24:  SH			A1, 6A (V1)
+   28:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF00		%G2 + B2?
+   2C:  SH			A1, 6C (V1)
+   30:  LW			A0, C (V0)
+   34:  ADDIU		V1, R0, 0000		%supplemental data
+   38:  SH			V1, 6E (A0)
+		.end
+   54:  ADDIU		V0, R0, 2
+		JPOP		RA, S0
+}
+
+#new:Function $Function_80218458_DG
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       8011D82C
+    C:  ADDIU     A0, R0, 1
+   10:  DADDU     A0, R0, R0
+   14:  ADDIU     V0, R0, 1
+   18:  DADDU     A1, A0, R0
+   1C:  DADDU     A2, A0, R0
+   20:  LAW       V1, 801512F0
+   28:  DADDU     A3, A0, R0
+   2C:  JAL       8011BE5C
+   30:  SB        V0, 0 (V1)
+   34:  LW        RA, 10 (SP)
+   38:  ADDIU     V0, R0, 2
+   3C:  JR        RA
+   40:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_8021849C_DG
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  DADDU     A0, R0, R0
+   18:  DADDU     A1, A0, R0
+   1C:  DADDU     A2, A0, R0
+   20:  JAL       8011BE5C
+   24:  ANDI      A3, V0, FF
+   28:  LW        RA, 10 (SP)
+   2C:  ADDIU     V0, R0, 2
+   30:  JR        RA
+   34:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_802184D4_DG
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  DADDU     S1, A0, R0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, C (S1)
+   18:  LW        A1, 0 (S0)
+   1C:  JAL       ~Func:get_variable
+   20:  ADDIU     S0, S0, 4
+   24:  DADDU     A0, S1, R0
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  DADDU     S0, V0, R0
+   34:  DADDU     A0, S0, R0
+   38:  JAL       80028F08
+   3C:  DADDU     A1, V0, R0
+   40:  LW        RA, 18 (SP)
+   44:  LW        S1, 14 (SP)
+   48:  LW        S0, 10 (SP)
+   4C:  ADDIU     V0, R0, 2
+   50:  JR        RA
+   54:  ADDIU     SP, SP, 20
+}
+
+#new:Script $Script_TearReality
+{
+	%monstar attack
+	Call     UseBattleCamPreset 	( 00000013 )
+	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Add *Var1 .PommelOffset
+	Sub *Var1 10`
+	Call     SetBattleCamTarget 	( *Var[0] *Var[1] *Var[2] )
+	Call     SetBattleCamOffsetZ 	( 00000010 )
+	Call     BattleCamTargetActor ( .Actor:Self )
+	Call     MoveBattleCamOver 	( 0000001E )
+	Wait 0000001E 
+	Thread
+		Call     $Function_80218458_DG ( )
+		Call     MakeLerp    	( 00000000 000000C8 0000003C 00000001 )
+		Label    00000000 
+		Call     UpdateLerp  	( )
+		Call     $Function_8021849C_DG ( *Var[0] )
+		Wait     00000001 
+		If  *Var[1]  ==  00000001 
+			Goto     00000000 
+		EndIf
+	EndThread
+	Call     PlaySoundAtActor 	( .Actor:Self .Sound:BigPowerUp )
+	Call     $Function_802184D4_DG ( 00000050 00000078 )
+	Call     UseBattleCamPreset 	( 00000013 )
+	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Add *Var1 .PommelOffset
+	Sub *Var1 10`
+	Call     SetBattleCamTarget 	( *Var[0] *Var[1] *Var[2] )
+	Call     SetBattleCamZoom  	( 00000064 )
+	Call     SetBattleCamOffsetZ 	( 00000020 )
+	Call     BattleCamTargetActor ( .Actor:Self )
+	Call     MoveBattleCamOver 	( 0000003C )
+	Wait     0000003C 
+	Call     PlaySoundAtActor 	( .Actor:Self 000002EA )
+	Call     PlaySoundAtActor 	( .Actor:Self 0000036E )
+	Thread
+		Wait     0000000A 
+		Loop     00000012 
+			Call     RandInt     	( 00000096 *Var[0] )
+			Add  *Var[0]  00000064 
+			Call     $Function_802184D4_DG ( *Var[0] 00000014 )
+			Wait     0000000A 
+		EndLoop
+	EndThread
+	Wait     00000008 
+	Call     UseBattleCamPreset 	( 00000002 )
+	Call     MoveBattleCamOver 	( 0000000A )
+	Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
+	Add *Var1 .PommelOffset
+	Add  *Var[2]  00000005 
+	Call     PlayEffect  	( ~FX:RadialFlowOut:BlueSpikes *Var[0] *Var[1] *Var[2] *Fixed[0.80078125] 000000A0 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call	 $Function_SetRadialPalette ( *VarF )
+	%Call     SetAnimation 	( .Actor:Self 00000001 0062050D )
+	Thread
+		%Shaky cam
+		Wait 30`		
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[1.0] )
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[1.5] )
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[2.0] )
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[2.5] )
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[3.0] )
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[4.0] )
+		Call	ShakeCam ( 00000001 00000000 00000014 *Fixed[5.0] )
+	EndThread
+	%this is not a real attack (on you) so do not check hit
+	Wait     000000AA %170 frames
+	Wait     00000002 
+	Call     SetGoalToTarget 	( .Actor:Self )
+	%No damage, but other special effects happen
+	Switch *Var9
+		Case == 0`	%No B button	(really bad!)
+			Call 	$BattleBanBPress ( )
+			Call	$ShowCustomMessage	( 002F0093 90` )
+		Case == 1`	%No items
+			Call	$DisableItems ( )
+			Call	$ShowCustomMessage	( 002F0096 90` )
+		Case == 2`	%Lower max HP (will keep using this every 4 turns starting on turn 19)
+			Call	 $GetMaxHp ( *Var[D] )	%Get max HP so that lowering it twice works as expected
+			Set 	*Var[B] *Var[D]
+			Div		*Var[B] 2 %rounds down, so 5 hp -> 2 hp :/, but at this point, he is at low health
+			Call	$SetMaxHp ( *Var[B] )
+			Call	$ShowCustomMessage	( 002F0095 90` )
+	EndSwitch
+	Call     MakeLerp    	( 000000C8 00000000 0000003C 00000000 )
+	Label    00000002 
+	Call     UpdateLerp  	( )
+	Call     $Function_8021849C_DG ( *Var[0] )
+	Wait     00000001 
+	If  *Var[1]  ==  00000001 
+		Goto     00000002 
+	EndIf
+	Wait     00000014 
+	Return
+	End
+}

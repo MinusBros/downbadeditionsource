@@ -1,0 +1,280 @@
+% Auto-generated script for tem_03
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 1
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]Wow, this room has a ton[BR]
+of Dark Sentinels.[BR]
+[WAIT][NEXT]
+Fighting them all would probably[BR]
+be a bad idea, but avoiding them[BR]
+on these thin platforms is[BR]
+really hard.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+}
+
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Call    MakeNpcs    	( 00000001 $NpcGroupList )	
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Return
+	End
+}
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call  MakeEntity    ( .Entity:HugeBlueSwitch ~Vec4d:topswitch 80000000 )
+	Call  AssignScript  ( $Script_BossSwitch )	
+	Return
+	End
+}
+
+
+#new:Script $Script_BossSwitch
+{
+	Set   *MapFlag[2] .True		%boss time (the switch might delete itself after this)
+	Return
+	End
+}
+
+
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+	Call  GetEntryID    ( *Var[0] )
+	Switch  *Var[0]
+		Case  	==  ~Entry:Entry0
+			Set   *Var[0] $Script_CreateExitTriggers
+			Exec  EnterWalk
+		Default
+			Exec  $Script_CreateExitTriggers
+	EndSwitch
+	Return
+	End
+}
+
+#new:Script $Script_Exit0
+{
+	SetGroup 0000001B
+	Call     UseExitHeading ( 60` ~Entry:Entry0 )
+	Exec     ExitWalk
+	Call  GotoMap   ( "tem_05" ~Entry:tem_05:Entry1 )
+	Call  StopSound     ( 00000394 )
+	Wait  100`
+	Return
+	End
+}
+
+#new:Script $Script_CreateExitTriggers
+{
+	Bind  $Script_Exit0 .Trigger:FloorAbove ~Collider:hubLZ 00000001 00000000
+	Return
+	End
+}
+
+
+
+
+#new:NpcGroupList $NpcGroupList
+{
+00000001 $NpcGroup_DarkSentinel1 3B080003
+00000001 $NpcGroup_DarkSentinel2 3B080003
+00000001 $NpcGroup_DarkSentinel3 3B080003
+00000001 $NpcGroup_DarkSentinel4 3B080003
+00000001 $NpcGroup_DarkSentinel5 3B080003
+00000001 $NpcGroup_Boss 	   3D020000
+00000000 00000000 00000000
+}
+
+
+#import NPC_Paragoomba.mpat
+
+
+@ $NpcSettings_Paragoomba
+{
+	00000000 0028001D 00000000 00000000 $Script_NpcAI_Paragoomba 80077F70 00000000 8007809C		%make the hitbox bigger
+	00000000 00000000 00060002
+}
+
+#new:NpcGroup $NpcGroup_DarkSentinel1
+{
+00000000 $NpcSettings_Paragoomba ~Vec3f:NPC_DarkSentinel1 % -350 0 40
+00002D00 00000000 00000000 00000000 0000005A 
+~Items:64:JamminJelly:A %Dark leaf
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:4:40 ~FP:30:40:4:40 ~FP:50:40:4:40 ~FP:80:40:4:40 ~FP:100:30:4:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:NPC_DarkSentinel1
+00380901 00380902 00380903 00380903 00380903 00380903 00380906 00380906
+00380901 00380901 00380901 00380901 00380901 00380901 00380901 00380901
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_DarkSentinel2
+{
+00000001 $NpcSettings_Paragoomba ~Vec3f:NPC_DarkSentinel2 % -350 0 40
+00002D00 00000000 00000000 00000000 0000005A 
+~Items:64:JamminJelly:A %Dark leaf
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:4:40 ~FP:30:40:4:40 ~FP:50:40:4:40 ~FP:80:40:4:40 ~FP:100:30:4:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:NPC_DarkSentinel2
+00380901 00380902 00380903 00380903 00380903 00380903 00380906 00380906
+00380901 00380901 00380901 00380901 00380901 00380901 00380901 00380901
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_DarkSentinel3
+{
+00000002 $NpcSettings_Paragoomba ~Vec3f:NPC_DarkSentinel3 % -350 0 40
+00002D00 00000000 00000000 00000000 0000005A 
+~Items:64:JamminJelly:A %Dark leaf
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:4:40 ~FP:30:40:4:40 ~FP:50:40:4:40 ~FP:80:40:4:40 ~FP:100:30:4:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:NPC_DarkSentinel3
+00380901 00380902 00380903 00380903 00380903 00380903 00380906 00380906
+00380901 00380901 00380901 00380901 00380901 00380901 00380901 00380901
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_DarkSentinel4
+{
+00000003 $NpcSettings_Paragoomba ~Vec3f:NPC_DarkSentinel4 % -350 0 40
+00002D00 00000000 00000000 00000000 0000005A 
+~Items:64:JamminJelly:A %Dark leaf
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:4:40 ~FP:30:40:4:40 ~FP:50:40:4:40 ~FP:80:40:4:40 ~FP:100:30:4:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:NPC_DarkSentinel4
+00380901 00380902 00380903 00380903 00380903 00380903 00380906 00380906
+00380901 00380901 00380901 00380901 00380901 00380901 00380901 00380901
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+#new:NpcGroup $NpcGroup_DarkSentinel5
+{
+00000004 $NpcSettings_Paragoomba ~Vec3f:NPC_DarkSentinel5 % -350 0 40
+00002D00 00000000 00000000 00000000 0000005A 
+~Items:64:JamminJelly:A %Dark leaf
+~HP:20:70:2:50 ~HP:30:60:2:50 ~HP:50:50:2:40 ~HP:80:40:2:40 ~HP:100:30:2:30 ~HP:None ~HP:None ~HP:None 
+~FP:20:50:4:40 ~FP:30:40:4:40 ~FP:50:40:4:40 ~FP:80:40:4:40 ~FP:100:30:4:40 ~FP:None ~FP:None ~FP:None 
+~CoinBonus:0:3
+~Movement:NPC_DarkSentinel5
+00380901 00380902 00380903 00380903 00380903 00380903 00380906 00380906
+00380901 00380901 00380901 00380901 00380901 00380901 00380901 00380901
+00000003 00000000 00000000 00000000 % no tattle string
+}
+
+
+%make them more aggressive
+@ $Script_NpcAI_Paragoomba
+{
+    [0]  Call  SetSelfVar    ( 00000000 00000000 )
+   [14]  Call  SetSelfVar    ( 00000005 FFFFFD8A )
+   [28]  Call  SetSelfVar    ( 00000006 00000032 )
+   [3C]  Call  SetSelfVar    ( 00000001 000000C8 )
+}
+
+
+#new:NpcSettings $NpcSettings_Guy
+{
+	00000000 00170016 00000000 00000000 00000000 80077F70 00000000 8007809C
+	00000000 00000000 000E0001
+}
+
+#new:NpcGroup $NpcGroup_Boss
+{
+00000005 $NpcSettings_Guy ~Vec3f:NPC_Boss % -770 0 0
+00640D01 $Script_Init_Boss 00000000 00000000 0000010E 
+~Items:0:DriedShroom:A
+~NoHP
+~NoFP
+~NoCoinBonus
+~Movement:NPC_Boss
+003B0501 003B0502 003B0504 003B0504 003B0501 003B0501 003B050C 003B050C
+003B0515 003B0512 003B0511 003B0510 003B0505 003B0501 003B0501 003B0501 % .Sprite:ShyGuy
+00000001 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_Idle_Boss
+{
+	Loop	
+		Wait 1`
+		If *MapFlag[2] == .True
+			BreakLoop
+		EndIf
+	EndLoop
+	%Call	StartBossBattle		( .Song:SMRPGBossTheme )
+	Set  *MapFlag[2] .False
+	Return
+	End
+}
+
+#new:Script $Script_Init_Boss
+{
+	Call     BindNpcIdle		( .Npc:Self $Script_Idle_Boss )
+	Call	 BindNpcDefeat		( .Npc:Self $Script_Defeat )
+	Return
+	End
+}
+
+#new:Script $Script_Defeat
+{
+		Set  *MapFlag[2] .False		
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_TEM_Boss3  .True
+   5C:  	Case  ==  .Outcome:PlayerLost % 1
+   7C:  	Case  ==  .Outcome:PlayerFled % 2
+   9C:  EndSwitch		
+   A4:  Return
+   AC:  End
+}

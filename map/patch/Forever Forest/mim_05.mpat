@@ -1,4 +1,68 @@
+%Add a chance for a partner blurb in this room
+
 @	$Script_Main_EnterWalk
 {
-	[10]  Call  SetSpriteShading  ( .Shading:mim_01 )
+    0:  Set   *GB_WorldLocation  .Location:ForeverForest
+   10:  Call  SetSpriteShading  ( .Shading:mim_01 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  650` )
+   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *AreaByte[2]  *GB_MIM_CurrentMapID
+   94:  Call  GetMapID      ( *GB_MIM_CurrentMapID )
+   A4:  ExecWait  $Script_80243170
+   B0:  Call  MakeNpcs      ( .True $NpcGroupList_80243E34 )
+   C4:  Set   *Var0  $Script_80241C50
+   D4:  Exec  EnterWalk
+   E0:  Wait  1`
+   EC:  Exec  $Script_80241AA0
+   F8:  ExecWait  $Script_80242290
+  104:  Call  $Function_80240000 ( )
+  110:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+		If  *GB_StoryProgress  <  .Story:Ch3_EnteredBoosMansion
+			If  *MIM05Blurb == .False
+				Call  RandInt       ( 1` *Var0 )
+				If   *Var0 == 0`	
+					Exec $PartnerBlurb
+				EndIf
+			EndIf
+		EndIf
+  124:  Return
+  12C:  End
+}
+
+
+
+#new:Script $PartnerBlurb
+{
+			Wait  30`
+			Set  *MIM05Blurb .True
+			Call  GetCurrentPartnerID   ( *Var0 )
+			Switch  *Var0
+				Case  ==  .Partner:Goombario % 1
+					Call  SetPlayerFlagBits ( 000000C0 .True )
+					Call  SpeakToPlayer ( .Npc:Partner 00010008 00010001 00000005 000E014A )
+					Wait  80`
+					Call  SetPlayerFlagBits ( 000000C0 .False )
+				Case  ==  .Partner:Kooper % 2
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E014B )
+				Case  ==  .Partner:Bombette % 3
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E014C ) 
+				Case  ==  .Partner:Parakarry % 4
+					Call  SpeakToPlayer ( .Npc:Partner FFFFFFFF FFFFFFFF 00000005 000E014D ) 
+				EndSwitch
+				Return
+				End
+}
+
+
+@	$Script_8024221C
+{
+    0:  Call  PlaySoundAt       ( 000003A0 00000000 0000012C 00000000 0000000A )
+		Call  PlaySoundAt       ( 25C 00000000 0000012C 00000000 0000000A )
+   20:  Call  SetTexPanOffset   ( 00000003 00000000 00000000 FFFF8000 )
+   3C:  Wait  60`
+   48:  Call  SetTexPanOffset   ( 00000003 00000000 00000000 00000000 )
+   64:  Return
+   6C:  End
 }

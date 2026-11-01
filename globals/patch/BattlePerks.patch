@@ -215,6 +215,67 @@ ADDIU	V0, R0, 2
 }
 
 
+%Remove the annoying pause when using happy Badges
+@Script:Battle  1B7644		%Script_PlayerHappy
+{
+    0:  Call  8026F0EC      ( .Actor:Player .False )    %$Function_UseIdleAnimation 
+		Thread
+			Call  8024E6B4        ( 00000002 )	%BattleCamWait	%This is what was mainly causing it
+		EndThread
+   24:  Call  8026B1B0    ( .Actor:Player 00000000 00010032 )     %$Function_SetAnimation   (Thumbs up)
+   3C:  Call  8026AAA8     ( .Actor:Player *Var0 *Var1 *Var2 )		%Get Actor Pos
+   58:  Call  802619E8        ( *Var0 *Var1 *Var2 )
+   70:  Add   *Var0  00000000
+   80:  Add   *Var1  00000023
+   90:  Set   *Var3  *VarA
+   A0:  Add   *Var3  *VarB
+   B0:  If  *Var3  >  00000000
+   C0:  	Call  80261BA8		 ( *Var0 *Var1 *Var2 *Var3 )		%FXRecoverHP
+   DC:  EndIf
+   E4:  Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )			%Get Actor Pos
+  100:  Add   *Var0  00000014
+  110:  Add   *Var1  00000019
+  120:  If  *VarC  >  00000000
+  130:  	Call  80261C68 ( *Var0 *Var1 *Var2 *VarC )		%FXRecoverFP
+  14C:  EndIf
+  154:  Set   *Var3  *VarA
+  164:  Add   *Var3  *VarB
+  174:  Call  8026AAA8 ( .Actor:Player *Var0 *Var1 *Var2 )			%Get Actor Pos
+  190:  Add   *Var1  00000019
+  1A0:  Call  802D7520  ( *Var0 *Var1 *Var2 *Var3 )
+  1BC:  Wait  1`
+  1C8:  Set   *Var0  *VarA
+  1D8:  If  *Var0  >  00000000
+  1E8:  	Loop  *Var0
+  1F4:  		Call  80261D28 ( )		%Increment Player HP
+  200:  		Wait  1`
+  20C:  	EndLoop
+  214:  EndIf
+  21C:  Set   *Var0  *VarB
+  22C:  If  *Var0  >  00000000
+  23C:  	Loop  *Var0
+  248:  		Call  80261D28 ( )		%Increment Player HP
+  254:  		Wait  1`
+  260:  	EndLoop
+  268:  EndIf
+  270:  Set   *Var0  *VarC
+  280:  If  *Var0  >  00000000
+  290:  	Loop  *Var0
+  29C:  		Call  80261D60 ( )		%Increment Player FP
+  2A8:  		Wait  1`
+  2B4:  	EndLoop
+  2BC:  EndIf
+		Wait  16`
+  2D0:  Call  8026B1B0        ( .Actor:Self 00000000 00010002 )		%Set animation
+  2E8:  Call  80261B40 ( )
+  2F4:  Call  8026F0EC    ( .Actor:Player .True )		%Use Idle Animation
+  308:  Return
+  310:  End
+}
+
+
+
+
 #export $FreeTurn
 #export $BattlePerks
 #export $Function_refund_current_move_fp

@@ -63,6 +63,7 @@
    5C:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
    70:  Call  SetCamEnabled     ( .Cam:Default .True )
 		Call  $Fog ( )
+		ExecWait  $MakeEntities
 		Call  SetSpriteShading  ( .Shading:mim_02 )
    84:  Set   *GF_Map_CrystalPalace  .True
    94:  If  *GB_StoryProgress  ==  .Story:Ch7_BeganPeachMission % 58
@@ -101,6 +102,41 @@
   294:  EndIf
   29C:  Return
   2A4:  End
+}
+
+
+#new:Script  $MakeEntities
+{
+	Call  GetEntryID    ( *VarA )
+	If  *VarA == ~Entry:Entry2
+		Call  MakeEntity    ( .Entity:Signpost ~Vec4d:Sign 80000000 )
+		Call  AssignScript    ( $Script_ReadSign_Sign )
+		Call  MakeItemEntity    ( .Item:StarPiece ~Vec3d:Item802402C0 .ItemSpawnMode:Fixed_NeverVanish *GF_PRA15_Item_StarPiece )
+	EndIf
+	Return
+	End
+}
+
+
+#new:Script $Script_ReadSign_Sign
+{
+	Call  DisablePlayerInput        ( .True )
+	Call  ShowMessageAtScreenPos    ( $Sign 000000A0 00000028 )
+	Call  DisablePlayerInput        ( .False )
+	Return
+	End
+}
+
+#new:String $Sign
+{
+[Style Sign]
+[DelayOff]Behold! The mighty Bizhawk killer cave![BR]
+If you are indeed playing on Bizhawk,[BR]
+you may shoot Kooper into this cave[BR]
+for maximum safety.[BR]
+[Wait][Next]
+If not, feel free to step inside.[BR]
+[Wait][END]
 }
 
 %Skip dialogue if running it back
@@ -194,6 +230,7 @@
 				Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50002 )
 				Call  NpcMoveTo ( .NpcID:KoopaKoot  720` 98` 0` )
 				Wait  5`
+				Exec  $NukeBossChecks
 				Call  SetNpcJumpscale   ( .Npc:Self *Fixed[0.5] )
 				Call  SetNpcAnimation   ( .NpcID:KoopaKoot 00B50005 )
 				Call  NpcJump1  ( .Npc:Self  628`  -60`  91` 0000002C )

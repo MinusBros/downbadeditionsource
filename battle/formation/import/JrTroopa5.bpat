@@ -664,35 +664,38 @@
   3E8:  		Return
   3F0:  	EndCaseGroup
   3F8:  EndSwitch
-  400:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast2 )
-  414:  Call  GetActorPos       ( .Actor:Player *Var3 *Var4 *Var5 )
-  430:  Add   *Var4  00000014 
-  440:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
-  454:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
-  464:  	Set   *Var6  FFFFFFF8 
-  474:  	Set   *Var7  00000014 
-  484:  	SetF  *Var8  *Fixed[1.0] 
-  494:  Else
-  49C:  	Set   *Var6  FFFFFFFD 
-  4AC:  	Set   *Var7  00000008 
-  4BC:  	SetF  *Var8  *Fixed[0.4] 
-  4CC:  EndIf
-  4D4:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
-  4F0:  Add   *Var0  *Var6 
-  500:  Add   *Var1  *Var7 
-  510:  Call  PlayEffect        ( ~FX:ShapeSpell:Projectile *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 0000000F 00000000 00000000 00000000 00000000 00000000 )
-  554:  Wait  12`
 		If	  *GB_JrTroopaBattle == 00000001
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 0000000A 00000020 )
-			Wait  5`
-		Else 
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 00000008 00000020 )
-			Wait  6`
+			Set  *Var9  10`
+		Else
+			Set  *Var9  8`
 		EndIf
-		Call     RandInt     	( 00000001 *Var0 )
-		If *Var0 == 1`
-			Wait  10`
+		ExecWait  $MagicBlastRepeat
+		ExecWait  $MagicBlastRepeat
+		If	  *GB_JrTroopaBattle == 00000001
+			Set  *Var9  12`
+		Else
+			Set  *Var9  9`
 		EndIf
+		ExecWait  $MagicBlastRepeat
+  588:  Switch  *Var0 
+  594:  	Case  ==  .HitResult:Hit % 0
+  5A0:  		Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
+  5B8:  		If  *Var0  ==  00000000 
+  5C8:  			Call  GetLastDamage ( .Actor:Player *Var1 )
+  5DC:  			If  *Var1  !=  00000000 
+  5EC:  				Call  SetActorVar   ( .Actor:Self 00000001 00000001 )
+  604:  			EndIf
+  60C:  		EndIf
+  614:  EndSwitch
+  61C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
+  630:  Call  UseIdleAnimation  ( .Actor:Self .True )
+  644:  Return
+  64C:  End
+}
+
+
+#new:Script  $MagicBlastRepeat
+{
   400:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast2 )
   414:  Call  GetActorPos       ( .Actor:Player *Var3 *Var4 *Var5 )
   430:  Add   *Var4  00000014 
@@ -712,57 +715,19 @@
   510:  Call  PlayEffect        ( ~FX:ShapeSpell:Projectile *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 0000000F 00000000 00000000 00000000 00000000 00000000 )
   554:  Wait  12`
 		If	  *GB_JrTroopaBattle == 00000001
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 0000000A 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 *Var9 00000020 )
 			Wait  2`
 		Else 
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 00000008 00000020 )
+			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 *Var9 00000020 )
 			Wait  3`
 		EndIf
 		Call     RandInt     	( 00000001 *Var0 )
 		If *Var0 == 1`
 			Wait  10`
 		EndIf
-    400:  Call  PlaySoundAtActor  ( .Actor:Self .Sound:SpellCast2 )
-  414:  Call  GetActorPos       ( .Actor:Player *Var3 *Var4 *Var5 )
-  430:  Add   *Var4  00000014 
-  440:  Call  GetStatusFlags    ( .Actor:Self *Var0 )
-  454:  If  *Var0  !&  ~Flags:StatusFlags:Shrink % 80000
-  464:  	Set   *Var6  FFFFFFF8 
-  474:  	Set   *Var7  00000014 
-  484:  	SetF  *Var8  *Fixed[1.4] 
-  494:  Else
-  49C:  	Set   *Var6  FFFFFFFD 
-  4AC:  	Set   *Var7  00000008 
-  4BC:  	SetF  *Var8  *Fixed[0.7] 
-  4CC:  EndIf
-  4D4:  Call  GetActorPos       ( .Actor:Self *Var0 *Var1 *Var2 )
-  4F0:  Add   *Var0  *Var6 
-  500:  Add   *Var1  *Var7 
-  510:  Call  PlayEffect        ( ~FX:ShapeSpell:Projectile *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 0000000F 00000000 00000000 00000000 00000000 00000000 )
-  554:  Wait  12`
-		If	  *GB_JrTroopaBattle == 00000001
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 0000000C 00000020 )
-			Wait  4`
-		Else 
-			Call  EnemyDamageTarget ( .Actor:Self *Var0 ~Flags:DamageType:NoContact|Magic|MultiBounce|Unsuperguardable 00000000 00000000 00000009 00000020 )
-			Wait  5`
-		EndIf
-  588:  Switch  *Var0 
-  594:  	Case  ==  .HitResult:Hit % 0
-  5A0:  		Call  GetActorVar   ( .Actor:Self 00000001 *Var0 )
-  5B8:  		If  *Var0  ==  00000000 
-  5C8:  			Call  GetLastDamage ( .Actor:Player *Var1 )
-  5DC:  			If  *Var1  !=  00000000 
-  5EC:  				Call  SetActorVar   ( .Actor:Self 00000001 00000001 )
-  604:  			EndIf
-  60C:  		EndIf
-  614:  EndSwitch
-  61C:  Call  EnableIdleScript  ( .Actor:Self 00000001 )
-  630:  Call  UseIdleAnimation  ( .Actor:Self .True )
-  644:  Return
-  64C:  End
+		Return
+		End
 }
-
 
 #new:Script $Script_Lightning {
 		Exec  $ShowMessage7

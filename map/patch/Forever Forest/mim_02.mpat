@@ -11,7 +11,86 @@
 	00000000
 }
 
+
+@	$Script_Main_EnterWalk
+{
+    0:  Set   *GB_WorldLocation  .Location:ForeverForest
+   10:  Call  SetSpriteShading  ( .Shading:mim_02 )
+   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  650` )
+   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
+   5C:  Call  SetCamEnabled ( .Cam:Default .True )
+   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
+   84:  Set   *AreaByte[2]  *GB_MIM_CurrentMapID
+   94:  Call  GetMapID      ( *GB_MIM_CurrentMapID )
+   A4:  ExecWait  $Script_80243430
+   B0:  Call  MakeNpcs      ( .True $NpcGroupList_80242754 )
+   C4:  Set   *Var0  $Script_80241410
+   D4:  Exec  EnterWalk
+   E0:  Wait  1`
+   EC:  Exec  $Script_80241260
+   F8:  Exec  $Script_80243650
+  104:  Call  $Function_80240000 ( )
+  110:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+		Exec  $AutoSave
+  124:  Return
+  12C:  End
+}
+
 #import AutoSave.mpat
+
+
+@	$Script_Idle_80241DE0
+{
+    0:  Switch  *GB_StoryProgress
+    C:  	Case  <  .Story:Ch3_AllowedIntoForeverForest % FFFFFFCF
+   18:  		Call  DisablePlayerInput    ( .True )
+   28:  		Wait  25`
+   34:  		Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   4C:  		Call  UseSettingsFrom       ( .Cam:Default *Var0 *Var1 *Var2 )
+   68:  		Call  GetNpcPos     ( .Npc:Self *Var0 *Var1 *Var2 )
+   84:  		Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+   A0:  		Call  SetCamPitch   ( .Cam:Default *Fixed[6.0] *Fixed[-6.0] )
+   B8:  		Call  SetCamDistance        ( .Cam:Default  300` )
+   CC:  		Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+   E0:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   F8:  		Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+				If *GF_GotIDFromFiceT == .False
+  10C:  			Call  SpeakToPlayer ( .NpcID:Oaklie_00 00BE0002 00BE0001 00000000 000E0003 ) % Hmm... What do you think you're doing?
+				Else
+					Call  SpeakToPlayer ( .NpcID:Oaklie_00 00BE0002 00BE0001 00000000 000E0148 ) % Different dialogue if you come back
+				EndIf
+  12C:  		Wait  10`
+  138:  		Thread
+  140:  			Call  SetNpcAnimation   ( .NpcID:Oaklie_00 00BE0003 )
+  154:  			Wait  5`
+  160:  			Call  SetNpcAnimation   ( .NpcID:Oaklie_00 00BE0004 )
+  174:  		EndThread
+  17C:  		Thread
+  184:  			Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+  19C:  			Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )
+  1B8:  			Call  SetPanTarget  ( .Cam:Default *Var0 *Var1 *Var2 )
+  1D4:  			Call  WaitForCam    ( .Cam:Default *Fixed[1.0] )
+  1E8:  			Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  200:  			Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
+  214:  		EndThread
+  21C:  		Call  PlaySoundAtNpc    ( .NpcID:Oaklie_00 .Sound:NpcJump 00000000 )
+  234:  		Call  SetNpcJumpscale   ( .Npc:Self *Fixed[1.0] )
+  248:  		Call  NpcJump0  ( .Npc:Self  -455`  0`  0`  20` )
+  268:  		Call  SetNpcAnimation   ( .NpcID:Oaklie_00 00BE0005 )
+  27C:  		Wait  5`
+  288:  		Call  SetNpcAnimation   ( .NpcID:Oaklie_00 00BE0001 )
+  29C:  		Wait  5`
+				%Why was there even a check for Chapter 1 here? You can't even get here until after
+					If *GF_GotIDFromFiceT == .False
+  2E0:  				Call  SpeakToPlayer ( .NpcID:Oaklie_00 00BE0002 00BE0001 00000000 000E0005 ) % This is Forever Forest... The path ahead of here i ...
+					Else
+						Call  SpeakToPlayer ( .NpcID:Oaklie_00 00BE0002 00BE0001 00000000 000E0149 ) % This is Forever Forest... The path ahead of here i ...
+					EndIf
+  308:  		Call  DisablePlayerInput    ( .False )
+  318:  EndSwitch
+  320:  Return
+  328:  End
+}
 
 @	$Script_Interact_80241848
 {
@@ -109,29 +188,4 @@
   57C:  ExecWait  $Script_80243620
   588:  Return
   590:  End
-}
-
-
-@	$Script_Main_EnterWalk
-{
-    0:  Set   *GB_WorldLocation  .Location:ForeverForest
-   10:  Call  SetSpriteShading  ( .Shading:mim_02 )
-   20:  Call  SetCamPerspective ( .Cam:Default 00000003  25`  16`  650` )
-   40:  Call  SetCamBGColor ( .Cam:Default  0`  0`  0` )
-   5C:  Call  SetCamEnabled ( .Cam:Default .True )
-   70:  Call  SetCamLeadPlayer  ( .Cam:Default .False )
-   84:  Set   *AreaByte[2]  *GB_MIM_CurrentMapID
-   94:  Call  GetMapID      ( *GB_MIM_CurrentMapID )
-   A4:  ExecWait  $Script_80243430
-   B0:  Call  MakeNpcs      ( .True $NpcGroupList_80242754 )
-   C4:  Set   *Var0  $Script_80241410
-   D4:  Exec  EnterWalk
-   E0:  Wait  1`
-   EC:  Exec  $Script_80241260
-   F8:  Exec  $Script_80243650
-  104:  Call  $Function_80240000 ( )
-  110:  Call  SetCamSpeed   ( .Cam:Default *Fixed[3.0] )
-		Exec  $AutoSave
-  124:  Return
-  12C:  End
 }

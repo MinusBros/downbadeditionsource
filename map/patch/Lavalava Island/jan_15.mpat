@@ -118,6 +118,7 @@
   5A0:  	Call  PlaySoundAtNpc    ( .NpcID:PutridPiranha_00 .Sound:PiranhaTense 00000000 )
   5B8:  EndLoop
 		Set *CheckWhiteCody .True
+		Call	$Function_SaveItems ( )
   5C0:  Call  SetNpcAnimation   ( .NpcID:PutridPiranha_00 00360005 )
   5D4:  Call  SetNpcAnimation   ( .NpcID:PutridPiranha_01 00360005 )
   5E8:  Call  SetNpcAnimation   ( .NpcID:PutridPiranha_02 00360005 )
@@ -127,9 +128,22 @@
   630:  Call  SetNpcAnimation   ( .NpcID:PutridPiranha_02 00360006 )
   644:  Call  PlaySoundAtNpc    ( .NpcID:PutridPiranha_00 .Sound:PiranhaChomp 00000000 )
   65C:  Call  DisablePlayerInput    ( .False )
-  66C:  Call  StartBossBattle   ( .Song:SpecialBattle )
+  66C:  Call  StartBossBattle   ( .Song:LegendaryBattle )
   67C:  Return
   684:  End
+}
+
+@	$Script_Hit_80241080
+{
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GB_StoryProgress  .Story:Ch5_DefeatedPiranhasMiniboss
+   38:  	Case  ==  .Outcome:PlayerLost % 1
+   44:  	Case  ==  .Outcome:PlayerFled % 2
+   50:  EndSwitch
+   58:  Return
+   60:  End
 }
 
 
@@ -162,3 +176,29 @@
    88:  End
 }
 
+%Due to entity overflow, I need to remove drops on two of these enemies
+@	$NpcGroup_80241194
+{
+	.NpcID:PutridPiranha_00 $NpcSettings_802405C0 ~Vec3f:NPC_PutridPiranha_00 % 365 0 -45
+	00840800 $Script_Init_802410E8 00000000 00000000 0000010E
+	~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+	~Movement:NPC_PutridPiranha_00
+	~AnimationTable:NPC_PutridPiranha_00 % .Sprite:PutridPiranha
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80241194[1F0]
+	.NpcID:PutridPiranha_01 $NpcSettings_802405C0 ~Vec3f:NPC_PutridPiranha_01 % 325 0 0
+	00840800 00000000 00000000 00000000 0000010E
+	~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+	~Movement:NPC_PutridPiranha_01
+	~AnimationTable:NPC_PutridPiranha_01 % .Sprite:PutridPiranha
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80241194[3E0]
+	.NpcID:PutridPiranha_02 $NpcSettings_802405C0 ~Vec3f:NPC_PutridPiranha_02 % 375 0 45
+	00040800 00000000 00000000 00000000 0000010E
+	~Items:5:FireFlower:A ~HP:Standard:2 ~FP:Standard:3 ~CoinBonus:0:2
+	~Movement:NPC_PutridPiranha_02
+	~AnimationTable:NPC_PutridPiranha_02 % .Sprite:PutridPiranha
+	00000000 00000000 00000000 00000000 % no tattle string
+}

@@ -1,0 +1,127 @@
+%Disabling things
+
+
+%Disable item menu / hammer menu / jump menu
+%	AE + battle status = hammer loss turns (Normally equal to FF, set to a positive value to disable)
+%	AF + battle status = jump loss turns (Normally equal to FF, set to a positive value to disable)
+%	B0 + battle status = item loss turns (Normally equal to FF, set to a positive value to disable)
+
+%disables items for 127 turns, basically forever
+#export:Function $DisableItems
+{
+	LI		T0, 800DC070
+	LI		T1, 7F
+	SB		T1, B0, (T0)
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+%Disable partner changes
+%	7C + battle status (800DC0EC)
+%	Set at 80263280 (value set to 0 if partner is nonexistent)
+%	...and 80263288 (value set to 1 if partner does exist)
+%	There are some other cases for if you have exactly 1 partner or no partner (setting it to the right value)
+
+%	FF = option does not exist
+%	00 = option is grayed out (If you try to select this in the partner menu, it softlocks (missing text box?))
+%		^ when partner is stunned?
+%	01 = option is normal
+
+%Disable partner moves
+%	80 + battle status
+%		set at 80263ADC
+%		Note that it is only read right after setting it
+
+
+%Disable certain input
+%	224 + battle status (800DC294)
+%	Normally equal to 000FEF3F
+%		This seems to let you press everything but the start button (1000)
+%	This appears to be the set of "allowed" inputs (that are read by the battle system stuff?)
+%	A press = 8000
+%	B press = 4000
+%	Z press = 2000
+%	Up on joystick = 10000
+%	Down = 20000
+%	Left = 40000
+%	Right = 80000
+
+%reset the stuff to normal
+%(Note that the game probably sets this up at the start of battle so this isn't mandatory)
+#export:Function $BattleResetButtonMask
+{
+	LI		T0, 800DC070
+	LI		T1, 000FEF3F
+	SW		T1, 224, (T0)
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+%ban the B button
+%This makes menus more "dangerous" to navigate (but you shouldn't be able to softlock, even if you can't select stuff)
+#export:Function $BattleBanBPress
+{
+	LI		T0, 800DC070
+	LW		T1, 224, (T0)
+	LI		T2, 000FBFFF
+	AND		T1, T1, T2
+	SW		T1, 224, (T0)
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+%ban the Z button
+%Not much changes other than that you can't do partner moves before mario any more
+#export:Function $BattleBanZPress
+{
+	LI		T0, 800DC070
+	LW		T1, 224, (T0)
+	LI		T2, 000FDFFF
+	AND		T1, T1, T2
+	SW		T1, 224, (T0)
+	JR		RA
+	ORI		V0, R0, 2
+}
+
+
+/%
+buttons.flags
+8000 = A
+4000 = B
+2000 = Z
+1000 = Start
+0800 = D_up
+0400 = D_down
+0200 = D_left
+0100 = D_right
+0020 = L
+0010 = R
+0008 = C_up
+0004 = C_down
+0002 = C_left
+0001 = C_right
+%/
+
+%Set up for disabling star spirit options
+
+% Check everytime Mario's battle wheel get initializated
+%Disable when in the Temple of Darkness
+@Hook 17229C % 802439BC
+{
+	LI		T0, 800740AB
+	LB		T1, 0 (T0)
+	LI		T0, 1F		%1F AKA the 31st Area in the list
+    BNE     T0, T1, .EnableStarSpirits
+    NOP
+    .DisableStarSpirits
+    BEQ     R0, R0, .End
+    ORI     T0, R0, FE
+    .EnableStarSpirits
+    ORI    T0, R0, FF
+    .End
+    SAB    T0, 800DC0E0 % Commands Bitflags / bit0 = Star Spirits
+    % restore vanilla code
+    LW        RA, 0018 (SP)
+    J       802439C4
+    LW        S1, 0014 (SP)
+}

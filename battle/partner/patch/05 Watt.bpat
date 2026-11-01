@@ -1,10 +1,87 @@
 
+@	$Script_TakeTurn_80239578
+{
+    0:  Call  GetBattlePhase    ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000000
+   28:  		ExecWait  $Script_802397CC
+   1C:  	Case  ==  00000001
+   28:  		ExecWait  $Script_FirstStrike % first strike  
+   34:  	Case  ==  00000005
+   40:  		ExecWait  $Script_8023960C
+   4C:  	Case  ==  00000003
+   58:  		ExecWait  $Script_80239684
+   64:  	Case  ==  00000007
+   70:  		ExecWait  $Script_802396DC
+   7C:  EndSwitch
+   84:  Return
+   8C:  End
+}
+
+
+
+
+#new:Script $Script_FirstStrike
+{
+   50:  Set   *Flag[0F]  .False
+   60:  Call  GetOwnerTarget    ( *VarA *VarB )
+   74:  Call  GetActorFlags     ( *VarA *Var0 )
+   88:  If  *Var0  &  00000800
+   98:  	Set   *Flag[0F]  .True
+   A8:  EndIf
+   B0:  Call  UseBattleCamPreset    ( 0000002F )
+   C0:  Call  MoveBattleCamOver ( 00000028 )
+   D0:  Call  InitTargetIterator ( )
+   DC:  Call  SetGoalToTarget   ( .Actor:Partner )
+  7C4:  Call  PartnerTestEnemy  ( *Var0 ~Flags:DamageType:0 00000004 00000000  1` 00000010 )
+  7E8:  If  *Var0  ==  .HitResult:Miss % 6
+  7F8:  	Thread
+  800:  		Wait  5`
+  80C:  		Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000E0001 )
+  824:  	EndThread
+  82C:  	Call  SetGoalToTarget   ( .Actor:Partner )
+  83C:  	Call  AddGoalPos    ( .Actor:Partner  40`  10`  0` )
+  858:  	Call  FlyToGoal     ( .Actor:Partner  10`  -20` .Easing:QuadraticOut )
+  874:  	Wait  20`
+  880:  	Call  SetGoalToHome ( .Actor:Partner )
+  890:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000E0003 )
+  8A8:  	Call  FlyToGoal     ( .Actor:Partner  30`  0` .Easing:CosInOut )
+  8C4:  	Call  SetAnimation  ( .Actor:Partner FFFFFFFF 000E0001 )
+  8DC:  	Return
+  8E4:  EndIf
+  8EC:  Call  $Function_802383E4 ( )
+  8F8:  Call  $Function_802383C0 ( )
+  904:  Call  GetActorLevel     ( .Actor:Partner *Var2 )
+  91C:  Switch  *Var2
+  928:  	Case  ==  0
+  944:  		Set   *VarF  00000003
+  954:  	Case  ==  1
+  970:  		Set   *VarF  00000004
+  980:  	Case  ==  2
+  99C:  		Set   *VarF  00000005
+  9AC:  EndSwitch
+  9DC:  		Call  PartnerDamageEnemy    ( *Var0 ~Flags:DamageType:IgnoreDefense|Electric 0000008D 00000000 *VarF 00000070 )
+  A34:  Call  80280818 ( )
+  A40:  Switch  *Var0
+  A4C:  	CaseOR  ==  00000001 % 1
+  A58:  	CaseOR  ==  00000003 % 3
+  A64:  		ExecWait  $Script_80239914
+  A70:  	EndCaseGroup
+  A78:  	CaseOR  ==  .HitResult:Hit % 0
+  A84:  	CaseOR  ==  .HitResult:QuakeImmune % 2
+  A90:  		ExecWait  $Script_80239990
+  A9C:  	EndCaseGroup
+  AA4:  EndSwitch
+  7F8:  Return
+  800:  End
+}
+
 @	$Script_80239BC8
 {
   [6D8]  Wait  0`
   [77C]  Call  FlyToGoal     ( .Actor:Partner  2`  0` .Easing:Linear )
   [858]  	Call  FlyToGoal     ( .Actor:Partner  4`  -20` .Easing:QuadraticOut )
-  [874]  	Wait  2`
+  [874]  	Wait  0`
   [8A8]  	Call  FlyToGoal     ( .Actor:Partner  10`  0` .Easing:CosInOut )
 }
 

@@ -1,0 +1,215 @@
+
+%Vanish for 3 turns
+@ $Function_802A1B14
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  LI        A1, E
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A2, 3
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   20:  LW        S1, 1F4 (S0)
+   24:  JAL       ~Func:inflict_status
+   28:  COPY      A0, S0
+   2C:  SB        R0, 21C (S0)
+   30:  LW        V1, 0 (S1)
+   34:  ORI       V1, V1, 100
+   38:  SW        V1, 0 (S1)
+   3C:  LW        RA, 18 (SP)
+   40:  LW        S1, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  LI        V0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_Vanish2Turns
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  LI        A1, E
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A2, 2			%2 turns
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   20:  LW        S1, 1F4 (S0)
+   24:  JAL       ~Func:inflict_status
+   28:  COPY      A0, S0
+   2C:  SB        R0, 21C (S0)
+   30:  LW        V1, 0 (S1)
+   34:  ORI       V1, V1, 100
+   38:  SW        V1, 0 (S1)
+   3C:  LW        RA, 18 (SP)
+   40:  LW        S1, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  LI        V0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 20
+}
+
+
+#new:Function $Function_Vanish1Turn
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  LI        A1, E
+    8:  SW        S0, 10 (SP)
+    C:  LAW       S0, 800DC148
+   14:  LI        A2, 1			%1 turn
+   18:  SW        RA, 18 (SP)
+   1C:  SW        S1, 14 (SP)
+   20:  LW        S1, 1F4 (S0)
+   24:  JAL       ~Func:inflict_status
+   28:  COPY      A0, S0
+   2C:  SB        R0, 21C (S0)
+   30:  LW        V1, 0 (S1)
+   34:  ORI       V1, V1, 100
+   38:  SW        V1, 0 (S1)
+   3C:  LW        RA, 18 (SP)
+   40:  LW        S1, 14 (SP)
+   44:  LW        S0, 10 (SP)
+   48:  LI        V0, 2
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 20
+}
+
+@ $Script_802A1BB0
+{
+   [20]  	Wait  0`
+   [84]  	Call  SetActorSpeed     ( .Actor:Player *Fixed[8.0] )
+  [194]  	Wait  5`
+  [20C]  	Wait  0`
+  [2D0]  	Wait  5`
+}
+
+% Origin: HEURISTIC
+@ $Script_802A1EB4
+{
+   [58]  Wait  0`
+   [F4]  Wait  5`
+}
+
+@ $Script_802A1FE0
+{
+   [24]  Call  SetActorSpeed     ( .Actor:Player *Fixed[16.0] )
+}
+
+@ $Script_802A207C
+{
+    [8]  	Loop  00000002
+   [28]  		Wait  8`
+   [5C]  Wait  27`
+}
+
+% Origin: HEURISTIC
+@ $Script_802A20F4
+{
+    [8]  	Loop  00000002
+   [28]  		Wait  8`
+   [5C]  Wait  27`
+}
+
+
+@ $Script_UseItem
+{
+    0:  Call  GetMenuSelection  ( *Var0 *Var1 *Var2 )
+		Switch  *Var1
+			Case == .Item:KookyCookie
+	   28:  	SetConst  *VarA  000000D3
+	   38:  	Set   *Var1  00000000
+	   48:  	ExecWait  $Script_802A1BB0
+	   54:  	ExecWait  $Script_802A207C
+	   60:  	Call  $Function_802A1A8C ( )
+	   6C:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+	   88:  	Add   *Var0  00000014
+	   98:  	Add   *Var1  00000019
+	   A8:  	Call  $Function_802A18D8    ( *Var0 *Var1 *Var2 *Var3 )
+	   C4:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+	   E0:  	Add   *Var1  00000019
+	   F0:  	Call  802D7520      ( *Var0 *Var1 *Var2 30` )	
+	  10C:  	Call  $Function_802A19EC    ( *Var3 )
+	  11C:  	Wait  8`
+	  128:  	Call  SetAnimation  ( .Actor:Player 00000000 00010032 )
+	  140:  	Wait  20`
+	  14C:  	Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+	  168:  	Call  802D75D8      ( *Var0 *Var1 *Var2 *Var3 )
+	  184:  	Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+	  19C:  	Wait  10`
+	  1A8:  	Call  SetAnimation  ( .Actor:Player 00000000 0001001F )
+		    CaseOR == .Item:StrangeCake
+			CaseOR == .Item:PeachTart
+	  1C8:  	SetConst  *VarA  000000D2
+	  1D8:  	Set   *Var1  00000000
+	  1E8:  	ExecWait  $Script_802A1BB0
+	  1F4:  	ExecWait  $Script_802A207C
+	  200:  	Call  SetAnimation  ( .Actor:Player 00000000 0001001F )
+			EndCaseGroup
+		EndSwitch
+  220:  Wait  5`
+  22C:  Thread
+  234:  	Wait  220`
+  240:  	Call  PlaySoundAtActor  ( .Actor:Player .Sound:Ding )
+  254:  EndThread
+  25C:  Call  PlaySoundAtActor  ( .Actor:Player .Sound:MysteryReel )
+  270:  Call  $Function_802A13E4 ( )
+  27C:  Wait  1`
+  288:  Switch  *Var0
+  294:  	Case  ==  00000000
+  2A0:  		ExecWait  $Script_802A2B70
+  2AC:  	Case  ==  00000001
+  2B8:  		ExecWait  $Script_802A2C40
+  2C4:  	Case  ==  00000002
+  2D0:  		ExecWait  $Script_802A2D10
+  2DC:  EndSwitch
+  2E4:  ExecWait  $Script_802A1FE0
+  2F0:  Return
+  2F8:  End
+}
+
+@ $Script_802A2B70
+{
+    0:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+   18:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   34:  Add   *Var1  00000014
+   44:  Call  PlayEffect    ( ~FX:SnakingStatic *Var0 *Var1 *Var2 *Fixed[1.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   88:  Call  $Function_802A1AD8 ( )
+		Wait  10`
+   C0:  Return
+   C8:  End
+}
+
+%Vanish turns for Magic Cookie go down by 1 each use
+@	$Script_802A2C40
+{
+    0:  Call  SetAnimation  ( .Actor:Player 00000000 00010002 )
+   18:  Call  GetActorPos   ( .Actor:Player *Var0 *Var1 *Var2 )
+   34:  Add   *Var1  00000014
+   44:  Call  PlayEffect    ( ~FX:RadialFlowOut:WhiteWaves *Var0 *Var1 *Var2 *Fixed[1.0] 0000001E 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Switch *MagicCookieByte
+			Case == 0`
+				Call  $Function_802A1B14 ( )
+			Case == 1`
+				Call  $Function_Vanish2Turns ( )
+			Case >  1`
+				Call  $Function_Vanish1Turn ( )
+		EndSwitch
+		Add   *MagicCookieByte 1`
+		Wait  10`
+   C0:  Return
+   C8:  End
+}
+
+@ $Script_802A2D10
+{
+    0:  Call  SetAnimation      ( .Actor:Player 00000000 00030004 )
+   18:  Call  SetGoalToTarget   ( .Actor:Player )
+   28:  Call  GetGoalPos        ( .Actor:Player *Var0 *Var1 *Var2 )
+   44:  Exec  DoSleepHit
+   50:  Call  $Function_802A1B68 ( )
+		Wait  10`
+   88:  Return
+   90:  End
+}
+
+

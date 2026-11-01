@@ -221,7 +221,7 @@
 	00220019 00000133 0000005E
 	0022001A 000000E7 FFFFFFCE
 	0022001B 00000134 FFFFD8F0
-	0022001D 000000F8 FFFFFFCE
+	0022001D 00000149 FFFFFFCE	%Changed to Attack FX P
 	0022001E 00000135 FFFFFFA7
 	00220020 000000FF 00002712
 	00220021 00000136 0000000B
@@ -234,7 +234,7 @@
 	00220028 00000113 0000004D
 	00220029 000000F4 00000007
 	0022002A 000000E2 00002712
-	0022002B 0000013C FFFFFFF6
+	0022002B 0000013C 0000002F   %Power Plus B is now gotten by fusing Sources of Power
 	0022002C 000000F5 00002712
 	00220038 00000100 00002712
 	00220034 000000FA FFFFFFF6
@@ -262,15 +262,13 @@
 	0022004B 0000011D FFFFD8F0
 	00220049 000000FE 00002712
 	0022004E 000000E6 FFFFFFB6
-	0022004C 0000011C FFFFFFBA
-	0022004D 00000120 0000000F
 	00220015 00000143 FFFFFFF3
 	0022003D 00000145 FFFFFFCB
 	0022003E 00000146 FFFFD8F0
 	0022003F 00000147 0000003F
 	00220040 00000148 FFFFFFBA
 	00220047 00000144 00002712
-	0022001C 0000014A 00000007
+	0022001C 0000014A 00000007	%HP Plus C. Changed the hint to require Pieces of Heart
 	0022001F 0000014D 00000007
 	0022009E 00000170 FFFFFFBA  %Star Gift, available once you get Parakarius
 	0022009F 000000DD FFFFFFBC  %Heart Prayer, available when you get to Dry Dry Outpost
@@ -279,6 +277,8 @@
 	002200A2 00000127 0000000F  %Power Prayer, available once you get Sushie
 	002200A3 00000189 FFFFFF8D  %Truth Stomp, available as soon as you get Goombarius
 	002200A4 00000171 00000043  %Star Blessing, available as soon as you leave Shiver City
+	002200A5 0000016D FFFFFFFB  %Jumpman, available as soon as you reach Pink Station
+	002200A6 0000016E FFFFFFC5  %Hammerman, available when you get Super Hammer
 }
 
 
@@ -287,29 +287,30 @@
 
 
 %Badge shop increase ported from Master Quest and Dark Star Edition.
-%There are at least 208 Star Pieces as of 1.1
+%There are at least 210 Star Pieces as of 1.1
  
-#define .BadgeCount 17`
+#define .BadgeCount 18`
 
 @ $MerlowBadgeInventory
 {
 	.Item:AttackFXA        1`    0023008D % Changes the sound effects when Mario's attacking.
 	.Item:Peekaboo         1`    0023009F % Makes it possible to see your enemy's HP.
 	.Item:ChillOut         2`    00240098 % Keeps you from being hit by a First Strike.
-	.Item:HappyFlowerA     4`    0024007A % Restores FP automatically during battle at a slow  ...
-	.Item:PayOff           6`    00240096 % The more damage Mario takes, the more coins he rec ...
+	.Item:HappyFlowerA     5`    0024007A % Restores FP automatically during battle at a slow  ...
 	.Item:HeartFinder      7`    0024007C % After beating an enemy, makes more hearts appear t ...
 	.Item:FlowerFinder     8`    0024007D % After beating an enemy, makes more flowers appear  ...
+	.Item:ItemHog          9`    0025013E % After beating an enemy, makes more flowers appear  ...
 	.Item:Berserker        9`    0023010C
+	.Item:PayOff          10`    00240096 % The more damage Mario takes, the more coins he rec ...
 	.Item:HPDrain         10`    00240078 % Decreases Mario's attack power by 1. Restores 1 HP ...
 	.Item:FlowerSaverA    12`    0024007B % During battle, saves 1 FP every time you attack.
 	.Item:ZapTap          13`    00240099 % In battle, makes most enemies who touch Mario take ...
 	.Item:CrazyHeart      14`    0023010E % Description corrected
-	.Item:FeelingFine     15`    0024008C % Protects Mario from poisoning and dizziness during ...
+	.Item:FeelingFine     16`    0024008C % Protects Mario from poisoning and dizziness during ...
 	.Item:MoneyMoney      18`    0024009A % After a battle, lets Mario get twice as many coins ...
-	.Item:FlowerFanatic   24`	 0023010F % Description corrected
-	.Item:PowerPlusA      30`    00240073 % Increases Mario's Jump and Hammer attack powers by ...
-	.Item:PowerPlusP      30`    00230145 % Mario's partner
+	.Item:FlowerFanatic   21`	 0023010F % Description corrected
+	.Item:PowerPlusA      25`    00240073 % Increases Mario's Jump and Hammer attack powers by ...
+	.Item:PowerPlusP      25`    00230145 % Mario's partner
 }
 
 
@@ -323,7 +324,7 @@
    18:  If  *VarC  !=  00000000
    28:  	Return
    30:  EndIf
-   38:  If  *MerlowSaleCount  >=  17`
+   38:  If  *MerlowSaleCount  >=  18`
    48:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004C ) % Oh, you wanna trade Star Pieces for Badges, do you ...
 			ExecWait $DonluvleeOnlyFans
    68:  	Return
@@ -338,7 +339,23 @@
    F8:  		Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A004B ) % I'm the famous Merlow of Shooting Star Summit. Got ...
   118:  	EndIf
   120:  EndIf
-  128:  Call  ShowChoice    ( 001E0014 ) % Yes No
+		Call  RandInt       ( 6` *VarA )	%Randomized choices
+		Switch  *VarA
+			Case == 0`
+				Call  ShowChoice    ( 001E000C ) % Yes No
+			Case == 1`
+				Call  ShowChoice    ( 001E000D ) % Yes No
+			Case == 2`
+				Call  ShowChoice    ( 001E0010 ) % Yes No
+			Case == 3`
+				Call  ShowChoice    ( 001E0011 ) % Yes No
+			Case == 4`
+				Call  ShowChoice    ( 001E0013 ) % Yes No
+			Case == 5`
+				Call  ShowChoice    ( 001E0014 ) % Yes No
+			Case == 6`
+				Call  ShowChoice    ( 001E002B ) % Yes No
+		EndSwitch
   138:  If  *Var0  ==  00000001
   148:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A004E ) % Later!
   168:  	Return
@@ -370,7 +387,23 @@
   314:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0052 ) % I'm going to exchange "" for Star Pieces. The numb ...
   334:  EndIf
   33C:  Set   *Var3  *Var0
-  34C:  Call  ShowChoice    ( 001E000D ) % Yes No
+		Call  RandInt       ( 6` *VarA )	%Randomized choices
+		Switch  *VarA
+			Case == 0`
+				Call  ShowChoice    ( 001E000C ) % Yes No
+			Case == 1`
+				Call  ShowChoice    ( 001E000D ) % Yes No
+			Case == 2`
+				Call  ShowChoice    ( 001E0010 ) % Yes No
+			Case == 3`
+				Call  ShowChoice    ( 001E0011 ) % Yes No
+			Case == 4`
+				Call  ShowChoice    ( 001E0013 ) % Yes No
+			Case == 5`
+				Call  ShowChoice    ( 001E0014 ) % Yes No
+			Case == 6`
+				Call  ShowChoice    ( 001E002B ) % Yes No
+		EndSwitch
   35C:  If  *Var0  ==  00000001
   36C:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0054 ) % Ahh... Did you change your mind? You're an indecis ...
   38C:  	Goto  0
@@ -395,7 +428,7 @@
 		If  *MerlowSaleCount  >=  15`
 			ExecWait $DonluvleeOnlyFans
 		EndIf
-  43C:   If  *MerlowSaleCount  >=  17`
+  43C:   If  *MerlowSaleCount  >=  18`
   44C:  	Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0055 ) % All right! These Star Pieces really help round out ...
   46C:  	Return
   474:  EndIf
@@ -405,7 +438,23 @@
   4BC:  	Return
   4C4:  EndIf
   4CC:  Call  SpeakToPlayer ( .NpcID:Merlow_01 00B20005 00B20001 00000000 000A0056 ) % All right then, mister. Why don't we swap some mor ...
-  4EC:  Call  ShowChoice    ( 001E000D ) % Yes No
+		Call  RandInt       ( 6` *VarA )	%Randomized choices
+		Switch  *VarA
+			Case == 0`
+				Call  ShowChoice    ( 001E000C ) % Yes No
+			Case == 1`
+				Call  ShowChoice    ( 001E000D ) % Yes No
+			Case == 2`
+				Call  ShowChoice    ( 001E0010 ) % Yes No
+			Case == 3`
+				Call  ShowChoice    ( 001E0011 ) % Yes No
+			Case == 4`
+				Call  ShowChoice    ( 001E0013 ) % Yes No
+			Case == 5`
+				Call  ShowChoice    ( 001E0014 ) % Yes No
+			Case == 6`
+				Call  ShowChoice    ( 001E002B ) % Yes No
+		EndSwitch
   4FC:  If  *Var0  ==  00000001
   50C:  	Call  ContinueSpeech    ( .NpcID:Merlow_01 00B20004 00B20001 00000000 000A0057 ) % You don't want to? Oh well. At least I was able to ...
   52C:  	Return

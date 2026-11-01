@@ -1,6 +1,169 @@
 %Shy Squad now do 2 damage each, for a maximum
 %of 30 if left untouched.
 
+
+@ $ShySquad
+{
+	% stats
+	[Index]        A8b
+	[Level]         0`b
+	[MaxHP]        15`b
+	[Coins]         0`b
+	[Flags]       00000004
+	[StatusTable] $StatusTable_802310BC
+	% ai
+	[PartsCount]   16`s
+	[PartsTable]  $PartsTable_80231168
+	[Script]      $Script_Init_8023142C_2
+	% move effectiveness
+	[Escape]        0`b
+	[Item]          0`b
+	[AirLift]       0`b
+	[Hurricane]     0`b % Bow's "Spook" as well
+	[UpAndAway]     0`b
+	[PowerBounce]  80`b
+	[SpinSmash]     4`b % weight (0-4)
+	% ui positions
+	[Size]         28`b  24`b % width height
+	[HealthBar]     0`b   0`b % dx dy
+	[StatusTurn]  -10`b  20`b % dx dy
+	[StatusIcon]   10`b  20`b % dx dy
+}
+
+
+%Fix the crash I've been experiencing (grabbed from TTYD64)
+#delete $Script_Init_8023142C
+
+#new:Script $Script_Init_8023142C_2
+{
+        % set actor HP as 15`
+        Call  $GetActorPointer ( .Actor:Self *Var0 )
+        Call  $WriteAddress ( *Var0 1 0F0F 1B8 .False )
+        %
+    0:  Call  BindTakeTurn  ( .Actor:Self $Script_TakeTurn_80235468 )
+   14:  Call  BindIdle  ( .Actor:Self $Script_Idle_80232454 )
+        Call  BindHandleEvent       ( .Actor:Self $Script_HandleEvent_802337D0 )
+   3C:  Call  BindNextTurn  ( .Actor:Self $Script_NextTurn_80232058 )
+   50:  Call  SetActorVar   ( .Actor:Self 00000000 00000000 )
+   68:  Call  SetActorVar   ( .Actor:Self 00000001 00000000 )
+   80:  Call  SetActorVar   ( .Actor:Self 00000002 00000000 )
+   98:  Call  SetActorVar   ( .Actor:Self 00000003 00000000 )
+   B0:  Call  SetActorVar   ( .Actor:Self 00000004 00000000 )
+   C8:  Call  SetPartMovementVar    ( .Actor:Self 00000002 00000000 00000032 )
+   E4:  Call  SetPartMovementVar    ( .Actor:Self 00000002 00000001 00000014 )
+  100:  Call  SetPartMovementVar    ( .Actor:Self 00000003 00000000 00000032 )
+  11C:  Call  SetPartMovementVar    ( .Actor:Self 00000003 00000001 FFFFFFD8 )
+  138:  Call  SetPartMovementVar    ( .Actor:Self 00000004 00000000 00000028 )
+  154:  Call  SetPartMovementVar    ( .Actor:Self 00000004 00000001 00000028 )
+  170:  Call  SetPartMovementVar    ( .Actor:Self 00000005 00000000 00000014 )
+  18C:  Call  SetPartMovementVar    ( .Actor:Self 00000005 00000001 00000028 )
+  1A8:  Call  SetPartMovementVar    ( .Actor:Self 00000006 00000000 0000001E )
+  1C4:  Call  SetPartMovementVar    ( .Actor:Self 00000006 00000001 00000014 )
+  1E0:  Call  SetPartMovementVar    ( .Actor:Self 00000007 00000000 00000028 )
+  1FC:  Call  SetPartMovementVar    ( .Actor:Self 00000007 00000001 FFFFFFF6 )
+  218:  Call  SetPartMovementVar    ( .Actor:Self 00000008 00000000 0000001E )
+  234:  Call  SetPartMovementVar    ( .Actor:Self 00000008 00000001 FFFFFFD8 )
+  250:  Call  SetPartMovementVar    ( .Actor:Self 00000009 00000000 00000000 )
+  26C:  Call  SetPartMovementVar    ( .Actor:Self 00000009 00000001 00000028 )
+  288:  Call  SetPartMovementVar    ( .Actor:Self 0000000A 00000000 0000000A )
+  2A4:  Call  SetPartMovementVar    ( .Actor:Self 0000000A 00000001 00000014 )
+  2C0:  Call  SetPartMovementVar    ( .Actor:Self 0000000B 00000000 00000014 )
+  2DC:  Call  SetPartMovementVar    ( .Actor:Self 0000000B 00000001 FFFFFFF6 )
+  2F8:  Call  SetPartMovementVar    ( .Actor:Self 0000000C 00000000 0000000A )
+  314:  Call  SetPartMovementVar    ( .Actor:Self 0000000C 00000001 FFFFFFD8 )
+  330:  Call  SetPartMovementVar    ( .Actor:Self 0000000D 00000000 FFFFFFF6 )
+  34C:  Call  SetPartMovementVar    ( .Actor:Self 0000000D 00000001 FFFFFFD8 )
+  368:  Call  SetPartMovementVar    ( .Actor:Self 0000000E 00000000 FFFFFFEC )
+  384:  Call  SetPartMovementVar    ( .Actor:Self 0000000E 00000001 FFFFFFF6 )
+  3A0:  Call  SetPartMovementVar    ( .Actor:Self 0000000F 00000000 FFFFFFF6 )
+  3BC:  Call  SetPartMovementVar    ( .Actor:Self 0000000F 00000001 00000014 )
+  3D8:  Call  SetPartMovementVar    ( .Actor:Self 00000010 00000000 00000000 )
+  3F4:  Call  SetPartMovementVar    ( .Actor:Self 00000010 00000001 FFFFFFF6 )
+  410:  Call  SetPartMovementVar    ( .Actor:Self 00000002 00000002 00000014 )
+  42C:  Call  SetPartMovementVar    ( .Actor:Self 00000002 00000003 00000014 )
+  448:  Call  SetPartMovementVar    ( .Actor:Self 00000003 00000002 00000014 )
+  464:  Call  SetPartMovementVar    ( .Actor:Self 00000003 00000003 FFFFFFF6 )
+  480:  Call  SetPartMovementVar    ( .Actor:Self 00000004 00000002 00000014 )
+  49C:  Call  SetPartMovementVar    ( .Actor:Self 00000004 00000003 0000000A )
+  4B8:  Call  SetPartMovementVar    ( .Actor:Self 00000005 00000002 00000000 )
+  4D4:  Call  SetPartMovementVar    ( .Actor:Self 00000005 00000003 0000000A )
+  4F0:  Call  SetPartMovementVar    ( .Actor:Self 00000006 00000002 00000014 )
+  50C:  Call  SetPartMovementVar    ( .Actor:Self 00000006 00000003 00000014 )
+  528:  Call  SetPartMovementVar    ( .Actor:Self 00000007 00000002 0000001E )
+  544:  Call  SetPartMovementVar    ( .Actor:Self 00000007 00000003 00000000 )
+  560:  Call  SetPartMovementVar    ( .Actor:Self 00000008 00000002 00000014 )
+  57C:  Call  SetPartMovementVar    ( .Actor:Self 00000008 00000003 FFFFFFF6 )
+  598:  Call  SetPartMovementVar    ( .Actor:Self 00000009 00000002 FFFFFFEC )
+  5B4:  Call  SetPartMovementVar    ( .Actor:Self 00000009 00000003 0000000A )
+  5D0:  Call  SetPartMovementVar    ( .Actor:Self 0000000A 00000002 FFFFFFEC )
+  5EC:  Call  SetPartMovementVar    ( .Actor:Self 0000000A 00000003 00000014 )
+  608:  Call  SetPartMovementVar    ( .Actor:Self 0000000B 00000002 00000000 )
+  624:  Call  SetPartMovementVar    ( .Actor:Self 0000000B 00000003 00000000 )
+  640:  Call  SetPartMovementVar    ( .Actor:Self 0000000C 00000002 FFFFFFEC )
+  65C:  Call  SetPartMovementVar    ( .Actor:Self 0000000C 00000003 FFFFFFF6 )
+  678:  Call  SetPartMovementVar    ( .Actor:Self 0000000D 00000002 FFFFFFEC )
+  694:  Call  SetPartMovementVar    ( .Actor:Self 0000000D 00000003 FFFFFFF6 )
+  6B0:  Call  SetPartMovementVar    ( .Actor:Self 0000000E 00000002 FFFFFFE2 )
+  6CC:  Call  SetPartMovementVar    ( .Actor:Self 0000000E 00000003 00000000 )
+  6E8:  Call  SetPartMovementVar    ( .Actor:Self 0000000F 00000002 FFFFFFEC )
+  704:  Call  SetPartMovementVar    ( .Actor:Self 0000000F 00000003 00000014 )
+  720:  Call  SetPartMovementVar    ( .Actor:Self 00000010 00000002 FFFFFFE2 )
+  73C:  Call  SetPartMovementVar    ( .Actor:Self 00000010 00000003 00000000 )
+  758:  Call  SetPartMovementVar    ( .Actor:Self 00000002 00000004 FFFFFFEC )
+  774:  Call  SetPartMovementVar    ( .Actor:Self 00000002 00000005 00000000 )
+  790:  Call  SetPartMovementVar    ( .Actor:Self 00000003 00000004 0000000A )
+  7AC:  Call  SetPartMovementVar    ( .Actor:Self 00000003 00000005 FFFFFFF6 )
+  7C8:  Call  SetPartMovementVar    ( .Actor:Self 00000004 00000004 00000000 )
+  7E4:  Call  SetPartMovementVar    ( .Actor:Self 00000004 00000005 FFFFFFEC )
+  800:  Call  SetPartMovementVar    ( .Actor:Self 00000005 00000004 00000000 )
+  81C:  Call  SetPartMovementVar    ( .Actor:Self 00000005 00000005 00000014 )
+  838:  Call  SetPartMovementVar    ( .Actor:Self 00000006 00000004 FFFFFFF6 )
+  854:  Call  SetPartMovementVar    ( .Actor:Self 00000006 00000005 0000000A )
+  870:  Call  SetPartMovementVar    ( .Actor:Self 00000007 00000004 FFFFFFF6 )
+  88C:  Call  SetPartMovementVar    ( .Actor:Self 00000007 00000005 FFFFFFF6 )
+  8A8:  Call  SetPartMovementVar    ( .Actor:Self 00000008 00000004 0000000A )
+  8C4:  Call  SetPartMovementVar    ( .Actor:Self 00000008 00000005 0000000A )
+  8E0:  Call  SetPartMovementVar    ( .Actor:Self 00000009 00000004 0000001E )
+  8FC:  Call  SetPartMovementVar    ( .Actor:Self 00000009 00000005 FFFFFFF6 )
+  918:  Call  SetPartMovementVar    ( .Actor:Self 0000000A 00000004 FFFFFFEC )
+  934:  Call  SetPartMovementVar    ( .Actor:Self 0000000A 00000005 FFFFFFEC )
+  950:  Call  SetPartMovementVar    ( .Actor:Self 0000000B 00000004 00000014 )
+  96C:  Call  SetPartMovementVar    ( .Actor:Self 0000000B 00000005 00000000 )
+  988:  Call  SetPartMovementVar    ( .Actor:Self 0000000C 00000004 00000014 )
+  9A4:  Call  SetPartMovementVar    ( .Actor:Self 0000000C 00000005 00000014 )
+  9C0:  Call  SetPartMovementVar    ( .Actor:Self 0000000D 00000004 0000001E )
+  9DC:  Call  SetPartMovementVar    ( .Actor:Self 0000000D 00000005 0000000A )
+  9F8:  Call  SetPartMovementVar    ( .Actor:Self 0000000E 00000004 FFFFFFE2 )
+  A14:  Call  SetPartMovementVar    ( .Actor:Self 0000000E 00000005 0000000A )
+  A30:  Call  SetPartMovementVar    ( .Actor:Self 0000000F 00000004 FFFFFFE2 )
+  A4C:  Call  SetPartMovementVar    ( .Actor:Self 0000000F 00000005 FFFFFFF6 )
+  A68:  Call  SetPartMovementVar    ( .Actor:Self 00000010 00000004 FFFFFFEC )
+  A84:  Call  SetPartMovementVar    ( .Actor:Self 00000010 00000005 00000014 )
+  AA0:  Call  RandInt   ( 00000064 *Var0 )
+  AB4:  Add   *Var0  000000BE
+  AC4:  Call  RandInt   ( 00000064 *Var2 )
+  AD8:  Add   *Var2  FFFFFFCE
+  AE8:  Call  SetActorPos   ( .Actor:Self *Var0  0` *Var2 )
+  B04:  Set   *Var1  00000002
+  B14:  Loop  0000000F
+  B20:  	Call  RandInt       ( 00000064 *Var0 )
+  B34:  	Add   *Var0  000000BE
+  B44:  	Call  RandInt       ( 00000064 *Var2 )
+  B58:  	Add   *Var2  FFFFFFCE
+  B68:  	Call  SetPartPos    ( .Actor:Self *Var1 *Var0  0` *Var2 )
+  B88:  	Add   *Var1  00000001
+  B98:  EndLoop
+  BA0:  Set   *Var0  00000002
+  BB0:  Loop  0000000F
+  BBC:  	Call  CreatePartShadow  ( .Actor:Self *Var0 )
+  BD0:  	Add   *Var0  00000001
+  BE0:  EndLoop
+  BE8:  Call  SetActorSize  ( .Actor:Self  -250000000`  72` )
+  C00:  Call  SetPartSize   ( .Actor:Self 00000001  24`  24` )
+  C1C:  Return
+  C24:  End
+}
+
 @	$Script_802348E0
 {
   [264]  Call  SetActorSpeed ( .Actor:Self *Fixed[12.0] )

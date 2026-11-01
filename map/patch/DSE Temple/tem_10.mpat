@@ -1,0 +1,272 @@
+% Auto-generated script for tem_03
+
+#new:Header $Header
+{
+	[MainScript] $Script_Main
+	[Background] 80200000
+	[EntryList] $EntryList
+	[EntryCount] 1
+	[MapTattle]   $Function_GetTattle
+}
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]This is the top of the[BR]
+Temple of Darkness.[BR]
+[WAIT][NEXT]
+This big empty space seems[BR]
+pretty ominous...[BR]
+[WAIT][NEXT]
+Whatever is up here is probably[BR]
+stronger than all the other[BR]
+bosses inside the temple.[BR]
+[WAIT][END]
+}
+
+
+#new:EntryList $EntryList
+{
+	~Vec4f:Entry0
+}
+
+#new:Script_Main $Script_Main
+{
+	Set   *GB_WorldLocation  .Location:ToadTownTunnels
+	Call  SetCamPerspective  ( .Cam:Default 00000003 00000019 00000010 00001000 )
+	Call  SetCamBGColor      ( .Cam:Default 00000000 00000000 00000000 )
+	Call  SetCamEnabled      ( .Cam:Default .True
+	Call  SetCamLeadPlayer   ( .Cam:Default .False )
+	Exec  $Script_MakeEntities
+	Exec  $Script_SetupMusic
+	Exec  $Script_EnterMap
+	Call  MakeNpcs    	( 00000001 $NpcGroupList_AntiGuys )
+	Bind     $Script_FightWall  .Trigger:WallPressA ~Collider:fightwall  00000001 00000000 	
+	If *GF_TEM_FinalBoss == .True
+		%Call	MakeItemEntity	( 0000003F ~Vec3d:kStoneSpawn 0000000D *GF_TEM_KnowledgeStone )
+	EndIf
+	If *GF_TEM_FinalBoss == .True
+		Call     EnableGroup 	( ~Model:darksword .False )
+	Else
+		Call     EnableGroup 	( ~Model:lightsword .False )
+	EndIf
+	Call  SetMusicTrack ( 00000000 .Song:Deadline 1 00000008 )
+	Return
+	End
+}
+
+#new:NpcGroupList $NpcGroupList_AntiGuys
+{
+	00000001 $NpcGroup_AntiGuys 3E000000
+	00000000 00000000 00000000
+}
+
+#new:NpcSettings $NpcSettings_Guy
+{
+	00000000 001A0018 00000000 00000000 00000000 00000000 00000000 00000000 
+	00000000 00000000 00630000
+}
+
+%Recycled the anti guy script from the front of the temple
+#new:NpcGroup $NpcGroup_AntiGuys
+{
+00000000 $NpcSettings_Guy ~Vec3f:NPC_boss % -770 0 0
+00850D0D $Script_Init_Boss 00000000 00000000 0000010E 
+~Items:0:DriedShroom:A
+~NoHP
+~NoFP
+~NoCoinBonus
+~Movement:NPC_boss
+003B0501 003B0502 003B0504 003B0504 003B0501 003B0501 003B050C 003B050C
+003B0515 003B0512 003B0511 003B0510 003B0505 003B0501 003B0501 003B0501 % .Sprite:ShyGuy
+00000000 00000000 00000000 00000000 % no tattle string
+}
+
+#new:Script $Script_Idle_Boss
+{
+	Loop	
+		Wait 1`
+		If *MapFlag[2] == .True
+			BreakLoop
+		EndIf
+	EndLoop
+	%Call	StartBossBattle		( .Song:SmithyFight )	
+	Set  *MapFlag[2] .False
+	Return
+	End
+}
+
+#new:Script $Script_FightWall
+{
+	If *GF_TEM_FinalBoss == .False
+		Call	 DisablePlayerInput ( .True )
+		Call     ShowMessageAtScreenPos     	( $FinalTest 000000A0 00000028 )
+		%Call	 DisablePlayerInput ( .False )
+		Set 	 *MapFlag[2] .True
+	Else
+		If *MapFlag[3] == .True
+			%have to reset room to fix this
+		Else
+			Call	 DisablePlayerInput ( .True )
+			%Call     ShowMessageAtScreenPos     	( $IAmDead 000000A0 00000028 )
+			%Call     ShowMessageAtScreenPos     	( $FinalTestRetry 000000A0 00000028 )
+			Call	SpeakToPlayer	( 00000000 00B30102 00B30101 00000000 $FinalTestRetry )
+			Call	ShowChoice	( 001E001D ) % yes / no
+			Call	EndSpeech	( 00000000 00B30102 00B30101 00000000 )
+			If 		*Var0 == 0
+				Set 	 *MapFlag[2] .True
+			Else
+				Call	 DisablePlayerInput ( .False )
+			EndIf
+		EndIf
+	EndIf
+	Return
+	End
+}
+
+#new:Script $Script_Init_Boss
+{
+	Call     BindNpcIdle		( .Npc:Self $Script_Idle_Boss )
+	Call	 BindNpcDefeat		( .Npc:Self $Script_Defeat )
+	Return
+	End
+}
+
+#new:Script $Script_Defeat
+{
+		Set  *MapFlag[2] .False		
+    0:  Call  GetBattleOutcome  ( *Var0 )
+   10:  Switch  *Var0
+   1C:  	Case  ==  .Outcome:PlayerWon % 0
+   28:  		Set   *GF_TEM_FinalBoss  .True
+				Call     EnableGroup 	( ~Model:darksword .False )
+				Call     EnableGroup 	( ~Model:lightsword .True )
+				Wait 	10`
+				%Call	 DisablePlayerInput ( .True )
+				Call     ShowMessageAtScreenPos     	( $IAmDead 000000A0 00000028 )
+				Call	 DisablePlayerInput ( .False )													
+				%Call	MakeItemEntity	( 0000003F ~Vec3d:kStoneSpawn 0000000D *GF_TEM_KnowledgeStone )
+				Set *MapFlag[3] .True
+   5C:  	Case  ==  .Outcome:PlayerLost % 1
+   7C:  	Case  ==  .Outcome:PlayerFled % 2
+   9C:  EndSwitch		
+   A4:  Return
+   AC:  End
+}
+
+
+#new:Function_Init $Function_Init
+{
+	PUSH    RA
+	LIA     A0, 800B0CF0
+	LIA     A1, "kpa_tex"
+	JAL     800654F0 % sprintf
+	RESERVED
+	CLEAR  V0
+	JPOP   RA
+}
+
+#new:Script $Script_MakeEntities
+{
+	Return
+	End
+}
+
+#new:Script $Script_SetupMusic
+{
+	Return
+	End
+}
+
+#new:Script $Script_EnterMap
+{
+   %5C:  		Call  UseSettingsFrom       ( .Cam:Default 00000177 00000000 FFFFFF44 )
+   %78:  		Call  SetPanTarget  ( .Cam:Default 00000177 00000000 FFFFFF44 )
+   94:  		Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   %A8:  		Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+   C0:  		Call  DisablePlayerInput    ( .True )
+   D0:  		Call  DisablePlayerPhysics  ( .True )
+   E0:  		Call  SetPlayerActionState  ( .ActionState:Jump )
+   F0:  		Wait  1`
+   FC:  		Call  SetPlayerJumpscale    ( *Fixed[0.7] )
+  10C:  		Call  PlayerJump    ( ~Vec3d:Entry0dest 00000014 )
+  %128:  		Call  PanToTarget   ( .Cam:Default 00000000 00000000 )
+  140:  		Call  DisablePlayerPhysics  ( .False )
+  150:  		Call  DisablePlayerInput    ( .False )
+  160:  		Call  SetPlayerActionState  ( .ActionState:Idle )
+	Exec  $Script_ExitScript
+	Return
+	End
+}
+
+
+#new:Script $Script_ExitScript
+{
+    0:  Label  0
+    C:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   24:  Wait  1`
+   54:  If  *Var1  >=  75`
+   64:  	Goto  0
+   70:  EndIf
+   78:  Call  802CA988      ( 00000000 *Var2 *Var3 *Var4 *Var5 )
+   98:  Label  1
+   A4:  Call  GetPlayerPos  ( *Var0 *Var1 *Var2 )
+   BC:  Wait  1`
+   C8:  If  *Var1  >  75`
+   D8:  	Goto  1
+   E4:  EndIf
+    0:  Call  GotoMap   ( "tem_02" ~Entry:tem_02:Entry8 ) % tik_08
+   14:  Wait  100`
+  10C:  Return
+  114:  End
+}
+
+/%
+#new:Script $Script_Exit0
+{
+    0:  Call  GotoMap   ( "tem_02" ~Entry:tem_02:Entry8 ) % tik_08
+   14:  Wait  100`
+   20:  Return
+   28:  End
+}
+%/
+
+
+#new:String $FinalTest
+{
+	[Style Inspect]	
+	WITH HIS FINAL BREATH[BR]
+	HE CALLED FORTH A WEAPON[BR]
+	ONE THAT COULD CAUSE DEATH[BR]
+	AND BRING THE WORLD TO RECKON[BR]
+	[WAIT][NEXT]
+	IT WOULD REMAIN SEALED[BR]
+	UNTIL THIS TEXT IS REVEALED[BR]
+	NOW, THE WORLD SHALL YIELD[BR]
+	[WAIT][END]
+}
+
+#new:String $IAmDead	%you killed me :(
+{
+	[Style Inspect]	
+	THE DARK BLADE IS DEAD[BR]
+	AN OUTCOME HE DID NOT FORSEE[BR]
+	ONLY ONE THING CAN BE SAID[BR]
+	[WAIT][NEXT]
+	gg[WAIT][END]
+}
+
+#new:String $FinalTestRetry	%try again?
+{
+	[Style Inspect]
+	Do you want to fight the[BR]
+	boss again?[YIELD][END]
+}
+

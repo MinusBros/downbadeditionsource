@@ -32,6 +32,7 @@ My lucky lady will love it here.[BR]
 [Wait][End]
 }
 
+
 #new:EntryList $EntryList
 {
 ~Vec4f:Entry0 %  coordinates
@@ -47,6 +48,9 @@ My lucky lady will love it here.[BR]
 	Call     SetCamEnabled 	 	( .Cam:Default  .True )   % Enabled?
 	Call     SetCamLeadPlayer 	 	( .Cam:Default  .False )  % Lead player motion?
 	Call     SetMusicTrack    	( 00000000 .Song:ShootingStarSummit 00000000 00000008 )
+	If    *GB_StoryProgress == .Story:Ch6_ReturnedToToadTown
+		Call  MakeNpcs  ( .True $NpcGroupList_LuigiStarfall )
+	EndIf
 	Exec	$Script_ShootingStars
 	Exec  $Script_SetupTexturePan
 	Exec	$Script_CreateTreeEvents
@@ -55,6 +59,129 @@ My lucky lady will love it here.[BR]
 		Exec	EnterWalk 
 	Return
 	End
+}
+
+
+#define .Npc:Luigi  20
+
+#new:NpcGroupList $NpcGroupList_LuigiStarfall
+{
+	1 $Luigi 0
+	00000000 00000000 00000000
+}
+
+
+#new:NpcGroup  $Luigi
+{
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` $LuigiTattle
+}
+
+
+#new:Script  $Script_Init_Luigi
+{
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 $LuigiInteract )
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
+}
+
+
+
+#string $LuigiInteract
+{
+[Style Right]
+Oh, hey, Bro![BR]
+What are you doing out here?[BR]
+[Pause 10]This-a [SaveColor][Color:09]Starfall Hill[RestoreColor] is really[BR]
+pretty, don't you agree?[BR]
+[Wait][Next]
+Really reminds me of that adventure[BR]
+I had one time.[BR]
+[Pause 10]I was flying through space with[BR]
+my clone. Good times.[BR]
+[Wait][Next]
+[PrintRising]Wowie zowie! And there was that[BR]
+tall space mommy, Bro?[/fx][BR]
+[Pause 10]You really missed out.[BR]
+I think I nutted in my overalls.[BR]
+[Wait][Next]
+Be careful here, though.[BR]
+You might run into some weirdos.[BR]
+[Wait][Next]
+It'd be even worse if you ran into[BR]
+an alien coach guy.[BR]
+[Pause 5]They can carry big bombs.[BR]
+[Wait][Next]
+Don't worry about me.[BR]
+I'm-a keep gazing at those shooting[BR]
+stars, Bro.[BR]
+[Wait][End]
+}
+
+
+#string $LuigiTattle
+{
+[Style Tattle]
+[EnableCDownNext]
+Luigi's here on [SaveColor][Color:09]Starfall Hill[RestoreColor].[BR]
+[Pause 5]I guess I see the vision.[BR]
+This IS a nice place to go[BR]
+stargazing for chicks.[BR]
+[Wait][Next]
+But still, would it kill him[BR]
+to go somewhere we aren't[BR]
+for a change?[BR]
+[Shake]It's freaking me out![/fx][BR]
+[Wait][Next]
+Then again, is Luigi even[BR]
+competent enough to go on[BR]
+his own adventure?[BR]
+[Pause 10]Answer:[Wait] [Rainbow]Nope.[/fx][BR]
+[Wait][End]
 }
 
 	#new:Script $Script_MakeEntities
@@ -70,6 +197,8 @@ My lucky lady will love it here.[BR]
 	Return
 	End
 }
+
+
 			
 	#new:Script $Script_RockDestroyed
 {

@@ -8,6 +8,8 @@
 #define .NpcID:StarKid_06           06
 #define .NpcID:ChuckQuizmo_07       07
 
+#define .Npc:Luigi  20
+
 
 
 @	$Header
@@ -31,9 +33,7 @@
 	~Vec4f:EntryB
 }
 
-%I originally wanted to have a shop theme for this map,
-%but it kept bugging out, so I'll make the shop theme
-%play for the whole map cuz it's really relaxing.
+%This map finally has a shop theme
 
 @	$Script_80243630
 {
@@ -644,7 +644,11 @@
 	End
 }
 
-
+@	$NpcGroupList_8024BAE4
+{
+	00000009 $NpcGroup_8024AB64 00000000
+	00000000 00000000 00000000
+}
 
 @	$NpcGroup_8024AB64
 {
@@ -710,8 +714,114 @@
 	~Movement:NPC_ChuckQuizmo_07
 	~AnimationTable:NPC_ChuckQuizmo_07 % .Sprite:ChuckQuizmo
 	00000000 00000000 00000000 001A0125 % Give Chuck a different tattle specifically for this room because why the hell not
+	
+	
+	.Npc:Luigi $LuigiSettings ~Vec3f:Luigi
+	00002009 $Script_Init_Luigi 0` 0` 000000B4
+	~NoDrops
+	~Movement:Luigi
+	~AnimationTable:Luigi
+	0` 0` 0` $LuigiTattle
 }
 
+
+
+
+#new:Script  $Script_Init_Luigi
+{
+	If    *GF_DNJ29_Disastar == .True
+		Call  SetNpcPos ( .Npc:Self  -1000`  -1000`  0` )
+	EndIf
+	If   *YokubounoNaizouIncomplete == .False
+		Call  SetNpcPos ( .Npc:Self  -1000`  -1000`  0` )
+	EndIf
+	Call  BindNpcInteract   ( .Npc:Self $Script_Interact_Luigi )
+	Return
+	End
+}
+
+
+#new:Script $Script_Interact_Luigi
+{
+		Call  SpeakToPlayer ( .Npc:Self 00820014 00820004 00000000 $LuigiInteract )
+		Return
+		End
+}
+
+
+#new:NpcSettings $LuigiSettings
+{
+	00000000 00230018 00000000 00000000 $Script_Luigi_Move 00000000 00000000 00000000
+	00000000 00000000 00630010
+}
+
+
+
+
+
+#new:AISettings $LuigiAISettings {
+    1.5 % move speed
+    60` % move time
+    30` % wait time
+    0.0 % alert radius
+    0.0
+    -1`
+    0.0 % chase speed
+    0`
+    0`
+    0.0 % chase radius
+    0.0
+    1`
+}
+
+#new:Script $Script_Luigi_Move {
+    0:  Call  DoBasicAI ( $LuigiAISettings )
+   10:  Return
+   18:  End
+}
+
+
+#string $LuigiInteract
+{
+[Style Right]
+Oh, hey, Bro![BR]
+What are you doing out here?[BR]
+[Pause 10]Wooooow, it took you this long to get[BR]
+to [SaveColor][Color:09]Love Heaven[RestoreColor]?[BR]
+[Wait][Next]
+Don't ya know?[BR]
+I have membership, so they let me in[BR]
+whenever I want.[BR]
+[Pause 10][Wave]Pretty cool, huh?[/fx][BR]
+[Wait][Next]
+But eh, getting kinda bored of[BR]
+it here.[BR]
+[Pause 5]I've seen everything there is to do[BR]
+here, so I'll probably go soon.[BR]
+[Wait][End]
+}
+
+
+#string $LuigiTattle
+{
+[Style Tattle]
+[EnableCDownNext]
+What the?[BR]
+[Pause 15][PrintRising]Okay, how the actual frick did[BR]
+Luigi get up here before us?[/fx][BR]
+[Wait][Next]
+It hasn't even been that long[BR]
+since we opened the...[BR]
+[Pause 5]The...[Pause 5] Whatever you call it.[BR]
+[Wait][Next]
+I might be a little impressed.[BR]
+[Pause 10]But also not cuz it's Luigi.[BR]
+Ha![BR]
+[Wait][Next]
+No way is he getting a lady[BR]
+before I do.[BR]
+[Wait][End]
+}
 
 
 % ====================================================
@@ -741,7 +851,23 @@
    EC:  		Set   *GF_Met_ChuckQuizmo  .True
    FC:  	EndIf
   104:  EndIf
-  10C:  Call  ShowChoice    ( 001E000D ) % Yes No
+		Call  RandInt       ( 6` *VarA )	%Randomized choices
+		Switch  *VarA
+			Case == 0`
+				Call  ShowChoice    ( 001E000C ) % Yes No
+			Case == 1`
+				Call  ShowChoice    ( 001E000D ) % Yes No
+			Case == 2`
+				Call  ShowChoice    ( 001E0010 ) % Yes No
+			Case == 3`
+				Call  ShowChoice    ( 001E0011 ) % Yes No
+			Case == 4`
+				Call  ShowChoice    ( 001E0013 ) % Yes No
+			Case == 5`
+				Call  ShowChoice    ( 001E0014 ) % Yes No
+			Case == 6`
+				Call  ShowChoice    ( 001E002B ) % Yes No
+		EndSwitch
   11C:  If  *Var0  ==  00000001
   12C:  	Call  ContinueSpeech    ( .Npc:Self 00AF0004 00AF0001 00000000 0008000C ) % Uh, oh. Not up to it, huh? Maybe another time! Wel ...
   14C:  	ExecWait  $Script_80248110

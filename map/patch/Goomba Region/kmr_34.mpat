@@ -142,17 +142,25 @@ Hallucinations blow![BR]
 		Call  SetPlayerAnimation    ( 00080007 )
    18:  Call  PlaySoundAtNpc    ( .Npc:Priest 00000262 00000000 )
    30:  Call  ShowEmote ( .Npc:Priest .Emote:Exclamation  0`  20` .True  0`  0`  0`  0` )
-		Exec  $SwapToGoombarius %Have this as a failsafe for players updating to a newer version
-   60:  Wait  20`
+		If  *NoGoombariusMode == .False
+			Exec  $SwapToGoombarius %Have this as a failsafe for players updating to a newer version
+			Wait  20`
+		EndIf
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B0114 )  %Priest talk 2
-		Call  DisablePartnerAI  ( 00000000 )
-		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 000B0115 )  %Goombarius talk 1
-		Call  SetNpcAnimation   ( .Npc:Partner 0001001B )
-		Call  SpeakToNpc    ( .Npc:Priest 00870408 00870405 00000005 .Npc:JrTroopa 000B0116 )  %Priest talk 3
-		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 000B0117 )  %Goombarius talk 2
+		If  *NoGoombariusMode == .False
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 000B0115 )  %Goombarius talk 1
+			Call  SetNpcAnimation   ( .Npc:Partner 0001001B )
+			Call  SpeakToNpc    ( .Npc:Priest 00870408 00870405 00000005 .Npc:JrTroopa 000B0116 )  %Priest talk 3
+			Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000005 000B0117 )  %Goombarius talk 2
+		Else
+			Call  SpeakToNpc    ( .Npc:Priest 00870408 00870405 00000005 .Npc:JrTroopa 000B014A )	%Alt dialogue if no Goombarius
+		EndIf
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B0118 )  %Priest talk 4
-		Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
-		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010012 00000005 000B0119 )  %Goombarius talk 3
+		If  *NoGoombariusMode == .False
+			Call  SetNpcAnimation   ( .Npc:Partner 00010012 )
+			Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010012 00000005 000B0119 )  %Goombarius talk 3
+		EndIf
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B011E )  %Priest talk 5
 		Call  SetNpcVar ( .Npc:Priest 00000000 00000001 )
 		Return
@@ -185,8 +193,10 @@ Hallucinations blow![BR]
 		Wait  10`
 		Call  SetNpcAnimation   ( .Npc:Priest 00870405 )
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B011A )  %Priest talk 5
-		Call  DisablePartnerAI  ( 00000000 )
-		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010012 00000005 000B011B )  %Goombarius talk 4
+		If  *NoGoombariusMode == .False
+			Call  DisablePartnerAI  ( 00000000 )
+			Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010012 00000005 000B011B )  %Goombarius talk 4
+		EndIf
 		Call  SpeakToPlayer    ( .Npc:Priest 00870408 00870405 00000000 000B011C )  %Priest talk 6
 		Call  SetNpcAnimation   ( .Npc:Priest 00870406 )
 		Call  SetNpcSpeed       ( .Npc:Priest *Fixed[4.0] )
@@ -199,12 +209,16 @@ Hallucinations blow![BR]
 		Call  SetPlayerAnimation    ( 00011831 )
 		Wait  18`
 		Call  SetPlayerAnimation    ( 00010031 )
-		Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000000 000B011D )  %Goombarius talk 5
+		If  *NoGoombariusMode == .False
+			Call  SpeakToPlayer    ( .Npc:Partner 00010008 00010001 00000000 000B011D )  %Goombarius talk 5
+		EndIf
 		Call  FullyRestoreHPandFP ( )
 		Call  ResetCam  ( .Cam:Default *Fixed[5.0] )
 		Wait  20`
 		Call  SetMusicTrack    	( 00000000 .Song:DBE_Prologue 00000000 00000008 )
-		Call  EnablePartnerAI ( )
+		If  *NoGoombariusMode == .False
+			Call  EnablePartnerAI ( )
+		EndIf
 		Call  DisablePlayerInput    ( .False )
 		Set   *PriestCutscene .True
 		Return

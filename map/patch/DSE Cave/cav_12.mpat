@@ -1,0 +1,1904 @@
+#new:Header $Header
+{
+[MainScript] $Script_Main
+[EntryList] $EntryList
+[EntryCount] 00000003
+[Background] 80200000
+[MapTattle]   $Function_GetTattle
+}
+
+#import EnterViaPipe.mpat
+
+#new:Script $Script_UseBluePipe
+{
+	Call     GotoMap	( "cav_00" 2 )
+	Wait     00000064 
+	Return
+	End
+}
+
+%there is no cav_tex so replace with kpa_tex
+#new:Function_Init $Function_Init
+{
+    PUSH      RA
+    LIA       A0, 800B0CF0
+    LIA       A1, "kpa_tex"
+    JAL       ~Func:sprintf
+    RESERVED
+    DADDU     V0, R0, R0
+    JPOP      RA
+}
+
+
+#new:Function $Function_GetTattle
+{
+	ADDIU     SP, SP, FFE8
+	LIO       V0, $MapTattle
+	JR        RA
+	ADDIU     SP, SP, 18
+}
+
+#string $MapTattle
+{
+[Style Tattle][EnableCDownNext]I used to think that Goomba[BR]
+Village was in the middle of[BR]
+nowhere, but now I'm feeling[BR]
+bad for these guys.[BR]
+[WAIT][NEXT]
+I don't think I would be able[BR]
+to handle living in a cave.[BR]
+[WAIT][END]
+}
+
+#new:EntryList $EntryList
+{
+~Vec4f:Entry0
+~Vec4f:Entry1
+~Vec4f:Entry2
+}
+
+#new:Script $Script_SetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:BowserAttacks 00000000 00000008 ) %Moon Kingdom
+Return
+End
+}
+
+%used for the inn thing
+#new:Script $Script_ResetMusic
+{
+Call     SetMusicTrack 	( 00000000 .Song:BowserAttacks 00000000 00000008 ) %Moon Kingdom
+Return
+End
+}
+
+
+#new:Script_Main $Script_Main
+{
+Set  *GB_WorldLocation .Location:ToadTownTunnels%2D %hope this doesn't crash the game when trying to display world map
+Call	SetSpriteShading 	( .Shading:tik_01 )
+Call	SetCamPerspective	( .Cam:Default  3  25` 16` 4096` )	% default type, half vertical FOV, near clip, and far clip
+Call	SetCamBGColor   	( .Cam:Default  0  0  0 ) 			% color values are RGB bytes; (0,0,0) is black, (255`,255`,255`) is white, etc.
+Call	SetCamEnabled 	 	( .Cam:Default  .True )				% enabled?
+Call	SetCamLeadPlayer 	( .Cam:Default  .False )			% lead player motion?
+Exec    $Script_SetMusic 
+ExecWait $Script_MakeEntities
+ExecWait $Script_MakeDoors
+Call     MakeNpcs           ( 00000001 $NpcGroupList_Town )
+%entry 0 = left loading zone
+%entry 1 = right loading zone
+%entry 2 = pipe
+Call	GetLoadType 	( *Var[1] )
+If		*Var[1] ==  00000001 
+	Exec	EnterSavePoint 
+	Exec	$Script_MakeExits
+Else
+	Call     GetEntryID  	( *Var[0] )
+	If *Var0 == 2`
+		If       *GF_CAV12_PipeA ==  00000000 
+			Call     DisablePlayerInput 	( .True )
+			Call     DisablePlayerPhysics 	( .True )
+			Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     SetPlayerPos 	( *Var[0] FFFFFC18 *Var[2] )
+			Wait     0000001E 
+			Call     PlaySound   	( 0000208E )
+			Set      *GF_CAV12_PipeA 00000001 
+			Wait     0000001E 
+			Call     802D10D8 		( 00000000 )
+			Call     SetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+			Call     SetNpcPos   	( .Npc:Partner *Var[0] *Var[1] *Var[2] )
+			Call     DisablePlayerPhysics 	( .False )
+			Call     DisablePlayerInput 	( .False )
+		EndIf
+		Set *Var[A] $Script_MakeExits
+		Exec $Script_EnterVerticalPipe
+	Else
+		Set		*Var[0] $Script_MakeExits 
+		Exec EnterWalk
+	EndIf
+EndIf
+Return
+End
+}
+
+#new:Script $Script_MakeEntities
+{
+	Call     MakeItemEntity ( .Item:HustleDrink ~Vec3d:hustledrink 00000011 *GF_CAV12_HustleDrink )
+	Call 	 MakeEntity ( .Entity:BlueWarpPipe ~Vec4d:pipe 2 $Script_UseBluePipe 000001D5 80000000 )	%*GF_CAV12_PipeB
+	If       *GF_CAV12_PipeB ==  00000000 
+		Bind     $Script_RaisePipe .Trigger:AreaFlagSet *AreaFlag[008] 00000001 00000000 
+	EndIf
+	Call  	 MakeEntity    ( .Entity:SavePoint ~Vec4d:saveblock 80000000 )
+	Call     MakeEntity  	( .Entity:ScriptSpring ~Vec4d:Spring1 80000000 ) %~Vec4d:spring
+	Call     AssignScript 	( $Script_Spring1 )   
+	Return
+	End
+}
+
+
+#define .PipeRaiseSound 0000208E
+
+#new:Script $Script_RaisePipe
+{
+	Wait     0000000A 
+	Call     PlaySound  ( .PipeRaiseSound )
+	Set      *AreaFlag[008] 	00000001
+	Unbind
+	Return
+	End
+}
+
+#new:Script $Script_MakeDoors %this is gonna get complicated
+{
+	%the args are...
+	%??? int (door sound? flags? needs more testing) (sam doors have value 00000002) (jan doors have values 00001006 and 00000005)
+	%open door script
+	%move walls script
+	%drop doors script (optional?)
+	%toggle internal visibility script
+	%collider (outward facing door collider)
+	%collider (inward facing door collider)
+	%everything except this model is disabled (but I don't really want to disable all the models)
+	%inside npc list? (can be 00000000)
+	Call  SetGroupEnabled   ( ~Model:room1 00000000 )
+	Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_Room1 $Script_MoveWalls_Room1 $Script_DropDoor_Room1 $Script_ToggleVis_Room1 ~Collider:door1co ~Collider:door1ci ~Model:keeploaded $NpcList_Room1 )
+	Call  SetGroupEnabled   ( ~Model:room2 00000000 )
+	Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_Room2 $Script_MoveWalls_Room2 $Script_DropDoor_Room2 $Script_ToggleVis_Room2 ~Collider:door2co ~Collider:door2ci ~Model:keeploaded $NpcList_Room2 )
+	Call  SetGroupEnabled   ( ~Model:room3 00000000 )
+	Call  MakeDoorAdvanced  ( 00000002 $Script_OpenDoor_Room3 $Script_MoveWalls_Room3 $Script_DropDoor_Room3 $Script_ToggleVis_Room3 ~Collider:door3co ~Collider:door3ci ~Model:keeploaded $NpcList_Room3 )
+	Return
+	End
+}
+
+#new:Script $Script_OpenDoor_Room1
+{
+    0:  Call  RotateGroup   ( ~Model:door1 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_MoveWalls_Room1
+{
+    0:  Call  RotateGroup   ( ~Model:wall1 *Var0 00000001 00000000 00000000 )
+   20:  If  *Var0  >  00000059
+   30:  	Call  SetGroupEnabled   ( ~Model:wall1 00000000 )
+   44:  EndIf
+   4C:  If  *Var0  <  00000059
+   5C:  	Call  SetGroupEnabled   ( ~Model:wall1 00000001 )
+   70:  EndIf
+   78:  Return
+   80:  End
+}
+
+#new:Script $Script_DropDoor_Room1
+{
+    0:  Call  RotateGroup   ( ~Model:door1 *Var0 00000001 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_ToggleVis_Room1
+{
+    0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000000
+				Set *MapFlag[1] .False
+  108:  		Call  SetGroupEnabled   ( ~Model:room1 00000001 )
+   DC:  	Case  ==  00000003
+				Set *MapFlag[1] .True
+  108:  		Call  SetGroupEnabled   ( ~Model:room1 00000000 )
+  11C:  EndSwitch
+  124:  Return
+  12C:  End
+}
+
+#new:Script $Script_OpenDoor_Room2
+{
+    0:  Call  RotateGroup   ( ~Model:door2 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_MoveWalls_Room2
+{
+    0:  Call  RotateGroup   ( ~Model:wall2 *Var0 00000001 00000000 00000000 )
+   20:  If  *Var0  >  00000059
+   30:  	Call  SetGroupEnabled   ( ~Model:wall2 00000000 )
+   44:  EndIf
+   4C:  If  *Var0  <  00000059
+   5C:  	Call  SetGroupEnabled   ( ~Model:wall2 00000001 )
+   70:  EndIf
+   78:  Return
+   80:  End
+}
+
+#new:Script $Script_DropDoor_Room2
+{
+    0:  Call  RotateGroup   ( ~Model:door2 *Var0 00000001 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_ToggleVis_Room2
+{
+    0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000000
+  108:  		Call  SetGroupEnabled   ( ~Model:room2 00000001 )
+   DC:  	Case  ==  00000003
+  108:  		Call  SetGroupEnabled   ( ~Model:room2 00000000 )
+  11C:  EndSwitch
+  124:  Return
+  12C:  End
+}
+
+#new:Script $Script_OpenDoor_Room3
+{
+    0:  Call  RotateGroup   ( ~Model:door3 *Var0 00000000 FFFFFFFF 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_MoveWalls_Room3
+{
+    0:  Call  RotateGroup   ( ~Model:wall3 *Var0 00000001 00000000 00000000 )
+   20:  If  *Var0  >  00000059
+   30:  	Call  SetGroupEnabled   ( ~Model:wall3 00000000 )
+   44:  EndIf
+   4C:  If  *Var0  <  00000059
+   5C:  	Call  SetGroupEnabled   ( ~Model:wall3 00000001 )
+   70:  EndIf
+   78:  Return
+   80:  End
+}
+
+#new:Script $Script_DropDoor_Room3
+{
+    0:  Call  RotateGroup   ( ~Model:door3 *Var0 00000001 00000000 00000000 )
+   20:  Return
+   28:  End
+}
+
+#new:Script $Script_ToggleVis_Room3
+{
+    0:  Call  UseAdvancedDoorSounds ( .DoorSounds:Basic )
+   10:  Switch  *Var0
+   1C:  	Case  ==  00000000
+  108:  		Call  SetGroupEnabled   ( ~Model:room3 00000001 )
+   DC:  	Case  ==  00000003
+  108:  		Call  SetGroupEnabled   ( ~Model:room3 00000000 )
+  11C:  EndSwitch
+  124:  Return
+  12C:  End
+}
+
+#new:NpcList $NpcList_Room1
+{
+	00000005 FFFFFFFF
+}
+
+#new:NpcList $NpcList_Room2
+{
+	00000006 00000007 00000008 00000009 0000000A 0000000B 0000000C FFFFFFFF
+}
+
+#new:NpcList $NpcList_Room3
+{
+	00000006 FFFFFFFF
+}
+
+%spring script copied from iwa_04
+#new:Script $Script_Spring1
+{
+	0:  Call     DisablePlayerInput 	( .True )
+   10:  Call     DisablePlayerPhysics 	( .True )
+   20:  Call     802D10D8 ( 00000006 )
+   30:  Wait     00000001 
+   3C:  Exec     $Script_80241420 *Var[A] 
+   4C:  If  *MapVar[9]  ==  00000000 
+   5C:  	Call     SetPlayerJumpscale 	( *Fixed[1.4003906] )
+   6C:  	Call     PlayerJump  	( ~Vec3d:springdest 00000010 )
+   88:  Else
+   90:  	Call     SetPlayerJumpscale 	( *Fixed[0.7001953] )
+   A0:  	Call     PlayerJump  	( ~Vec3d:springdest 00000018 )
+   BC:  EndIf
+   C4:  Kill     *Var[A] 
+   D0:  Call     802D10D8 ( 00000000 )
+   E0:  Call     DisablePlayerPhysics 	( .False )
+   F0:  Call     DisablePlayerInput 	( .False )
+  100:  Return
+  108:  End
+}
+
+#new:Script $Script_80241420
+{
+	0:  Loop     
+    C:  	Call     GetPlayerPos 	( *Var[0] *Var[1] *Var[2] )
+   24:  	Call     802CAF2C ( 00000000 *Var[0] *Var[1] *Var[2] )
+   40:  	Wait     00000001 
+   4C:  EndLoop
+   54:  Return
+   5C:  End
+}
+
+
+#new:Script $Script_MakeExits
+{
+	Bind     $Script_Entry0 .Trigger:FloorAbove ~Collider:leftLZ 00000001 00000000
+	Bind     $Script_Entry1 .Trigger:FloorAbove ~Collider:rightLZ 00000001 00000000
+	Return
+    End
+}
+
+#new:Script $Script_Entry0 
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000000 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_11" 00000002 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+   
+#new:Script $Script_Entry1
+{
+	0:  SetGroup 0000001B 
+    C:  Call     UseExitHeading ( 0000003C 00000001 )
+   20:  Exec     ExitWalk 
+   2C:  Call     GotoMap     	( "cav_13" 00000000 )
+   40:  Wait     00000064 
+   4C:  Return
+   54:  End
+}
+
+/%
+#new:Script $Script_GetPipesWorking
+{
+	Bind     $Script_RaisePipe .Trigger:GameFlagSet .PipeBool 00000001 00000000
+	Call     MakeEntity  ( .Entity:BlueWarpPipe ~Vec4d:pipepos 00000003 $Script_UseBluePipe 0000000C 80000000 )
+	Return
+	End
+}
+%/
+
+
+%npc stuff
+
+#new:NpcGroupList $NpcGroupList_Town
+{
+00000007 $NpcGroup_SparkyGroup 00000000
+00000006 $NpcGroup_WorkshopEnemies 00000000
+00000000 00000000 00000000
+}
+
+%the sparkies
+#new:NpcGroup $NpcGroup_SparkyGroup
+{
+00000000 $NpcSettings ~Vec3f:sparky1 %???
+00000D0D $Script_Init_Sparky1 00000000 00000000 000000B4 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:sparky1
+~AnimationTable:sparky1
+00000000 00000000 00000000 $SparkyTattle1
+%
+00000001 $NpcSettings ~Vec3f:sparky2 %???
+00000D0D $Script_Init_Sparky2 00000000 00000000 000000B4 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:sparky2
+~AnimationTable:sparky2
+00000000 00000000 00000000 $SparkyTattle1
+%
+00000002 $NpcSettings ~Vec3f:sparky3 %???
+00000D0D $Script_Init_Sparky3 00000000 00000000 000000B4 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:sparky3
+~AnimationTable:sparky3
+00000000 00000000 00000000 $SparkyTattle2
+%
+00000003 $NpcSettings ~Vec3f:otherhat %???
+00000D0D $Script_Init_HatSparky 00000000 00000000 00000000 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:otherhat
+~AnimationTable:otherhat
+00000000 00000000 00000000 $HatSparkyTattle
+%
+00000004 $NpcSettings ~Vec3f:redcap1 %???
+00000D0D $Script_Init_CapSparky 00000000 00000000 000000B4 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:redcap1
+~AnimationTable:redcap1
+00000000 00000000 00000000 $CapSparkyTattle
+%
+00000005 $NpcSettings ~Vec3f:bow1 %???
+00000D0D $Script_Init_BowSparky 00000000 00000000 000000B4 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:bow1
+~AnimationTable:bow1
+00000000 00000000 00000000 $BowSparkyTattle
+%
+00000006 $NpcSettings ~Vec3f:voltley %???
+00000D0D $Script_Init_Voltley 00000000 00000000 000000B4 %???
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus
+~Movement:voltley
+~AnimationTable:voltley
+00000000 00000000 00000000 $VoltleyTattle
+}
+
+#new:NpcGroup $NpcGroup_WorkshopEnemies
+{
+00000007 $RockData ~Vec3f:goldcleft1
+00400D0D 00000000 00000000 00000000 000000B4
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+~AnimationTable:goldcleft1
+00000001 00000000 00000000 00000000 % no tattle string
+%
+00000008 $RockData ~Vec3f:goldcleft2
+00400D0D 00000000 00000000 00000000 00000020
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+~AnimationTable:goldcleft2
+00000001 00000000 00000000 00000000 % no tattle string
+%
+00000009 $RockData ~Vec3f:goldcleft3
+00400D0D 00000000 00000000 00000000 00000000
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+~AnimationTable:goldcleft3
+00000001 00000000 00000000 00000000 % no tattle string
+%
+0000000A $RockData ~Vec3f:chomp1
+00400D0D 00000000 00000000 00000000 00000000
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+~AnimationTable:chomp1
+00000001 00000000 00000000 00000000 % no tattle string
+%
+0000000B $RockData ~Vec3f:redbristle
+00400D0D 00000000 00000000 00000000 000000B4
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+~AnimationTable:redbristle
+00000001 00000000 00000000 00000000 % no tattle string
+%
+0000000C $RockData ~Vec3f:toadinator1000
+00400D0D 00000000 00000000 00000000 00000080
+~Items:0:DriedShroom:A ~NoHP ~NoFP ~NoCoinBonus ~NoMovement
+~AnimationTable:toadinator1000
+00000001 00000000 00000000 $ToadinatorTattle % no tattle string
+}
+
+
+#new:NpcSettings $RockData
+{
+00000000 00180018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+#new:NpcSettings $NpcSettings
+{
+00000000 00300018 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000 00000000 00630000 
+}
+
+
+#new:Script $Script_Init_Sparky1
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_Sparky1 )
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Init_Sparky2
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_Sparky2 )
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Init_Sparky3
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_Sparky3 )
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Init_HatSparky
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_HatSparky )
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Init_CapSparky
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_CapSparky )
+	If 		 *GF_CAV12_PipeA == .False
+		Set *MapFlag[1] .True
+	EndIf
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Init_BowSparky
+{
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_BowSparky )
+	Call	 SetNpcYaw	  ( .Npc:Self 180.0 )
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Init_Voltley
+{
+	Set *MapFlag[7] .False
+	Call     BindNpcIdle 		( .Npc:Self $Script_IdleAI_Voltley )
+	Call     BindNpcInteract	( .Npc:Self $Script_Interact_Voltley )
+	Call	 SetNpcYaw	  ( .Npc:Self 180.0 )
+	Call	 SetNpcVar    ( .Npc:Self 00000001 00000000 )	
+	Return
+	End
+}
+
+#new:Script $Script_Interact_Sparky1
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     SpeakToPlayer 	( 00000000 00F80004 00F80001 00000000 $SparkyText1 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Interact_Sparky2
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     SpeakToPlayer 	( 00000001 00F80004 00F80001 00000000 $SparkyText2 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Interact_Sparky3
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     SpeakToPlayer 	( 00000002 00F80004 00F80001 00000000 $SparkyText3 )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Interact_HatSparky
+{
+	Call	 DisablePlayerInput ( .True )
+	Call     SpeakToPlayer 	( 00000003 00F8000F 00F80009 00000000 $HatSparkyText )
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Script $Script_Interact_CapSparky
+{
+	Call	 DisablePlayerInput ( .True )
+	If *GF_CAV12_PipeA == .False
+		Call     SpeakToPlayer 	( 00000004 00F8050C 00F80506 00000000 $CapSparkyText1 )
+	Else
+		If *MapFlag[1] == .True
+			Set *MapFlag[1] .False
+			Call     SpeakToPlayer 	( 00000004 00F8050C 00F80506 00000000 $CapSparkyText2 )
+		Else
+			Call     SpeakToPlayer 	( 00000004 00F8050C 00F80506 00000000 $CapSparkyText3 )
+		EndIf
+	EndIf
+	Call	 DisablePlayerInput ( .False )
+	Return
+	End
+}
+
+#new:Function $Function_80240A44
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  LW        S0, C (S1)
+   1C:  LW        A1, 0 (S0)
+   20:  JAL       ~Func:get_variable
+   24:  ADDIU     S0, S0, 4
+   28:  LW        A1, 0 (S0)
+   2C:  ADDIU     S0, S0, 4
+   30:  COPY      A0, S1
+   34:  JAL       ~Func:get_variable
+   38:  COPY      S2, V0
+   3C:  COPY      A0, S1
+   40:  LW        A1, 0 (S0)
+   44:  JAL       ~Func:get_variable
+   48:  COPY      S0, V0
+   4C:  CLEAR     A0
+   50:  ANDI      A1, S2, FF
+   54:  ANDI      A2, S0, FF
+   58:  JAL       ~Func:set_screen_overlay_color
+   5C:  ANDI      A3, V0, FF
+   60:  LW        RA, 1C (SP)
+   64:  LW        S2, 18 (SP)
+   68:  LW        S1, 14 (SP)
+   6C:  LW        S0, 10 (SP)
+   70:  LI        V0, 2
+   74:  JR        RA
+   78:  ADDIU     SP, SP, 20
+}
+
+%check if mario is at max hp, max fp, max SE, set Var1 to true/false
+#new:Function $Function_802409F0
+{
+    0:  LA        A1, 8010F290
+    8:  SW        R0, 88 (A0)
+    C:  LB        V1, 3 (A1)
+   10:  LB        V0, 2 (A1)
+   14:  BNE       V1, V0, .o44
+   18:  COPY      A2, A1
+   1C:  LB        V1, 6 (A1)
+   20:  LB        V0, 5 (A1)
+   24:  BNE       V1, V0, .o44
+   28:  NOP
+   2C:  LB        V0, 28E (A2)		%star power
+   30:  LH        V1, 290 (A2)		%star power max
+   34:  SLL       V0, V0, 8
+   38:  BNE       V1, V0, .o4C
+   3C:  LI        V0, 1
+   40:  SW        V0, 88 (A0)
+        .o44
+   44:  JR        RA
+   48:  LI        V0, 2
+        .o4C
+   4C:  JR        RA
+   50:  LI        V0, 2
+}
+
+#new:Function $Function_80240830
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       800E9894
+    C:  NOP
+   10:  LW        RA, 10 (SP)
+   14:  LI        V0, 2
+   18:  JR        RA
+   1C:  ADDIU     SP, SP, 18
+}
+
+%uses model stuff? (but when is this even used?)
+#new:Script $Script_8024658C
+{
+    0:  Set   *Var9  *Var7
+   10:  Set   *Var8  *Var6
+   20:  Set   *Var7  *Var5
+   30:  Set   *Var6  *Var4
+   40:  Wait  70`
+   4C:  Call  EnableModel   ( *Var6 .False )
+   60:  Thread
+   68:  	Wait  5`
+   74:  	Call  EnableModel   ( *Var6 .True )
+   88:  EndThread
+   90:  Call  MakeLerp      ( 00000000 000000B4 00000014 .Easing:CubicIn )
+   AC:  Label  1
+   B8:  Call  UpdateLerp ( )
+   C4:  Call  RotateGroup   ( *Var8 *Var0 00000000 00000000 FFFFFFFF )
+   E4:  Call  RotateGroup   ( *Var9 *Var0 00000000 00000000 FFFFFFFF )
+  104:  If  *Var1  ==  00000001
+  114:  	Wait  1`
+  120:  	Goto  1
+  12C:  EndIf
+  134:  Call  EnableModel   ( *Var7 .False )
+  148:  Return
+  150:  End
+}
+
+#new:Function $Function_80240AC0
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  LAB       A2, 8010F2A2
+   14:  JAL       ~Func:set_variable
+   18:  LW        A1, 0 (V0)
+   1C:  JAL       800EB168
+   20:  CLEAR     A0
+   24:  LW        RA, 10 (SP)
+   28:  LI        V0, 2
+   2C:  JR        RA
+   30:  ADDIU     SP, SP, 18
+}
+
+#new:Script $Script_80241CDC
+{
+    0:  Call  SetMusicTrack ( 00000000 .Song:TakingRest 00000002 00000008 )
+   1C:  Return
+   24:  End
+}
+
+#new:Function $Function_802408F4
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, C (S1)
+   18:  LW        A1, 0 (S0)
+   1C:  JAL       ~Func:get_variable
+   20:  ADDIU     S0, S0, 4
+   24:  COPY      A0, S1
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  COPY      S0, V0
+   34:  MTC1      V0, F0
+   38:  NOP
+   3C:  CVT.S.W   F0, F0
+   40:  LI        V0, 2
+   44:  SLLV      V1, S0, V0
+   48:  ADDU      V1, V1, S0
+   4C:  SLLV      V1, V1, V0
+   50:  SUBU      V1, V1, S0
+   54:  SLL       A0, V1, 3
+   58:  ADDU      V1, V1, A0
+   5C:  SLL       V1, V1, 3
+   60:  STF       F0, V1 (800B1D98)
+   6C:  LW        RA, 18 (SP)
+   70:  LW        S1, 14 (SP)
+   74:  LW        S0, 10 (SP)
+   78:  JR        RA
+   7C:  ADDIU     SP, SP, 20
+}
+
+%have to un-hard code these stupid positions
+#new:Script $Script_802492D0
+{
+    0:  Exec  $Script_80241CDC
+    C:  Call  SetPlayerSpeed    ( *Fixed[3.0] )
+   1C:  Call  PlayerMoveTo      ( 536` -483` 00000000 )	%x, z, ?
+   34:  Thread
+   3C:  	Wait  15`
+   48:  	Call  $Function_802408F4    ( 00000000 00000028 )			%fills a table with some stuff
+   5C:  	Call  SetCamType    ( .Cam:Default 00000004 .False )
+   74:  	Call  SetCamPitch   ( .Cam:Default 00000041 FFFFFFDC )	%not sure if I need to mess with this
+   8C:  	Call  SetCamDistance        ( .Cam:Default 0000006F )
+   A0:  	Call  SetCamPosA    ( .Cam:Default 791` -265` )  %x, z, ?
+   B8:  	Call  SetCamPosB    ( .Cam:Default 562` -434` )  %x, z, ?
+   D0:  	Call  SetCamPosC    ( .Cam:Default 00000000 00000197 )  %?, y
+   E8:  	Call  SetCamSpeed   ( .Cam:Default *Fixed[90.0] )
+   FC:  	Call  PanToTarget   ( .Cam:Default 00000000 00000001 )
+  114:  EndThread
+  11C:  Call  PlayerMoveTo      ( 517` -540` 00000000 )  %x, z, ?
+  134:  Call  InterpPlayerYaw   ( 000000E5 00000001 )
+  148:  Call  HidePlayerShadow  ( .True )
+  158:  Call  SetPlayerAnimation    ( 00010002 )
+  168:  Call  802D286C  ( 00000800 )												    %animation thing?
+  178:  Call  802D2520  ( 00010002 00000005 00000007 00000001 00000001 00000000 )		%animation thing?
+  19C:  Thread
+  1A4:  	Wait  60`
+  1B0:  	Call  SetPlayerAnimation    ( 0008001D )
+  1C0:  EndThread
+  1C8:  Wait  20`
+  1D4:  Thread
+  1DC:  	Wait  81`
+  1E8:  	Call  $Function_802408F4    ( 00000000 00000019 )			%fills a table with some stuff
+  1FC:  	Call  GetPlayerPos      ( *Var0 *Var1 *Var2 )
+  214:  	Call  UseSettingsFrom   ( .Cam:Default *Var0 *Var1 *Var2 )	%restore camera data
+  230:  	Wait  1`
+  23C:  	Call  PanToTarget       ( .Cam:Default 00000000 00000000 )	%restore camera pan
+  254:  EndThread
+  25C:  Return
+  264:  End
+}
+
+#new:Function $Function_80240878
+{
+    0:  ADDIU     SP, SP, FFE0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 18 (SP)
+   10:  SW        S0, 10 (SP)
+   14:  LW        S0, C (S1)
+   18:  LW        A1, 0 (S0)
+   1C:  JAL       ~Func:get_variable
+   20:  ADDIU     S0, S0, 4
+   24:  COPY      A0, S1
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  COPY      S1, V0
+   34:  CLEAR     A0
+   38:  COPY      A1, A0
+   3C:  COPY      S0, V0
+   40:  LI        A2, BE
+   44:  JAL       ~Func:set_screen_overlay_center
+   48:  LI        A3, 91
+   4C:  MTC1      S0, F0
+   50:  NOP
+   54:  CVT.S.W   F0, F0
+   58:  MFC1      A1, F0
+   5C:  JAL       ~Func:set_screen_overlay_params_front
+   60:  ANDI      A0, S1, FF
+   64:  LW        RA, 18 (SP)
+   68:  LW        S1, 14 (SP)
+   6C:  LW        S0, 10 (SP)
+   70:  LI        V0, 2
+   74:  JR        RA
+   78:  ADDIU     SP, SP, 20
+}
+
+#new:Script $Script_80246514
+{
+    0:  Call  EnableModel   ( *Var4 .False )
+   14:  Call  EnableModel   ( *Var5 .True )
+   28:  Call  RotateGroup   ( *Var6 00000000 00000000 00000000 00000001 )
+   48:  Call  RotateGroup   ( *Var7 00000000 00000000 00000000 00000001 )
+   68:  Return
+   70:  End
+}
+
+#new:Function $Function_80240AF4
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  SLL       V0, V0, 18
+   18:  JAL       800EB168
+   1C:  SRA       A0, V0, 18
+   20:  LW        RA, 10 (SP)
+   24:  LI        V0, 2
+   28:  JR        RA
+   2C:  ADDIU     SP, SP, 18
+}
+
+%remove most of this since you get nothing
+#new:Script $Script_8024953C
+{
+    /%
+	0:  If  *GF_SAM02_Item_IcedPotato  ==  .True
+   10:  	Set   *MapFlag[0A]  .False
+   20:  	Set   *GF_SAM02_Item_IcedPotato  .False
+   30:  EndIf
+   38:  If  *MapFlag[0A]  ==  .False
+   48:  	Set   *MapFlag[0A]  .True
+   58:  	Call  MakeItemEntity    ( .Item:IcedPotato ~Vec3d:Item80249594 .ItemSpawnMode:Fixed_NeverVanish *GF_SAM02_Item_IcedPotato )
+   7C:  EndIf
+   84:  If  *GB_StoryProgress  >=  .Story:Ch7_UnlockedShiverMountain % 4A
+   94:  	If  *GB_StoryProgress  <  .Story:Ch8_OpenedPathToStarWay % 5A
+   A4:  		If  *GF_SAM02_MushroomPresents  ==  .False
+   B4:  			Set   *GF_SAM02_MushroomPresents  .True
+   C4:  			Exec  $Script_8024B550
+   D0:  		EndIf
+   D8:  	EndIf
+   E0:  EndIf
+	%/
+   E8:  Call  HidePlayerShadow  ( .False )
+   F8:  Call  802D2520  ( 00010002 00000000 00000000 00000000 00000000 00000000 )
+  11C:  Call  SetPlayerPos      ( 517` 400` -525` )	%actually need the y pos here
+  134:  Call  SetPlayerSpeed    ( *Fixed[3.0] )
+  144:  Call  PlayerMoveTo      ( 581` -528` 00000000 )
+  15C:  Exec  $Script_ResetMusic
+  168:  Return
+  170:  End
+}
+
+#new:Function $Function_80240850
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  JAL       800E98C4
+    C:  NOP
+   10:  JAL       ~Func:sync_status_menu
+   14:  NOP
+   18:  LW        RA, 10 (SP)
+   1C:  LI        V0, 2
+   20:  JR        RA
+   24:  ADDIU     SP, SP, 18
+}
+
+%most of this is copied from the toad house script
+#new:Script $Script_Interact_BowSparky
+{
+    0:  Call  $Function_80240A44    ( 00000000 00000000 00000000 )
+    0:  Set   *Var0  $InnRequest
+   10:  Set   *Var8  $InnRequestHealthy
+   20:  Set   *Var1  $InnReject
+   30:  Set   *Var2  $InnSleep
+   40:  Set   *Var3  $InnEnd
+   44:  Set   *Var9  *Var1
+   54:  Set   *VarA  *Var2
+   64:  Set   *VarB  *Var3
+   74:  Call  $Function_802409F0 ( )		%checks if mario is at full stats right now
+   80:  If  *Var1  ==  00000000
+   90:  	Set   *Var8  *Var0
+   A0:  EndIf
+   A8:  Call  SpeakToPlayer ( .Npc:Self 00F80A10 00F80A0A 00000000 *Var8 ) % variable string ID
+   C8:  Call  ShowChoice    ( 001E0006 ) % Take a nap Not now
+   D8:  Wait  3`
+   E4:  If  *Var0  ==  00000001
+   F4:  	Call  ContinueSpeech    ( .Npc:Self 00F80A10 00F80A0A 00000000 *Var9 ) % variable string ID
+  114:  	Return
+  11C:  EndIf
+  124:  Call  ContinueSpeech        ( .Npc:Self 00F80A10 00F80A0A 00000000 *VarA ) % variable string ID
+  144:  Call  SetPlayerJumpscale    ( 00000001 )
+  154:  Call  DisablePlayerPhysics  ( .True )
+  164:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .True )
+  17C:  Call  $Function_80240830 ( )		%remove partner (?)
+  188:  If  *Var4  !=  00000000
+  198:  	Exec  $Script_8024658C
+  1A4:  EndIf
+  1AC:  Call  $Function_80240AC0    ( *VarA )
+  1BC:  Wait  20`
+  1C8:  ExecWait  $Script_802492D0	%movement and stuff
+  1D4:  Thread
+  1DC:  	Call  MakeLerp  ( 00000000 000000FF 0000003C .Easing:Linear )
+  1F8:  	Label  0
+  204:  	Call  UpdateLerp ( )
+  210:  	Call  $Function_80240878    ( 00000003 *Var0 )		%fade out
+  224:  	Wait  1`
+  230:  	If  *Var1  ==  00000001
+  240:  		Goto  0
+  24C:  	EndIf
+  254:  	Call  FullyRestoreHPandFP ( )
+  260:  	Call  FullyRestoreSP ( )
+  26C:  	If  *Var4  !=  00000000
+  27C:  		Exec  $Script_80246514		%when is this used?
+  288:  	EndIf
+  290:  	Call  $Function_80240AF4    ( *VarA )		%restore partner
+  2A0:  	Wait  45`
+  2AC:  	Call  MakeLerp  ( 000000FF 00000000 0000001E .Easing:Linear )
+  2C8:  	Label  1
+  2D4:  	Call  UpdateLerp ( )
+  2E0:  	Call  $Function_80240878    ( 00000000 *Var0 )		%fade in
+  2F4:  	Wait  1`
+  300:  	If  *Var1  ==  00000001
+  310:  		Goto  1
+  31C:  	EndIf
+  324:  EndThread
+  32C:  Wait  105`
+  338:  ExecWait  $Script_8024953C		%afterwards
+  344:  Call  DisablePlayerPhysics  ( .False )
+  354:  Call  SetNpcFlagBits        ( .Npc:Self 00000100 .False )
+  36C:  Call  SpeakToPlayer ( .Npc:Self 00F80A10 00F80A0A 00000000 *VarB ) % variable string ID
+  38C:  Call  $Function_80240850 ( )
+  398:  Return
+  3A0:  End
+}
+
+#new:Script $Script_Interact_Voltley
+{
+	Set *MapFlag[7] .True
+	Call	 DisablePlayerInput ( .True )
+	If *GF_CAV12_VoltleyMeet == .False
+		Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyText )
+		Set *GF_CAV12_VoltleyMeet .True
+	Else
+		If *GF_CAV12_VoltleyUnlock == .False
+			Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyAskForItem )
+			Call  $Function_80241BCC ( )
+			Set   *Var0  $End[170]
+			Set   *Var1  00000000
+			ExecWait  $Script_GiveItemSetup
+			Switch  *Var0					
+				Case  <=  00000000
+					Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyNoItem )
+					Call  SetPlayerAnimation    ( .PlayerAnim:StandStill )
+				Default							
+					If *Var0 == .Item:HustleDrink
+						Call  RemoveItem        ( *Var0 *Var2 )					
+						Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyRightItem )
+						Set  *GF_CAV12_VoltleyUnlock .True
+					Else
+						Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyWrongItem )
+						Call  SetPlayerAnimation    ( .PlayerAnim:StandStill )
+					EndIf
+			EndSwitch
+		Else
+			%Now you can ask him to do stuff for you
+			%fix pipe
+			%*GF_CAV12_PipeA
+			If *GF_CAV12_PipeA == .False
+				Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyTextPipe )
+				Set *GF_CAV12_PipeA .True
+				Wait	 5`		
+				Call     PlayerMoveTo 	( -142` -553` 0000000A )				
+				Call     SetNpcSpeed ( 00000006 *Fixed[10.0] ) 
+				Call 	 NpcMoveTo ( 00000006 -177` -498` 0 )
+				Call 	 NpcMoveTo ( 00000006 -177` -204` 0 )
+				Wait	 40`
+				Call  PlaySoundAtNpc    ( 00000004 .PipeRaiseSound 00000000 )	%distant pipe noise
+				Wait     20`
+				Call 	 NpcMoveTo ( 00000006 -177` -204` 0 )
+				Call 	 NpcMoveTo ( 00000006 -177` -498` 0 )
+				Call 	 NpcMoveTo ( 00000006 -247` -557` 0 )	%home pos
+			Else
+				%fix lil oinks
+				%*GF_OinksReactive				
+				If *GF_OinksReactive == .False
+					Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyTextLilOinks )
+					Set *GF_OinksReactive .True
+					%continuity: he uses the pipe so set the pipe flags (not like anyone will find this though)
+					Set *GF_CAV12_PipeA .True
+					Set *GF_CAV12_PipeB .True
+					%he goes off screen since the lil oinks are really far away (come back and he'll be back)
+					Wait	 5`
+					Call     PlayerMoveTo 	( -142` -553` 0000000A )				
+					Call     SetNpcSpeed ( 00000006 *Fixed[10.0] ) 
+					Call 	 NpcMoveTo ( 00000006 -177` -498` 0 )
+					Call 	 NpcMoveTo ( 00000006 -177` -204` 0 )
+					Wait	 20`
+					Call	 SetNpcPos ( .Npc:Self 0` -1000` 0` )					
+					%Call	 DisablePlayerInput ( .False )
+				Else
+					Call     SpeakToPlayer 	( 00000006 00F8020E 00F80208 00000000 $VoltleyText2 )
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+	Call	 DisablePlayerInput ( .False )
+	If *GF_CAV12_VoltleyUnlock == .False
+		Exec	 $Script_TurnBack
+	EndIf
+	Return
+	End
+}
+
+%hustle drink only
+#new:ItemList $ItemList_80240E10
+{	
+	.Item:HustleDrink
+	00000000
+}
+
+%need to import some stuff to make the popup thing work
+#new:Script $Script_GiveItemSetup
+{
+    0:  Call  $Function_802419FC    ( *Var0 )
+   10:  BindLock  $Script_GiveItem 00000010 00000000 $ItemList_80240E10 00000000 00000001
+   30:  Call  $Function_80241970    ( *Var0 )
+   40:  Return
+   48:  End
+}
+%item list is a filtering list so that only stuff on the list can be shown
+%normally, it filters out all the key items and badges from your regular inventory, which is useless in normal gameplay
+
+#new:Script $Script_GiveItem
+{
+    0:  Set   *Var9  *Var1
+   10:  Call  ShowConsumableChoicePopup ( )
+   1C:  Set   *VarA  *Var0
+   2C:  Switch  *Var0
+   38:  	Case  ==  00000000
+   44:  	Case  ==  FFFFFFFF
+   50:  	Default
+   58:  		Call  RemoveItemAt  ( *Var1 )
+   68:  		Call  GetPlayerPos  ( *Var3 *Var4 *Var5 )
+   80:  		Call  $Function_802417A0    ( *Var3 *Var4 *Var5 )
+   98:  		Call  MakeItemEntity        ( *Var0 *Var3 *Var4 *Var5 .ItemSpawnMode:Decoration 00000000 )
+   BC:  		Call  SetPlayerAnimation    ( 00060005 )
+   CC:  		Wait  30`
+   D8:  		Call  SetPlayerAnimation    ( 00010002 )
+   E8:  		Call  RemoveItemEntity      ( *Var0 )
+   F8:  EndSwitch
+  100:  Call  $Function_802419C4    ( *VarA )
+  110:  Call  CloseChoicePopup ( )
+  11C:  Unbind
+  124:  Return
+  12C:  End
+}
+
+#new:Function $Function_802419C4
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  SAW       V0, $???_8024308C
+   1C:  LI        V0, 2
+   20:  LW        RA, 10 (SP)
+   24:  LI        V1, 1
+   28:  SAW       V1, $???_80243088
+   30:  JR        RA
+   34:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80241BCC
+{
+    0:  LI        A0, 5A
+    4:  LA        V1, $End[2D8]
+    C:  LI        V0, DA
+        .o10
+   10:  SW        V0, 0 (V1)
+   14:  ADDIU     V1, V1, FFFC
+   18:  ADDIU     A0, A0, FFFF
+   1C:  BGEZ      A0, .o10
+   20:  ADDIU     V0, V0, FFFF
+   24:  SAW       R0, $End[2DC]
+   2C:  JR        RA
+   30:  LI        V0, 2
+}
+
+#new:Function $Function_802417A0
+{
+    0:  ADDIU     SP, SP, FFB0
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 24 (SP)
+   10:  SW        S4, 20 (SP)
+   14:  SW        S3, 1C (SP)
+   18:  SW        S2, 18 (SP)
+   1C:  SW        S0, 10 (SP)
+   20:  SDC1      F28, 48 (SP)
+   24:  SDC1      F26, 40 (SP)
+   28:  SDC1      F24, 38 (SP)
+   2C:  SDC1      F22, 30 (SP)
+   30:  SDC1      F20, 28 (SP)
+   34:  LW        S0, C (S1)
+   38:  LW        S3, 0 (S0)
+   3C:  ADDIU     S0, S0, 4
+   40:  JAL       ~Func:get_variable
+   44:  COPY      A1, S3
+   48:  MTC1      V0, F28
+   4C:  NOP
+   50:  CVT.S.W   F28, F28
+   54:  LW        S4, 0 (S0)
+   58:  ADDIU     S0, S0, 4
+   5C:  COPY      A0, S1
+   60:  JAL       ~Func:get_variable
+   64:  COPY      A1, S4
+   68:  MTC1      V0, F26
+   6C:  NOP
+   70:  CVT.S.W   F26, F26
+   74:  LW        S0, 0 (S0)
+   78:  COPY      A0, S1
+   7C:  JAL       ~Func:get_variable
+   80:  COPY      A1, S0
+   84:  MTC1      V0, F24
+   88:  NOP
+   8C:  CVT.S.W   F24, F24
+   90:  LA        S2, 8010EFC8
+   98:  LAW       V1, 80077410
+   A0:  LWC1      F2, A8 (S2)
+   A4:  MTC1      R0, F0
+   A8:  SLL       V0, V1, 2
+   AC:  ADDU      V0, V0, V1
+   B0:  SLL       V0, V0, 2
+   B4:  SUBU      V0, V0, V1
+   B8:  SLL       V1, V0, 3
+   BC:  ADDU      V0, V0, V1
+   C0:  SLL       V0, V0, 3
+   C4:  C.EQ.S    F2, F0
+   C8:  LTF       F22, V0 (800B1DEC)
+   D4:  BC1F      .oEC
+   D8:  NOP
+   DC:  LIF       F0, 100.0
+   E4:  BEQ       R0, R0, .oFC
+   E8:  SUB.S     F22, F22, F0
+        .oEC
+   EC:  LIF       F0, 100.0
+   F4:  NOP
+   F8:  ADD.S     F22, F22, F0
+        .oFC
+   FC:  JAL       ~Func:clamp_angle
+  100:  MOV.S     F12, F22
+  104:  MOV.S     F22, F0
+  108:  LIF       F20, 15.0
+  110:  JAL       ~Func:sin_deg
+  114:  MOV.S     F12, F22
+  118:  MUL.S     F0, F0, F20
+  11C:  NOP
+  120:  LH        V0, B0 (S2)
+  124:  LIF       F4, 0.5
+  12C:  MTC1      V0, F2
+  130:  NOP
+  134:  CVT.S.W   F2, F2
+  138:  MUL.S     F2, F2, F4
+  13C:  NOP
+  140:  ADD.S     F28, F28, F0
+  144:  ADD.S     F26, F26, F2
+  148:  JAL       ~Func:cos_deg
+  14C:  MOV.S     F12, F22
+  150:  MUL.S     F0, F0, F20
+  154:  NOP
+  158:  COPY      A0, S1
+  15C:  COPY      A1, S3
+  160:  TRUNC.W.S F6, F28
+  164:  MFC1      A2, F6
+  168:  JAL       ~Func:set_variable
+  16C:  SUB.S     F24, F24, F0
+  170:  COPY      A0, S1
+  174:  TRUNC.W.S F6, F26
+  178:  MFC1      A2, F6
+  17C:  JAL       ~Func:set_variable
+  180:  COPY      A1, S4
+  184:  COPY      A0, S1
+  188:  TRUNC.W.S F6, F24
+  18C:  MFC1      A2, F6
+  190:  JAL       ~Func:set_variable
+  194:  COPY      A1, S0
+  198:  LW        RA, 24 (SP)
+  19C:  LW        S4, 20 (SP)
+  1A0:  LW        S3, 1C (SP)
+  1A4:  LW        S2, 18 (SP)
+  1A8:  LW        S1, 14 (SP)
+  1AC:  LW        S0, 10 (SP)
+  1B0:  LDC1      F28, 48 (SP)
+  1B4:  LDC1      F26, 40 (SP)
+  1B8:  LDC1      F24, 38 (SP)
+  1BC:  LDC1      F22, 30 (SP)
+  1C0:  LDC1      F20, 28 (SP)
+  1C4:  LI        V0, 2
+  1C8:  JR        RA
+  1CC:  ADDIU     SP, SP, 50
+}
+
+
+#new:Function $Function_802419FC
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  LW        V0, C (A0)
+    C:  JAL       ~Func:get_variable
+   10:  LW        A1, 0 (V0)
+   14:  COPY      V1, V0
+   18:  BEQ       V1, R0, .o64
+   1C:  CLEAR     A0
+   20:  LW        V0, 0 (V1)
+   24:  BEQL      V0, R0, .o50
+   28:  SLL       V0, A0, 2
+   2C:  LA        A1, $End[0]
+        .o34
+   34:  ADDIU     V1, V1, 4
+   38:  ADDIU     A0, A0, 1
+   3C:  SW        V0, 0 (A1)
+   40:  LW        V0, 0 (V1)
+   44:  BNE       V0, R0, .o34
+   48:  ADDIU     A1, A1, 4
+   4C:  SLL       V0, A0, 2
+        .o50
+   50:  STW       R0, V0 ($End[0])
+   5C:  BEQ       R0, R0, .o8C
+   60:  NOP
+        .o64
+   64:  LA        V1, $End[0]
+   6C:  COPY      A1, V1
+        .o70
+   70:  ADDIU     V0, A0, 80
+   74:  SW        V0, 0 (V1)
+   78:  ADDIU     V1, V1, 4
+   7C:  ADDIU     A0, A0, 1
+   80:  SLTI      V0, A0, 5B
+   84:  BNE       V0, R0, .o70
+   88:  SW        R0, 16C (A1)
+        .o8C
+   8C:  LW        RA, 10 (SP)
+   90:  LI        V0, 2
+   94:  JR        RA
+   98:  ADDIU     SP, SP, 18
+}
+
+#new:Function $Function_80241970
+{
+    0:  ADDIU     SP, SP, FFE8
+    4:  SW        RA, 10 (SP)
+    8:  BEQ       A1, R0, .o18
+    C:  LW        A2, C (A0)
+   10:  SAW       R0, $???_80243088
+        .o18
+   18:  LA        V1, $???_80243088
+   20:  LW        V0, 0 (V1)
+   24:  BNEL      V0, R0, .o34
+   28:  SW        R0, 0 (V1)
+   2C:  BEQ       R0, R0, .o48
+   30:  CLEAR     V0
+        .o34
+   34:  LW        A1, 0 (A2)
+   38:  LAW       A2, $???_8024308C
+   3C:  JAL       ~Func:set_variable
+   40:  RESERVED
+   44:  LI        V0, 2
+        .o48
+   48:  LW        RA, 10 (SP)
+   4C:  JR        RA
+   50:  ADDIU     SP, SP, 18
+}
+
+#new:Unknown $???_80243088
+{
+	00000000
+}
+
+#new:Unknown $???_8024308C
+{
+	00000000
+}
+
+
+#new:Script $Script_IdleAI
+{
+	%Hopefully this will work
+	Call	 GetNpcVar    ( .Npc:Self 00000001 *VarE )
+	If 		 *VarE == 00000000
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call     PlayEffect  	( 00000073 00000001 *Var[0] *Var[1] *Var[2] *Fixed[1.0] 00000005 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call	 SetNpcVar    ( .Npc:Self 00000001 *VarF )	
+		%Double check
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call	 $Function_SetThunderboltPos ( *VarF *Var0 *Var1 *Var2 )		
+	EndIf
+	Return
+	End
+}
+
+%lightning effect color swapping
+#new:Function $Function_SetStaticColors
+{
+		PUSH		RA, S0
+    8:  LW			V0, C (A0)
+    C:  JAL			~Func:get_variable
+   10:  LW			A1, 0 (V0)
+   14:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%R
+   1C:  SW			A1, 18 (V1)
+   20:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, C0			%G
+   24:  SW			A1, 1C (V1)
+   28:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, C0			%B
+   2C:  SW			A1, 20 (V1)
+   30:  LW			A0, C (V0)
+   34:  ADDIU		V1, R0, FF			%R 2
+   38:  SW			V1, 24 (A0)
+   3C:  LW			A0, C (V0)
+   40:  ADDIU		V1, R0, FF			%G 2
+   44:  SW			V1, 28 (A0)
+   48:  LW			V1, C (V0)
+   18:  ADDIU		A1, R0, FF			%B 2
+   4C:  SW			A1, 2C (V1)
+		.end
+   54:  ADDIU		V0, R0, 2
+		JPOP		RA, S0
+}
+
+%he makes some sparking effects because he's working on the toad robot
+#new:Script $Script_IdleAI_Voltley
+{
+	Exec	$Script_UpdateVoltleyPositions
+	Exec 	$Script_VoltleyEffects
+	Return
+	End
+}
+
+#new:Script $Script_VoltleyEffects
+{
+	Label 0
+	If *MapFlag[7] == .True
+		Wait 	1`
+		Goto 	0
+	EndIf
+	If *GF_CAV12_VoltleyUnlock == .True
+		If *GF_CAV12_PipeA == .True
+			If *GF_OinksReactive == .True
+				Goto 1
+			EndIf
+		EndIf
+		Wait 	1`
+		Goto 	0
+	EndIf	
+	Label 1
+	Wait 	10`
+	Call	 SetNpcYaw	  ( .Npc:Self 180` )
+    Call  GetNpcPos     ( 0000000C *Var0 *Var1 *Var2 )
+	Call     PlayEffect  	( ~FX:SnakingStatic *Var[0] *Var[1] *Var[2] *Fixed[3.0] 0000000A 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+	Call	 $Function_SetStaticColors ( *VarF )	
+	Call  SetNpcAnimation       ( .Npc:Self 00F8020E )
+	Wait	10`
+	Call  SetNpcAnimation       ( .Npc:Self 00F80208 )
+	Goto 0
+	Return
+	End
+}
+
+#new:Script $Script_UpdateVoltleyPositions
+{
+	%Hopefully this will work
+	Label 0
+	Call	 GetNpcVar    ( .Npc:Self 00000005 *VarE )
+	If 		 *VarE == 00000000
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call     PlayEffect  	( 00000073 00000001 *Var[0] *Var[1] *Var[2] *Fixed[1.0] 00000005 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+		Call	 SetNpcVar    ( .Npc:Self 00000005 *VarF )	
+		%
+		Call	 GetNpcVar    ( .Npc:Self 00000005 *VarE )
+		Call	 $Function_SetThunderboltPos ( *VarE *Var0 *Var1 *Var2 )
+	Else
+		Call  	 GetNpcPos		( .Npc:Self *Var0 *Var1 *Var2 )	
+		Call	 GetNpcVar    ( .Npc:Self 00000005 *VarE )
+		Call	 $Function_SetThunderboltPos ( *VarE *Var0 *Var1 *Var2 )
+	EndIf
+	Wait 1`
+	Goto 0
+	Return
+	End
+}
+
+%Repurposed a different 4 arg function so it looks a little weird
+#new:Function $Function_SetThunderboltPos 
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 30 (SP)
+   1C:  SDC1      F22, 28 (SP)
+   20:  SDC1      F20, 20 (SP)
+   24:  LW        S0, C (S1)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  COPY      A0, S1
+   44:  COPY      S2, V0
+		LW		  S2, C (S2)
+   40:  JAL       ~Func:get_variable
+		NOP
+   48:  LW        A1, 0 (S0)
+   4C:  ADDIU     S0, S0, 4
+   50:  MTC1      V0, F24
+   54:  NOP
+   58:  CVT.S.W   F24, F24
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      A0, S1
+   64:  LW        A1, 0 (S0)
+		%Offset Y pos by 12
+		ADDI	  V0, V0, C
+   68:  MTC1      V0, F22
+   6C:  NOP
+   70:  CVT.S.W   F22, F22
+   74:  JAL       ~Func:get_variable
+   78:  COPY      A0, S1
+   7C:  MTC1      V0, F20
+   80:  NOP
+   84:  CVT.S.W   F20, F20
+		%Do stuff
+		%S2 = id
+		%F24, F22, F20 = x,y,z (floats)
+		SWC1	  F24, 4 (S2)
+		SWC1	  F22, 8 (S2)
+		SWC1	  F20, C (S2)		
+   A0:  LW        RA, 1C (SP)
+   A4:  LW        S2, 18 (SP)
+   A8:  LW        S1, 14 (SP)
+   AC:  LW        S0, 10 (SP)
+   B0:  LDC1      F24, 30 (SP)
+   B4:  LDC1      F22, 28 (SP)
+   B8:  LDC1      F20, 20 (SP)
+   BC:  LI        V0, 2
+   C0:  JR        RA
+   C4:  ADDIU     SP, SP, 38
+}
+
+%Repurposed a different 4 arg function so it looks a little weird
+#new:Function $Function_SetThunderboltPos_B
+{
+    0:  ADDIU     SP, SP, FFC8
+    4:  SW        S1, 14 (SP)
+    8:  COPY      S1, A0
+    C:  SW        RA, 1C (SP)
+   10:  SW        S2, 18 (SP)
+   14:  SW        S0, 10 (SP)
+   18:  SDC1      F24, 30 (SP)
+   1C:  SDC1      F22, 28 (SP)
+   20:  SDC1      F20, 20 (SP)
+   24:  LW        S0, C (S1)
+   28:  LW        A1, 0 (S0)
+   2C:  JAL       ~Func:get_variable
+   30:  ADDIU     S0, S0, 4
+   34:  LW        A1, 0 (S0)
+   38:  ADDIU     S0, S0, 4
+   3C:  COPY      A0, S1
+   44:  COPY      S2, V0
+		LW		  S2, C (S2)
+   40:  JAL       ~Func:get_variable
+		NOP
+   48:  LW        A1, 0 (S0)
+   4C:  ADDIU     S0, S0, 4
+   50:  MTC1      V0, F24
+   54:  NOP
+   %58:  CVT.S.W   F24, F24
+   5C:  JAL       ~Func:get_variable
+   60:  COPY      A0, S1
+   64:  LW        A1, 0 (S0)
+		ADDI	  V0, V0, C
+   68:  MTC1      V0, F22
+   6C:  NOP
+		%Offset Y pos by 12 (F20 will get written to later)
+		LIF		  F20, 12.0
+		ADD.S	  F22, F22, F20
+   %70:  CVT.S.W   F22, F22
+   74:  JAL       ~Func:get_variable
+   78:  COPY      A0, S1
+   7C:  MTC1      V0, F20
+   80:  NOP
+   %84:  CVT.S.W   F20, F20
+		%Do stuff
+		%S2 = id
+		%F24, F22, F20 = x,y,z (floats)
+		SWC1	  F24, 4 (S2)
+		SWC1	  F22, 8 (S2)
+		SWC1	  F20, C (S2)		
+   A0:  LW        RA, 1C (SP)
+   A4:  LW        S2, 18 (SP)
+   A8:  LW        S1, 14 (SP)
+   AC:  LW        S0, 10 (SP)
+   B0:  LDC1      F24, 30 (SP)
+   B4:  LDC1      F22, 28 (SP)
+   B8:  LDC1      F20, 20 (SP)
+   BC:  LI        V0, 2
+   C0:  JR        RA
+   C4:  ADDIU     SP, SP, 38
+}
+
+
+
+#new:Script $Script_TurnBack %turn around when player is not in range
+{
+	Label 1					 
+	Call	 IsPlayerWithin ( -247` -557` 80` *Var[0] )
+	If *Var[0] == 1`
+		Wait 1
+		Goto 1
+	EndIf
+	Call	 InterpNpcYaw ( .Npc:Self 180` 10` )	
+	Call	 SetNpcYaw	  ( .Npc:Self 180` )
+	Set *MapFlag[7] .False
+	Return
+	End
+}
+
+
+
+
+
+%dialogue text
+
+#new:String $SparkyText1
+{
+	[Style Right]Huh? Who are you?[BR]
+	It's been a while since we've[BR]
+	had visitors.[BR]	
+	[WAIT][END]
+}
+
+#new:String $SparkyText2
+{
+	[Style Right]It's pretty quiet down here.[BR]
+	Not much happens nowadays.[BR]
+	[WAIT][NEXT]
+	That robot does a pretty good[BR]
+	job keeping all the cave[BR]
+	monsters out of here.[BR]
+	[WAIT][END]
+}
+
+#new:String $SparkyText3
+{
+	[Style Right]Wow! It's been a while[BR]
+	since we've had visitors.[BR]
+	[WAIT][NEXT]
+	But how did you get past the[BR]
+	robot?[BR]
+	[WAIT][END]
+}
+
+#new:String $HatSparkyText
+{
+	[Style Right]You are the one saving the[BR]
+	Star Spirits? Do you really[BR]
+	think they actually care about[BR]
+	people like us?[BR]
+	[WAIT][NEXT]
+	Maybe you should take a look[BR]
+	around this cave to see what[BR]
+	they've done.[BR]
+	[WAIT][END]
+}
+
+#new:String $CapSparkyText1
+{
+	[Style Right]Ugh. The pipe is broken.[BR]
+	[PAUSE:0A]Apparently Voltley is "too busy"[BR]
+	to take five seconds to fix it.[BR]
+	[WAIT][NEXT]
+	Maybe you should go to his[BR]
+	workshop over there and tell[BR]
+	him to fix it.[BR]
+	[WAIT][END]
+}
+
+#new:String $CapSparkyText2
+{
+	[Style Right]Wow. It actually took five[BR]
+	seconds to fix it.[BR]
+	[WAIT][NEXT]
+	I'm way behind schedule all[BR]
+	because he couldn't take five[BR]
+	seconds off his stupid robots.[BR]
+	[PAUSE:0A]Great![BR]
+	[WAIT][END]
+}
+
+#new:String $CapSparkyText3
+{
+	[Style Right]I'm still behind schedule,[BR]
+	but at least I can get to the[BR]
+	surface again.
+	[WAIT][END]
+}
+
+
+#new:String $VoltleyText
+{
+	[Style Right]Sorry, I'm a bit busy working[BR]
+	right now.[BR]
+	[WAIT][NEXT]
+	If you want to help, could you[BR]
+	find me some kind of [COLOR:20]liquid[BR]
+	that makes things go faster[COLOR:0A]?[BR]
+	[WAIT][END]
+}
+
+#new:String $VoltleyText2
+{
+	[Style Right]I don't think there's anything[BR]
+	else I need to fix right now,[BR]
+	so I guess I'll keep working[BR]
+	on this guy.
+	[WAIT][END]
+}
+
+#new:String $VoltleyAskForItem
+{
+	[Style Right]Do you have the [COLOR:20]liquid[BR]
+	that makes things go faster[COLOR:0A]?[BR]
+	[WAIT][END]
+}
+
+%well the item menu doesn't actually let you give him the wrong item though
+%but I'll keep this around here
+#new:String $VoltleyWrongItem
+{
+	[Style Right]I don't think that is going to[BR]
+	work...[BR]
+	[WAIT][END]
+}
+
+#new:String $VoltleyNoItem
+{
+	[Style Right]Alright, I'll still be here[BR]
+	when you find it...[BR]
+	[WAIT][END]
+}
+
+#new:String $VoltleyRightItem
+{
+	[Style Right]Oh! That's the one![BR]
+	[WAIT][NEXT]
+	Alright, I should be done with[BR]
+	working on this guy for a while.[BR]
+	Let me know if you need help[BR]
+	with something.[BR]
+	[WAIT][END]
+}
+
+#new:String $VoltleyTextLilOinks
+{
+	[Style Right]Huh? The Lil' Oink machine in[BR]
+	Toad Town? [PAUSE:0A]Wow, I didn't think[BR]
+	people actually cared about[BR]
+	that thing.[BR]
+	[WAIT][NEXT]
+	Alright, I'll head down there[BR]
+	and fix it.[BR]
+	[WAIT][END]
+}
+
+#new:String $VoltleyTextPipe
+{
+	[Style Right]Huh? The pipe is broken?[BR]
+	[PAUSE:0A]Alright, I'll fix it.[BR]
+	[WAIT][END]
+}
+
+
+
+#new:String $InnRequest
+{
+	[Style Right]
+	Hello there![BR]
+	[Pause 10]Need a little rest?[BR]
+	[Yield][End]
+}
+
+#new:String $InnRequestHealthy
+{
+	[Style Right]
+	...Are you sure?[BR]
+	[Pause 10]You seem pretty healthy to me.[BR]
+	[Pause 10]Even so, would you care to stay[BR]
+	over anyway?[BR]
+	[Yield][End]
+}
+
+#new:String $InnReject
+{
+	[Next]
+	Come back soon![Wait][End]
+}
+
+#new:String $InnSleep
+{
+	[Next]
+	Have a nice nap![Wait][End]
+}
+
+#new:String $InnEnd
+{
+	[Style Right]
+	Did you sleep well?[BR]
+	[Wait][Next]
+	Take care! Bye![Wait][End]
+}
+
+%tattles
+#new:String $SparkyTattle1
+{
+	[Style Tattle]
+	[EnableCDownNext]It's a Lil' Sparky.[BR]
+	These guys mostly keep to [BR]
+	themselves.[BR]
+	[WAIT][END]
+}
+
+#new:String $SparkyTattle2
+{
+	[Style Tattle]
+	[EnableCDownNext]It's a Lil' Sparky.[BR]
+	This guy likes to hang out[BR]
+	around the town entrance.[BR]
+	[WAIT][NEXT]
+	This place doesn't get a lot[BR]
+	of visitors though, so I'm[BR]
+	not sure what he's waiting[BR]
+	for.[BR]
+	[WAIT][END]
+}
+
+#new:String $HatSparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]He's a Lil' Sparky.[BR]
+	He doesn't like the Star Spirits[BR]
+	for some reason.[BR]
+	[WAIT][NEXT]
+	But why though? They grant[BR]
+	everyone's wishes, don't they?[BR]
+	[WAIT][NEXT]
+	I guess it's harder for them to[BR]
+	grant the wishes of people down[BR]
+	here though, so maybe that has[BR]
+	something to do with it.[BR]
+	[WAIT][END]
+}
+
+#new:String $CapSparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]He's a Lil' Sparky.[BR]
+	It looks like he has a job[BR]
+	delivering things to and from[BR]
+	the surface.[BR]
+	[WAIT][NEXT]
+	He's one of the few townsfolk[BR]
+	who regularly travel to the[BR]
+	surface.[BR]
+	[WAIT][NEXT]
+	He's irritated since he[BR]
+	hasn't been able to go[BR]
+	anywhere for a while.[BR]
+	[WAIT][END]
+}
+
+#new:String $BowSparkyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]She's running an inn.[BR]
+	[Pause 5]It's just like a Toad House.[BR]
+	[Wait][Next]
+	I guess there aren't any Toads[BR]
+	down here, if you don't count[BR]
+	that robot one.[BR]
+	[WAIT][NEXT]
+	That robot probably wouldn't[BR]
+	do a good job of running a[BR]
+	Toad House.[BR]
+	[Wait][End]
+}
+
+#new:String $VoltleyTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]That's Voltley.[BR]
+	He's a pretty smart inventor,[BR]
+	but he sometimes gets too[BR]
+	focused on his work.[BR]
+	[WAIT][NEXT]
+	He's made a lot of robots,[BR]
+	including the one that we had[BR]
+	to fight through to get here.[BR]
+	[WAIT][NEXT]
+	He looks a bit like Watt.[BR]
+	Maybe that's just me though...[BR]
+	[WAIT][NEXT]
+	I guess you could say he's[BR]
+	a [PAUSE:0A]pretty bright guy.[BR]
+	Get it?[PAUSE:0A] Just laugh for once...[BR]
+	[WAIT][END]
+}
+
+#new:String $ToadinatorTattle
+{
+	[Style Tattle]
+	[EnableCDownNext]It looks like an improved[BR]
+	version of the Toadinator.[BR]
+	[WAIT][NEXT]
+	Bowser wouldn't be able[BR]
+	to kidnap Peach if she was[BR]
+	defended by a bunch of these[BR]
+	guys.[BR]
+	[WAIT][NEXT]
+	Actually, we'd be in a lot of[BR]
+	trouble if there were a bunch[BR]
+	of these guys and they decided[BR]
+	to turn on us.[BR]
+	[WAIT][NEXT]
+	Beating one of these guys was[BR]
+	hard enough, I don't want to[BR]
+	fight a whole army of them![BR]
+	[WAIT][END]
+}

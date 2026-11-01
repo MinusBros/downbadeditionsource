@@ -7,29 +7,29 @@
 
 #new:IdleAnimations $IdleAnimations_Bobuke %IdleAnimations_8021A510
 {
-.Status:Normal    002C0402
-.Status:Stone     002C0400
-.Status:Sleep     002C0418
-.Status:Poison    002C0404
-.Status:Stop      002C0400
-.Status:Static    002C0402
-.Status:Paralyze  002C0400
-.Status:Dizzy     002C041C
-.Status:Fear      002C041C
+.Status:Normal    002C1102
+.Status:Stone     002C1100
+.Status:Sleep     002C1118
+.Status:Poison    002C1104
+.Status:Stop      002C1100
+.Status:Static    002C1102
+.Status:Paralyze  002C1100
+.Status:Dizzy     002C111C
+.Status:Fear      002C111C
 .Status:End
 }
 
 #new:IdleAnimations $IdleAnimations_Bobuke2 %IdleAnimations_8021A55C
 {
-.Status:Normal    002C0405
-.Status:Stone     002C0401
-.Status:Sleep     002C0418
-.Status:Poison    002C0405
-.Status:Stop      002C0401
-.Status:Static    002C0403
-.Status:Paralyze  002C0401
-.Status:Dizzy     002C041D
-.Status:Fear      002C041D
+.Status:Normal    002C1105
+.Status:Stone     002C1101
+.Status:Sleep     002C1118
+.Status:Poison    002C1105
+.Status:Stop      002C1101
+.Status:Static    002C1103
+.Status:Paralyze  002C1101
+.Status:Dizzy     002C111D
+.Status:Fear      002C111D
 .Status:End
 }
 
@@ -60,6 +60,14 @@
 .Status:Frozen      0`
 .Status:Dizzy       0` %80 -> 0
 .Status:Fear        0`
+.Status:Poison      0`
+.Status:Frozen      0`
+.Status:Dizzy       0` %40 -> 0
+.Status:Fear        0`
+.Status:Static      0`
+.Status:Paralyze    0` %40 -> 0
+.Status:Shrink      0`
+.Status:Stop        0`
 .Status:Static      0`
 .Status:Paralyze    0` %80 -> 0
 .Status:Shrink     20` %90 -> 20
@@ -82,14 +90,6 @@
 .Status:Normal      0` 
 .Status:Default     0`
 .Status:Sleep       0`
-.Status:Poison      0`
-.Status:Frozen      0`
-.Status:Dizzy       0` %40 -> 0
-.Status:Fear        0`
-.Status:Static      0`
-.Status:Paralyze    0` %40 -> 0
-.Status:Shrink      0`
-.Status:Stop        0`
 .Status:DefaultTurnMod    0`
 .Status:SleepTurnMod      0`
 .Status:PoisonTurnMod     0`
@@ -111,8 +111,8 @@
 #new:Actor $Bobuke
 {
 % stats
-[Index]         DAb 
-[Level]         27`b %endgame/pit enemies, but they are much less threatening when alone
+[Index]         Db
+[Level]         50`b %endgame/pit enemies, but they are much less threatening when alone
 [MaxHP]         25`b 
 [Coins]         5`b 
 [Flags]       00000000 
@@ -144,6 +144,11 @@
    3C:  Call     SetActorVar 	( .Actor:Self 00000008 00000000 )
    54:  Call     SetActorVar 	( .Actor:Self 00000000 00000000 )
 		Call	 SetActorVar    ( .Actor:Self 00000009 00000000 ) %special turn count used for determining autoignition chance
+		Call  $Function_SetName_C ( D 002900D2 )
+		Call  $Function_SetTattle_C ( D 001C00F1 )	
+		If    *Byte_Settings_Difficulty == 2` %Gamer difficulty
+			Call	$Function_SetLevel	( $Bobuke 55` )
+		EndIf
    6C:  Return
    74:  End
 }
@@ -245,25 +250,25 @@
    78:  			Call     SetActorVar 	( .Actor:Self 00000000 00000001 )
    90:  		EndIf
    98:  		SetConst  *Var[0]  00000001 
-   A8:  		SetConst  *Var[1]  002C040E 
+   A8:  		SetConst  *Var[1]  002C110E 
    B8:  		ExecWait DoNormalHit 
    C4:  	Case  ==  .Event:Hit
    % D0:  		Call     GetLastElement ( *Var[E] )
    % E0:  		If  *Var[E]  &  00000020 
    % F0:  			SetConst  *Var[0]  00000001 
-  % 100:  			SetConst  *Var[1]  002C0410 
-  % 110:  			SetConst  *Var[2]  002C0411 
+  % 100:  			SetConst  *Var[1]  002C1110 
+  % 110:  			SetConst  *Var[2]  002C1111 
   % 120:  			ExecWait DoBurnHit 
   % 12C:  			ExecWait $Script_Explode_B 
   % 138:  			SetConst  *Var[0]  00000001 
-  % 148:  			SetConst  *Var[1]  002C0411 
+  % 148:  			SetConst  *Var[1]  002C1111 
   % 158:  			Set  *Var[2]  FFFFCFC7 
   % 168:  			ExecWait DoDeath 
   % 174:  			Return
   % 17C:  		Else
   %					they're immune to fire, so don't die on contact with fire
   184:  			SetConst  *Var[0]  00000001 
-  194:  			SetConst  *Var[1]  002C040E 
+  194:  			SetConst  *Var[1]  002C110E 
   1A4:  			ExecWait DoNormalHit 
   1B0:  			Call     GetLastDamage 	( .Actor:Self *Var[0] )
   1C4:  			If  *Var[0]  !=  00000000 
@@ -271,17 +276,17 @@
   1E0:  			EndIf
   % 1E8:  		EndIf
   1F0:  	Case  ==  .Event:BurnHit 
-				SetConst  *Var[1]  002C0410 
-				SetConst  *Var[2]  002C0411 
+				SetConst  *Var[1]  002C1110 
+				SetConst  *Var[2]  002C1111 
 				ExecWait DoBurnHit %burning is no longer lethal, but since they're immune to it, I don't think this code will ever run
   1FC:  	Case  ==  .Event:BurnDeath %how did you even get here?
   208:  		SetConst  *Var[0]  00000001 
-  218:  		SetConst  *Var[1]  002C0410 
-  228:  		SetConst  *Var[2]  002C0411 
+  218:  		SetConst  *Var[1]  002C1110 
+  228:  		SetConst  *Var[2]  002C1111 
   238:  		ExecWait DoBurnHit 
   244:  		ExecWait $Script_Explode_B 
   250:  		SetConst  *Var[0]  00000001 
-  260:  		SetConst  *Var[1]  002C0411 
+  260:  		SetConst  *Var[1]  002C1111 
   270:  		Set  *Var[2]  FFFFCFC7 
 				Call	GetLastDamage ( .Actor:Self *Var[0] )
 				If *Var[0] > 0
@@ -291,7 +296,7 @@
   % 294:  	EndCaseGroup
   29C:  	Case  ==  .Event:SpinSmashHit
   2A8:  		SetConst  *Var[0]  00000001 
-  2B8:  		SetConst  *Var[1]  002C040E 
+  2B8:  		SetConst  *Var[1]  002C110E 
   2C8:  		ExecWait 8029B998 
   2D4:  		Call     GetLastDamage 	( .Actor:Self *Var[0] )
   2E8:  		If  *Var[0]  !=  00000000 
@@ -299,28 +304,28 @@
   304:  		EndIf
   30C:  	Case  ==  .Event:SpinSmashDeath
   318:  		SetConst  *Var[0]  00000001 
-  328:  		SetConst  *Var[1]  002C040E 
+  328:  		SetConst  *Var[1]  002C110E 
   338:  		ExecWait 8029B998 
   344:  		ExecWait $Script_8021AAE8_B 
   350:  		SetConst  *Var[0]  00000001 
-  360:  		SetConst  *Var[1]  002C040E 
+  360:  		SetConst  *Var[1]  002C110E 
   370:  		ExecWait DoDeath 
   37C:  		Return
   384:  	CaseOR  ==  .Event:ShockHit
   390:  	CaseOR  ==  .Event:ShockDeath
   39C:  		SetConst  *Var[0]  00000001 
-  3AC:  		SetConst  *Var[1]  002C0410 
+  3AC:  		SetConst  *Var[1]  002C1110 
   3BC:  		Set  *Var[2]  FFFFCFC7 
   3CC:  		ExecWait DoDeath 
   3D8:  		Return
   3E0:  	Case  ==  00000017
   3EC:  		SetConst  *Var[0]  00000001 
-  3FC:  		SetConst  *Var[1]  002C0402 
+  3FC:  		SetConst  *Var[1]  002C1102 
   40C:  		ExecWait DoImmune 
   418:  	CaseOR  ==  .Event:Immune
   424:  	CaseOR  ==  .Event:AirLiftFailed
   430:  		SetConst  *Var[0]  00000001 
-  440:  		SetConst  *Var[1]  002C0402 
+  440:  		SetConst  *Var[1]  002C1102 
   450:  		ExecWait DoImmune 
   45C:  		Call     GetActorVar 	( .Actor:Self 00000000 *Var[0] )
   474:  		If  *Var[0]  ==  00000001 
@@ -331,54 +336,54 @@
   4AC:  		Call     GetLastElement ( *Var[E] )
   4BC:  		If  *Var[E]  &  00000020 
   4CC:  			SetConst  *Var[0]  00000001 
-  4DC:  			SetConst  *Var[1]  002C0410 
-  4EC:  			SetConst  *Var[2]  002C0411 
+  4DC:  			SetConst  *Var[1]  002C1110 
+  4EC:  			SetConst  *Var[2]  002C1111 
   4FC:  			ExecWait DoBurnHit 
   508:  			ExecWait $Script_Explode_B 
   514:  			SetConst  *Var[0]  00000001 
-  524:  			SetConst  *Var[1]  002C0411 
+  524:  			SetConst  *Var[1]  002C1111 
   534:  			Set  *Var[2]  FFFFCFC7 
   544:  			ExecWait DoDeath 
   550:  			Return
   558:  		Else
   560:  			SetConst  *Var[0]  00000001 
-  570:  			SetConst  *Var[1]  002C040E 
+  570:  			SetConst  *Var[1]  002C110E 
   580:  			ExecWait DoNormalHit 
   58C:  			Wait     0000000A 
   598:  			ExecWait $Script_8021AAE8_B 
   5A4:  			SetConst  *Var[0]  00000001 
-  5B4:  			SetConst  *Var[1]  002C040E 
+  5B4:  			SetConst  *Var[1]  002C110E 
   5C4:  			ExecWait DoDeath 
   5D0:  		EndIf
   5D8:  		Return
   5E0:  	Case  ==  .Event:ExplodeTrigger
   5EC:  		SetConst  *Var[0]  00000001 
-  5FC:  		SetConst  *Var[1]  002C0410 
-  60C:  		SetConst  *Var[2]  002C0411 
+  5FC:  		SetConst  *Var[1]  002C1110 
+  60C:  		SetConst  *Var[2]  002C1111 
   61C:  		ExecWait DoBurnHit 
   628:  		ExecWait $Script_Explode_B 
   634:  		SetConst  *Var[0]  00000001 
-  644:  		SetConst  *Var[1]  002C0411 
+  644:  		SetConst  *Var[1]  002C1111 
   654:  		Set  *Var[2]  FFFFCFC7 
   664:  		ExecWait DoDeath 
   670:  		Return
   678:  	Case  ==  .Event:RecoverStatus
   684:  		SetConst  *Var[0]  00000001 
-  694:  		SetConst  *Var[1]  002C0402 
+  694:  		SetConst  *Var[1]  002C1102 
   6A4:  		ExecWait DoRecover 
   6B0:  	Case  ==  .Event:ScareAway
   6BC:  		SetConst  *Var[0]  00000001 
-  6CC:  		SetConst  *Var[1]  002C0406 
-  6DC:  		SetConst  *Var[2]  002C040E 
+  6CC:  		SetConst  *Var[1]  002C1106 
+  6DC:  		SetConst  *Var[2]  002C110E 
   6EC:  		ExecWait DoScareAway 
   6F8:  		Return
   700:  	Case  ==  .Event:BeginAirLift
   70C:  		SetConst  *Var[0]  00000001 
-  71C:  		SetConst  *Var[1]  002C041C 
+  71C:  		SetConst  *Var[1]  002C111C 
   72C:  		ExecWait DoAirLift 
   738:  	Case  ==  .Event:BlowAway
   744:  		SetConst  *Var[0]  00000001 
-  754:  		SetConst  *Var[1]  002C041C 
+  754:  		SetConst  *Var[1]  002C111C 
   764:  		ExecWait DoBlowAway 
   770:  		Return
   778:  	Default
@@ -400,11 +405,11 @@
    64:  		If  *Var[E]  &  00000004 
    74:  			ExecWait $Script_Defuse_B 
    80:  			SetConst  *Var[0]  00000001 
-   90:  			SetConst  *Var[1]  002C040E 
+   90:  			SetConst  *Var[1]  002C110E 
    A0:  			ExecWait DoNormalHit 
    AC:  		Else
    B4:  			SetConst  *Var[0]  00000001 
-   C4:  			SetConst  *Var[1]  002C040F 
+   C4:  			SetConst  *Var[1]  002C110F 
    D4:  			ExecWait DoNormalHit 
    E0:  		EndIf
    E8:  	Case  ==  .Event:Hit
@@ -413,27 +418,27 @@
   110:  			Case  &  00000004 
   11C:  				ExecWait $Script_Defuse_B 
   128:  				SetConst  *Var[0]  00000001 
-  138:  				SetConst  *Var[1]  002C040E 
+  138:  				SetConst  *Var[1]  002C110E 
   148:  				ExecWait DoNormalHit 
   154:  			Case  &  00000020 
   160:  				SetConst  *Var[0]  00000001 
-  170:  				SetConst  *Var[1]  002C0410 
+  170:  				SetConst  *Var[1]  002C1110 
   180:  				ExecWait DoNormalHit 
   18C:  				%ExecWait $Script_Explode_B 
   198:  				SetConst  *Var[0]  00000001 
-  1A8:  				SetConst  *Var[1]  002C0411 
+  1A8:  				SetConst  *Var[1]  002C1111 
   1B8:  				Set  *Var[2]  FFFFCFC7 
   % 1C8:  				ExecWait DoDeath  nope
   1D4:  				Return
   1DC:  			Default
   1E4:  				SetConst  *Var[0]  00000001 
-  1F4:  				SetConst  *Var[1]  002C040F 
+  1F4:  				SetConst  *Var[1]  002C110F 
   204:  				ExecWait DoNormalHit 
   210:  				Call     GetLastDamage 	( .Actor:Self *Var[0] )
   224:  				If  *Var[0]  >  00000000 
   234:  					ExecWait $Script_Explode_B 
   240:  					SetConst  *Var[0]  00000001 
-  250:  					SetConst  *Var[1]  002C0411 
+  250:  					SetConst  *Var[1]  002C1111 
   260:  					Set  *Var[2]  FFFFCFC7 
   270:  					ExecWait DoDeath 
   27C:  					Return
@@ -448,12 +453,12 @@
 				If (*Var[B] > 0)
   2D0:  			ExecWait $Script_Explode_B 
   2DC:  			SetConst  *Var[0]  00000001 
-  2EC:  			SetConst  *Var[1]  002C0411 
+  2EC:  			SetConst  *Var[1]  002C1111 
   2FC:  			Set  *Var[2]  FFFFCFC7
   30C:  			ExecWait DoDeath  %no dying
 				Else
 					SetConst  *Var[0]  00000001 
-					SetConst  *Var[1]  002C0403 
+					SetConst  *Var[1]  002C1103 
 					ExecWait DoImmune 
 				EndIf
   318:  		Return
@@ -462,7 +467,7 @@
   334:  	CaseOR  ==  .Event:Immune
   340:  	CaseOR  ==  .Event:AirLiftFailed
   34C:  		SetConst  *Var[0]  00000001 
-  35C:  		SetConst  *Var[1]  002C0403 
+  35C:  		SetConst  *Var[1]  002C1103 
   36C:  		ExecWait DoImmune 
   378:  	EndCaseGroup
   380:  	Case  ==  .Event:Death
@@ -470,11 +475,11 @@
   39C:  		If  *Var[E]  &  00000004 
   3AC:  			ExecWait $Script_Defuse_B 
   3B8:  			SetConst  *Var[0]  00000001 
-  3C8:  			SetConst  *Var[1]  002C040E 
+  3C8:  			SetConst  *Var[1]  002C110E 
   3D8:  		Else
   3E0:  			ExecWait $Script_Explode_B 
   3EC:  			SetConst  *Var[0]  00000001 
-  3FC:  			SetConst  *Var[1]  002C0411 
+  3FC:  			SetConst  *Var[1]  002C1111 
   40C:  			Set  *Var[2]  FFFFCFC7 
   41C:  		EndIf
   424:  		ExecWait DoDeath 
@@ -483,39 +488,39 @@
   444:  	CaseOR  ==  .Event:ShockDeath
   450:  		ExecWait $Script_Explode_B 
   45C:  		SetConst  *Var[0]  00000001 
-  46C:  		SetConst  *Var[1]  002C0411 
+  46C:  		SetConst  *Var[1]  002C1111 
   47C:  		Set  *Var[2]  FFFFCFC7 
   48C:  		ExecWait DoDeath 
   498:  		Return
   4A0:  	EndCaseGroup
   4A8:  	Case  ==  .Event:RecoverStatus
   4B4:  		SetConst  *Var[0]  00000001 
-  4C4:  		SetConst  *Var[1]  002C0403 
+  4C4:  		SetConst  *Var[1]  002C1103 
   4D4:  		ExecWait DoRecover 
   4E0:  	Case  ==  .Event:ScareAway
   4EC:  		ExecWait $Script_8021AAE8_B 
   4F8:  		SetConst  *Var[0]  00000001 
-  508:  		SetConst  *Var[1]  002C0406 
-  518:  		SetConst  *Var[2]  002C040E 
+  508:  		SetConst  *Var[1]  002C1106 
+  518:  		SetConst  *Var[2]  002C110E 
   528:  		ExecWait DoScareAway 
   534:  		Return
   53C:  	Case  ==  .Event:BeginAirLift
   548:  		SetConst  *Var[0]  00000001 
-  558:  		SetConst  *Var[1]  002C041D 
+  558:  		SetConst  *Var[1]  002C111D 
   568:  		ExecWait DoAirLift 
   574:  	Case  ==  .Event:BlowAway
   580:  		Call     80269E80 ( *Var[0] )
   590:  		If  *Var[0]  ==  00000014 
   5A0:  			ExecWait $Script_Defuse_B 
   5AC:  			SetConst  *Var[0]  00000001 
-  5BC:  			SetConst  *Var[1]  002C041C 
+  5BC:  			SetConst  *Var[1]  002C111C 
   5CC:  		Else
   5D4:  			ChildThread
   5DC:  				Wait     00000064 
   5E8:  				ExecWait $Script_Explode_B 
   5F4:  			EndChildThread
   5FC:  			SetConst  *Var[0]  00000001 
-  60C:  			SetConst  *Var[1]  002C041D 
+  60C:  			SetConst  *Var[1]  002C111D 
   61C:  		EndIf
   624:  		ExecWait DoBlowAway 
   630:  		Return
@@ -537,18 +542,18 @@
    34:  Call     BattleCamTargetActor ( .Actor:Self )
    44:  Call     8024ECF8 ( FFFFFFFF 00000001 00000000 )
    5C:  Call     SetTargetActor ( .Actor:Self .Actor:Player )
-   70:  Call     SetAnimation 	( .Actor:Self 00000001 002C0406 )
+   70:  Call     SetAnimation 	( .Actor:Self 00000001 002C1106 )
    88:  Call     SetGoalToTarget 	( .Actor:Self )
    98:  Call     AddGoalPos 	( .Actor:Self 00000032 00000000 00000000 )
    B4:  Call     SetActorSpeed 	( .Actor:Self *Fixed[13.0] )
    C8:  Call     RunToGoal   	( .Actor:Self 00000000 .False )
-   E0:  Call     SetAnimation 	( .Actor:Self 00000001 002C0402 )
+   E0:  Call     SetAnimation 	( .Actor:Self 00000001 002C1102 )
    F8:  Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFF 00000000 )
   114:  Wait     00000001 
   120:  Call     SetActorDispOffset ( FFFFFF81 00000000 FFFFFFFE 00000000 )
   13C:  Wait     00000005 
   148:  Call     SetActorDispOffset ( FFFFFF81 00000000 00000000 00000000 )
-  164:  Call     SetAnimation 	( .Actor:Self 00000001 002C0406 )
+  164:  Call     SetAnimation 	( .Actor:Self 00000001 002C1106 )
   17C:  Call     EnemyTestTarget ( .Actor:Self *Var[0] 10000000 00000000 00000001 00000010 )	%non-contact because for some reason shock immunity is not zaptap immunity
   1A0:  Switch  *Var[0] 
   1AC:  	CaseOR  ==  00000006 
@@ -561,7 +566,7 @@
   220:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.1] ) 
   234:  		Call     SetGoalPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
   250:  		Call     JumpToGoal  	( .Actor:Self 0000000C 00000000 00000001 00000000 )
-  270:  		Call     SetAnimation 	( .Actor:Self 00000001 002C041C )
+  270:  		Call     SetAnimation 	( .Actor:Self 00000001 002C111C )
   288:  		Call     GetGoalPos  	( .Actor:Self *Var[0] *Var[1] *Var[2] )
   2A4:  		Sub  *Var[0]  00000014 
   2B4:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[3.0] )
@@ -582,11 +587,11 @@
   3FC:  		Call     UseBattleCamPreset 	( 00000002 )
   40C:  		Call     SetActorYaw 	( .Actor:Self 000000B4 )
   420:  		Call     AddActorDecoration 	( .Actor:Self 00000001 00000000 .Decoration:Sweat )
-  43C:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0406 )
+  43C:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1106 )
   454:  		Call     SetGoalToHome 	( .Actor:Self )
   464:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[17.0] )
   478:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
-  490:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0402 )
+  490:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1102 )
   4A8:  		Call     RemoveActorDecoration 	( .Actor:Self 00000001 00000000 )
   4C0:  		Call     SetActorYaw 	( .Actor:Self 00000000 )
   4D4:  		Return
@@ -596,7 +601,7 @@
   500:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[1.1005859] )
 				%Call     PlaySoundAtActor 	( .Actor:Self .Sound:Jump ) %there's probably a more correct sound for this
   514:  		Call     JumpToGoal  	( .Actor:Self 00000014 00000000 00000001 00000000 )
-  534:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0414 )
+  534:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1114 )
   54C:  		Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
   568:  		Call     8027D8E0 ( FFFFFF81 *Var[3] *Var[4] )
   580:  		Call     PlayEffect  	( ~FX:ShockVolume *Var[0] *Var[1] *Var[2] *Var[4] *Var[3] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
@@ -612,7 +617,7 @@
   64C:  Call     JumpToGoal  	( .Actor:Self 00000014 00000000 00000001 00000000 )
   66C:  Wait     00000002 
   678:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000000 00000000 00000000 10` 00000020 )
-  6A0:  Call     SetAnimation 	( .Actor:Self 00000001 002C0402 )
+  6A0:  Call     SetAnimation 	( .Actor:Self 00000001 002C1102 )
   6B8:  Switch  *Var[0] 
   6C4:  	CaseOR  ==  00000000 
   6D0:  	CaseOR  ==  00000002 
@@ -631,11 +636,11 @@
   7F0:  		Call     JumpToGoal  	( .Actor:Self 00000006 00000000 00000001 00000000 )
   810:  		Wait     00000004 
   81C:  		Call     YieldTurn   	( )
-  828:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0406 )
+  828:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1106 )
   840:  		Call     SetGoalToHome 	( .Actor:Self )
   850:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[17.0] )
   864:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
-  87C:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0402 )
+  87C:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1102 )
   894:  	EndCaseGroup
   89C:  EndSwitch
   8A4:  Return
@@ -657,14 +662,14 @@
    B0:  	Case  ==  00000005 
    BC:  		Set  *Var[A]  *Var[0] 
    CC:  		Call     SetTargetActor ( .Actor:Self .Actor:Player )
-   E0:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0407 )
+   E0:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1107 )
    F8:  		Call     SetGoalToTarget 	( .Actor:Self )
   108:  		Call     AddGoalPos 	( .Actor:Self 00000050 00000000 00000000 )
   124:  		Call     SetActorSpeed 	( .Actor:Self *Fixed[11.0] )
   138:  		Call     RunToGoal   	( .Actor:Self 00000000 .False )
   150:  		Call     SetActorRotationOffset 	( .Actor:Self FFFFFFFF 0000000E 00000000 )
   16C:  		Call     SetActorRotation 	( .Actor:Self 00000000 00000000 0000005A )
-  188:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0407 )
+  188:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1107 )
   1A0:  		Call     SetActorJumpGravity 	( .Actor:Self *Fixed[3.0] )
   1B4:  		Call     GetActorPos 	( .Actor:Self *Var[0] *Var[1] *Var[2] )
   1D0:  		Sub  *Var[0]  0000001E 
@@ -672,7 +677,7 @@
   1FC:  		Call     JumpToGoal  	( .Actor:Self 00000005 00000000 00000001 00000000 )
   21C:  		Call     UseBattleCamPreset 	( 00000002 )
   22C:  		ExecWait $Script_Explode_B 
-  238:  		Call     SetAnimation 	( .Actor:Self 00000001 002C0411 )
+  238:  		Call     SetAnimation 	( .Actor:Self 00000001 002C1111 )
   250:  		Wait     0000000A 
   25C:  		If  *Var[A]  ==  00000005 
   26C:  			Call     EnemyTestTarget ( .Actor:Self *Var[0] 80000000 00000000 00000000 00000000 )
@@ -689,22 +694,22 @@
   328:  EndSwitch
 		Label	 0000000F
   330:  Call     SetTargetActor ( .Actor:Self .Actor:Player )
-  344:  Call     SetAnimation 	( .Actor:Self 00000001 002C0407 )
+  344:  Call     SetAnimation 	( .Actor:Self 00000001 002C1107 )
   35C:  Call     SetGoalToTarget 	( .Actor:Self )
   36C:  Call     AddGoalPos 	( .Actor:Self 0000000A 00000000 00000000 )
   388:  Call     SetActorSpeed 	( .Actor:Self *Fixed[11.0] )
   39C:  Call     RunToGoal   	( .Actor:Self 00000000 .False )
-  3B4:  Call     SetAnimation 	( .Actor:Self 00000001 002C0414 )
+  3B4:  Call     SetAnimation 	( .Actor:Self 00000001 002C1114 )
   3CC:  Wait     0000000F 
   3D8:  Set  *Var[A]  00000001 
   3E8:  ExecWait $Script_Explode_B 
-  3F4:  Call     SetAnimation 	( .Actor:Self 00000001 002C0411 )
+  3F4:  Call     SetAnimation 	( .Actor:Self 00000001 002C1111 )
   40C:  Wait     00000002 
   418:  Call     EnemyDamageTarget 	( .Actor:Self *Var[0] 10000200 00000000 00000000 24` 00000020 )
   440:  Call     UseBattleCamPreset 	( 00000002 )
   450:  Wait     0000000F 
   45C:  SetConst  *Var[0]  00000001 
-  46C:  SetConst  *Var[1]  002C0411 
+  46C:  SetConst  *Var[1]  002C1111 
   47C:  Set  *Var[2]  FFFFCFC7 
   48C:  ExecWait DoDeath 
   498:  Return

@@ -1,0 +1,271 @@
+%More ultra-strong enemies
+%Instead of the five Anti Guys, let's surprise the players with a fight against Bonetail from Black Pit
+
+#import Bonetail.bpat
+#import DarkSword.bpat
+#import BowerTrueGod.bpat
+
+#new:StageTable $StageTable
+{
+0 $Stage_Temple
+0 $Stage_InsideBasic
+0 $Stage_InsidePlatforms
+0 $Stage_InsidePillars
+0 $Stage_FinalBoss
+0 $Stage_FinalBoss2
+00000000 00000000 
+}
+
+#new:Stage $Stage_Temple
+{
+"kpa_tex"
+"tem_b01_shape"
+"tem_b01_hit"
+$Script_BeforeBattle_Temple
+$Script_AfterBattle_Temple
+"cav_bg"
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_InsideBasic
+{
+"kpa_tex"
+"tem_b02_shape"
+"tem_b02_hit"
+$Script_BeforeBattle_Pit
+$Script_AfterBattle_Pit
+00000000 
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_InsideSwitches
+{
+"kpa_tex"
+"tem_b04_shape"
+"tem_b04_hit"
+$Script_BeforeBattle_Pit
+$Script_AfterBattle_Pit
+00000000 
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_InsidePillars
+{
+"kpa_tex"
+"tem_b05_shape"
+"tem_b05_hit"
+$Script_BeforeBattle_Pit
+$Script_AfterBattle_Pit
+00000000 
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_InsidePlatforms
+{
+"kpa_tex"
+"tem_b06_shape"
+"tem_b06_hit"
+$Script_BeforeBattle_Pit
+$Script_AfterBattle_Pit
+00000000 
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_FinalBoss
+{
+"kpa_tex"
+"tem_b08_shape"
+"tem_b08_hit"
+$Script_BeforeBattle_Normal
+$Script_AfterBattle_Pit
+"cav_bg"
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+#new:Stage $Stage_FinalBoss2
+{
+"kpa_tex"
+"tem_b09_shape"
+"tem_b09_hit"
+$Script_BeforeBattle_Normal
+$Script_AfterBattle_Pit
+"cav_bg"
+00000000 
+00000000 
+00000000 
+00000000 
+}
+
+
+#new:Vector3D $FinalBowerPos
+{
+	240` -128` -10`
+}
+
+#new:Vector3D $Main_Body
+{
+	84` 30` 0
+}
+
+%pit does not remove SE because that would make it worse
+#new:Script $Script_BeforeBattle_Pit
+{
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_Pit
+{
+	Return
+	End
+}
+
+#new:Script $Script_BeforeBattle_Temple
+{
+	Return
+	End
+}
+
+#new:Script $Script_AfterBattle_Temple
+{
+	Return
+	End
+}
+
+
+
+#new:Formation $Formation_00
+{
+$Bonetail $Main_Body 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Formation_01
+{
+$DarkSword 2` 0000000A 00000000 00000000 00000000 00000000 
+}
+
+#new:Formation $Formation_02
+{
+$BowerTrueGod $FinalBowerPos 0000000A 00000000 00000000 00000000 00000000 
+}
+
+
+#new:FormationTable $FormationTable %I made the pit before the rest of the temple :P, so the formations are first
+{
+00000000 00000001 $Formation_00 $Stage_Temple 00000000
+00000000 00000001 $Formation_01 $Stage_FinalBoss 00000000
+00000000 00000001 $Formation_02 $Stage_FinalBoss2 00000000
+00000000 00000000 00000000 00000000 00000000 % unused
+}
+
+
+%Final bowser effects, but I'll change the colors of the lightning
+
+%Background lightning color changing
+#new:Function $Function_8021D290
+{
+    0:  LW			A0, C0 (A0)
+    4:  LW			V1, C (A0)
+    8:  ADDIU		V0, R0, 20
+    C:  SW			V0, 30 (V1)
+   10:  LW			V1, C (A0)
+   14:  ADDIU		V0, R0, 20
+   18:  SW			V0, 34 (V1)
+   1C:  LW			V0, C (A0)
+   20:  ADDIU		V1, R0, 50
+   24:  SW			V1, 38 (V0)
+   28:  LW			V0, C (A0)
+   20:  ADDIU		V1, R0, 40
+   2C:  SW			V1, 40 (V0)
+   30:  LW			V1, C (A0)
+   34:  ADDIU		V0, R0, 40
+   38:  SW			V0, 44 (V1)
+   3C:  LW			V1, C (A0)
+   40:  ADDIU		V0, R0, B0
+   44:  SW			V0, 48 (V1)
+   48:  JR			RA
+   4C:  ADDIU		V0, R0, 2
+}
+
+#new:IntTable $IntTable_80234310
+{
+	FFFFFFEA 000000BE FFFFFFA5 FFFFFFA8 00000015 FFFFFFA5 0000003C FFFFFFFF
+	000000BE FFFFFFA5 00000058 00000018 FFFFFFA5 0000000A FFFFFFBD 000000BE
+	FFFFFFA5 FFFFFF86 0000000A FFFFFFA5 0000005A 00000039 000000BE FFFFFFA5
+	FFFFFFFC 00000011 FFFFFFA5 0000003C
+}
+
+#new:Script $Script_80234380
+{
+    0:  Label  0
+    C:  UseIntBuffer  $IntTable_80234310
+   18:  Loop  00000004
+   24:  	Get3Int  *Var0 *Var1 *Var2
+   38:  	Get3Int  *Var3 *Var4 *Var5
+   4C:  	Call  PlayEffect    ( ~FX:Lightning *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 00000001 00000008 00000000 00000000 00000000 00000000 )
+   90:  	Call  $Function_8021D290 ( )
+   9C:  	Get1Int  *Var0
+   A8:  	Wait  *Var0
+   B4:  EndLoop
+   BC:  Goto  0
+   C8:  Return
+   D0:  End
+}
+
+#new:IntTable $IntTable_80234458
+{
+	FFFFFF87 00000021 FFFFFF98 FFFFFFE8 00000029 FFFFFF98 00000005 00000024
+	00000029 FFFFFF98 00000080 00000022 FFFFFF98 0000001E 00000092 00000001
+	00000071 00000026 FFFFFFF1 00000079 00000005 FFFFFFBE FFFFFFF6 00000073
+	FFFFFF65 00000001 00000061 0000005A
+}
+
+#new:Script $Script_802344C8
+{
+    0:  Label  0
+    C:  UseIntBuffer  $IntTable_80234458
+   18:  Loop  00000004
+   24:  	Get3Int  *Var0 *Var1 *Var2
+   38:  	Get3Int  *Var3 *Var4 *Var5
+   4C:  	Call  PlayEffect    ( ~FX:Lightning *Var0 *Var1 *Var2 *Var3 *Var4 *Var5 00000001 00000005 00000000 00000000 00000000 00000000 )
+   90:  	Call  $Function_8021D290 ( )
+   9C:  	Get1Int  *Var0
+   A8:  	Wait  *Var0
+   B4:  EndLoop
+   BC:  Goto  0
+   C8:  Return
+   D0:  End
+}
+
+#new:Script $Script_BeforeBattle_Normal
+{
+    0:  Call  SetSpriteShading  ( FFFFFFFF )
+   10:  Exec  $Script_80234380
+   1C:  Exec  $Script_802344C8
+   28:  Return
+   30:  End
+}
+
+#new:Script $Script_AfterBattle_Normal
+{
+    0:  Return
+    8:  End
+}

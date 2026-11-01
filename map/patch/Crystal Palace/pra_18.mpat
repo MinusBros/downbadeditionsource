@@ -1,4 +1,13 @@
+#define .NpcID:WorldClubba_00       00
+#define .NpcID:WorldClubba_01       01
+#define .NpcID:WorldClubba_02       02
+#define .NpcID:WorldClubba_03       03
+#define .NpcID:WorldClubba_04       04
+#define .NpcID:WorldClubba_05       05
+
 #import AutoSave.mpat
+
+%Clubba room that is kinda buggy, so I redid their scripts and made them disappear in funny ways
 
 @	$Script_Main
 {
@@ -32,6 +41,7 @@
   1F0:  EndIf
   1F8:  Exec  $Script_802415C4
   204:  Wait  1`
+		Call $SetFlagCarryOverworldMusicToBattle() 
 		Exec  $AutoSave
   210:  Return
   218:  End
@@ -64,7 +74,6 @@
    34:  End
 }
 
-
 @	$Script_Idle_80241A74
 {
     0:  Loop
@@ -79,19 +88,25 @@
    94:  		BreakLoop
    9C:  	EndIf
    A4:  EndLoop
+		If  *ClubbaBattlesWonByte > 0`
+			Exec $Script_Defeat_80242014
+			Return
+		EndIf
    AC:  If  *Var0  !=  00000002
    BC:  	Call  DisablePlayerInput    ( .True )
    CC:  	Call  SpeakToPlayer ( .Npc:Self 00390105 00390102 00000000 00120150 ) % Who're you? The great and honorable Crystal King s ...
    EC:  	Call  DisablePlayerInput    ( .False )
    FC:  EndIf
-		Call $SetFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000002 00000008 )
-  104:  Call  StartBossBattle   ( .Song:SpecialBattle )
+		Wait  1`
+  118:  Call  StartBossBattle   ( .Song:SpecialBattle )
+		Wait  1`
+		Exec $Script_Defeat_80242014
   114:  Return
   11C:  End
 }
 
-@	$Script_Idle_80241B98
+@ $Script_Idle_80241B98
 {
     0:  Loop
     C:  	Wait  1`
@@ -105,20 +120,25 @@
    94:  		BreakLoop
    9C:  	EndIf
    A4:  EndLoop
+		If  *ClubbaBattlesWonByte > 1`
+			Exec $Script_Defeat_80242140
+			Return
+		EndIf
    AC:  If  *Var0  !=  00000002
    BC:  	Call  DisablePlayerInput    ( .True )
    CC:  	Call  SpeakToPlayer ( .Npc:Self 00390105 00390102 00000000 00120151 ) % I won't let you! I won't and I won't and I won't!  ...
    EC:  	Call  DisablePlayerInput    ( .False )
    FC:  EndIf
-		Call $SetFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000002 00000008 )
-  104:  Call  StartBossBattle   ( .Song:SpecialBattle )
+		Wait  1`
+  118:  Call  StartBossBattle   ( .Song:SpecialBattle )
+		Wait  1`
+		Exec $Script_Defeat_80242140
   114:  Return
   11C:  End
 }
 
-
-@	$Script_Idle_80241CBC
+@ $Script_Idle_80241CBC
 {
     0:  Loop
     C:  	Wait  1`
@@ -132,25 +152,36 @@
    94:  		BreakLoop
    9C:  	EndIf
    A4:  EndLoop
+		If  *ClubbaBattlesWonByte > 2`
+			Exec $Script_Defeat_8024226C
+			Return
+		EndIf
    AC:  Call  GetSelfVar    ( 00000000 *Var0 )
    C0:  If  *Var0  !=  00000002
    D0:  	Call  DisablePlayerInput    ( .True )
    E0:  	Call  SpeakToPlayer ( .Npc:Self 00390105 00390102 00000000 00120152 ) % Hey, didn't you hear me? I said I'm not budging, y ...
   100:  	Call  DisablePlayerInput    ( .False )
   110:  EndIf
-		Call $SetFlagCarryOverworldMusicToBattle()
 		Call  SetMusicTrack ( 00000000 .Song:RuinsBasement 00000002 00000008 )
+		Wait  1`
   118:  Call  StartBossBattle   ( .Song:SpecialBattle )
+		Wait  1`
+		Exec  $Script_Defeat_8024226C
   128:  Return
   130:  End
 }
 
 @	$Script_Defeat_80242014
 {
-		Exec $Script_80240F90
+		Call  DisablePlayerInput    ( .True )
+		Call  SetMusicTrack ( 00000000 .Song:Elite4 00000000 00000008 )
+		Call  SpeakToPlayer ( .NpcID:WorldClubba_00 00390105 00390102 00000000 00120233 )	%Oops I better go.
+		Call  PlaySound ( DC )
+		Call  NpcFlyTo  ( .NpcID:WorldClubba_00 268` 300` 77`  28`  0` .Easing:Linear )
+		Call  SetNpcPos ( .NpcID:WorldClubba_00 -1000` -1000` -1000` )
+		Call  DisablePlayerInput    ( .False )
     0:  Thread
-    8:  	Call  DisablePlayerInput    ( .True )
-   18:  	Wait  50`
+			Set   *GB_PRA18_ClubbasDefeated  00000001
    24:  	Loop  0000000A
    30:  		Wait  2`
    3C:  		Call  SetGroupEnabled   ( ~Model:g297 00000001 )
@@ -158,8 +189,6 @@
    5C:  		Call  SetGroupEnabled   ( ~Model:g297 00000000 )
    70:  	EndLoop
    78:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1176 7FFFFE00 )
-   90:  	Set   *GB_PRA18_ClubbasDefeated  00000001
-   A0:  	Call  DisablePlayerInput    ( .False )
    B0:  EndThread
    B8:  Thread
    C0:  	Wait  30`
@@ -168,18 +197,20 @@
    EC:  	Set   *VarC  FFFFFFB5
    FC:  	Exec  $Script_80241DF4
   108:  EndThread
-		Call $ClearFlagCarryOverworldMusicToBattle()
-  110:  Call  DoNpcDefeat ( )
   11C:  Return
   124:  End
 }
 
 @	$Script_Defeat_80242140
 {
-		Exec $Script_80240F90
+		Call  DisablePlayerInput    ( .True )
+		Call  SetMusicTrack ( 00000000 .Song:Elite4 00000000 00000008 )
+		Call  SpeakToPlayer ( .NpcID:WorldClubba_01 00390105 00390102 00000000 00120233 )	%Oops I better go.
+		Call  SetNpcPos ( .NpcID:WorldClubba_01 -1000` -1000` -1000` )
+		Call  PlaySound ( 323 )
+		Call  DisablePlayerInput    ( .False )
     0:  Thread
-    8:  	Call  DisablePlayerInput    ( .True )
-   18:  	Wait  50`
+			Set   *GB_PRA18_ClubbasDefeated  00000002
    24:  	Loop  0000000A
    30:  		Wait  2`
    3C:  		Call  SetGroupEnabled   ( ~Model:g296 00000001 )
@@ -187,8 +218,6 @@
    5C:  		Call  SetGroupEnabled   ( ~Model:g296 00000000 )
    70:  	EndLoop
    78:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1175 7FFFFE00 )
-   90:  	Set   *GB_PRA18_ClubbasDefeated  00000002
-   A0:  	Call  DisablePlayerInput    ( .False )
    B0:  EndThread
    B8:  Thread
    C0:  	Wait  30`
@@ -197,29 +226,30 @@
    EC:  	Set   *VarC  FFFFFFB5
    FC:  	Exec  $Script_80241DF4
   108:  EndThread
-		Call $ClearFlagCarryOverworldMusicToBattle()
-  110:  Call  DoNpcDefeat ( )
   11C:  Return
   124:  End
 }
 
-@	$Script_Defeat_8024226C
+@ $Script_Defeat_8024226C
 {
+		Call  DisablePlayerInput    ( .True )
+		Call  SetMusicTrack ( 00000000 .Song:CrystalPalace 00000000 00000008 )
+		Call  SpeakToPlayer ( .NpcID:WorldClubba_02 00390105 00390102 00000000 00120233 )	%Oops I better go.
+		Call  PlaySound ( 174 )
+		Call  SetNpcFlagBits    ( .NpcID:WorldClubba_02 00000100 .True )
+		Call  NpcMoveTo     ( .NpcID:WorldClubba_02 1000` 77`  30` )
+		Call  DisablePlayerInput    ( .False )
     0:  Thread
-    8:  	Call  DisablePlayerInput    ( .True )
-   18:  	Wait  50`
+   90:  	Bind  $Script_802413C0 .Trigger:WallPressA ~Collider:deilittne 00000001 00000000
+   AC:  	Set   *GB_StoryProgress  .Story:Ch7_DefeatedClubbas	
    24:  	Loop  0000000A
    30:  		Wait  2`
    3C:  		Call  SetGroupEnabled   ( ~Model:g298 00000001 )
    50:  		Wait  2`
    5C:  		Call  SetGroupEnabled   ( ~Model:g298 00000000 )
-   70:  	EndLoop
+   70:  	EndLoop		
+			Call  802D5FA4  ( 00000006 )
    78:  	Call  ModifyColliderFlags   ( 00000000 ~Collider:o1174 7FFFFE00 )
-   90:  	Bind  $Script_802413C0 .Trigger:WallPressA ~Collider:deilittne 00000001 00000000
-			Set   *GB_StoryProgress  .Story:Ch7_DefeatedClubbas
-			Exec  $Script_80240F90
-			Call $ClearFlagCarryOverworldMusicToBattle()
-   BC:  	Call  DisablePlayerInput    ( .False )
    CC:  EndThread
    D4:  Thread
    DC:  	Wait  30`
@@ -228,12 +258,266 @@
   108:  	Set   *VarC  FFFFFFB5
   118:  	Exec  $Script_80241DF4
   124:  EndThread
-  12C:  Call  DoNpcDefeat ( )
   138:  Return
   140:  End
 }
 
+@	$NpcSettings_80241940
+{
+	00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+	00000000 00000000 00630000
+}
 
+
+#new:Script $Script_Defeat_Generic
+{
+	Call  GetBattleOutcome  ( *Var0 )
+	Switch  *Var0
+		Case  ==  .Outcome:PlayerWon % 0
+		Case  ==  .Outcome:PlayerLost
+			Call $ClearFlagCarryOverworldMusicToBattle()
+			%Call  802C022C  ( 1` )	%Put player at 1 HP
+			Call  GotoMap   ( "pra_16" 1 ) % pra_16			
+			Wait  100`
+			Return
+	EndSwitch
+	Return
+	End
+}
+
+@	$Script_Init_802423B4
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+   30:  If  *GB_PRA18_ClubbasDefeated  >=  00000001
+   40:  	Call  RemoveNpc ( .Npc:Self )
+   50:  	Return
+   58:  EndIf
+   60:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_8024196C )
+   74:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241A74 )
+   9C:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_802419D8 )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_Generic )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   B0:  Call  SetNpcFlagBits    ( .Npc:Self 10000000 .True )
+   C8:  Return
+   D0:  End
+}
+
+@ $Script_Init_8024248C
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+   30:  If  *GB_PRA18_ClubbasDefeated  >=  00000002
+   40:  	Call  RemoveNpc ( .Npc:Self )
+   50:  	Return
+   58:  EndIf
+   60:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_80241990 )
+   74:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241B98 )
+   9C:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_802419FC )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_Generic )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   B0:  Call  SetNpcFlagBits    ( .Npc:Self 10000000 .True )
+   C8:  Return
+   D0:  End
+}
+
+@ $Script_Init_80242564
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+   30:  Call  BindNpcInteract   ( .Npc:Self $Script_Interact_802419B4 )
+   44:  Call  BindNpcIdle       ( .Npc:Self $Script_Idle_80241CBC )
+   6C:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_80241A20 )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_Generic )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   80:  Call  SetNpcFlagBits    ( .Npc:Self 10000000 .True )
+   98:  Return
+   A0:  End
+}
+
+@ $Script_Init_8024260C
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+   30:  If  *GB_PRA18_ClubbasDefeated  >=  00000001
+   40:  	Call  RemoveNpc ( .Npc:Self )
+   50:  	Return
+   58:  EndIf
+		Call  SetNpcPos ( .Npc:Self -1000` *Var2 *Var3 )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   60:  Call  SetNpcFlagBits    ( .Npc:Self 10000000 .True )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_Generic )
+   78:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_80241A44 )
+   8C:  Return
+   94:  End
+}
+
+@ $Script_Init_802426A8
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+   30:  If  *GB_PRA18_ClubbasDefeated  >=  00000002
+   40:  	Call  RemoveNpc ( .Npc:Self )
+   50:  	Return
+   58:  EndIf
+		Call  SetNpcPos ( .Npc:Self -1000` *Var2 *Var3 )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   60:  Call  SetNpcFlagBits    ( .Npc:Self 10000000 .True )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_Generic )
+   78:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_80241A54 )
+   8C:  Return
+   94:  End
+}
+
+@ $Script_Init_80242744
+{
+    0:  If  *GB_StoryProgress  >=  .Story:Ch7_DefeatedClubbas % 51
+   10:  	Call  RemoveNpc ( .Npc:Self )
+   20:  	Return
+   28:  EndIf
+		Call  SetNpcPos ( .Npc:Self -1000` *Var2 *Var3 )
+		Call  SetNpcFlagBits    ( .Npc:Self 00000200 .True )
+   30:  Call  SetNpcFlagBits    ( .Npc:Self 10000000 .True )
+		Call  BindNpcDefeat ( .Npc:Self $Script_Defeat_Generic )
+   48:  Call  BindNpcHit        ( .Npc:Self $Script_Hit_80241A64 )
+   5C:  Return
+   64:  End
+}
+
+@	$Script_802412DC
+{
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Set   *Var0  00000000
+   2C:  Set   *Var1  0000001B
+   3C:  If  *GF_PRA_BrokeIllusion  ==  .False
+   4C:  	Set   *Var2  $???_802412AC
+   5C:  	Set   *Var3  $???_802412B8
+   6C:  Else
+   74:  	Set   *Var2  $???_8024128C
+   84:  	Set   *Var3  $???_80241294
+   94:  EndIf
+   9C:  Exec  BaseExitDoor
+		Call $ClearFlagCarryOverworldMusicToBattle()
+   A8:  Wait  12`
+   B4:  Call  GotoMap   ( $ASCII_80243380 00000001 ) % pra_16
+   C8:  Wait  100`
+   D4:  Return
+   DC:  End
+}
+
+@ $Script_802413C0
+{
+    0:  SetGroup  0000001B
+    C:  Call  DisablePlayerInput    ( .True )
+   1C:  Set   *Var0  00000001
+   2C:  Set   *Var1  00000023
+   3C:  Set   *Var2  $???_802412C4
+   4C:  Set   *Var3  $???_802412D0
+   5C:  Exec  BaseExitDoor
+		Call $ClearFlagCarryOverworldMusicToBattle()
+   68:  Wait  12`
+   74:  Call  GotoMap   ( $ASCII_80243388 00000001 ) % pra_33
+   88:  Wait  100`
+   94:  Return
+   9C:  End
+}
+
+@	$Script_80241DF4
+{
+    C:  Loop  00000003
+   18:  	Set   *Var0  *VarA
+   28:  	Set   *Var1  *VarB
+   38:  	Set   *Var2  *VarC
+   48:  	Call  RandInt       ( 00000032 *Var3 )
+   5C:  	Call  RandInt       ( 00000032 *Var4 )
+   70:  	Add   *Var0  FFFFFFF1
+   80:  	Add   *Var0  *Var3
+   90:  	Add   *Var1  *Var4
+   A0:  	Call  PlayEffect    ( ~FX:Firework:White *Var0 *Var1 *Var2 *Fixed[0.8] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+   E4:  	Call  PlaySoundAt   ( B0000018 00000000 *Var0 *Var1 *Var2 )
+  104:  	Wait  2`
+  110:  	Set   *Var0  *VarA
+  120:  	Set   *Var1  *VarB
+  130:  	Set   *Var2  *VarC
+  140:  	Call  RandInt       ( 00000032 *Var3 )
+  154:  	Call  RandInt       ( 00000032 *Var4 )
+  168:  	Add   *Var0  FFFFFFF1
+  178:  	Add   *Var0  *Var3
+  188:  	Add   *Var1  *Var4
+  198:  	Call  PlayEffect    ( ~FX:Firework:White *Var0 *Var1 *Var2 *Fixed[0.8] 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 )
+  1DC:  	Call  PlaySoundAt   ( B0000018 00000000 *Var0 *Var1 *Var2 )
+  1FC:  	Wait  8`
+  208:  EndLoop
+  210:  Return
+  218:  End
+}
+
+
+
+@	$NpcGroup_802427B0
+{
+	.NpcID:WorldClubba_00 $NpcSettings_80241940 ~Vec3f:NPC_WorldClubba_00 % 268 0 70
+	00500D05 $Script_Init_802423B4 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldClubba_00
+	~AnimationTable:NPC_WorldClubba_00 % .Sprite:WorldClubba
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_802427B0[1F0]
+	.NpcID:WorldClubba_03 $NpcSettings_80241940 ~Vec3f:NPC_WorldClubba_03 % 268 0 70
+	00404D05 $Script_Init_8024260C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldClubba_03
+	~AnimationTable:NPC_WorldClubba_03 % .Sprite:WorldClubba
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+@ $NpcGroup_80242B90
+{
+	.NpcID:WorldClubba_01 $NpcSettings_80241940 ~Vec3f:NPC_WorldClubba_01 % 490 0 70
+	00500D05 $Script_Init_8024248C 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldClubba_01
+	~AnimationTable:NPC_WorldClubba_01 % .Sprite:WorldClubba
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80242B90[1F0]
+	.NpcID:WorldClubba_04 $NpcSettings_80241940 ~Vec3f:NPC_WorldClubba_04 % 490 0 70
+	00404D05 $Script_Init_802426A8 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldClubba_04
+	~AnimationTable:NPC_WorldClubba_04 % .Sprite:WorldClubba
+	00000000 00000000 00000000 00000000 % no tattle string
+}
+
+@ $NpcGroup_80242F70
+{
+	.NpcID:WorldClubba_02 $NpcSettings_80241940 ~Vec3f:NPC_WorldClubba_02 % 717 0 70
+	00500D05 $Script_Init_80242564 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldClubba_02
+	~AnimationTable:NPC_WorldClubba_02 % .Sprite:WorldClubba
+	00000000 00000000 00000000 00000000 % no tattle string
+	%
+	% $NpcGroup_80242F70[1F0]
+	.NpcID:WorldClubba_05 $NpcSettings_80241940 ~Vec3f:NPC_WorldClubba_05 % 717 0 70
+	00404D05 $Script_Init_80242744 00000000 00000000 0000010E
+	~NoDrops
+	~Movement:NPC_WorldClubba_05
+	~AnimationTable:NPC_WorldClubba_05 % .Sprite:WorldClubba
+	00000000 00000000 00000000 00000000 % no tattle string
+}
 
 
 #new:Script $Script_TexturePan_Update
